@@ -1,0 +1,1294 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Đặt lịch trải nghiệm | Cham Spa & Massage Đà Nẵng{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* BỘ MÀU VÀ KHUNG GIAO DIỆN THEO CHUẨN FIGMA NODE 828:515 */
+    body {
+        background-color: #F4EFE3 !important;
+        font-family: 'Cabin', sans-serif;
+        color: #201A18;
+    }
+
+    .booking-wrapper {
+        max-width: 1360px;
+        margin: 0 auto;
+        padding: 30px 20px 80px;
+    }
+
+    /* Header thanh lịch */
+    .booking-header {
+        position: relative;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+    .booking-subtitle {
+        font-size: 11px;
+        letter-spacing: 2.5px;
+        color: #716761;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    .booking-title {
+        font-family: 'Lora', serif;
+        font-size: 34px;
+        font-weight: 700;
+        color: #781A24;
+        margin: 0;
+    }
+    .btn-close-booking {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #FFFFFF;
+        border: 1px solid #E5DEC9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #716761;
+        font-size: 18px;
+        text-decoration: none;
+        transition: all 0.25s ease;
+    }
+    .btn-close-booking:hover {
+        background: #781A24;
+        color: #FFFFFF;
+        border-color: #781A24;
+    }
+
+    /* Alert Banner */
+    .booking-alert-banner {
+        background: #FFFFFF;
+        border: 1px solid #E5DEC9;
+        border-radius: 12px;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    }
+    .booking-alert-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #EAF5EF;
+        color: #167455;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 16px;
+    }
+    .booking-alert-text {
+        font-size: 13.5px;
+        color: #554D48;
+        margin: 0;
+        line-height: 1.45;
+    }
+
+    /* Cards trong form */
+    .booking-section-card {
+        background: #FFFFFF;
+        border: 1px solid #E8E2D2;
+        border-radius: 16px;
+        padding: 26px 28px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 16px rgba(120, 26, 36, 0.03);
+    }
+    .section-header-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: 'Lora', serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #201A18;
+        margin-bottom: 20px;
+    }
+    .section-badge-number {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #781A24;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-family: 'Cabin', sans-serif;
+        font-weight: 700;
+    }
+
+    /* Counter Controls */
+    .counter-box {
+        display: flex;
+        align-items: center;
+        background: #FAF7F0;
+        border: 1px solid #E5DEC9;
+        border-radius: 10px;
+        padding: 4px 8px;
+        width: fit-content;
+    }
+    .counter-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: #FFFFFF;
+        color: #781A24;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .counter-btn:hover:not(:disabled) {
+        background: #781A24;
+        color: #FFFFFF;
+    }
+    .counter-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+    .counter-value {
+        width: 44px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 15px;
+        color: #201A18;
+    }
+
+    /* Thẻ khách hàng chi tiết */
+    .guest-row-card {
+        background: #FAF7F0;
+        border: 1px solid #EDE6D6;
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin-top: 16px;
+        transition: all 0.25s;
+    }
+    .guest-row-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .guest-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 700;
+        font-size: 13.5px;
+        color: #781A24;
+    }
+
+    /* Toggle Lực Massage */
+    .pressure-group {
+        display: flex;
+        gap: 6px;
+    }
+    .pressure-btn {
+        padding: 6px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid #D5C9B3;
+        background: #FFFFFF;
+        color: #554D48;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .pressure-btn.active {
+        background: #781A24;
+        color: #FFFFFF;
+        border-color: #781A24;
+    }
+
+    /* Mini Calendar */
+    .calendar-container {
+        background: #FAF7F0;
+        border: 1px solid #EDE6D6;
+        border-radius: 14px;
+        padding: 18px;
+    }
+    .calendar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+    }
+    .calendar-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #201A18;
+    }
+    .calendar-nav-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 1px solid #D5C9B3;
+        background: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #554D48;
+    }
+    .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-weight: 700;
+        font-size: 12px;
+        color: #8C8078;
+        margin-bottom: 8px;
+    }
+    .calendar-days-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+    }
+    .cal-day-cell {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13.5px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.18s;
+        border: 1px solid transparent;
+        background: #FFFFFF;
+        color: #201A18;
+    }
+    .cal-day-cell:hover:not(.disabled) {
+        border-color: #781A24;
+        color: #781A24;
+    }
+    .cal-day-cell.selected {
+        background: #781A24 !important;
+        color: #FFFFFF !important;
+        font-weight: 700;
+    }
+    .cal-day-cell.disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        background: transparent;
+    }
+
+    /* Khung giờ Slot */
+    .slot-pill {
+        border: 1.5px solid #E5DEC9;
+        background: #FAF7F0;
+        border-radius: 12px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: 700;
+        color: #201A18;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+    .slot-pill:hover:not(.disabled) {
+        border-color: #781A24;
+        color: #781A24;
+    }
+    .slot-pill.active {
+        background: #781A24;
+        border-color: #781A24;
+        color: #FFFFFF;
+    }
+    .slot-pill.disabled {
+        opacity: 0.45;
+        background: #F1EFEA;
+        cursor: not-allowed;
+    }
+
+    /* Form Controls */
+    .cham-input {
+        background: #FAF7F0;
+        border: 1px solid #E5DEC9;
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 14px;
+        color: #201A18;
+        transition: border-color 0.2s;
+    }
+    .cham-input:focus {
+        background: #FFFFFF;
+        border-color: #781A24;
+        box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.1);
+        outline: none;
+    }
+
+    /* Cột Tóm tắt đặt lịch (Sticky Card) */
+    .summary-card {
+        background: #FFFFFF;
+        border: 1px solid #E8E2D2;
+        border-radius: 20px;
+        padding: 28px;
+        position: sticky;
+        top: 90px;
+        box-shadow: 0 10px 30px rgba(120, 26, 36, 0.05);
+    }
+    .summary-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    .summary-badge-ready {
+        background: #EAF5EF;
+        color: #167455;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .summary-banner-date {
+        background: #781A24;
+        border-radius: 14px;
+        padding: 16px 20px;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+    .date-badge-box {
+        background: #FFFFFF;
+        color: #781A24;
+        border-radius: 10px;
+        padding: 6px 14px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+    .date-badge-month {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    .date-badge-num {
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .guest-summary-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 14px;
+        background: #FAF7F0;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    .guest-summary-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #FFFFFF;
+        border: 1px solid #E5DEC9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        color: #781A24;
+        flex-shrink: 0;
+    }
+
+    .total-price-display {
+        font-family: 'Cabin', sans-serif;
+        font-size: 30px;
+        font-weight: 800;
+        color: #781A24;
+        letter-spacing: -0.5px;
+    }
+
+    .btn-confirm-booking {
+        background: #781A24;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 12px;
+        padding: 16px;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(120, 26, 36, 0.25);
+        transition: all 0.25s;
+    }
+    .btn-confirm-booking:hover {
+        background: #5d141c;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(120, 26, 36, 0.35);
+        color: #FFFFFF;
+    }
+
+    /* MODAL THANH TOÁN VIETQR (NODE 818:2) */
+    .vietqr-modal-content {
+        border-radius: 20px;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .vietqr-left-panel {
+        background: #781A24;
+        color: #FFFFFF;
+        padding: 36px 32px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .vietqr-right-panel {
+        background: #FFFFFF;
+        padding: 36px 32px;
+        text-align: center;
+    }
+    .qr-box-frame {
+        background: #FFFFFF;
+        border: 2px solid #E8E2D2;
+        border-radius: 16px;
+        padding: 16px;
+        display: inline-block;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    .qr-box-frame img {
+        max-width: 240px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
+    .pulse-dot {
+        width: 9px;
+        height: 9px;
+        background: #D0B581;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 rgba(208, 181, 129, 0.6);
+        animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(208, 181, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(208, 181, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(208, 181, 129, 0); }
+    }
+</style>
+{% endblock %}
+
+{% block layout %}
+<div class="booking-wrapper">
+    <!-- Header -->
+    <div class="booking-header">
+        <div class="booking-subtitle">RESERVE YOUR MOMENT OF PEACE</div>
+        <h1 class="booking-title">Đặt lịch trải nghiệm</h1>
+        <a href="{% url 'home' %}" class="btn-close-booking" title="Đóng màn hình">
+            <i class="bi bi-x-lg"></i>
+        </a>
+    </div>
+
+    <!-- Alert Banner thông báo sớm -->
+    <div class="booking-alert-banner">
+        <div class="booking-alert-icon">
+            <i class="bi bi-check2"></i>
+        </div>
+        <p class="booking-alert-text">
+            Cảm ơn quý khách đã tin chọn dịch vụ của Cham Spa & Massage. Đội ngũ tư vấn sẽ liên hệ trong thời gian sớm nhất để xác nhận lịch hẹn và chuẩn bị chu đáo nhất cho trải nghiệm của quý khách.
+        </p>
+    </div>
+
+    <!-- Main Layout: 2 Cột -->
+    <div class="row g-4">
+        <!-- Cột Trái: Biểu mẫu điền thông tin -->
+        <div class="col-lg-8">
+            <form id="bookingForm" onsubmit="event.preventDefault(); handleFormSubmit();">
+                <!-- ========================================== -->
+                <!-- 1. LỰA CHỌN SỐ LƯỢNG & DỊCH VỤ -->
+                <!-- ========================================== -->
+                <div class="booking-section-card">
+                    <div class="section-header-title">
+                        <span class="section-badge-number">1</span>
+                        <span>Lựa chọn Số lượng & Dịch vụ</span>
+                    </div>
+
+                    <!-- Chi nhánh Cham Spa -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-muted small mb-1">Chi nhánh Cham Spa</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 text-danger"><i class="bi bi-geo-alt-fill"></i></span>
+                            <select class="form-select cham-input border-start-0" id="branchSelect">
+                                <option value="Cham Spa - 05 Lê Quang Hoà, Đà Nẵng" selected>Cham Spa - 05 Lê Quang Hoà, Hoà Xuân, Cẩm Lệ, Đà Nẵng</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Bộ đếm: Tổng khách / Nam / Nữ -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted mb-1">
+                                <i class="bi bi-people-fill text-danger me-1"></i> Tổng khách*
+                            </label>
+                            <div class="counter-box">
+                                <button type="button" class="counter-btn" onclick="updateGuests('total', -1)"><i class="bi bi-dash"></i></button>
+                                <span class="counter-value" id="valTotalGuests">2</span>
+                                <button type="button" class="counter-btn" onclick="updateGuests('total', 1)"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted mb-1">
+                                <i class="bi bi-gender-male text-primary me-1"></i> Khách Nam
+                            </label>
+                            <div class="counter-box">
+                                <button type="button" class="counter-btn" onclick="updateGuests('male', -1)"><i class="bi bi-dash"></i></button>
+                                <span class="counter-value" id="valMaleGuests">1</span>
+                                <button type="button" class="counter-btn" onclick="updateGuests('male', 1)"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted mb-1">
+                                <i class="bi bi-gender-female text-danger me-1"></i> Khách Nữ
+                            </label>
+                            <div class="counter-box">
+                                <button type="button" class="counter-btn" onclick="updateGuests('female', -1)"><i class="bi bi-dash"></i></button>
+                                <span class="counter-value" id="valFemaleGuests">1</span>
+                                <button type="button" class="counter-btn" onclick="updateGuests('female', 1)"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Danh sách thẻ tùy chọn cho từng khách (Render bằng JS) -->
+                    <div id="guestDetailsContainer">
+                        <!-- Tự động sinh thẻ bằng JS -->
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- 2. CHỌN NGÀY & GIỜ TRẢI NGHIỆM -->
+                <!-- ========================================== -->
+                <div class="booking-section-card">
+                    <div class="section-header-title">
+                        <span class="section-badge-number">2</span>
+                        <span>Chọn ngày & Giờ trải nghiệm</span>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- Lịch ngày tương tác -->
+                        <div class="col-md-6">
+                            <div class="calendar-container">
+                                <div class="calendar-header">
+                                    <div class="calendar-title" id="calendarMonthTitle">Tháng 10, 2026</div>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="calendar-nav-btn" onclick="changeMonth(-1)"><i class="bi bi-chevron-left"></i></button>
+                                        <button type="button" class="calendar-nav-btn" onclick="changeMonth(1)"><i class="bi bi-chevron-right"></i></button>
+                                    </div>
+                                </div>
+                                <div class="calendar-weekdays">
+                                    <div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div>
+                                </div>
+                                <div class="calendar-days-grid" id="calendarDaysGrid">
+                                    <!-- Render ngày bằng JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Khung giờ còn trống -->
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <label class="form-label fw-bold small text-muted mb-0">
+                                    <i class="bi bi-clock-history me-1 text-danger"></i> Khung giờ còn trống
+                                </label>
+                                <span class="badge bg-success-subtle text-success small rounded-pill px-2 py-1">
+                                    <i class="bi bi-dot"></i> Còn chỗ
+                                </span>
+                            </div>
+                            <div class="row g-2" id="slotsGrid">
+                                {% for slot in time_slots %}
+                                <div class="col-6">
+                                    <div class="slot-pill {% if slot.slot == '14:00' %}active{% endif %}" onclick="selectTimeSlot('{{ slot.slot }}', this)">
+                                        <span class="slot-text">{{ slot.label }}</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- 3. THÔNG TIN LIÊN HỆ -->
+                <!-- ========================================== -->
+                <div class="booking-section-card">
+                    <div class="section-header-title">
+                        <span class="section-badge-number">3</span>
+                        <span>Thông tin liên hệ</span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted mb-1">Họ và tên*</label>
+                            <input type="text" class="form-control cham-input" id="inputCustomerName" value="{{ initial_user.name|default:'Thanh Thỏ' }}" placeholder="Nhập họ và tên" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted mb-1">Số điện thoại (+84)*</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 fw-semibold text-muted small">🇻🇳 +84</span>
+                                <input type="tel" class="form-control cham-input border-start-0" id="inputCustomerPhone" value="{{ initial_user.phone|default:'901234567' }}" placeholder="901 234 567" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted mb-1">Email</label>
+                            <input type="email" class="form-control cham-input" id="inputCustomerEmail" value="{{ initial_user.email|default:'thanhtho.nguyen@gmail.com' }}" placeholder="name@example.com">
+                        </div>
+                    </div>
+
+                    <!-- Voucher -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted mb-1">Mã ưu đãi (Voucher)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 text-danger"><i class="bi bi-ticket-perforated-fill"></i></span>
+                            <input type="text" class="form-control cham-input border-start-0 text-uppercase" id="inputVoucherCode" placeholder="Nhập mã ưu đãi (Ví dụ: CHARMSPA)" value="CHARMSPA">
+                            <button type="button" class="btn btn-dark px-4 fw-bold" style="background: #781A24; border-color: #781A24;" onclick="applyVoucher()">ÁP DỤNG</button>
+                        </div>
+                        <div id="voucherFeedback" class="small mt-1 text-success fw-semibold">
+                            <i class="bi bi-check-circle-fill me-1"></i> Mã CHARMSPA: Giảm 111.000 VNĐ cho đơn hàng.
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú cho spa -->
+                    <div>
+                        <label class="form-label fw-bold small text-muted mb-1">Ghi chú cho spa (không bắt buộc)</label>
+                        <textarea class="form-control cham-input" id="inputNote" rows="2" placeholder="Ưu tiên phòng yên tĩnh, yêu cầu KTV, tình trạng sức khoẻ...">Ưu tiên phòng yên tĩnh, yêu cầu KTV tay nghề cao...</textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Cột Phải: Sticky Card Tóm tắt đặt lịch -->
+        <div class="col-lg-4">
+            <div class="summary-card">
+                <div class="summary-header">
+                    <div>
+                        <h3 class="h5 fw-bold mb-1" style="font-family: 'Lora', serif; color: #201A18;">Tóm tắt đặt lịch</h3>
+                        <p class="small text-muted mb-0">Vui lòng kiểm tra thông tin</p>
+                    </div>
+                    <span class="summary-badge-ready">
+                        <i class="bi bi-dot"></i> SẴN SÀNG
+                    </span>
+                </div>
+
+                <!-- Banner Ngày Giờ -->
+                <div class="summary-banner-date">
+                    <div class="date-badge-box">
+                        <div class="date-badge-month" id="sumBadgeMonth">THG 10</div>
+                        <div class="date-badge-num" id="sumBadgeDay">16</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold fs-6" id="sumDateFull">Thứ Sáu, 16 tháng 10, 2026</div>
+                        <div class="opacity-75 small" id="sumTimeSlot">🕒 14:00</div>
+                    </div>
+                </div>
+
+                <!-- Khách trải nghiệm -->
+                <div class="mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="fw-bold small text-muted">Khách trải nghiệm</span>
+                        <span class="badge bg-light text-dark border small" id="sumGuestCounts">2 khách · 1 Nam · 1 Nữ</span>
+                    </div>
+                    <div id="sumGuestList">
+                        <!-- Tự động cập nhật bằng JS -->
+                    </div>
+                </div>
+
+                <!-- Chi nhánh & Người đặt -->
+                <div class="border-top pt-3 mb-3 small">
+                    <div class="d-flex align-items-center gap-2 mb-2 text-muted">
+                        <i class="bi bi-geo-alt text-danger"></i>
+                        <span>Chi nhánh: <strong class="text-dark">05 Lê Quang Hoà, Đà Nẵng</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-muted">
+                        <i class="bi bi-person text-danger"></i>
+                        <span>Người đặt lịch: <strong class="text-dark" id="sumBooker">Thanh Thỏ · +84 901 234 567</strong></span>
+                    </div>
+                </div>
+
+                <!-- Voucher & Tổng tiền -->
+                <div class="border-top pt-3 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2" id="sumVoucherRow">
+                        <span class="small text-muted">VOUCHER: <strong class="text-danger" id="sumVoucherCode">CHARMSPA</strong></span>
+                        <span class="small fw-bold text-success" id="sumVoucherDiscount">-111.000 VNĐ</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fw-bold small text-muted text-uppercase">Tổng tiền thanh toán</span>
+                        <div class="total-price-display" id="sumTotalPrice">1.110.000 VNĐ</div>
+                    </div>
+                </div>
+
+                <!-- Nút Xác nhận đặt lịch -->
+                <button type="button" class="btn btn-confirm-booking" id="btnConfirmSubmit" onclick="handleFormSubmit()">
+                    <span>XÁC NHẬN ĐẶT LỊCH</span>
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+
+                <div class="text-center mt-3 text-muted" style="font-size: 11.5px;">
+                    <i class="bi bi-shield-lock-fill text-success me-1"></i> Thông tin của quý khách được bảo mật tuyệt đối.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- MODAL THANH TOÁN VIETQR THEO CHUẨN FIGMA NODE 818:2 -->
+<!-- ============================================================== -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content vietqr-modal-content">
+            <div class="row g-0">
+                <!-- Cột Trái: Tóm tắt đơn hàng (Nền đỏ mận #781A24) -->
+                <div class="col-md-5 vietqr-left-panel">
+                    <div>
+                        <div class="small opacity-75 text-uppercase fw-bold mb-1">ĐƠN VỊ CUNG CẤP</div>
+                        <h5 class="fw-bold mb-3 fs-6">CHAM SPA & MASSAGE<br><small class="fw-normal opacity-75">Chi nhánh 05 Lê Quang Hoà, Đà Nẵng</small></h5>
+
+                        <div class="badge bg-white text-danger fw-bold px-3 py-2 rounded-pill mb-4" id="modalOrderCodeBadge">
+                            Mã đơn hàng #LH88392
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="small opacity-75 mb-1"><i class="bi bi-person me-1"></i> Khách hàng</div>
+                            <div class="fw-bold" id="modalCustomer">Thanh Thỏ (+84 901 234 567)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="small opacity-75 mb-1"><i class="bi bi-calendar3 me-1"></i> Thời gian</div>
+                            <div class="fw-bold" id="modalTime">14:00 - Thứ Sáu, 16/10/2026</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="small opacity-75 mb-1"><i class="bi bi-stars me-1"></i> Dịch vụ</div>
+                            <div class="small" id="modalServicesList">
+                                1x Massage Body (60 phút - Lực Vừa)<br>
+                                1x Massage Foot (60 phút - Lực Nhẹ)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-top border-white-50 pt-3 mt-4">
+                        <div class="small opacity-75 text-uppercase mb-1">TỔNG TIỀN THANH TOÁN</div>
+                        <div class="fs-3 fw-bold text-warning" id="modalTotalAmount">1.110.000 VNĐ</div>
+                        <button type="button" class="btn btn-link text-white-50 text-decoration-none small p-0 mt-3" data-bs-dismiss="modal">
+                            <i class="bi bi-arrow-left me-1"></i> Quay lại chỉnh sửa lịch hẹn
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cột Phải: Quét mã QR VietQR NAPAS -->
+                <div class="col-md-7 vietqr-right-panel">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="fw-bold text-danger fs-5" style="font-family: 'Lora', serif;">CHAM SPA</div>
+                        <div class="badge bg-light text-dark border px-2 py-1 small">
+                            THANH TOÁN BẢO MẬT QUA <span class="text-success fw-bold">VietQR</span>
+                        </div>
+                    </div>
+
+                    <h4 class="fw-bold mb-1" style="font-family: 'Lora', serif; color: #781A24;">Quét mã QR để thanh toán</h4>
+                    <p class="small text-muted mb-3">Sử dụng App Ngân hàng hoặc Ví điện tử hỗ trợ QR code để quét mã</p>
+
+                    <!-- Khung ảnh QR Code -->
+                    <div class="qr-box-frame mb-3">
+                        <img id="vietqrImg" src="https://img.vietqr.io/image/MB-0946020526-compact2.png?amount=1110000&addInfo=CHAMSPA%20LH88392&accountName=CHAM%20SPA%20MASSAGE" alt="VietQR Cham Spa">
+                    </div>
+
+                    <!-- Trạng thái chờ -->
+                    <div class="d-flex align-items-center justify-content-center gap-2 small text-muted mb-4">
+                        <span class="pulse-dot"></span>
+                        <span id="qrStatusText">⏳ Đang chờ bạn quét mã thanh toán...</span>
+                    </div>
+
+                    <!-- Nút xác nhận thanh toán -->
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-success fw-bold py-2" id="btnPaidConfirm" onclick="confirmPaymentSuccess()">
+                            <i class="bi bi-check-circle-fill me-1"></i> Tôi đã hoàn tất thanh toán
+                        </button>
+                    </div>
+
+                    <div class="mt-3 text-muted" style="font-size: 11.5px;">
+                        <i class="bi bi-lock-fill text-muted me-1"></i> Thông tin giao dịch được mã hoá và bảo mật 100%.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Dữ liệu dịch vụ từ Django
+    const SERVICES_DATA = [
+        {% for s in services %}
+        {
+            id: {{ s.id }},
+            name: "{{ s.name|escapejs }}",
+            price: {{ s.price_vnd|default:650000 }},
+            duration: {{ s.duration_minutes|default:60 }}
+        },
+        {% endfor %}
+    ];
+
+    // State quản lý lịch hẹn
+    const initialToday = new Date({{ today.year }}, {{ today.month }} - 1, {{ today.day }});
+    let bookingState = {
+        totalGuests: 2,
+        maleGuests: 1,
+        femaleGuests: 1,
+        selectedDate: initialToday,
+        selectedSlot: '14:00',
+        guests: [
+            { index: 1, gender: 'Nam', serviceId: SERVICES_DATA[0]?.id || 1, pressure: 'Vừa' },
+            { index: 2, gender: 'Nữ', serviceId: SERVICES_DATA[1]?.id || (SERVICES_DATA[0]?.id || 1), pressure: 'Nhẹ' }
+        ],
+        voucherCode: 'CHARMSPA',
+        discountAmount: 111000,
+        currentCalendarMonth: {{ today.month }} - 1,
+        currentCalendarYear: {{ today.year }},
+        createdAppointmentId: null,
+        createdAppointmentCode: '#LH88392'
+    };
+
+    // Khởi tạo
+    document.addEventListener('DOMContentLoaded', () => {
+        renderGuestForms();
+        renderCalendar();
+        updateSummary();
+
+        // Lắng nghe thay đổi input người đặt
+        document.getElementById('inputCustomerName').addEventListener('input', updateSummary);
+        document.getElementById('inputCustomerPhone').addEventListener('input', updateSummary);
+    });
+
+    // Cập nhật bộ đếm khách
+    function updateGuests(type, delta) {
+        if (type === 'total') {
+            const next = bookingState.totalGuests + delta;
+            if (next >= 1 && next <= 10) {
+                bookingState.totalGuests = next;
+                // Cân đối nam/nữ
+                if (bookingState.maleGuests + bookingState.femaleGuests < next) {
+                    bookingState.femaleGuests += (next - (bookingState.maleGuests + bookingState.femaleGuests));
+                } else if (bookingState.maleGuests + bookingState.femaleGuests > next) {
+                    if (bookingState.femaleGuests > 0) bookingState.femaleGuests -= 1;
+                    else bookingState.maleGuests -= 1;
+                }
+            }
+        } else if (type === 'male') {
+            const next = bookingState.maleGuests + delta;
+            if (next >= 0 && next <= 10) {
+                bookingState.maleGuests = next;
+                bookingState.totalGuests = bookingState.maleGuests + bookingState.femaleGuests;
+            }
+        } else if (type === 'female') {
+            const next = bookingState.femaleGuests + delta;
+            if (next >= 0 && next <= 10) {
+                bookingState.femaleGuests = next;
+                bookingState.totalGuests = bookingState.maleGuests + bookingState.femaleGuests;
+            }
+        }
+
+        // Cập nhật mảng guests
+        rebuildGuestsArray();
+        document.getElementById('valTotalGuests').innerText = bookingState.totalGuests;
+        document.getElementById('valMaleGuests').innerText = bookingState.maleGuests;
+        document.getElementById('valFemaleGuests').innerText = bookingState.femaleGuests;
+        renderGuestForms();
+        updateSummary();
+    }
+
+    function rebuildGuestsArray() {
+        const newGuests = [];
+        let maleLeft = bookingState.maleGuests;
+        for (let i = 1; i <= bookingState.totalGuests; i++) {
+            const gender = (maleLeft > 0) ? 'Nam' : 'Nữ';
+            if (maleLeft > 0) maleLeft--;
+            const existing = bookingState.guests[i - 1];
+            newGuests.push({
+                index: i,
+                gender: gender,
+                serviceId: existing ? existing.serviceId : (SERVICES_DATA[0]?.id || 1),
+                pressure: existing ? existing.pressure : 'Vừa'
+            });
+        }
+        bookingState.guests = newGuests;
+    }
+
+    // Render danh sách form chi tiết từng khách
+    function renderGuestForms() {
+        const container = document.getElementById('guestDetailsContainer');
+        container.innerHTML = '';
+
+        bookingState.guests.forEach((g, idx) => {
+            const row = document.createElement('div');
+            row.className = 'guest-row-card';
+            row.innerHTML = `
+                <div class="guest-row-header">
+                    <span class="guest-tag">
+                        <i class="bi ${g.gender === 'Nam' ? 'bi-gender-male text-primary' : 'bi-gender-female text-danger'}"></i>
+                        Khách ${g.index} (${g.gender})
+                    </span>
+                    <span class="badge bg-white text-muted border small">Khách thứ ${g.index}</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-7">
+                        <label class="form-label small fw-bold text-muted mb-1">Dịch vụ</label>
+                        <select class="form-select cham-input" onchange="changeGuestService(${idx}, this.value)">
+                            ${SERVICES_DATA.map(s => `
+                                <option value="${s.id}" ${s.id === g.serviceId ? 'selected' : ''}>
+                                    ${s.name} (${s.duration} phút) - ${formatMoney(s.price)}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small fw-bold text-muted mb-1">Lực massage</label>
+                        <div class="pressure-group">
+                            <button type="button" class="pressure-btn ${g.pressure === 'Nhẹ' ? 'active' : ''}" onclick="changeGuestPressure(${idx}, 'Nhẹ', this)">Nhẹ</button>
+                            <button type="button" class="pressure-btn ${g.pressure === 'Vừa' ? 'active' : ''}" onclick="changeGuestPressure(${idx}, 'Vừa', this)">Vừa</button>
+                            <button type="button" class="pressure-btn ${g.pressure === 'Mạnh' ? 'active' : ''}" onclick="changeGuestPressure(${idx}, 'Mạnh', this)">Mạnh</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function changeGuestService(guestIdx, serviceId) {
+        bookingState.guests[guestIdx].serviceId = parseInt(serviceId);
+        updateSummary();
+    }
+
+    function changeGuestPressure(guestIdx, pressure, btn) {
+        bookingState.guests[guestIdx].pressure = pressure;
+        const group = btn.closest('.pressure-group');
+        group.querySelectorAll('.pressure-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateSummary();
+    }
+
+    // Mini Calendar
+    function renderCalendar() {
+        const grid = document.getElementById('calendarDaysGrid');
+        grid.innerHTML = '';
+
+        const y = bookingState.currentCalendarYear;
+        const m = bookingState.currentCalendarMonth;
+
+        const monthNames = [
+            'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+            'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+        ];
+        document.getElementById('calendarMonthTitle').innerText = `${monthNames[m]}, ${y}`;
+
+        const firstDay = new Date(y, m, 1).getDay(); // 0: CN, 1: T2,...
+        const adjustedFirst = (firstDay === 0) ? 6 : firstDay - 1; // 0: T2 ... 6: CN
+        const totalDays = new Date(y, m + 1, 0).getDate();
+
+        // Ô trống đầu tháng
+        for (let i = 0; i < adjustedFirst; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'cal-day-cell disabled';
+            grid.appendChild(emptyCell);
+        }
+
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        for (let day = 1; day <= totalDays; day++) {
+            const dObj = new Date(y, m, day);
+            const cell = document.createElement('div');
+            cell.className = 'cal-day-cell';
+            cell.innerText = day;
+
+            // Check selected
+            if (bookingState.selectedDate &&
+                dObj.getDate() === bookingState.selectedDate.getDate() &&
+                dObj.getMonth() === bookingState.selectedDate.getMonth() &&
+                dObj.getFullYear() === bookingState.selectedDate.getFullYear()) {
+                cell.classList.add('selected');
+            }
+
+            cell.onclick = () => {
+                bookingState.selectedDate = dObj;
+                renderCalendar();
+                updateSummary();
+            };
+
+            grid.appendChild(cell);
+        }
+    }
+
+    function changeMonth(delta) {
+        bookingState.currentCalendarMonth += delta;
+        if (bookingState.currentCalendarMonth < 0) {
+            bookingState.currentCalendarMonth = 11;
+            bookingState.currentCalendarYear -= 1;
+        } else if (bookingState.currentCalendarMonth > 11) {
+            bookingState.currentCalendarMonth = 0;
+            bookingState.currentCalendarYear += 1;
+        }
+        renderCalendar();
+    }
+
+    function selectTimeSlot(slot, el) {
+        bookingState.selectedSlot = slot;
+        document.querySelectorAll('#slotsGrid .slot-pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        updateSummary();
+    }
+
+    // Áp dụng Voucher
+    async function applyVoucher() {
+        const code = document.getElementById('inputVoucherCode').value.trim();
+        const feedback = document.getElementById('voucherFeedback');
+
+        if (!code) {
+            feedback.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i> Vui lòng nhập mã Voucher.</span>';
+            return;
+        }
+
+        try {
+            const rawTotal = calculateSubtotal();
+            const res = await fetch('/appointment/api/apply-voucher/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ code: code, order_total: rawTotal })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                bookingState.voucherCode = data.voucher_code;
+                bookingState.discountAmount = data.discount_amount;
+                feedback.innerHTML = `<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Mã ${data.voucher_code}: Giảm ${formatMoney(data.discount_amount)}.</span>`;
+            } else {
+                bookingState.voucherCode = '';
+                bookingState.discountAmount = 0;
+                feedback.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> ${data.error || 'Voucher không hợp lệ'}</span>`;
+            }
+        } catch (e) {
+            feedback.innerHTML = '<span class="text-danger">Lỗi kết nối kiểm tra voucher.</span>';
+        }
+        updateSummary();
+    }
+
+    function calculateSubtotal() {
+        let total = 0;
+        bookingState.guests.forEach(g => {
+            const svc = SERVICES_DATA.find(s => s.id === g.serviceId) || SERVICES_DATA[0];
+            if (svc) total += svc.price;
+        });
+        return total;
+    }
+
+    // Cập nhật Cột tóm tắt đặt lịch
+    function updateSummary() {
+        const d = bookingState.selectedDate;
+        const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        const weekdayStr = weekdays[d.getDay()];
+
+        document.getElementById('sumBadgeMonth').innerText = `THG ${d.getMonth() + 1}`;
+        document.getElementById('sumBadgeDay').innerText = d.getDate();
+        document.getElementById('sumDateFull').innerText = `${weekdayStr}, ${d.getDate()} tháng ${d.getMonth() + 1}, ${d.getFullYear()}`;
+        document.getElementById('sumTimeSlot').innerText = `🕒 ${bookingState.selectedSlot}`;
+
+        document.getElementById('sumGuestCounts').innerText = `${bookingState.totalGuests} khách · ${bookingState.maleGuests} Nam · ${bookingState.femaleGuests} Nữ`;
+
+        // Render từng khách
+        const list = document.getElementById('sumGuestList');
+        list.innerHTML = '';
+        bookingState.guests.forEach(g => {
+            const svc = SERVICES_DATA.find(s => s.id === g.serviceId) || SERVICES_DATA[0];
+            const item = document.createElement('div');
+            item.className = 'guest-summary-item';
+            item.innerHTML = `
+                <div class="guest-summary-icon">
+                    <i class="bi ${g.gender === 'Nam' ? 'bi-gender-male text-primary' : 'bi-gender-female text-danger'}"></i>
+                </div>
+                <div class="small flex-grow-1">
+                    <div class="fw-bold text-dark">Khách ${g.index} (${g.gender})</div>
+                    <div class="text-muted">${svc ? svc.name : 'Dịch vụ'} (${svc ? svc.duration : 60}p)</div>
+                    <div class="text-danger fw-semibold" style="font-size: 11px;">Lực massage: ${g.pressure}</div>
+                </div>
+            `;
+            list.appendChild(item);
+        });
+
+        // Người đặt
+        const name = document.getElementById('inputCustomerName').value || 'Quý khách';
+        const phone = document.getElementById('inputCustomerPhone').value || '0901 234 567';
+        document.getElementById('sumBooker').innerText = `${name} · +84 ${phone}`;
+
+        // Tổng tiền
+        const subtotal = calculateSubtotal();
+        const discount = bookingState.discountAmount || 0;
+        const finalTotal = Math.max(0, subtotal - discount);
+
+        if (bookingState.voucherCode && discount > 0) {
+            document.getElementById('sumVoucherRow').style.display = 'flex';
+            document.getElementById('sumVoucherCode').innerText = bookingState.voucherCode;
+            document.getElementById('sumVoucherDiscount').innerText = `-${formatMoney(discount)}`;
+        } else {
+            document.getElementById('sumVoucherRow').style.display = 'none';
+        }
+
+        document.getElementById('sumTotalPrice').innerText = formatMoney(finalTotal);
+    }
+
+    // Submit form -> Gọi API -> Mở VietQR Modal
+    async function handleFormSubmit() {
+        const name = document.getElementById('inputCustomerName').value.trim();
+        const phone = document.getElementById('inputCustomerPhone').value.trim();
+        const email = document.getElementById('inputCustomerEmail').value.trim();
+        const note = document.getElementById('inputNote').value.trim();
+
+        if (!name || !phone) {
+            alert('Vui lòng điền đầy đủ Họ tên và Số điện thoại liên hệ.');
+            return;
+        }
+
+        const dateStr = `${bookingState.selectedDate.getFullYear()}-${String(bookingState.selectedDate.getMonth() + 1).padStart(2, '0')}-${String(bookingState.selectedDate.getDate()).padStart(2, '0')}`;
+
+        const payload = {
+            appointment_date: dateStr,
+            time_slot: bookingState.selectedSlot,
+            total_guests: bookingState.totalGuests,
+            male_guests: bookingState.maleGuests,
+            female_guests: bookingState.femaleGuests,
+            customer_name: name,
+            customer_phone: phone,
+            customer_email: email,
+            preferred_contact_channel: 'Zalo / Điện thoại',
+            note: note,
+            voucher_code: bookingState.voucherCode,
+            guest_details: bookingState.guests.map(g => ({
+                guest_index: g.index,
+                gender: g.gender,
+                service_id: g.serviceId,
+                massage_pressure: g.pressure
+            }))
+        };
+
+        const btn = document.getElementById('btnConfirmSubmit');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Đang tạo lịch...`;
+
+        try {
+            const res = await fetch('/appointment/api/create/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                bookingState.createdAppointmentId = data.appointment_id;
+                bookingState.createdAppointmentCode = data.appointment_code;
+
+                // Điền thông tin vào Modal VietQR
+                document.getElementById('modalOrderCodeBadge').innerText = `Mã đơn hàng ${data.appointment_code}`;
+                document.getElementById('modalCustomer').innerText = `${name} (+84 ${phone})`;
+                document.getElementById('modalTime').innerText = `${data.time_slot} - ${data.date_display}`;
+                document.getElementById('modalTotalAmount').innerText = data.formatted_total_price;
+                document.getElementById('vietqrImg').src = data.vietqr_url;
+
+                // Chi tiết dịch vụ
+                const svcList = bookingState.guests.map(g => {
+                    const s = SERVICES_DATA.find(x => x.id === g.serviceId);
+                    return `1x ${s ? s.name : 'Dịch vụ'} (Lực: ${g.pressure})`;
+                }).join('<br>');
+                document.getElementById('modalServicesList').innerHTML = svcList;
+
+                // Mở modal
+                const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+                modal.show();
+            } else {
+                alert(data.error ? (typeof data.error === 'string' ? data.error : JSON.stringify(data.error)) : 'Đã có lỗi xảy ra.');
+            }
+        } catch (e) {
+            alert('Lỗi kết nối khi gửi yêu cầu đặt lịch.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<span>XÁC NHẬN ĐẶT LỊCH</span><i class="bi bi-arrow-right ms-2"></i>`;
+        }
+    }
+
+    // Xác nhận quét QR thành công -> Chuyển sang Màn hình Digital Pass
+    async function confirmPaymentSuccess() {
+        const btn = document.getElementById('btnPaidConfirm');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Đang xác nhận thanh toán...`;
+
+        try {
+            const res = await fetch(`/appointment/api/${bookingState.createdAppointmentId}/confirm-payment/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ appointment_code: bookingState.createdAppointmentCode })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert(data.error || 'Xác nhận thanh toán không thành công.');
+                btn.disabled = false;
+                btn.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Tôi đã hoàn tất thanh toán`;
+            }
+        } catch (e) {
+            // Chuyển hướng trực tiếp nếu có code
+            const cleanCode = bookingState.createdAppointmentCode.replace('#', '');
+            window.location.href = `/appointment/success/${cleanCode}/`;
+        }
+    }
+
+    function formatMoney(num) {
+        return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

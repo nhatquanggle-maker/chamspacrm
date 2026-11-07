@@ -1,0 +1,436 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Vé trải nghiệm chi tiết {{ appointment.appointment_code }} | Cham Spa{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #F4EFE3 !important;
+        font-family: 'Cabin', sans-serif;
+        color: #201A18;
+    }
+
+    .success-wrapper {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 30px 20px 80px;
+    }
+
+    /* Header */
+    .success-header {
+        position: relative;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+    .success-subtitle {
+        font-size: 11px;
+        letter-spacing: 2.5px;
+        color: #716761;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    .success-title {
+        font-family: 'Lora', serif;
+        font-size: 34px;
+        font-weight: 700;
+        color: #781A24;
+        margin: 0;
+    }
+    .btn-close-screen {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #FFFFFF;
+        border: 1px solid #E5DEC9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #716761;
+        font-size: 18px;
+        text-decoration: none;
+        transition: all 0.25s;
+    }
+    .btn-close-screen:hover {
+        background: #781A24;
+        color: #FFFFFF;
+        border-color: #781A24;
+    }
+
+    /* Top Success Banner */
+    .top-success-banner {
+        background: #FFFFFF;
+        border: 1px solid #E5DEC9;
+        border-radius: 16px;
+        padding: 20px 26px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.02);
+    }
+    .success-circle-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #EAF5EF;
+        color: #167455;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+    .badge-paid-100 {
+        background: #EAF5EF;
+        color: #167455;
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    /* DIGITAL PASS TICKET CARD (KHỚP FIGMA NODE 154:4478) */
+    .digital-ticket-card {
+        background: #FFFFFF;
+        border: 1px solid #E8E2D2;
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(120, 26, 36, 0.05);
+        margin-bottom: 35px;
+    }
+
+    /* Khuyết vé 2 bên */
+    .ticket-notch-left, .ticket-notch-right {
+        position: absolute;
+        top: 140px;
+        width: 24px;
+        height: 24px;
+        background: #F4EFE3;
+        border-radius: 50%;
+        z-index: 2;
+    }
+    .ticket-notch-left {
+        left: -12px;
+        border-right: 1px solid #E8E2D2;
+    }
+    .ticket-notch-right {
+        right: -12px;
+        border-left: 1px solid #E8E2D2;
+    }
+
+    .ticket-header-block {
+        padding: 30px 36px 20px;
+        border-bottom: 2px dashed #EBE4D5;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    .ticket-eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: #716761;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+    .ticket-title {
+        font-family: 'Lora', serif;
+        font-size: 26px;
+        font-weight: 700;
+        color: #781A24;
+        margin: 0;
+    }
+    .badge-confirmed {
+        background: #FDF5E6;
+        color: #781A24;
+        border: 1px solid #EAD8B5;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .ticket-body-block {
+        padding: 24px 36px 30px;
+    }
+    .ticket-info-row {
+        display: flex;
+        padding: 14px 0;
+        border-bottom: 1px solid #F3EFE6;
+    }
+    .ticket-info-row:last-child {
+        border-bottom: none;
+    }
+    .ticket-label-col {
+        width: 220px;
+        flex-shrink: 0;
+        font-size: 13.5px;
+        color: #716761;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .ticket-value-col {
+        flex-grow: 1;
+        font-size: 14.5px;
+        font-weight: 600;
+        color: #201A18;
+    }
+
+    .guest-pass-item {
+        background: #FAF7F0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .guest-pass-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .ticket-alert-support {
+        background: #FAF7F0;
+        border-radius: 10px;
+        padding: 12px 18px;
+        font-size: 13.5px;
+        color: #554D48;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .ticket-footer-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #8C8078;
+        margin-top: 16px;
+    }
+
+    /* Nút hành động phía dưới */
+    .btn-action-group {
+        display: flex;
+        justify-content: center;
+        gap: 18px;
+    }
+    .btn-my-appointments {
+        background: #781A24;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 28px;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.25s;
+    }
+    .btn-my-appointments:hover {
+        background: #5a131b;
+        color: #FFFFFF;
+        transform: translateY(-2px);
+    }
+    .btn-back-home {
+        background: #FFFFFF;
+        color: #201A18;
+        border: 1px solid #D5C9B3;
+        border-radius: 12px;
+        padding: 14px 28px;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.25s;
+    }
+    .btn-back-home:hover {
+        background: #FAF7F0;
+        color: #781A24;
+        border-color: #781A24;
+    }
+</style>
+{% endblock %}
+
+{% block layout %}
+<div class="success-wrapper">
+    <!-- Header -->
+    <div class="success-header">
+        <div class="success-subtitle">RESERVE YOUR MOMENT OF PEACE</div>
+        <h1 class="success-title">Đặt lịch trải nghiệm</h1>
+        <a href="{% url 'home' %}" class="btn-close-screen" title="Đóng">
+            <i class="bi bi-x-lg"></i>
+        </a>
+    </div>
+
+    <!-- Top Success Banner -->
+    <div class="top-success-banner">
+        <div class="d-flex align-items-center gap-3">
+            <div class="success-circle-icon">
+                <i class="bi bi-check2"></i>
+            </div>
+            <div>
+                <h5 class="fw-bold mb-1" style="font-family: 'Lora', serif; color: #167455;">
+                    Thanh toán thành công! Lịch hẹn của bạn đã được ghi nhận.
+                </h5>
+                <p class="mb-0 small text-muted">
+                    Thông tin xác nhận lịch hẹn và hóa đơn đã được gửi tới email <strong>{{ appointment.customer_email|default:'quý khách' }}</strong>. Vui lòng đến sớm 10 phút để chuẩn bị chu đáo.
+                </p>
+            </div>
+        </div>
+        <div class="badge-paid-100">
+            <i class="bi bi-dot"></i> ĐÃ THANH TOÁN (100%)
+        </div>
+    </div>
+
+    <!-- DIGITAL PASS TICKET -->
+    <div class="digital-ticket-card">
+        <div class="ticket-notch-left"></div>
+        <div class="ticket-notch-right"></div>
+
+        <!-- Ticket Header -->
+        <div class="ticket-header-block">
+            <div>
+                <div class="ticket-eyebrow">CHAM SPA & MASSAGE · DIGITAL PASS</div>
+                <h2 class="ticket-title">VÉ TRẢI NGHIỆM CHI TIẾT {{ appointment.appointment_code }}</h2>
+            </div>
+            <div class="badge-confirmed">
+                <i class="bi bi-calendar-check-fill"></i> LỊCH HẸN ĐÃ XÁC NHẬN
+            </div>
+        </div>
+
+        <!-- Ticket Body -->
+        <div class="ticket-body-block">
+            <!-- Khách hàng -->
+            <div class="ticket-info-row">
+                <div class="ticket-label-col">
+                    <i class="bi bi-person text-danger"></i>
+                    <span>Khách hàng</span>
+                </div>
+                <div class="ticket-value-col">
+                    {{ appointment.customer_name }} ({{ appointment.customer_phone }}) - {{ appointment.total_guests }} Khách
+                </div>
+            </div>
+
+            <!-- Chi nhánh -->
+            <div class="ticket-info-row">
+                <div class="ticket-label-col">
+                    <i class="bi bi-geo-alt text-danger"></i>
+                    <span>Chi nhánh</span>
+                </div>
+                <div class="ticket-value-col">
+                    Cham Spa - 05 Lê Quang Hoà, Hoà Xuân, Cẩm Lệ, Đà Nẵng
+                </div>
+            </div>
+
+            <!-- Ngày & Giờ -->
+            <div class="ticket-info-row">
+                <div class="ticket-label-col">
+                    <i class="bi bi-clock text-danger"></i>
+                    <span>Ngày & Giờ trải nghiệm</span>
+                </div>
+                <div class="ticket-value-col text-danger fw-bold">
+                    {{ appointment.time_slot }} - {{ date_display }}
+                </div>
+            </div>
+
+            <!-- Dịch vụ trải nghiệm -->
+            <div class="ticket-info-row">
+                <div class="ticket-label-col align-items-start pt-1">
+                    <i class="bi bi-stars text-danger"></i>
+                    <span>Dịch vụ trải nghiệm</span>
+                </div>
+                <div class="ticket-value-col">
+                    {% for d in details %}
+                    <div class="guest-pass-item">
+                        <i class="bi {% if d.gender == 'Nam' %}bi-gender-male text-primary{% else %}bi-gender-female text-danger{% endif %} fs-5"></i>
+                        <div>
+                            <div class="fw-bold text-dark">Khách {{ d.guest_index }} ({{ d.gender }})</div>
+                            <div class="text-muted small">{{ d.service.name }} ({{ d.service.duration_minutes }} phút) - Lực massage: <span class="text-danger fw-semibold">{{ d.massage_pressure }}</span></div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-muted">Massage Body & Thảo dược thư giãn</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Voucher nếu có -->
+            {% if appointment.voucher %}
+            <div class="ticket-info-row">
+                <div class="ticket-label-col">
+                    <i class="bi bi-ticket-perforated text-danger"></i>
+                    <span>Voucher đã áp dụng</span>
+                </div>
+                <div class="ticket-value-col text-success">
+                    {{ appointment.voucher.voucher_code }} — Giảm {{ appointment.voucher.discount_value }}% (-{{ discount_amount|floatformat:0 }} VNĐ)
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Số tiền đã thanh toán -->
+            <div class="ticket-info-row">
+                <div class="ticket-label-col">
+                    <i class="bi bi-credit-card text-danger"></i>
+                    <span>Số tiền đã thanh toán</span>
+                </div>
+                <div class="ticket-value-col fs-5 text-dark fw-bold">
+                    {{ appointment.total_price|floatformat:0 }} VNĐ <span class="badge bg-success-subtle text-success fs-6 fw-normal ms-2">Chuyển khoản trực tuyến</span>
+                </div>
+            </div>
+
+            <!-- Hotline hỗ trợ -->
+            <div class="ticket-alert-support">
+                <i class="bi bi-telephone-fill text-danger"></i>
+                <span>Cần hỗ trợ hoặc thay đổi gấp? Vui lòng liên hệ Cham Spa qua hotline: <strong>0987 773 777</strong></span>
+            </div>
+
+            <!-- Meta Footer -->
+            <div class="ticket-footer-meta">
+                <span><i class="bi bi-info-circle me-1"></i> Vui lòng mang theo thông tin mã lịch hẹn khi đến spa.</span>
+                <span>Xác nhận lúc {{ appointment.created_at|date:"H:i · d/m/Y" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="btn-action-group">
+        {% if user.is_authenticated %}
+        <a href="{% url 'accounts:profile' %}" class="btn-my-appointments">
+            <i class="bi bi-calendar-event"></i>
+            <span>Lịch hẹn của tôi</span>
+        </a>
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="btn-my-appointments">
+            <i class="bi bi-box-arrow-in-right"></i>
+            <span>Đăng nhập để theo dõi lịch</span>
+        </a>
+        {% endif %}
+
+        <a href="{% url 'home' %}" class="btn-back-home">
+            <i class="bi bi-house-door"></i>
+            <span>Trở về Trang chủ</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

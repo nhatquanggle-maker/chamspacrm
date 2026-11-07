@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from core import views
 from accounts import api as accounts_api
+from appointment import api as appointment_api
 
 urlpatterns = [
     # 1. Trang quản trị Django mặc định
@@ -43,6 +44,15 @@ urlpatterns = [
     path('api/admin/staff/create/', accounts_api.AdminStaffCreateAPI.as_view(), name='api_admin_staff_create'),
     path('api/admin/staff/<int:pk>/update/', accounts_api.AdminStaffUpdateAPI.as_view(), name='api_admin_staff_update'),
     path('api/admin/staff/<int:pk>/deactivate/', accounts_api.AdminStaffDeactivateAPI.as_view(), name='api_admin_staff_deactivate'),
+
+    # =========================================================================
+    # 5. HỢP ĐỒNG API TOÀN HỆ THỐNG - MODULE 1: ĐẶT LỊCH & QUẢN LÝ LỊCH HẸN
+    # =========================================================================
+    path('api/appointments/create/', appointment_api.AppointmentCreateAPI.as_view(), name='global_api_appointment_create'),
+    path('api/my-appointments/', appointment_api.MyAppointmentsAPI.as_view(), name='global_api_my_appointments'),
+    path('api/appointments/<int:pk>/reschedule/', appointment_api.RescheduleAPI.as_view(), name='global_api_appointment_reschedule'),
+    path('api/appointments/<int:pk>/cancel/', appointment_api.CancelAPI.as_view(), name='global_api_appointment_cancel'),
+    path('api/admin/appointments/', appointment_api.AdminAppointmentListAPI.as_view(), name='global_api_admin_appointments'),
 ]
 
 # Phục vụ file Media người dùng tải lên trong môi trường phát triển (DEBUG=True)

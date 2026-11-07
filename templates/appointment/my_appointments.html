@@ -1,0 +1,220 @@
+{% extends 'layouts/customer_layout.html' %}
+{% load static %}
+
+{% block title %}Lịch hẹn của tôi | Cham Spa & Massage{% endblock %}
+
+{% block workspace_content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="font-family: 'Lora', serif; color: #781A24;">Lịch hẹn của tôi</h1>
+            <p class="text-muted small mb-0">Theo dõi, dời ngày và quản lý trạng thái các buổi trị liệu tại Cham Spa</p>
+        </div>
+        <a href="{% url 'appointment:booking' %}" class="btn text-white fw-bold px-4 py-2" style="background: #781A24; border-radius: 10px;">
+            <i class="bi bi-calendar-plus me-1"></i> Đặt lịch mới
+        </a>
+    </div>
+
+    <!-- Danh sách lịch hẹn -->
+    <div class="row g-4">
+        {% for appt in appointments %}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: #FFFFFF; border: 1px solid #EDE6D6 !important;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="badge bg-danger-subtle text-danger fw-bold px-3 py-2 rounded-pill fs-6 mb-2">
+                            {{ appt.appointment_code }}
+                        </span>
+                        <div class="fw-bold fs-5 text-dark" style="font-family: 'Lora', serif;">
+                            {{ appt.time_slot }} - {{ appt.appointment_date|date:"l, d/m/Y" }}
+                        </div>
+                    </div>
+                    <div>
+                        {% if appt.status == 'Confirmed' %}
+                            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold">Đã xác nhận</span>
+                        {% elif appt.status == 'Hold' or appt.status == 'Pending' %}
+                            <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill fw-bold">Chờ thanh toán</span>
+                        {% elif appt.status == 'In_Progress' %}
+                            <span class="badge bg-info-subtle text-info px-3 py-2 rounded-pill fw-bold">Đang phục vụ</span>
+                        {% elif appt.status == 'Completed' %}
+                            <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill fw-bold">Hoàn thành</span>
+                        {% elif appt.status == 'Cancelled' %}
+                            <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold">Đã hủy</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="small text-muted mb-3 border-top border-bottom py-2">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-people-fill text-danger"></i>
+                        <span>Số lượng: <strong>{{ appt.total_guests }} khách</strong> ({{ appt.male_guests }} Nam · {{ appt.female_guests }} Nữ)</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-geo-alt-fill text-danger"></i>
+                        <span>Cham Spa - 05 Lê Quang Hoà, Đà Nẵng</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-cash-stack text-success"></i>
+                        <span>Tổng tiền: <strong class="text-dark">{{ appt.total_price|floatformat:0 }} VNĐ</strong></span>
+                    </div>
+                </div>
+
+                <!-- Thao tác dời/hủy -->
+                <div class="d-flex gap-2 mt-auto">
+                    <a href="{% url 'appointment:booking_success' appt.appointment_code|slice:'1:' %}" class="btn btn-outline-dark btn-sm rounded-3 px-3">
+                        <i class="bi bi-qr-code me-1"></i> Xem vé
+                    </a>
+                    {% if appt.status in 'Hold,Pending,Confirmed' %}
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-3 px-3" onclick="openRescheduleModal({{ appt.id }}, '{{ appt.appointment_code }}', '{{ appt.appointment_date|date:'Y-m-d' }}', '{{ appt.time_slot }}')">
+                        <i class="bi bi-arrow-repeat me-1"></i> Dời lịch
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-3 px-3" onclick="openCancelModal({{ appt.id }}, '{{ appt.appointment_code }}')">
+                        <i class="bi bi-x-circle me-1"></i> Hủy lịch
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted mb-3 fs-1"><i class="bi bi-calendar-x"></i></div>
+            <h4 class="fw-bold text-muted">Quý khách chưa có lịch hẹn nào</h4>
+            <p class="small text-muted mb-4">Hãy đặt lịch ngay để tận hưởng giây phút thư thái tại Cham Spa.</p>
+            <a href="{% url 'appointment:booking' %}" class="btn text-white fw-bold px-4 py-2" style="background: #781A24; border-radius: 10px;">
+                Đặt lịch trải nghiệm ngay
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Dời lịch (UC-1.3) -->
+<div class="modal fade" id="rescheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 p-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold" style="font-family: 'Lora', serif; color: #781A24;">Dời lịch hẹn <span id="rescheduleCode"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-3">Lưu ý: Chỉ được dời lịch trước giờ hẹn tối thiểu 2 tiếng. Mỗi lịch hẹn được dời tối đa 2 lần.</p>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Ngày hẹn mới</label>
+                    <input type="date" class="form-control" id="newAppointmentDate">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Khung giờ mới</label>
+                    <select class="form-select" id="newTimeSlot">
+                        <option value="09:00">09:00</option>
+                        <option value="10:00">10:00</option>
+                        <option value="14:00" selected>14:00</option>
+                        <option value="16:00">16:00</option>
+                        <option value="18:30">18:30</option>
+                        <option value="20:00">20:00</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn text-white fw-bold rounded-3 px-4" style="background: #781A24;" onclick="submitReschedule()">Xác nhận dời lịch</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Hủy lịch (UC-1.4) -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 p-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold text-danger" style="font-family: 'Lora', serif;">Hủy lịch hẹn <span id="cancelCode"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-3">Vui lòng cung cấp lý do hủy và số tài khoản ngân hàng để bộ phận kế toán hoàn tiền cọc theo quy định.</p>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Lý do hủy*</label>
+                    <textarea class="form-control" id="cancelReason" rows="2" placeholder="Ví dụ: Bận việc đột xuất, đổi kế hoạch..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Số tài khoản ngân hàng nhận hoàn tiền*</label>
+                    <input type="text" class="form-control" id="refundAccount" placeholder="Ví dụ: 0946020526 - MB Bank - NGUYEN VAN A">
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                <button type="button" class="btn btn-danger fw-bold rounded-3 px-4" onclick="submitCancel()">Xác nhận hủy lịch</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let activeAppointmentId = null;
+
+    function openRescheduleModal(id, code, date, slot) {
+        activeAppointmentId = id;
+        document.getElementById('rescheduleCode').innerText = code;
+        document.getElementById('newAppointmentDate').value = date;
+        document.getElementById('newTimeSlot').value = slot;
+        new bootstrap.Modal(document.getElementById('rescheduleModal')).show();
+    }
+
+    async function submitReschedule() {
+        const date = document.getElementById('newAppointmentDate').value;
+        const slot = document.getElementById('newTimeSlot').value;
+        if (!date) { alert('Vui lòng chọn ngày mới'); return; }
+
+        try {
+            const res = await fetch(`/appointment/api/${activeAppointmentId}/reschedule/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ appointment_date: date, time_slot: slot })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.error || 'Dời lịch thất bại');
+            }
+        } catch(e) {
+            alert('Lỗi kết nối khi dời lịch');
+        }
+    }
+
+    function openCancelModal(id, code) {
+        activeAppointmentId = id;
+        document.getElementById('cancelCode').innerText = code;
+        new bootstrap.Modal(document.getElementById('cancelModal')).show();
+    }
+
+    async function submitCancel() {
+        const reason = document.getElementById('cancelReason').value.trim();
+        const account = document.getElementById('refundAccount').value.trim();
+        if (!reason || !account) {
+            alert('Vui lòng nhập đầy đủ lý do hủy và số tài khoản ngân hàng nhận tiền hoàn.');
+            return;
+        }
+
+        try {
+            const res = await fetch(`/appointment/api/${activeAppointmentId}/cancel/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ cancel_reason: reason, refund_account_number: account })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.error || 'Hủy lịch thất bại');
+            }
+        } catch(e) {
+            alert('Lỗi kết nối khi hủy lịch');
+        }
+    }
+</script>
+{% endblock %}

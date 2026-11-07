@@ -25,7 +25,7 @@
                 </p>
                 <!-- CTA buttons -->
                 <div class="d-flex flex-wrap gap-3 mb-5">
-                    <a href="#booking" class="btn-figma-gold">ĐẶT LỊCH</a>
+                    <a href="{% url 'appointment:booking' %}" class="btn-figma-gold">ĐẶT LỊCH</a>
                     <a href="#services" class="btn-figma-outline-white">KHÁM PHÁ LIỆU TRÌNH</a>
                 </div>
                 <!-- Badges / Credentials -->
@@ -173,7 +173,7 @@
                     <div class="card-body p-4 d-flex flex-column">
                         <h4 class="font-serif mb-2" style="font-size: 21px; color: var(--cham-dark);">Cham Signature Body</h4>
                         <p class="text-muted small mb-3">Kết hợp xoa bóp ấn huyệt Đông y cổ truyền cùng tinh dầu thảo mộc ấm.</p>
-                        <a href="#booking" class="mt-auto fw-bold text-decoration-none small" style="color: var(--cham-red);">Khám phá liệu trình →</a>
+                        <a href="{% url 'appointment:booking' %}?service=1" class="mt-auto fw-bold text-decoration-none small" style="color: var(--cham-red);">Đặt lịch ngay →</a>
                     </div>
                 </div>
             </div>
@@ -188,7 +188,7 @@
                     <div class="card-body p-4 d-flex flex-column">
                         <h4 class="font-serif mb-2" style="font-size: 21px; color: var(--cham-dark);">Herbal Stone Therapy</h4>
                         <p class="text-muted small mb-3">Trị liệu đá núi lửa kết hợp túi chườm thảo dược giảm nhức mỏi sâu.</p>
-                        <a href="#booking" class="mt-auto fw-bold text-decoration-none small" style="color: var(--cham-red);">Khám phá liệu trình →</a>
+                        <a href="{% url 'appointment:booking' %}?service=2" class="mt-auto fw-bold text-decoration-none small" style="color: var(--cham-red);">Đặt lịch ngay →</a>
                     </div>
                 </div>
             </div>
@@ -203,7 +203,7 @@
                     <div class="card-body p-4 d-flex flex-column">
                         <h4 class="font-serif mb-2" style="font-size: 21px; color: var(--cham-dark);">Foot & Shoulder Reset</h4>
                         <p class="text-muted small mb-3">Liệu trình giải phóng cơ cổ vai gáy và ngâm chân thảo mộc phục hồi.</p>
-                        <a href="#booking" class="mt-auto fw-bold text-decoration-none small" style="color: var(--cham-red);">Khám phá liệu trình →</a>
+                        <a href="{% url 'appointment:booking' %}?service=3" class="mt-auto fw-bold text-decoration-none small" style="color: var(--cham-red);">Đặt lịch ngay →</a>
                     </div>
                 </div>
             </div>
@@ -487,7 +487,7 @@
         <p class="mx-auto mb-4" style="max-width: 600px; font-size: 18px; color: #f4efe3; line-height: 1.7;">
             Chọn thời gian phù hợp. Cham sẽ chuẩn bị phần còn lại thật chu đáo.
         </p>
-        <a href="#booking" class="btn-figma-gold">ĐẶT LỊCH TRẢI NGHIỆM</a>
+        <a href="{% url 'appointment:booking' %}" class="btn-figma-gold">ĐẶT LỊCH TRẢI NGHIỆM</a>
     </div>
 </section>
 {% endblock %}

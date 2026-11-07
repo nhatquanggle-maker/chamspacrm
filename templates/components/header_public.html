@@ -220,7 +220,7 @@
     <nav class="header-nav-bar" aria-label="Điều hướng chính">
         <a href="{% url 'home' %}" class="header-nav-item {% if request.resolver_match.url_name == 'home' and request.path == '/' %}active{% endif %}">Trang chủ</a>
         <a href="{% if request.path != '/' %}{% url 'home' %}{% endif %}#services" class="header-nav-item">Gói dịch vụ</a>
-        <a href="{% if request.path != '/' %}{% url 'home' %}{% endif %}#booking" class="header-nav-item">Đặt lịch ngay</a>
+        <a href="{% url 'appointment:booking' %}" class="header-nav-item {% if request.resolver_match.app_name == 'appointment' %}active{% endif %}">Đặt lịch ngay</a>
     </nav>
 </header>
 

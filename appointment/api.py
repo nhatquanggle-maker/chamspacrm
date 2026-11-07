@@ -121,6 +121,19 @@ class AppointmentCreateAPI(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
+        # 0. BẢO MẬT & PHÂN QUYỀN: Chỉ tài khoản Khách hàng đã đăng nhập mới được phép đặt lịch
+        if not request.user.is_authenticated:
+            return Response({
+                'error': 'Quý khách vui lòng đăng nhập tài khoản Khách hàng để tiến hành đặt lịch trải nghiệm.',
+                'code': 'LOGIN_REQUIRED'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        if request.user.is_staff or request.user.is_superuser:
+            return Response({
+                'error': 'Tài khoản Quản lý / Nhân viên không thể đặt lịch tại đây. Vui lòng đăng nhập bằng tài khoản Khách hàng (ví dụ: customer / customer123456).',
+                'code': 'CUSTOMER_ONLY'
+            }, status=status.HTTP_403_FORBIDDEN)
+
         serializer = AppointmentCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -507,3 +520,4 @@ class AdminAppointmentListAPI(APIView):
             'message': f"Đã chuyển trạng thái lịch hẹn {appointment.appointment_code} thành '{new_status}'.",
             'appointment': AppointmentFullSerializer(appointment).data
         }, status=status.HTTP_200_OK)
+

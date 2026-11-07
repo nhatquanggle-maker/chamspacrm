@@ -8,9 +8,22 @@ def booking_view(request):
     """
     Màn hình Đặt lịch trải nghiệm (UC-1.1)
     Khớp 100% Figma Node 828:515 (Form đặt lịch) & Node 818:2 (Modal VietQR)
+    QUY TẮC: Chỉ tài khoản Khách hàng đã đăng nhập mới được phép đặt lịch.
     """
     services = Service.objects.filter(status='Hoạt động').order_by('id')
     today = timezone.localdate()
+
+    is_customer = False
+    auth_warning = None
+
+    if not request.user.is_authenticated:
+        is_customer = False
+        auth_warning = 'NOT_LOGGED_IN'
+    elif request.user.is_staff or request.user.is_superuser:
+        is_customer = False
+        auth_warning = 'NOT_CUSTOMER'
+    else:
+        is_customer = True
 
     # Tự động điền thông tin nếu khách hàng đã đăng nhập
     initial_user = {
@@ -40,6 +53,8 @@ def booking_view(request):
         'initial_user': initial_user,
         'time_slots': time_slots,
         'selected_service_id': selected_service_id,
+        'is_customer': is_customer,
+        'auth_warning': auth_warning,
     }
     return render(request, 'appointment/booking.html', context)
 

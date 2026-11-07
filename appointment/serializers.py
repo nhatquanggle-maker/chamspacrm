@@ -123,3 +123,4 @@ class AppointmentFullSerializer(serializers.ModelSerializer):
         }
         weekday = weekday_map.get(d.weekday(), '')
         return f"{weekday}, ngày {d.day} tháng {d.month}, {d.year}"
+

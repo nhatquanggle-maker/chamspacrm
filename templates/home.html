@@ -1,0 +1,493 @@
+{% extends "layouts/public_layout.html" %}
+{% load static %}
+
+{% block title %}Cham Spa & Massage Đà Nẵng | Trở về trạng thái cân bằng nguyên bản{% endblock %}
+
+{% block content %}
+<!-- ==========================================================================
+     1. HERO SECTION (FIGMA 777:3 - Header and hero 1600x930)
+     ========================================================================== -->
+<section class="position-relative text-white py-5 d-flex align-items-center" style="min-height: 88vh; background: linear-gradient(rgba(36, 23, 17, 0.72), rgba(36, 23, 17, 0.82)), url('{% static 'images/hero_image.png' %}') center/cover no-repeat;">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-9 col-xl-8">
+                <!-- Eyebrow label -->
+                <div class="mb-3 text-uppercase" style="font-family: var(--font-body); font-weight: 700; font-size: 13px; color: var(--cham-gold); letter-spacing: 3px;">
+                    THE ART OF RESTORATION
+                </div>
+                <!-- Hero title -->
+                <h1 class="display-3 mb-4 font-serif text-white" style="font-size: clamp(38px, 5vw, 64px); line-height: 1.2;">
+                    Trở về trạng thái cân bằng nguyên bản
+                </h1>
+                <!-- Hero description -->
+                <p class="mb-5" style="font-size: 18px; line-height: 1.7; color: #f4efe3; max-width: 680px;">
+                    Một hành trình chăm sóc được dẫn dắt bởi đôi bàn tay lành nghề, thảo mộc bản địa và tinh thần hiếu khách của miền Trung Việt Nam.
+                </p>
+                <!-- CTA buttons -->
+                <div class="d-flex flex-wrap gap-3 mb-5">
+                    <a href="#booking" class="btn-figma-gold">ĐẶT LỊCH</a>
+                    <a href="#services" class="btn-figma-outline-white">KHÁM PHÁ LIỆU TRÌNH</a>
+                </div>
+                <!-- Badges / Credentials -->
+                <div class="d-flex flex-wrap gap-4 pt-2" style="font-size: 13.5px; color: var(--cham-gold);">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <span>Trung tâm Đà Nẵng</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-clock-fill"></i>
+                        <span>Mở cửa 8:30 — 22:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     2. SIGNATURE INTRODUCTION (FIGMA 1600x621)
+     ========================================================================== -->
+<section class="py-5" style="background-color: var(--cham-bg);">
+    <div class="container py-5 text-center">
+        <!-- Eyebrow -->
+        <div style="font-family: var(--font-body); font-weight: 700; font-size: 12px; color: var(--cham-red); letter-spacing: 2.5px; text-transform: uppercase;">
+            CHAM SIGNATURE
+        </div>
+        <!-- Title -->
+        <h2 class="font-serif my-3" style="font-size: clamp(30px, 4vw, 46px); color: var(--cham-dark);">
+            Tĩnh tại bắt đầu từ một điểm chạm
+        </h2>
+        <!-- Description -->
+        <p class="mx-auto mb-5" style="font-size: 17px; line-height: 1.7; color: var(--cham-muted); max-width: 720px;">
+            Cham Spa kết hợp trị liệu hiện đại cùng di sản chăm sóc thân – tâm của Đông Nam Á, để mỗi khoảnh khắc nghỉ ngơi trở thành một nghi thức phục hồi trọn vẹn.
+        </p>
+
+        <!-- 3 Pillars Grid -->
+        <div class="row g-4 text-start">
+            <div class="col-md-4">
+                <div class="card p-4 border-0 shadow-sm rounded-4 h-100 bg-white" style="border: 1px solid var(--cham-border-subtle) !important;">
+                    <div class="mb-3 fs-3" style="color: var(--cham-gold);">
+                        <i class="bi bi-flower1"></i>
+                    </div>
+                    <h4 class="font-serif mb-2" style="font-size: 20px; color: var(--cham-dark);">Chăm sóc có chủ đích</h4>
+                    <p class="mb-0" style="font-size: 14.5px; line-height: 1.6; color: var(--cham-muted);">
+                        Mỗi liệu trình điều chỉnh theo thể trạng và nhịp sống của bạn.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-4 border-0 shadow-sm rounded-4 h-100 bg-white" style="border: 1px solid var(--cham-border-subtle) !important;">
+                    <div class="mb-3 fs-3" style="color: var(--cham-gold);">
+                        <i class="bi bi-droplet-half"></i>
+                    </div>
+                    <h4 class="font-serif mb-2" style="font-size: 20px; color: var(--cham-dark);">Tinh chất bản địa</h4>
+                    <p class="mb-0" style="font-size: 14.5px; line-height: 1.6; color: var(--cham-muted);">
+                        Gừng, sả, quế và dầu thảo mộc được tuyển chọn từ miền Trung.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-4 border-0 shadow-sm rounded-4 h-100 bg-white" style="border: 1px solid var(--cham-border-subtle) !important;">
+                    <div class="mb-3 fs-3" style="color: var(--cham-gold);">
+                        <i class="bi bi-hand-index-thumb"></i>
+                    </div>
+                    <h4 class="font-serif mb-2" style="font-size: 20px; color: var(--cham-dark);">Đôi tay chuyên gia</h4>
+                    <p class="mb-0" style="font-size: 14.5px; line-height: 1.6; color: var(--cham-muted);">
+                        Kỹ thuật viên được đào tạo bài bản, thấu hiểu từng điểm chạm.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     3. RESTORATION PHILOSOPHY (FIGMA 1600x760)
+     ========================================================================== -->
+<section id="philosophy" class="py-5 bg-white">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <!-- Left Image with 10+ Badge -->
+            <div class="col-lg-6">
+                <div class="philosophy-image-wrapper">
+                    <img src="{% static 'images/philosophy_image.png' %}" alt="Cham Spa Philosophy" class="img-fluid">
+                    <div class="experience-seal-badge">
+                        <div style="font-family: var(--font-serif); font-weight: 700; font-size: 34px; line-height: 1;">10+</div>
+                        <small style="font-size: 10.5px; color: var(--cham-gold); letter-spacing: 1.2px; font-weight: 600; text-transform: uppercase;">NĂM CHĂM SÓC TẬN TÂM</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Content -->
+            <div class="col-lg-6">
+                <div style="font-family: var(--font-body); font-weight: 700; font-size: 12px; color: var(--cham-red); letter-spacing: 2px; text-transform: uppercase;">
+                    OUR PHILOSOPHY
+                </div>
+                <h2 class="font-serif my-3" style="font-size: clamp(28px, 3.5vw, 42px); color: var(--cham-dark);">
+                    Phục hồi không phải là xa xỉ. Đó là cách ta trở về.
+                </h2>
+                <p style="font-size: 16.5px; line-height: 1.7; color: var(--cham-muted); margin-bottom: 24px;">
+                    Chúng tôi tin rằng cơ thể luôn biết cách tự cân bằng khi được lắng nghe đúng lúc. Vì thế, mỗi buổi trị liệu tại Cham bắt đầu bằng một cuộc trò chuyện và kết thúc bằng cảm giác nhẹ nhõm rất riêng.
+                </p>
+                <!-- Quote Block -->
+                <div class="p-4 rounded-4 mb-4 border-start border-4" style="background-color: var(--cham-card-bg); border-color: var(--cham-red) !important;">
+                    <p class="font-serif fst-italic mb-0" style="font-size: 16.5px; color: var(--cham-dark);">
+                        “Không vội vàng. Không khuôn mẫu. Chỉ có sự hiện diện trọn vẹn dành cho bạn.”
+                    </p>
+                </div>
+                <a href="#about" class="btn-figma-outline-dark">CÂU CHUYỆN CỦA CHAM</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     4. FEATURED TREATMENTS (FIGMA 1600x897)
+     ========================================================================== -->
+<section id="services" class="py-5" style="background-color: var(--cham-bg);">
+    <div class="container py-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-5 gap-3">
+            <div>
+                <div style="font-family: var(--font-body); font-weight: 700; font-size: 12px; color: var(--cham-red); letter-spacing: 2.5px; text-transform: uppercase;">
+                    FEATURED TREATMENTS
+                </div>
+                <h2 class="font-serif mt-2 mb-2" style="font-size: clamp(28px, 3.5vw, 42px); color: var(--cham-dark);">
+                    Liệu trình được yêu thích
+                </h2>
+                <p class="text-muted mb-0" style="max-width: 580px; font-size: 15.5px;">
+                    Ba nghi thức phục hồi đặc trưng, được thiết kế để giải phóng căng thẳng và đánh thức nguồn năng lượng tươi mới.
+                </p>
+            </div>
+            <a href="#services" class="btn-figma-outline-dark">XEM TẤT CẢ DỊCH VỤ</a>
+        </div>
+
+        <!-- 3 Cards -->
+        <div class="row g-4">
+            <!-- Treatment 01 -->
+            <div class="col-md-4">
+                <div class="card border-0 rounded-4 shadow-sm h-100 overflow-hidden bg-white" style="border: 1px solid var(--cham-border-subtle) !important;">
+                    <div class="position-relative" style="height: 250px;">
+                        <img src="{% static 'images/treatment_1.png' %}" alt="Cham Signature Body" class="w-100 h-100 object-fit-cover">
+                        <span class="position-absolute top-0 start-0 m-3 badge rounded-pill px-3 py-2 fw-bold font-serif" style="background-color: var(--cham-red); font-size: 14px;">01</span>
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h4 class="font-serif mb-2" style="font-size: 21px; color: var(--cham-dark);">Cham Signature Body</h4>
+                        <p class="text-muted small mb-3">Kết hợp xoa bóp ấn huyệt Đông y cổ truyền cùng tinh dầu thảo mộc ấm.</p>
+                        <a href="#booking" class="mt-auto fw-bold text-decoration-none small" style="color: var(--cham-red);">Khám phá liệu trình →</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Treatment 02 -->
+            <div class="col-md-4">
+                <div class="card border-0 rounded-4 shadow-sm h-100 overflow-hidden bg-white" style="border: 1px solid var(--cham-border-subtle) !important;">
+                    <div class="position-relative" style="height: 250px;">
+                        <img src="{% static 'images/treatment_2.png' %}" alt="Herbal Stone Therapy" class="w-100 h-100 object-fit-cover">
+                        <span class="position-absolute top-0 start-0 m-3 badge rounded-pill px-3 py-2 fw-bold font-serif" style="background-color: var(--cham-red); font-size: 14px;">02</span>
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h4 class="font-serif mb-2" style="font-size: 21px; color: var(--cham-dark);">Herbal Stone Therapy</h4>
+                        <p class="text-muted small mb-3">Trị liệu đá núi lửa kết hợp túi chườm thảo dược giảm nhức mỏi sâu.</p>
+                        <a href="#booking" class="mt-auto fw-bold text-decoration-none small" style="color: var(--cham-red);">Khám phá liệu trình →</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Treatment 03 -->
+            <div class="col-md-4">
+                <div class="card border-0 rounded-4 shadow-sm h-100 overflow-hidden bg-white" style="border: 1px solid var(--cham-border-subtle) !important;">
+                    <div class="position-relative" style="height: 250px;">
+                        <img src="{% static 'images/treatment_3.png' %}" alt="Foot & Shoulder Reset" class="w-100 h-100 object-fit-cover">
+                        <span class="position-absolute top-0 start-0 m-3 badge rounded-pill px-3 py-2 fw-bold font-serif" style="background-color: var(--cham-red); font-size: 14px;">03</span>
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h4 class="font-serif mb-2" style="font-size: 21px; color: var(--cham-dark);">Foot & Shoulder Reset</h4>
+                        <p class="text-muted small mb-3">Liệu trình giải phóng cơ cổ vai gáy và ngâm chân thảo mộc phục hồi.</p>
+                        <a href="#booking" class="mt-auto fw-bold text-decoration-none small" style="color: var(--cham-red);">Khám phá liệu trình →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     5. CULTURAL RITUAL (FIGMA 1600x760)
+     ========================================================================== -->
+<section class="py-5 bg-white">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <!-- Left ritual steps -->
+            <div class="col-lg-6">
+                <div style="font-family: var(--font-body); font-weight: 700; font-size: 12px; color: var(--cham-red); letter-spacing: 2.5px; text-transform: uppercase;">
+                    THE CHAM RITUAL
+                </div>
+                <h2 class="font-serif my-3" style="font-size: clamp(28px, 3.5vw, 42px); color: var(--cham-dark);">
+                    Một nghi thức lấy cảm hứng từ miền đất Champa
+                </h2>
+                <p class="text-muted mb-4" style="font-size: 16px; line-height: 1.7;">
+                    Từ hương trầm, nhịp chuông đồng đến họa tiết tháp cổ, mỗi chi tiết mở ra một khoảng lặng — nơi thời gian chậm lại và cơ thể được nâng niu.
+                </p>
+
+                <!-- Steps -->
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex gap-3 align-items-start p-3 rounded-3" style="background-color: var(--cham-card-bg); border: 1px solid var(--cham-border-subtle);">
+                        <span class="font-serif fw-bold fs-4" style="color: var(--cham-red); width: 36px;">01</span>
+                        <div>
+                            <h5 class="font-serif mb-1" style="font-size: 17px; color: var(--cham-dark);">Lắng nghe</h5>
+                            <p class="mb-0 text-muted small">Trao đổi ngắn để hiểu cơ thể và mong muốn của bạn.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 align-items-start p-3 rounded-3" style="background-color: var(--cham-card-bg); border: 1px solid var(--cham-border-subtle);">
+                        <span class="font-serif fw-bold fs-4" style="color: var(--cham-red); width: 36px;">02</span>
+                        <div>
+                            <h5 class="font-serif mb-1" style="font-size: 17px; color: var(--cham-dark);">Thanh lọc</h5>
+                            <p class="mb-0 text-muted small">Trà thảo mộc và hương thơm giúp tâm trí chuyển nhịp.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 align-items-start p-3 rounded-3" style="background-color: var(--cham-card-bg); border: 1px solid var(--cham-border-subtle);">
+                        <span class="font-serif fw-bold fs-4" style="color: var(--cham-red); width: 36px;">03</span>
+                        <div>
+                            <h5 class="font-serif mb-1" style="font-size: 17px; color: var(--cham-dark);">Phục hồi</h5>
+                            <p class="mb-0 text-muted small">Kỹ thuật trị liệu cá nhân hóa, chậm rãi và chính xác.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Image -->
+            <div class="col-lg-6 position-relative">
+                <img src="{% static 'images/ritual_image.png' %}" alt="The Cham Ritual" class="img-fluid rounded-4 shadow-sm w-100" style="max-height: 480px; object-fit: cover;">
+                <div class="p-3 bg-white shadow-sm rounded-3 mt-3 border" style="border-color: var(--cham-gold-light) !important;">
+                    <div class="fw-bold" style="font-size: 14px; color: var(--cham-red);">Di sản trong từng chi tiết</div>
+                    <div class="text-muted small">Một cách diễn giải đương đại, tôn trọng vẻ đẹp Champa bản địa.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     6. MEMBERSHIP BENEFITS (FIGMA 1600x489)
+     ========================================================================== -->
+<section id="membership" class="py-5" style="background-color: var(--cham-bg);">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <!-- Left Info -->
+            <div class="col-lg-6">
+                <div style="font-family: var(--font-body); font-weight: 700; font-size: 12px; color: var(--cham-red); letter-spacing: 2.5px; text-transform: uppercase;">
+                    CHAM MEMBERSHIP
+                </div>
+                <h2 class="font-serif my-3" style="font-size: clamp(28px, 3.5vw, 42px); color: var(--cham-dark);">
+                    Chăm sóc đều đặn, an yên dài lâu
+                </h2>
+                <p class="text-muted mb-4" style="font-size: 16.5px; line-height: 1.7;">
+                    Hội viên Cham Circle nhận những đặc quyền được thiết kế để biến việc phục hồi thành một nhịp sống bền vững.
+                </p>
+                <a href="#membership" class="btn-figma-red">KHÁM PHÁ HỘI VIÊN</a>
+            </div>
+
+            <!-- Right Membership Card (Figma Serenity) -->
+            <div class="col-lg-6">
+                <div class="membership-card-figma">
+                    <div class="row g-4 align-items-center h-100">
+                        <!-- Left Info Inside Card -->
+                        <div class="col-sm-7 d-flex flex-column justify-content-center">
+                            <div class="small fw-bold text-uppercase mb-2" style="color: var(--cham-gold); letter-spacing: 2.5px; font-size: 11.5px;">CHAM CIRCLE</div>
+                            <h3 class="font-serif mb-1 text-white" style="font-size: 30px;">Serenity</h3>
+                            <div class="small mb-3" style="color: var(--cham-gold); font-size: 13px;">Đặc quyền dành cho bạn</div>
+
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center gap-2" style="font-size: 13.5px; color: #FAF7F0;">
+                                    <i class="bi bi-check2-circle" style="color: var(--cham-gold);"></i>
+                                    <span>Ưu tiên khung giờ đẹp</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2" style="font-size: 13.5px; color: #FAF7F0;">
+                                    <i class="bi bi-check2-circle" style="color: var(--cham-gold);"></i>
+                                    <span>Tích điểm đến 15%</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2" style="font-size: 13.5px; color: #FAF7F0;">
+                                    <i class="bi bi-check2-circle" style="color: var(--cham-gold);"></i>
+                                    <span>Quà sinh nhật tinh tế</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2" style="font-size: 13.5px; color: #FAF7F0;">
+                                    <i class="bi bi-check2-circle" style="color: var(--cham-gold);"></i>
+                                    <span>Nâng hạng liệu trình định kỳ</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Image Inside Card (Bo tròn, cách viền không sát viền) -->
+                        <div class="col-sm-5 d-flex justify-content-center align-items-center">
+                            <div class="membership-card-image-box">
+                                <img src="{% static 'images/treatment_1.png' %}" alt="Cham Circle Serenity" class="membership-card-img">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     7. TESTIMONIALS (FIGMA 1600x599)
+     ========================================================================== -->
+<section id="testimonials" class="py-5 bg-white">
+    <div class="container py-5 text-center">
+        <div style="font-family: var(--font-body); font-weight: 700; font-size: 12px; color: var(--cham-red); letter-spacing: 2.5px; text-transform: uppercase;">
+            GUEST STORIES
+        </div>
+        <h2 class="font-serif my-3" style="font-size: clamp(28px, 3.5vw, 42px); color: var(--cham-dark);">
+            Những khoảng lặng được sẻ chia
+        </h2>
+        <p class="text-muted mx-auto mb-5" style="max-width: 600px; font-size: 15px;">
+            4,9/5 từ hơn 1.200 đánh giá chân thực trên Google và TripAdvisor.
+        </p>
+
+        <div class="row g-4 text-start">
+            <!-- Review 1 -->
+            <div class="col-md-4">
+                <div class="card p-4 border-0 rounded-4 shadow-sm h-100 bg-white d-flex flex-column justify-content-between" style="border: 1px solid var(--cham-border-subtle) !important;">
+                    <div>
+                        <div class="text-warning mb-3">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="font-serif fst-italic mb-3" style="font-size: 16px; color: var(--cham-dark); line-height: 1.6;">
+                            “Mùi hương dễ chịu và kỹ thuật viên thực sự lắng nghe cơ thể mình.”
+                        </p>
+                    </div>
+                    <div>
+                        <div class="fw-bold font-serif" style="color: var(--cham-red); font-size: 15px;">Lan Anh</div>
+                        <div class="text-muted small">Khách hàng hội viên</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review 2 -->
+            <div class="col-md-4">
+                <div class="card p-4 border-0 rounded-4 shadow-sm h-100 bg-white d-flex flex-column justify-content-between" style="border: 1px solid var(--cham-border-subtle) !important;">
+                    <div>
+                        <div class="text-warning mb-3">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="font-serif fst-italic mb-3" style="font-size: 16px; color: var(--cham-dark); line-height: 1.6;">
+                            “Một trong những trải nghiệm massage chỉn chu nhất tôi từng có tại Đà Nẵng.”
+                        </p>
+                    </div>
+                    <div>
+                        <div class="fw-bold font-serif" style="color: var(--cham-red); font-size: 15px;">Minh Quân</div>
+                        <div class="text-muted small">Local Guide · 5★</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review 3 -->
+            <div class="col-md-4">
+                <div class="card p-4 border-0 rounded-4 shadow-sm h-100 bg-white d-flex flex-column justify-content-between" style="border: 1px solid var(--cham-border-subtle) !important;">
+                    <div>
+                        <div class="text-warning mb-3">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="font-serif fst-italic mb-3" style="font-size: 16px; color: var(--cham-dark); line-height: 1.6;">
+                            “Cham Signature giúp tôi ngủ sâu ngay đêm đầu tiên. Tôi chắc chắn sẽ quay lại.”
+                        </p>
+                    </div>
+                    <div>
+                        <div class="fw-bold font-serif" style="color: var(--cham-red); font-size: 15px;">Hana Park</div>
+                        <div class="text-muted small">Du khách Hàn Quốc</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     8. LOCATION AND CONTACT (FIGMA 1600x650)
+     ========================================================================== -->
+<section id="contact" class="py-5" style="background-color: var(--cham-bg);">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <!-- Left Da Nang Image -->
+            <div class="col-lg-6">
+                <div class="location-image-wrapper">
+                    <img src="{% static 'images/location_danang.png' %}" alt="Cham Spa Đà Nẵng" class="img-fluid">
+                    <div class="location-map-card">
+                        <div class="fw-bold font-serif" style="color: var(--cham-red); font-size: 16.5px; line-height: 1.2; margin-bottom: 4px;">Cham Spa Đà Nẵng</div>
+                        <div class="text-muted small mb-2" style="font-size: 13px;">05 Lê Quang Hoà, Đà Nẵng</div>
+                        <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" class="fw-bold small text-decoration-none d-inline-flex align-items-center gap-1" style="color: var(--cham-gold-dark); font-size: 12px; letter-spacing: 0.5px;">
+                            <span>XEM CHỈ ĐƯỜNG</span>
+                            <span>→</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Content -->
+            <div class="col-lg-6">
+                <div style="font-family: var(--font-body); font-weight: 700; font-size: 12px; color: var(--cham-red); letter-spacing: 2.5px; text-transform: uppercase;">
+                    VISIT CHAM
+                </div>
+                <h2 class="font-serif my-3" style="font-size: clamp(28px, 3.5vw, 42px); color: var(--cham-dark);">
+                    Một nơi để chậm lại giữa lòng Đà Nẵng
+                </h2>
+                <p class="text-muted mb-4" style="font-size: 16px; line-height: 1.7;">
+                    Chúng tôi sẵn sàng đón bạn mỗi ngày, trong một không gian riêng tư, ấm áp và an tĩnh.
+                </p>
+
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <div class="d-flex gap-3 align-items-center">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center bg-white shadow-sm" style="width: 40px; height: 40px; color: var(--cham-red); border: 1px solid var(--cham-border-subtle);">
+                            <i class="bi bi-telephone-fill"></i>
+                        </div>
+                        <div>
+                            <div class="small text-muted">Hotline</div>
+                            <div class="fw-bold">0987 773 777</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 align-items-center">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center bg-white shadow-sm" style="width: 40px; height: 40px; color: var(--cham-red); border: 1px solid var(--cham-border-subtle);">
+                            <i class="bi bi-envelope-fill"></i>
+                        </div>
+                        <div>
+                            <div class="small text-muted">Email</div>
+                            <div class="fw-bold">sm.chamspamassage@gmail.com</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 align-items-center">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center bg-white shadow-sm" style="width: 40px; height: 40px; color: var(--cham-red); border: 1px solid var(--cham-border-subtle);">
+                            <i class="bi bi-clock-fill"></i>
+                        </div>
+                        <div>
+                            <div class="small text-muted">Giờ mở cửa</div>
+                            <div class="fw-bold">8:30 - 22:00 · Hằng ngày</div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="tel:0987773777" class="btn-figma-outline-dark">LIÊN HỆ VỚI CHAM</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     9. FINAL BOOKING CALL TO ACTION (FIGMA 1600x460)
+     ========================================================================== -->
+<section id="booking" class="py-5 text-white text-center position-relative d-flex align-items-center" style="min-height: 460px; background: linear-gradient(rgba(36, 23, 17, 0.78), rgba(36, 23, 17, 0.88)), url('{% static 'images/cta_callout.png' %}') center/cover no-repeat;">
+    <div class="container py-5">
+        <h2 class="font-serif mb-3" style="font-size: clamp(32px, 4.5vw, 52px);">
+            Hãy dành một khoảng lặng cho chính mình
+        </h2>
+        <p class="mx-auto mb-4" style="max-width: 600px; font-size: 18px; color: #f4efe3; line-height: 1.7;">
+            Chọn thời gian phù hợp. Cham sẽ chuẩn bị phần còn lại thật chu đáo.
+        </p>
+        <a href="#booking" class="btn-figma-gold">ĐẶT LỊCH TRẢI NGHIỆM</a>
+    </div>
+</section>
+{% endblock %}

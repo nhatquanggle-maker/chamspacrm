@@ -1,0 +1,155 @@
+{% load static %}
+<!-- Workspace Topbar (Figma 772:2 & 760:751 - Height 70px) -->
+<header class="workspace-topbar">
+    <!-- Global search (Figma 520px) -->
+    <div class="workspace-search-box">
+        <i class="bi bi-search workspace-search-icon"></i>
+        <input type="text" class="form-control" placeholder="Tìm kiếm mã lịch hẹn, khách hàng, số điện thoại...">
+    </div>
+
+    <!-- Account Controls -->
+    <div class="d-flex align-items-center gap-3">
+        <!-- Nút Xem Website -->
+        <a href="{% url 'home' %}" class="btn-workspace-view-web text-decoration-none" title="Xem giao diện Website khách hàng">
+            <i class="bi bi-globe2"></i>
+            <span>Xem Website</span>
+        </a>
+
+        <!-- Notification button (Không có chấm đỏ theo yêu cầu) -->
+        <button class="workspace-bell-btn" type="button" title="Thông báo hệ thống" aria-label="Thông báo">
+            <i class="bi bi-bell"></i>
+        </button>
+
+        <!-- User profile identity with Dropdown -->
+        <div class="profile-dropdown-container">
+            <div class="d-flex align-items-center gap-3 ps-3 border-start" style="cursor: pointer;" title="Tài khoản cá nhân & Phân quyền">
+                <div class="text-end d-none d-sm-block">
+                    <div style="font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: var(--cham-muted); text-transform: uppercase;">
+                        {% if user.is_superuser %}ADMIN{% elif user.is_staff %}STAFF{% else %}CUSTOMER{% endif %}
+                    </div>
+                    <div style="font-family: var(--font-serif); font-size: 14.5px; font-weight: 700; color: var(--cham-dark);">
+                        {{ user.name|default:user.username|default:"Tài khoản" }}
+                    </div>
+                </div>
+                <div class="admin-avatar" style="width: 40px; height: 40px; font-size: 14px;">
+                    {{ user.name|default:user.username|default:"U"|make_list|first|upper }}
+                </div>
+            </div>
+
+            <!-- Workspace Profile Dropdown Menu (Figma Phân quyền) -->
+            <div class="profile-dropdown-menu" role="menu">
+                <div class="dropdown-account-header">
+                    <div class="dropdown-avatar-circle">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div class="dropdown-account-info">
+                        <div class="dropdown-account-name">{{ user.name|default:user.username }}</div>
+                        <div class="dropdown-account-phone">
+                            {% if user.is_superuser %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0 fw-bold" style="font-size: 10px;">ADMIN</span>
+                            {% elif user.is_staff %}
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-0 fw-bold" style="font-size: 10px;">STAFF</span>
+                            {% else %}
+                                {{ user.phone|default:user.email }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="dropdown-divider-line"></div>
+                <div class="dropdown-menu-list">
+                    {% if user.is_superuser %}
+                        <a href="{% url 'accounts:profile' %}" class="dropdown-menu-item" data-nav-target="Thông tin cá nhân">
+                            <i class="bi bi-person"></i>
+                            <span>Thông tin cá nhân</span>
+                        </a>
+                        <a href="{% url 'dashboard:admin' %}" class="dropdown-menu-item" data-nav-target="Dashboard">
+                            <i class="bi bi-grid-1x2"></i>
+                            <span>Dashboard</span>
+                        </a>
+
+                        <div class="dropdown-category-label">VẬN HÀNH</div>
+                        <a href="{% url 'dashboard:admin' %}?tab=appointments" class="dropdown-menu-item" data-nav-target="Quản lý lịch hẹn">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>Quản lý lịch hẹn</span>
+                        </a>
+                        <a href="{% url 'dashboard:admin' %}?tab=chatbox" class="dropdown-menu-item" data-nav-target="Quản lý Chatbox">
+                            <i class="bi bi-chat-dots"></i>
+                            <span>Quản lý Chatbox</span>
+                        </a>
+                        <a href="{% url 'dashboard:admin' %}?tab=feedbacks" class="dropdown-menu-item" data-nav-target="Quản lý đánh giá và khiếu nại">
+                            <i class="bi bi-star"></i>
+                            <span>Quản lý đánh giá và khiếu nại</span>
+                        </a>
+                        <a href="{% url 'dashboard:admin' %}?tab=payments" class="dropdown-menu-item" data-nav-target="Quản lý thanh toán & hóa đơn">
+                            <i class="bi bi-receipt"></i>
+                            <span>Quản lý thanh toán & hóa đơn</span>
+                        </a>
+
+                        <div class="dropdown-category-label">HỆ THỐNG</div>
+                        <a href="{% url 'dashboard:admin' %}?tab=customers" class="dropdown-menu-item" data-nav-target="Quản lý Khách hàng">
+                            <i class="bi bi-people"></i>
+                            <span>Quản lý Khách hàng</span>
+                        </a>
+                        <a href="{% url 'dashboard:admin' %}?tab=staff" class="dropdown-menu-item" data-nav-target="Quản lý Nhân viên">
+                            <i class="bi bi-person-badge"></i>
+                            <span>Quản lý Nhân viên</span>
+                        </a>
+                        <a href="{% url 'dashboard:admin' %}?tab=services" class="dropdown-menu-item" data-nav-target="Quản lý Danh mục dịch vụ">
+                            <i class="bi bi-flower2"></i>
+                            <span>Quản lý Danh mục dịch vụ</span>
+                        </a>
+
+                        <div class="dropdown-category-label">MARKETING & CSKH</div>
+                        <a href="{% url 'dashboard:admin' %}?tab=notifications" class="dropdown-menu-item" data-nav-target="Quản lý Thông báo">
+                            <i class="bi bi-bell"></i>
+                            <span>Quản lý Thông báo</span>
+                        </a>
+                        <a href="{% url 'dashboard:admin' %}?tab=promotions" class="dropdown-menu-item" data-nav-target="Quản lý Khuyến mãi">
+                            <i class="bi bi-percent"></i>
+                            <span>Quản lý Khuyến mãi</span>
+                        </a>
+
+                    {% elif user.is_staff %}
+                        <a href="{% url 'accounts:profile' %}" class="dropdown-menu-item" data-nav-target="Thông tin cá nhân">
+                            <i class="bi bi-person"></i>
+                            <span>Thông tin cá nhân</span>
+                        </a>
+                        <a href="{% url 'dashboard:staff' %}" class="dropdown-menu-item" data-nav-target="Lịch hẹn">
+                            <i class="bi bi-calendar-check"></i>
+                            <span>Lịch hẹn</span>
+                        </a>
+                        <a href="{% url 'dashboard:staff' %}?tab=inbox" class="dropdown-menu-item justify-content-between" data-nav-target="Inbox">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="bi bi-inbox"></i>
+                                <span>Inbox</span>
+                            </div>
+                            <span class="badge bg-danger rounded-pill px-2 py-1" style="font-size: 11px;">8</span>
+                        </a>
+                        <a href="{% url 'dashboard:staff' %}?tab=notifications" class="dropdown-menu-item" data-nav-target="Quản lý Thông báo">
+                            <i class="bi bi-bell"></i>
+                            <span>Quản lý Thông báo</span>
+                        </a>
+                        <a href="{% url 'dashboard:staff' %}?tab=feedbacks" class="dropdown-menu-item" data-nav-target="Đánh giá và Khiếu nại">
+                            <i class="bi bi-chat-left-dots"></i>
+                            <span>Đánh giá và Khiếu nại</span>
+                        </a>
+                        <a href="{% url 'dashboard:staff' %}?tab=customers" class="dropdown-menu-item" data-nav-target="Hồ sơ Khách hàng">
+                            <i class="bi bi-people"></i>
+                            <span>Hồ sơ Khách hàng</span>
+                        </a>
+                        <a href="{% url 'dashboard:staff' %}?tab=payments" class="dropdown-menu-item" data-nav-target="Hóa đơn & thanh toán">
+                            <i class="bi bi-receipt"></i>
+                            <span>Hóa đơn & thanh toán</span>
+                        </a>
+                    {% endif %}
+
+                    <div class="dropdown-divider-line"></div>
+                    <a href="{% url 'accounts:logout' %}" class="dropdown-menu-item dropdown-item-logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Đăng xuất</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

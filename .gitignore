@@ -1,0 +1,56 @@
+# ==============================================================================
+# CHAM SPA CRM - GITIGNORE CHUẨN DÀNH CHO DỰ ÁN DJANGO
+# ==============================================================================
+
+# 1. Virtual Environments (Môi trường ảo Python)
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# 2. Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 3. Database (Lưu trữ CSDL SQLite ban đầu đồng bộ cho cả nhóm)
+*.sqlite3-journal
+# db.sqlite3 được giữ lại để cả nhóm đồng bộ 20 bảng CSDL và tài khoản test ban đầu
+
+
+# 4. Media Files (Ảnh người dùng tải lên trong lúc kiểm thử cục bộ)
+media/
+!media/.gitkeep
+
+# 5. Environment variables & Secrets
+.env
+.env.local
+.env.*.local
+local_settings.py
+
+# 6. IDEs & Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 7. OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# 8. Logs
+*.log
+

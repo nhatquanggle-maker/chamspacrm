@@ -1,0 +1,100 @@
+{% load static %}
+<!-- Footer Cham Spa (Figma 614:281) -->
+<footer class="cham-footer-figma">
+    <div class="footer-inner-container">
+        <!-- Eyebrow -->
+        <div class="footer-eyebrow-figma">THE ART OF RESTORATION</div>
+
+        <!-- 4 Cột chuẩn xác theo Figma -->
+        <div class="footer-columns-figma">
+            <!-- Cột 1: Brand & Socials (430px) -->
+            <div class="footer-col-brand">
+                <div class="footer-logo mb-3">
+                    <img src="{% static 'images/chamspa-logo.png' %}" alt="Cham Spa & Massage" class="footer-logo-img">
+                </div>
+                <p class="footer-tagline-figma">
+                    Cham Spa & Massage Đà Nẵng Top Asean về dịch vụ spa massage, ứng dụng cả hai phương pháp massage trị liệu và massage thư giãn giúp khách hàng có được trải nghiệm tuyệt vời nhất.
+                </p>
+                <div class="footer-social-buttons">
+                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="social-circle-btn" title="Instagram">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="social-circle-btn" title="Facebook">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="social-circle-btn" title="TikTok">
+                        <i class="bi bi-tiktok"></i>
+                    </a>
+                </div>
+                <div class="footer-location-note">ĐÀ NẴNG • VIỆT NAM</div>
+            </div>
+
+            <!-- Cột 2: Quick Links (220px) -->
+            <div class="footer-col-links">
+                <div class="footer-col-header">
+                    <h5 class="footer-col-title-figma">Quick Links</h5>
+                    <div class="footer-accent-rule"></div>
+                </div>
+                <ul class="footer-link-list">
+                    <li><span class="link-marker-dot"></span><a href="{% url 'home' %}">Trang chủ</a></li>
+                    <li><span class="link-marker-dot"></span><a href="#philosophy">Về Cham</a></li>
+                    <li><span class="link-marker-dot"></span><a href="#services">Dịch vụ</a></li>
+                    <li><span class="link-marker-dot"></span><a href="#membership">Hội Viên</a></li>
+                    <li><span class="link-marker-dot"></span><a href="#testimonials">Khách hàng</a></li>
+                </ul>
+            </div>
+
+            <!-- Cột 3: Our Services (280px) -->
+            <div class="footer-col-links">
+                <div class="footer-col-header">
+                    <h5 class="footer-col-title-figma">Our Services</h5>
+                    <div class="footer-accent-rule"></div>
+                </div>
+                <ul class="footer-link-list">
+                    <li><span class="link-marker-dot"></span><a href="#services">Massage Body</a></li>
+                    <li><span class="link-marker-dot"></span><a href="#services">Massage Foot</a></li>
+                    <li><span class="link-marker-dot"></span><a href="#services">Massage cổ vai gáy</a></li>
+                    <li><span class="link-marker-dot"></span><a href="#services">Massage đá nóng</a></li>
+                    <li><span class="link-marker-dot"></span><a href="#services">Massage bà bầu</a></li>
+                </ul>
+            </div>
+
+            <!-- Cột 4: Contact Us (420px) -->
+            <div class="footer-col-contact">
+                <div class="footer-col-header">
+                    <h5 class="footer-col-title-figma">Contact Us</h5>
+                    <div class="footer-accent-rule"></div>
+                </div>
+                <div class="footer-contact-list">
+                    <div class="contact-item-figma">
+                        <div class="contact-icon-circle"><i class="bi bi-geo-alt-fill"></i></div>
+                        <div class="contact-text-figma">Địa chỉ: 05 Lê Quang Hoà, Hoà Xuân, Cẩm Lệ, Đà Nẵng</div>
+                    </div>
+                    <div class="contact-item-figma">
+                        <div class="contact-icon-circle"><i class="bi bi-telephone-fill"></i></div>
+                        <div class="contact-text-figma">Hotline: 0987 773 777</div>
+                    </div>
+                    <div class="contact-item-figma">
+                        <div class="contact-icon-circle"><i class="bi bi-envelope-fill"></i></div>
+                        <div class="contact-text-figma">Email: sm.chamspamassage@gmail.com</div>
+                    </div>
+                    <div class="contact-item-figma">
+                        <div class="contact-icon-circle"><i class="bi bi-clock-fill"></i></div>
+                        <div class="contact-text-figma">Mở cửa: 8:30 - 22:00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="footer-bottom-bar-figma">
+        <div class="footer-copyright-figma">
+            © 2026 Cham Spa & Massage. All rights reserved.
+        </div>
+        <div class="footer-legal-links-figma">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+        </div>
+    </div>
+</footer>

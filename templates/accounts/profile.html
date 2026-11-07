@@ -1,0 +1,650 @@
+{% extends base_layout|default:"layouts/customer_layout.html" %}
+{% load static %}
+
+{% block title %}Hồ sơ cá nhân | Cham Spa & Massage Đà Nẵng{% endblock %}
+{% block page_title %}Thông tin cá nhân{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Module 5: Customer Profile Card Styling (Figma Node 218:9161) */
+    .cham-profile-card {
+        background-color: #FFFFFF;
+        border: 1px solid #D0B581 !important;
+        border-radius: 18px !important;
+        box-shadow: 0 14px 36px rgba(46, 29, 23, 0.08);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+
+    .cham-profile-summary {
+        background-color: #FAF7EF;
+        border-right: 1px solid #DED2BA;
+        padding: 36px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        height: 100%;
+        min-height: 100%;
+        flex-grow: 1;
+    }
+
+    .cham-profile-avatar-wrap {
+        width: 124px;
+        height: 124px;
+        position: relative;
+        margin: 0 auto 12px auto;
+    }
+
+    .cham-profile-avatar-img {
+        width: 124px;
+        height: 124px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #D0B581;
+    }
+
+    .cham-profile-avatar-placeholder {
+        width: 124px;
+        height: 124px;
+        border-radius: 50%;
+        background-color: #781A24;
+        color: #FFFFFF;
+        font-size: 42px;
+        font-weight: 700;
+        font-family: var(--font-serif), serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid #D0B581;
+    }
+
+    .cham-avatar-camera-btn {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background-color: #781A24;
+        color: #FFFFFF;
+        border: 2px solid #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.2s ease, background-color 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .cham-avatar-camera-btn:hover {
+        transform: scale(1.08);
+        background-color: #5c121b;
+    }
+
+    .cham-upload-link {
+        color: #781A24 !important;
+        font-family: var(--font-body), sans-serif;
+        font-size: 13.5px;
+        font-weight: 600;
+        text-decoration: underline !important;
+        cursor: pointer;
+    }
+
+    .cham-status-badge {
+        display: inline-block;
+        background-color: #EFE4CD;
+        color: #781A24;
+        font-family: var(--font-body), sans-serif;
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        padding: 4px 14px;
+        border-radius: 999px;
+    }
+
+    .cham-subnav-btn {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 11px 18px;
+        border-radius: 8px;
+        font-family: var(--font-body), sans-serif;
+        font-size: 14.5px;
+        font-weight: 600;
+        color: #4A3E39;
+        background: transparent;
+        border: none;
+        text-align: left;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .cham-subnav-btn:hover {
+        background-color: rgba(208, 181, 129, 0.25);
+        color: #781A24;
+    }
+
+    .cham-subnav-btn.active {
+        background-color: #781A24 !important;
+        color: #FFFFFF !important;
+    }
+
+    .cham-subnav-btn.active i {
+        color: #FFFFFF !important;
+    }
+
+    .cham-subnav-logout:hover {
+        background-color: #FFF5F5 !important;
+        color: #DC2626 !important;
+    }
+
+    .cham-profile-content {
+        padding: 40px 44px;
+    }
+
+    .cham-field-label {
+        display: block;
+        font-family: var(--font-body), sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        color: #171311;
+        margin-bottom: 7px;
+    }
+
+    .cham-field-input-wrap {
+        display: flex;
+        align-items: center;
+        background-color: #FFFFFF;
+        border: 1px solid #DED2BA;
+        border-radius: 8px;
+        height: 48px;
+        padding: 0 14px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .cham-field-input-wrap:focus-within {
+        border-color: #781A24 !important;
+        box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.12);
+    }
+
+    .cham-field-icon {
+        color: #6F665E;
+        font-size: 18px;
+        flex-shrink: 0;
+        margin-right: 10px;
+    }
+
+    .cham-field-input {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        width: 100%;
+        height: 100%;
+        padding: 0 !important;
+        font-family: var(--font-body), sans-serif;
+        font-size: 14.5px;
+        color: #171311;
+    }
+
+    .cham-field-input:focus {
+        outline: none !important;
+    }
+
+    .cham-verified-badge {
+        margin-left: auto;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .cham-gender-radio {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-right: 22px;
+        cursor: pointer;
+        font-family: var(--font-body), sans-serif;
+        font-size: 14.5px;
+        font-weight: 500;
+        color: #171311;
+    }
+
+    .cham-gender-radio input[type="radio"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 1.5px solid #8C827A;
+        border-radius: 50%;
+        outline: none;
+        cursor: pointer;
+        position: relative;
+        margin: 0;
+        transition: all 0.2s ease;
+    }
+
+    .cham-gender-radio input[type="radio"]:checked {
+        border-color: #781A24;
+        background-color: #781A24;
+        box-shadow: inset 0 0 0 3px #FFFFFF;
+    }
+
+    .cham-profile-submit-btn {
+        background-color: #781A24;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 28px;
+        font-family: var(--font-body), sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background-color 0.2s ease, transform 0.15s ease;
+        cursor: pointer;
+    }
+
+    .cham-profile-submit-btn:hover {
+        background-color: #5c121b;
+        color: #FFFFFF;
+        transform: translateY(-1px);
+    }
+
+    .cham-auth-pwd-toggle {
+        background: none;
+        border: none;
+        color: #6F665E;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        margin-left: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block admin_topbar %}{% endblock %}
+{% block staff_topbar %}{% endblock %}
+
+{% block content %}
+{% if base_layout == 'layouts/staff_layout.html' or base_layout == 'layouts/admin_layout.html' %}
+<!-- Staff / Admin Page Heading & Support Banner (Figma 576:825 & 576:1396) -->
+<div class="mb-3">
+    <h2 class="font-serif fw-bold" style="color: var(--cham-red); font-size: 28px; margin-bottom: 0;">
+        Thông tin cá nhân
+    </h2>
+</div>
+<div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-2"
+    style="background-color: #FAF7EF; border: 1px solid #D0B581; font-size: 13.5px; color: var(--cham-dark); box-shadow: 0 4px 12px rgba(46, 29, 23, 0.04);">
+    <span style="font-size: 18px;">✨</span>
+    <div>
+        <strong>Cham Spa luôn đồng hành cùng bạn</strong> - Cần hỗ trợ thêm? Hotline <strong
+            style="color: var(--cham-red);">0905 409 257</strong> sẵn sàng tư vấn lịch trình phù hợp.
+    </div>
+</div>
+{% endif %}
+
+<!-- Messages Notification Bar (Hiển thị phía trên Card, không làm hở viền trắng trong Card) -->
+{% if messages %}
+<div class="mb-4">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3 small py-2 mb-2" role="alert">
+        <i class="bi bi-info-circle-fill me-1"></i> {{ message }}
+        <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="cham-profile-card">
+    <div class="row g-0 align-items-stretch" style="min-height: 100%;">
+        <!-- 1. LEFT COLUMN: Profile Summary (Figma 218:9161) -->
+        <div class="col-lg-4 col-md-5 d-flex flex-column" style="background-color: #FAF7EF;">
+            <div class="cham-profile-summary flex-grow-1">
+                <!-- Avatar Upload Section -->
+                <div class="cham-profile-avatar-wrap">
+                    {% if profile.avatar %}
+                    <img src="{{ profile.avatar }}" alt="{{ user.name|default:user.username }}"
+                        class="cham-profile-avatar-img">
+                    {% else %}
+                    <div class="cham-profile-avatar-placeholder">
+                        {{ user.name|default:user.username|default:"U"|make_list|first|upper }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Camera Button Overlay -->
+                    <button type="button" class="cham-avatar-camera-btn" onclick="triggerAvatarUpload()"
+                        title="Tải ảnh đại diện mới">
+                        <i class="bi bi-camera"></i>
+                    </button>
+                </div>
+
+                <!-- Tải ảnh mới Link -->
+                <button type="button" class="btn btn-link cham-upload-link p-0 mb-3" onclick="triggerAvatarUpload()">
+                    Tải ảnh mới
+                </button>
+
+                <!-- Hidden Form for Avatar Upload -->
+                <form id="avatarUploadForm" method="POST" action="{% url 'accounts:profile' %}"
+                    enctype="multipart/form-data" style="display: none;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="upload_avatar">
+                    <input type="file" id="avatarFileInput" name="avatar" accept="image/*"
+                        onchange="document.getElementById('avatarUploadForm').submit();">
+                </form>
+
+                <!-- Member Identity -->
+                <h4 class="font-serif fw-bold mb-2" style="color: #171311; font-size: 20px;">
+                    {{ user.name|default:user.username }}
+                </h4>
+                <div class="cham-status-badge mb-4">
+                    {{ status_badge_text|default:membership_tier|default:"Staff" }}
+                </div>
+
+                <!-- Divider -->
+                <div style="width: 100%; height: 1px; background-color: #DED2BA; margin-bottom: 24px;"></div>
+
+                <!-- Vertical Sub-Navigation -->
+                <div class="cham-profile-subnav w-100 d-flex flex-column gap-2">
+                    <button type="button" class="cham-subnav-btn active" id="btnSubnavInfo"
+                        onclick="switchProfileTab('info')">
+                        <i class="bi bi-person"></i>
+                        <span>Thông tin cá nhân</span>
+                    </button>
+
+                    <button type="button" class="cham-subnav-btn" id="btnSubnavPassword"
+                        onclick="switchProfileTab('password')">
+                        <i class="bi bi-key"></i>
+                        <span>Đổi mật khẩu</span>
+                    </button>
+
+                    <a href="{% url 'accounts:logout' %}" class="cham-subnav-btn cham-subnav-logout text-danger">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Đăng xuất</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. RIGHT COLUMN: Personal Information Form (Figma 218:9161) -->
+        <div class="col-lg-8 col-md-7 d-flex flex-column" style="background-color: #FFFFFF;">
+            <div class="cham-profile-content flex-grow-1">
+
+                <!-- TAB 1: THÔNG TIN CÁ NHÂN -->
+                <div id="tabProfileInfo">
+                    <!-- Heading -->
+                    <div class="mb-4">
+                        <h3 class="font-serif fw-bold mb-1" style="color: #781A24; font-size: 24px;">
+                            Thông tin cá nhân
+                        </h3>
+                        <p class="text-muted small mb-0" style="font-size: 14px;">
+                            Cập nhật thông tin để Cham Spa phục vụ bạn chu đáo hơn.
+                        </p>
+                    </div>
+
+                    <!-- Divider -->
+                    <div style="height: 1px; background-color: #DED2BA; margin-bottom: 28px;"></div>
+
+                    <!-- Form -->
+                    <form method="POST" action="{% url 'accounts:profile' %}" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_profile">
+
+                        <div class="row g-4">
+                            <!-- Họ và tên * -->
+                            <div class="col-md-6">
+                                <label class="cham-field-label" for="id_name">
+                                    Họ và tên *
+                                </label>
+                                <div class="cham-field-input-wrap">
+                                    <i class="bi bi-person cham-field-icon"></i>
+                                    <input type="text" name="name" id="id_name" class="cham-field-input"
+                                        placeholder="Họ và tên" value="{{ form.name.value|default:'' }}" required>
+                                </div>
+                                {% if form.name.errors %}
+                                <div class="text-danger small mt-1" style="font-size: 12px;">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ form.name.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Số điện thoại * -->
+                            <div class="col-md-6">
+                                <label class="cham-field-label" for="id_phone">
+                                    Số điện thoại *
+                                </label>
+                                <div class="cham-field-input-wrap">
+                                    <i class="bi bi-telephone cham-field-icon"></i>
+                                    <input type="tel" name="phone" id="id_phone" class="cham-field-input"
+                                        placeholder="0901 234 567" value="{{ form.phone.value|default:'' }}" required>
+                                </div>
+                                {% if form.phone.errors %}
+                                <div class="text-danger small mt-1" style="font-size: 12px;">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ form.phone.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Email (Full-width with verified check) -->
+                            <div class="col-12">
+                                <label class="cham-field-label" for="id_email">
+                                    Email
+                                </label>
+                                <div class="cham-field-input-wrap" style="background-color: #FAF7EF;">
+                                    <i class="bi bi-envelope cham-field-icon"></i>
+                                    <input type="email" name="email" id="id_email" class="cham-field-input"
+                                        placeholder="thao.nguyen@gmail.com" value="{{ form.email.value|default:'' }}">
+                                    <span class="cham-verified-badge" title="Tài khoản email đã xác thực">
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                    </span>
+                                </div>
+                                {% if form.email.errors %}
+                                <div class="text-danger small mt-1" style="font-size: 12px;">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ form.email.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Ngày sinh -->
+                            <div class="col-md-6">
+                                <label class="cham-field-label" for="id_birthday">
+                                    Ngày sinh
+                                </label>
+                                <div class="cham-field-input-wrap">
+                                    <i class="bi bi-calendar3 cham-field-icon"></i>
+                                    <input type="date" name="birthday" id="id_birthday" class="cham-field-input"
+                                        value="{{ profile.birthday|date:'Y-m-d'|default:'' }}">
+                                </div>
+                                {% if form.birthday.errors %}
+                                <div class="text-danger small mt-1" style="font-size: 12px;">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ form.birthday.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Giới tính (Figma: Nữ, Nam, Khác) -->
+                            <div class="col-md-6">
+                                <label class="cham-field-label d-block">
+                                    Giới tính
+                                </label>
+                                <div class="d-flex align-items-center pt-2">
+                                    <label class="cham-gender-radio">
+                                        <input type="radio" 
+                                               name="gender" 
+                                               value="Nữ" 
+                                               {% if profile.gender == 'Nữ' or not profile.gender %}checked{% endif %}>
+                                        <span>Nữ</span>
+                                    </label>
+                                    <label class="cham-gender-radio">
+                                        <input type="radio" 
+                                               name="gender" 
+                                               value="Nam" 
+                                               {% if profile.gender == 'Nam' %}checked{% endif %}>
+                                        <span>Nam</span>
+                                    </label>
+                                    <label class="cham-gender-radio">
+                                        <input type="radio" 
+                                               name="gender" 
+                                               value="Khác" 
+                                               {% if profile.gender == 'Khác' %}checked{% endif %}>
+                                        <span>Khác</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Action Button -->
+                        <div class="mt-5">
+                            <button type="submit" class="cham-profile-submit-btn">
+                                <i class="bi bi-save"></i>
+                                <span>Lưu thay đổi thông tin</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- TAB 2: ĐỔI MẬT KHẨU -->
+                <div id="tabProfilePassword" style="display: none;">
+                    <!-- Heading -->
+                    <div class="mb-4">
+                        <h3 class="font-serif fw-bold mb-1" style="color: #781A24; font-size: 24px;">
+                            Đổi mật khẩu
+                        </h3>
+                        <p class="text-muted small mb-0" style="font-size: 14px;">
+                            Cập nhật mật khẩu để bảo vệ an toàn cho tài khoản của bạn.
+                        </p>
+                    </div>
+
+                    <!-- Divider -->
+                    <div style="height: 1px; background-color: #DED2BA; margin-bottom: 28px;"></div>
+
+                    <!-- Change Password Form -->
+                    <form method="POST" action="{% url 'accounts:profile' %}" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_password">
+
+                        <div class="row g-4">
+                            <!-- Mật khẩu hiện tại -->
+                            <div class="col-12">
+                                <label class="cham-field-label" for="id_old_password">
+                                    Mật khẩu hiện tại *
+                                </label>
+                                <div class="cham-field-input-wrap">
+                                    <i class="bi bi-lock cham-field-icon"></i>
+                                    <input type="password" name="old_password" id="id_old_password"
+                                        class="cham-field-input" placeholder="Nhập mật khẩu hiện tại"
+                                        autocomplete="current-password" required>
+                                    <button type="button" class="cham-auth-pwd-toggle"
+                                        onclick="togglePassword('id_old_password', this)" title="Hiện/Ẩn mật khẩu">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Mật khẩu mới -->
+                            <div class="col-md-6">
+                                <label class="cham-field-label" for="id_new_password">
+                                    Mật khẩu mới *
+                                </label>
+                                <div class="cham-field-input-wrap">
+                                    <i class="bi bi-key cham-field-icon"></i>
+                                    <input type="password" name="new_password" id="id_new_password"
+                                        class="cham-field-input" placeholder="Tối thiểu 8 ký tự"
+                                        autocomplete="new-password" required>
+                                    <button type="button" class="cham-auth-pwd-toggle"
+                                        onclick="togglePassword('id_new_password', this)" title="Hiện/Ẩn mật khẩu">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Xác nhận Mật khẩu mới -->
+                            <div class="col-md-6">
+                                <label class="cham-field-label" for="id_confirm_password">
+                                    Xác nhận Mật khẩu mới *
+                                </label>
+                                <div class="cham-field-input-wrap">
+                                    <i class="bi bi-key-fill cham-field-icon"></i>
+                                    <input type="password" name="confirm_password" id="id_confirm_password"
+                                        class="cham-field-input" placeholder="Nhập lại mật khẩu mới"
+                                        autocomplete="new-password" required>
+                                    <button type="button" class="cham-auth-pwd-toggle"
+                                        onclick="togglePassword('id_confirm_password', this)" title="Hiện/Ẩn mật khẩu">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Action Button -->
+                        <div class="mt-5">
+                            <button type="submit" class="cham-profile-submit-btn">
+                                <i class="bi bi-shield-check"></i>
+                                <span>Cập nhật mật khẩu</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Chuyển đổi giữa Tab Thông tin cá nhân và Đổi mật khẩu
+    function switchProfileTab(tabName) {
+        const paneInfo = document.getElementById('tabProfileInfo');
+        const panePassword = document.getElementById('tabProfilePassword');
+        const btnInfo = document.getElementById('btnSubnavInfo');
+        const btnPassword = document.getElementById('btnSubnavPassword');
+
+        if (tabName === 'password') {
+            paneInfo.style.display = 'none';
+            panePassword.style.display = 'block';
+            btnInfo.classList.remove('active');
+            btnPassword.classList.add('active');
+        } else {
+            paneInfo.style.display = 'block';
+            panePassword.style.display = 'none';
+            btnInfo.classList.add('active');
+            btnPassword.classList.remove('active');
+        }
+    }
+
+    // Kích hoạt hộp chọn file tải ảnh đại diện
+    function triggerAvatarUpload() {
+        const fileInput = document.getElementById('avatarFileInput');
+        if (fileInput) {
+            fileInput.click();
+        }
+    }
+
+    // Bật/tắt ẩn hiện mật khẩu
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (icon) {
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            }
+        } else {
+            input.type = 'password';
+            if (icon) {
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+    }
+</script>
+{% endblock %}

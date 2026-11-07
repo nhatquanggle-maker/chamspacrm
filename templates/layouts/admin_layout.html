@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block layout %}
+<div class="champa-watermark-wrapper min-vh-100 py-3 py-md-4">
+    <div class="champa-workspace-inner container-fluid px-3 px-md-4">
+        <div class="d-flex gap-4">
+            <!-- Admin Sidebar (Figma 608:5236) -->
+            <div class="d-none d-lg-block flex-shrink-0">
+                {% include "components/sidebar_admin.html" %}
+            </div>
+
+            <!-- Admin Workspace (Figma 772:2 & 576:1396) -->
+            <div class="flex-grow-1 overflow-hidden">
+                {% block admin_topbar %}
+                    {% include "components/topbar_workspace.html" %}
+                {% endblock %}
+                <div class="workspace-content">
+                    {% block admin_content %}{% endblock %}
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

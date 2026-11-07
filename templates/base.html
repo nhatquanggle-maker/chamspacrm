@@ -1,0 +1,273 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Cham Spa & Massage Đà Nẵng | The Art of Restoration{% endblock %}</title>
+
+    <!-- Cham Spa Favicon (Browser Tab Icon) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}?v=1.1">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}?v=1.1">
+    <link rel="icon" type="image/png" href="{% static 'images/chamspa-logo.png' %}?v=1.1">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}?v=1.1">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}?v=1.1">
+
+    <!-- Google Fonts: Lora & Tinos (Serif), Cabin & Manrope (Body/Nav) theo Figma Moodboard 857:31 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- FullCalendar & Chart.js CDN (Techstack requirement) -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Cham Spa Figma Design Tokens & Master CSS -->
+    <link rel="stylesheet" href="{% static 'css/chamspa.css' %}?v=2.5">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    {% block layout %}{% endblock %}
+
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Smart Auto-Hide Header Script (Cuộn xuống: lướt lên ẩn đi; Cuộn lên: lướt xuống hiện lại) -->
+    <script>
+    (function () {
+        let lastScrollY = window.pageYOffset || document.documentElement.scrollTop;
+        const threshold = 15; // Ngưỡng cuộn tối thiểu để kích hoạt chuyển đổi
+        const minScrollToHide = 100; // Khoảng cách cuộn tối thiểu trước khi ẩn header
+
+        window.addEventListener('scroll', function () {
+            const header = document.querySelector('.cham-header-figma');
+            if (!header) return;
+
+            const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+            // Luôn hiện khi ở đầu trang
+            if (currentScrollY <= minScrollToHide) {
+                header.classList.remove('header-hidden');
+                lastScrollY = currentScrollY;
+                return;
+            }
+
+            // Nếu khoảng cách cuộn quá nhỏ thì bỏ qua
+            if (Math.abs(currentScrollY - lastScrollY) < threshold) {
+                return;
+            }
+
+            // Cuộn xuống -> Ẩn header
+            if (currentScrollY > lastScrollY && currentScrollY > minScrollToHide) {
+                header.classList.add('header-hidden');
+            } 
+            // Cuộn lên -> Hiện header
+            else if (currentScrollY < lastScrollY) {
+                header.classList.remove('header-hidden');
+            }
+
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+    })();
+
+    // =========================================================================
+    // ĐỒNG BỘ TRẠNG THÁI ACTIVE GIỮA DROPDOWN MENU VÀ SIDEBAR (TẤT CẢ PHÂN QUYỀN)
+    // Phù hợp Techstack: Vanilla JavaScript, sessionStorage, Responsive
+    // =========================================================================
+    document.addEventListener('DOMContentLoaded', function () {
+        const navSelectors = '.sidebar-nav-item, .staff-nav-item, .customer-nav-item';
+
+        function normalizeText(txt) {
+            if (!txt) return '';
+            return txt.trim().toLowerCase().replace(/\s+/g, ' ');
+        }
+
+        // Bản đồ ánh xạ query tab -> tên mục sidebar
+        const tabMap = {
+            'appointments': 'lịch hẹn',
+            'health': 'hồ sơ sức khỏe',
+            'notifications': 'thông báo',
+            'membership': 'thẻ hội viên',
+            'feedbacks': 'đánh giá',
+            'chatbox': 'chatbox',
+            'payments': 'thanh toán',
+            'customers': 'khách hàng',
+            'staff': 'nhân viên',
+            'services': 'dịch vụ',
+            'promotions': 'khuyến mãi',
+            'inbox': 'inbox',
+            'dashboard': 'dashboard',
+            'profile': 'thông tin cá nhân'
+        };
+
+        // Hàm kích hoạt tô màu mục tương ứng trên Sidebar
+        function activateSidebarItem(targetIdentifier) {
+            if (!targetIdentifier) return false;
+            const normTarget = normalizeText(targetIdentifier);
+            const sidebarItems = document.querySelectorAll(navSelectors);
+            if (!sidebarItems.length) return false;
+
+            let matched = null;
+
+            // 1. So khớp theo thuộc tính data-nav-target
+            sidebarItems.forEach(function (el) {
+                if (el.classList.contains('sidebar-logout-item') || el.classList.contains('staff-logout-item')) return;
+                const dTarget = el.getAttribute('data-nav-target');
+                if (dTarget && normalizeText(dTarget) === normTarget) {
+                    matched = el;
+                }
+            });
+
+            // 2. So khớp theo textContent
+            if (!matched) {
+                sidebarItems.forEach(function (el) {
+                    if (el.classList.contains('sidebar-logout-item') || el.classList.contains('staff-logout-item')) return;
+                    const spanEl = el.querySelector('span');
+                    const text = spanEl ? spanEl.textContent : el.textContent;
+                    const normText = normalizeText(text);
+                    if (normText === normTarget || normText.includes(normTarget) || normTarget.includes(normText)) {
+                        matched = el;
+                    }
+                });
+            }
+
+            if (matched) {
+                sidebarItems.forEach(function (el) {
+                    el.classList.remove('active');
+                });
+                matched.classList.add('active');
+                return true;
+            }
+            return false;
+        }
+
+        // Tự động kiểm tra và tô màu khi tải trang
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentTab = urlParams.get('tab');
+        const savedNav = sessionStorage.getItem('cham_active_nav');
+        const pathname = window.location.pathname;
+
+        let activated = false;
+
+        // Ưu tiên 1: Tham số tab trên URL (?tab=...)
+        if (currentTab && tabMap[currentTab]) {
+            activated = activateSidebarItem(tabMap[currentTab]);
+        }
+
+        // Ưu tiên 2: Mục đã lưu trong sessionStorage từ lần bấm dropdown trước đó
+        if (!activated && savedNav) {
+            activated = activateSidebarItem(savedNav);
+        }
+
+        // Ưu tiên 3: Mặc định theo URL nếu chưa chọn mục khác
+        if (!activated && pathname.includes('/accounts/profile/')) {
+            activateSidebarItem('Thông tin cá nhân');
+        } else if (!activated && pathname.includes('/dashboard/admin/')) {
+            activateSidebarItem('Dashboard');
+        } else if (!activated && pathname.includes('/dashboard/staff/')) {
+            activateSidebarItem('Lịch hẹn');
+        }
+
+        // Bắt sự kiện click trên TẤT CẢ các mục trong DROPDOWN MENU
+        document.querySelectorAll('.dropdown-menu-item').forEach(function (dropdownItem) {
+            dropdownItem.addEventListener('click', function (e) {
+                // Nếu là đăng xuất -> Xóa sessionStorage và để hệ thống chuyển trang tự nhiên
+                if (this.classList.contains('dropdown-item-logout') || this.getAttribute('href')?.includes('logout')) {
+                    sessionStorage.removeItem('cham_active_nav');
+                    return;
+                }
+
+                const targetLabel = this.getAttribute('data-nav-target') || this.querySelector('span')?.textContent?.trim();
+                if (targetLabel) {
+                    sessionStorage.setItem('cham_active_nav', targetLabel);
+                }
+
+                // Nếu trên trang hiện tại đang có sidebar -> Tô màu ngay lập tức
+                const sidebarExists = document.querySelector(navSelectors);
+                if (sidebarExists && targetLabel) {
+                    activateSidebarItem(targetLabel);
+                }
+
+                // Nếu link là # hoặc cùng trang -> Ngăn reload và đóng dropdown
+                const href = this.getAttribute('href');
+                if (href === '#' || href === window.location.pathname + window.location.search) {
+                    e.preventDefault();
+                }
+
+                // Đóng dropdown menu
+                const dropdownContainer = this.closest('.profile-dropdown-container');
+                if (dropdownContainer) {
+                    dropdownContainer.classList.remove('show');
+                }
+            });
+        });
+
+        // Bắt sự kiện click trực tiếp trên các mục SIDEBAR
+        document.querySelectorAll(navSelectors).forEach(function (item) {
+            // Không can thiệp nếu là nút Đăng xuất
+            if (item.classList.contains('sidebar-logout-item') || item.classList.contains('staff-logout-item') || item.getAttribute('href')?.includes('logout')) {
+                sessionStorage.removeItem('cham_active_nav');
+                return;
+            }
+
+            item.addEventListener('click', function (e) {
+                const targetLabel = this.getAttribute('data-nav-target') || this.querySelector('span')?.textContent?.trim();
+                if (targetLabel) {
+                    sessionStorage.setItem('cham_active_nav', targetLabel);
+                }
+
+                const href = this.getAttribute('href');
+                if (href === '#' || href === window.location.pathname + window.location.search) {
+                    e.preventDefault();
+                }
+
+                const parentNav = this.closest('nav');
+                if (parentNav) {
+                    parentNav.querySelectorAll(navSelectors).forEach(function (el) {
+                        el.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Bắt sự kiện click mở/đóng Dropdown Menu trên thiết bị di động / Click avatar
+        document.querySelectorAll('.profile-dropdown-container').forEach(function (container) {
+            const trigger = container.querySelector('.profile-btn-figma, .d-flex.align-items-center');
+            if (trigger) {
+                trigger.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    container.classList.toggle('show');
+                });
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.profile-dropdown-container')) {
+                document.querySelectorAll('.profile-dropdown-container.show').forEach(function (c) {
+                    c.classList.remove('show');
+                });
+            }
+        });
+
+        // Header Nav Interactive Click Handler: Khi bấm vào mục nào thì mới hiện gạch chân và tô vàng
+        document.querySelectorAll('.header-nav-item').forEach(function (headerItem) {
+            headerItem.addEventListener('click', function () {
+                document.querySelectorAll('.header-nav-item').forEach(function (el) {
+                    el.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+    });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

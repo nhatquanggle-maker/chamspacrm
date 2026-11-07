@@ -1,0 +1,120 @@
+{% load static %}
+<!-- Admin Sidebar (Figma 608:5236) -->
+<aside class="admin-sidebar">
+    <!-- Brand Lockup -->
+    <div class="sidebar-brand-lockup">
+        <a href="{% url 'dashboard:admin' %}">
+            <img src="{% static 'images/chamspa-logo.png' %}" alt="Cham Spa Logo">
+        </a>
+        <div>
+            <span class="workspace-badge-label">ADMIN DASHBOARD</span>
+        </div>
+    </div>
+
+    <!-- Admin Identity Card -->
+    <div class="admin-identity-card">
+        <div class="admin-avatar">{{ user.name|default:user.username|default:"Admin"|slice:":2"|upper }}</div>
+        <div>
+            <div class="admin-name">{{ user.name|default:user.username|default:"ADMIN"|upper }}</div>
+            <div class="admin-role">QUẢN LÝ · TOÀN QUYỀN</div>
+        </div>
+    </div>
+
+    <!-- Navigation Items -->
+    <nav class="d-flex flex-column gap-1">
+        <a href="{% url 'accounts:profile' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" data-nav-target="Thông tin cá nhân">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-person fs-6"></i>
+                <span>Thông tin cá nhân</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+        <a href="{% url 'dashboard:admin' %}" class="sidebar-nav-item" data-nav-target="Dashboard">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-grid-1x2 fs-6"></i>
+                <span>Dashboard</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <!-- Category: VẬN HÀNH (Figma 576:1396) -->
+        <div class="sidebar-category-label">VẬN HÀNH</div>
+        <a href="{% url 'dashboard:admin' %}?tab=appointments" class="sidebar-nav-item" data-nav-target="Quản lý lịch hẹn">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-calendar-event fs-6"></i>
+                <span>Quản lý lịch hẹn</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+        <a href="{% url 'dashboard:admin' %}?tab=chatbox" class="sidebar-nav-item" data-nav-target="Quản lý Chatbox">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-chat-dots fs-6"></i>
+                <span>Quản lý Boxchat</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+        <a href="{% url 'dashboard:admin' %}?tab=services" class="sidebar-nav-item" data-nav-target="Quản lý Danh mục dịch vụ">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-flower2 fs-6"></i>
+                <span>Quản lý Danh mục dịch vụ</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+        <a href="{% url 'dashboard:admin' %}?tab=feedbacks" class="sidebar-nav-item" data-nav-target="Quản lý đánh giá và khiếu nại">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-star fs-6"></i>
+                <span>Quản lý đánh giá và khiếu nại</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+        <a href="{% url 'dashboard:admin' %}?tab=payments" class="sidebar-nav-item" data-nav-target="Quản lý thanh toán & hóa đơn">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-receipt fs-6"></i>
+                <span>Quản lý thanh toán & hóa đơn</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <!-- Category: HỆ THỐNG (Figma 576:1396) -->
+        <div class="sidebar-category-label">HỆ THỐNG</div>
+        <a href="{% url 'dashboard:admin' %}?tab=customers" class="sidebar-nav-item" data-nav-target="Quản lý Khách hàng">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-people fs-6"></i>
+                <span>Quản lý Khách hàng</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+        <a href="{% url 'dashboard:admin' %}?tab=staff" class="sidebar-nav-item" data-nav-target="Quản lý Nhân viên">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-person-badge fs-6"></i>
+                <span>Quản lý Nhân viên</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <!-- Category: MARKETING & CSKH (Figma 576:1396) -->
+        <div class="sidebar-category-label">MARKETING & CSKH</div>
+        <a href="{% url 'dashboard:admin' %}?tab=notifications" class="sidebar-nav-item" data-nav-target="Quản lý Thông báo">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-bell fs-6"></i>
+                <span>Quản lý Thông báo</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+        <a href="{% url 'dashboard:admin' %}?tab=promotions" class="sidebar-nav-item" data-nav-target="Quản lý Khuyến mãi">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-percent fs-6"></i>
+                <span>Quản lý Khuyến mãi</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <!-- Footer: Logout -->
+        <a href="{% url 'accounts:logout' %}" class="sidebar-nav-item sidebar-logout-item">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-box-arrow-right fs-6"></i>
+                <span>Đăng xuất</span>
+            </div>
+        </a>
+    </nav>
+</aside>

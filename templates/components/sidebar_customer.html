@@ -1,0 +1,78 @@
+{% load static %}
+<!-- Customer Sidebar (Figma 614:415) -->
+<aside class="customer-sidebar">
+    <!-- Brand Header -->
+    <div class="sidebar-brand-lockup">
+        <a href="{% url 'home' %}">
+            <img src="{% static 'images/chamspa-logo.png' %}" alt="Cham Spa Logo">
+        </a>
+    </div>
+
+    <!-- Customer Profile Card -->
+    <div class="customer-profile-card">
+        <div class="customer-avatar">{{ user.name|default:user.username|default:"KH"|make_list|first|upper }}</div>
+        <div>
+            <div class="customer-name">{{ user.name|default:user.username|default:"KHÁCH HÀNG"|upper }}</div>
+            <div class="customer-phone">{{ user.phone|default:user.email|default:"" }}</div>
+        </div>
+    </div>
+
+    <!-- Navigation Items -->
+    <nav class="d-flex flex-column gap-1">
+        <a href="{% url 'accounts:profile' %}" class="customer-nav-item" data-nav-target="Thông tin cá nhân">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-person fs-5"></i>
+                <span>Thông tin cá nhân</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <a href="{% url 'accounts:profile' %}?tab=appointments" class="customer-nav-item" data-nav-target="Lịch hẹn của tôi">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-calendar-check fs-5"></i>
+                <span>Lịch hẹn của tôi</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <a href="{% url 'accounts:profile' %}?tab=health" class="customer-nav-item" data-nav-target="Hồ sơ sức khỏe cá nhân">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-heart-pulse fs-5"></i>
+                <span>Hồ sơ sức khỏe cá nhân</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <a href="{% url 'accounts:profile' %}?tab=notifications" class="customer-nav-item" data-nav-target="Thông báo từ Cham">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-bell fs-5"></i>
+                <span>Thông báo từ Cham</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <a href="{% url 'accounts:profile' %}?tab=membership" class="customer-nav-item" data-nav-target="Thẻ hội viên & Tích điểm">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-credit-card fs-5"></i>
+                <span>Thẻ hội viên & Tích điểm</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <a href="{% url 'accounts:profile' %}?tab=feedbacks" class="customer-nav-item" data-nav-target="Đánh giá & Phản hồi">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-star fs-5"></i>
+                <span>Đánh giá & Phản hồi</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <!-- Footer: Logout -->
+        <a href="{% url 'accounts:logout' %}" class="customer-nav-item sidebar-logout-item">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-box-arrow-right fs-5"></i>
+                <span>Đăng xuất</span>
+            </div>
+        </a>
+    </nav>
+</aside>

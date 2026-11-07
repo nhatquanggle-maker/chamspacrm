@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Đăng nhập | Cham Spa & Massage Đà Nẵng{% endblock %}
+
+{% block extra_css %}
+    {% include "accounts/auth_styles.html" %}
+{% endblock %}
+
+{% block layout %}
+<div class="cham-auth-viewport">
+    <div class="cham-auth-backdrop"></div>
+
+    <div class="cham-auth-container">
+        <!-- Login Card (Figma Node 188:27886) -->
+        <div class="cham-auth-card cham-auth-card-wide">
+            
+            <!-- Brand Identity & Header -->
+            <div class="cham-auth-logo-wrap">
+                <a href="{% url 'home' %}" title="Về trang chủ Cham Spa">
+                    <img src="{% static 'images/chamspa_logo.png' %}" alt="Cham Spa & Massage" class="cham-auth-logo">
+                </a>
+            </div>
+            
+            <h1 class="cham-auth-title">Chào mừng đến với Cham Spa</h1>
+            <p class="cham-auth-subtitle">Không gian chăm sóc dành riêng cho bạn</p>
+
+            <!-- Authentication Tabs (Đăng nhập / Đăng ký) -->
+            <div class="cham-auth-tabs">
+                <a href="{% url 'accounts:login' %}" class="cham-auth-tab active">
+                    Đăng nhập
+                </a>
+                <a href="{% url 'accounts:register' %}" class="cham-auth-tab">
+                    Đăng ký tài khoản
+                </a>
+            </div>
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger rounded-3 small py-2 mb-3">
+                    {% for error in form.non_field_errors %}
+                        <div><i class="bi bi-exclamation-triangle-fill me-1"></i> {{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Login Form -->
+            <form method="POST" action="{% url 'accounts:login' %}{% if next %}?next={{ next }}{% endif %}" novalidate>
+                {% csrf_token %}
+
+                <!-- Field 1: Username / Phone / Email -->
+                <div class="cham-auth-field">
+                    <label class="cham-auth-label" for="id_username">
+                        Tài khoản / Email / SĐT *
+                    </label>
+                    <div class="cham-auth-input-wrap">
+                        <i class="bi bi-person auth-icon"></i>
+                        <input type="text" 
+                               name="username" 
+                               id="id_username" 
+                               class="cham-auth-input" 
+                               placeholder="Nhập tài khoản, Email hoặc Số điện thoại" 
+                               value="{{ form.username.value|default:'' }}"
+                               autocomplete="username" 
+                               required>
+                    </div>
+                    {% if form.username.errors %}
+                        <div class="text-danger small mt-1" style="font-size: 12px;">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ form.username.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Field 2: Password -->
+                <div class="cham-auth-field">
+                    <label class="cham-auth-label" for="id_password">
+                        Mật khẩu *
+                    </label>
+                    <div class="cham-auth-input-wrap">
+                        <i class="bi bi-lock auth-icon"></i>
+                        <input type="password" 
+                               name="password" 
+                               id="id_password" 
+                               class="cham-auth-input" 
+                               placeholder="Nhập mật khẩu" 
+                               autocomplete="current-password" 
+                               required>
+                        <button type="button" 
+                                class="cham-auth-pwd-toggle" 
+                                onclick="togglePassword('id_password', this)"
+                                title="Hiện/Ẩn mật khẩu">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                        <div class="text-danger small mt-1" style="font-size: 12px;">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ form.password.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Form Options: Remember Me & Forgot Password -->
+                <div class="cham-auth-options">
+                    <label class="cham-auth-remember">
+                        <input type="checkbox" name="remember_me" id="id_remember_me" {% if form.remember_me.value %}checked{% endif %}>
+                        <span>Ghi nhớ đăng nhập</span>
+                    </label>
+                    <a href="{% url 'accounts:forgot_password' %}" class="cham-auth-forgot">
+                        Quên mật khẩu?
+                    </a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="cham-auth-btn">
+                    ĐĂNG NHẬP
+                </button>
+
+                <!-- Policy Agreement -->
+                <p class="cham-auth-policy">
+                    Bằng việc đăng nhập, bạn đồng ý với <a href="#">Điều khoản dịch vụ</a> và <a href="#">Chính sách bảo mật</a> của Cham Spa.
+                </p>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword(inputId, toggleBtn) {
+    const input = document.getElementById(inputId);
+    const icon = toggleBtn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+    }
+}
+</script>
+{% endblock %}

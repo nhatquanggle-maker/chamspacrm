@@ -1,0 +1,77 @@
+{% extends "layouts/public_layout.html" %}
+{% load static %}
+
+{% block title %}404 - Không tìm thấy trang | Cham Spa & Massage Đà Nẵng{% endblock %}
+
+{% block content %}
+<section class="cham-error-page py-5 d-flex align-items-center" style="min-height: 75vh; background: linear-gradient(180deg, #F4EFE3 0%, #EBE4D5 100%);">
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-7 text-center">
+                <!-- Error Card Container -->
+                <div class="cham-error-card p-4 p-md-5" style="background: #FAF7F0; border: 1px solid rgba(208, 181, 129, 0.4); border-radius: 20px; box-shadow: 0 16px 40px rgba(61, 39, 29, 0.08);">
+                    
+                    <!-- Emblem / Brand Mark -->
+                    <div class="mb-3">
+                        <img src="{% static 'images/chamspa-logo.png' %}" alt="Cham Spa & Massage" style="max-height: 52px; width: auto; opacity: 0.95;">
+                    </div>
+
+                    <!-- 404 Large Display -->
+                    <div class="error-number-wrapper my-2 position-relative d-inline-block">
+                        <span class="error-number" style="font-family: 'Lora', serif; font-size: clamp(72px, 12vw, 110px); font-weight: 700; color: #781A24; line-height: 1; letter-spacing: 4px;">404</span>
+                        <div class="error-lotus-accent" style="position: absolute; top: -12px; right: -20px; color: #D0B581; font-size: 28px;">
+                            <i class="bi bi-flower1"></i>
+                        </div>
+                    </div>
+
+                    <!-- Decorative Divider -->
+                    <div class="d-flex align-items-center justify-content-center gap-3 my-3">
+                        <div style="width: 48px; height: 1px; background: #D0B581;"></div>
+                        <i class="bi bi-compass" style="color: #781A24; font-size: 16px;"></i>
+                        <div style="width: 48px; height: 1px; background: #D0B581;"></div>
+                    </div>
+
+                    <!-- Error Title & Description -->
+                    <h1 class="error-title mb-3" style="font-family: 'Lora', serif; font-size: clamp(22px, 3.5vw, 28px); font-weight: 600; color: #3D271D;">
+                        Không Tìm Thấy Trang Yêu Cầu
+                    </h1>
+                    <p class="error-desc mx-auto mb-4" style="font-family: 'Manrope', sans-serif; font-size: 15px; color: #716761; max-width: 480px; line-height: 1.65;">
+                        Rất tiếc, đường dẫn bạn đang tìm kiếm không tồn tại hoặc đã được thay đổi địa chỉ. 
+                        Cham Spa sẵn sàng đồng hành cùng bạn quay lại hành trình thư giãn và chăm sóc sức khỏe.
+                    </p>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 mb-4">
+                        <a href="{% url 'home' %}" class="btn px-4 py-2 text-white fw-semibold shadow-sm text-decoration-none w-100 w-sm-auto" style="background-color: #781A24; border-radius: 999px; font-size: 14px; letter-spacing: 0.5px; transition: all 0.25s ease;" onmouseover="this.style.backgroundColor='#5c121b'" onmouseout="this.style.backgroundColor='#781A24'">
+                            <i class="bi bi-house-door me-2"></i>Quay lại Trang chủ
+                        </a>
+                        <a href="tel:0987773777" class="btn px-4 py-2 fw-semibold text-decoration-none w-100 w-sm-auto" style="background-color: transparent; color: #781A24; border: 1.5px solid #781A24; border-radius: 999px; font-size: 14px; transition: all 0.25s ease;" onmouseover="this.style.backgroundColor='rgba(120, 26, 36, 0.08)'" onmouseout="this.style.backgroundColor='transparent'">
+                            <i class="bi bi-telephone me-2"></i>Hotline 0987 773 777
+                        </a>
+                    </div>
+
+                    <!-- Helpful Links -->
+                    <div class="pt-3 border-top" style="border-color: rgba(208, 181, 129, 0.3) !important;">
+                        <span class="d-block mb-2 text-muted" style="font-size: 13px;">Gợi ý điều hướng nhanh:</span>
+                        <div class="d-flex flex-wrap justify-content-center gap-3" style="font-size: 13px;">
+                            <a href="{% url 'home' %}#services" class="text-decoration-none" style="color: #62422B; font-weight: 500;">
+                                <i class="bi bi-stars me-1 text-warning"></i>Gói dịch vụ Spa
+                            </a>
+                            <span class="text-muted">•</span>
+                            <a href="{% url 'home' %}#booking" class="text-decoration-none" style="color: #62422B; font-weight: 500;">
+                                <i class="bi bi-calendar2-check me-1 text-danger"></i>Đặt lịch hẹn
+                            </a>
+                            <span class="text-muted">•</span>
+                            <a href="{% url 'accounts:login' %}" class="text-decoration-none" style="color: #62422B; font-weight: 500;">
+                                <i class="bi bi-person me-1 text-primary"></i>Tài khoản thành viên
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

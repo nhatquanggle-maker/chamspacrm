@@ -1,0 +1,88 @@
+{% load static %}
+<!-- Staff Sidebar (Figma 608:3413) -->
+<aside class="staff-sidebar">
+    <!-- Brand Panel (White container) -->
+    <div class="staff-brand-panel">
+        <a href="{% url 'dashboard:staff' %}">
+            <img src="{% static 'images/chamspa-logo.png' %}" alt="Cham Spa Logo">
+        </a>
+        <div>
+            <span class="workspace-badge-label">STAFF WORKSPACE</span>
+        </div>
+    </div>
+
+    <!-- Shift Identity Card -->
+    <div class="staff-identity-card">
+        <div class="staff-avatar">{{ user.name|default:user.username|default:"Staff"|slice:":2"|upper }}</div>
+        <div>
+            <div class="staff-name">{{ user.name|default:user.username|default:"STAFF"|upper }}</div>
+            <div class="staff-shift-label">STAFF</div>
+        </div>
+    </div>
+
+    <!-- Streamlined Navigation -->
+    <nav class="d-flex flex-column gap-1">
+        <a href="{% url 'accounts:profile' %}"
+            class="staff-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
+            data-nav-target="Thông tin cá nhân">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-person fs-6"></i>
+                <span>Thông tin cá nhân</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <a href="{% url 'dashboard:staff' %}" class="staff-nav-item" data-nav-target="Lịch hẹn">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-calendar-check fs-6"></i>
+                <span>Lịch hẹn</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <a href="{% url 'dashboard:staff' %}?tab=inbox" class="staff-nav-item" data-nav-target="Inbox">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-inbox fs-6"></i>
+                <span>Inbox</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="staff-unread-badge">8</span>
+                <i class="bi bi-chevron-right sidebar-chevron"></i>
+            </div>
+        </a>
+
+        <a href="{% url 'dashboard:staff' %}?tab=feedbacks" class="staff-nav-item"
+            data-nav-target="Đánh giá và Khiếu nại">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-chat-left-dots fs-6"></i>
+                <span>Đánh giá và Khiếu nại</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <a href="{% url 'dashboard:staff' %}?tab=customers" class="staff-nav-item" data-nav-target="Hồ sơ Khách hàng">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-people fs-6"></i>
+                <span>Hồ sơ Khách hàng</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <a href="{% url 'dashboard:staff' %}?tab=payments" class="staff-nav-item"
+            data-nav-target="Hóa đơn & thanh toán">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-receipt fs-6"></i>
+                <span>Hóa đơn & thanh toán</span>
+            </div>
+            <i class="bi bi-chevron-right sidebar-chevron"></i>
+        </a>
+
+        <!-- Footer: Logout -->
+        <a href="{% url 'accounts:logout' %}" class="staff-nav-item staff-logout-item">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-box-arrow-right fs-6"></i>
+                <span>Đăng xuất</span>
+            </div>
+        </a>
+    </nav>
+</aside>

@@ -1,0 +1,1779 @@
+/* ==========================================================================
+   CHAM SPA & MASSAGE - FIGMA DESIGN SYSTEM
+   File: static/css/chamspa.css
+   Figma Source: Spa-CRM (3ZQU3mHaLUiZpd12F6xcqs)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. DESIGN TOKENS (MOODBOARD 857:31)
+   -------------------------------------------------------------------------- */
+:root {
+    /* Brand Primary Palette */
+    --cham-red: #781a24;
+    --cham-red-alt: #7a2323;
+    --cham-red-dark: #5c121b;
+    --cham-red-light: #f7e9eb;
+
+    /* Backgrounds & Neutrals */
+    --cham-bg: #f4efe3;
+    --cham-bg-alt: #f3efe6;
+    --cham-card-bg: #faf7f0;
+    --cham-white: #ffffff;
+    --cham-black: #000000;
+    --cham-dark: #171311;
+    --cham-muted: #716761;
+
+    /* Royal Accent Gold */
+    --cham-gold: #d0b581;
+    --cham-gold-dark: #b89a64;
+    --cham-gold-light: #e5dec9;
+
+    /* Header & Component Specific */
+    --cham-header-bg: #3d271d;
+    --cham-footer-bg: #000000;
+    --cham-border-subtle: rgba(208, 181, 129, 0.3);
+
+    /* Typography */
+    --font-serif: 'Lora', 'Tinos', Georgia, 'Times New Roman', serif;
+    --font-body: 'Cabin', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-nav: 'Manrope', 'Cabin', sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   2. GLOBAL RESETS & TYPOGRAPHY
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--cham-dark);
+    background-color: var(--cham-bg);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6,
+.font-serif,
+.cham-serif-title {
+    font-family: var(--font-serif);
+    font-weight: 500;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+/* --------------------------------------------------------------------------
+   3. WATERMARK BACKGROUND (FIGMA 772:2, 760:751, 857:32)
+   -------------------------------------------------------------------------- */
+.champa-watermark-wrapper {
+    position: relative;
+    background-color: var(--cham-bg);
+    min-height: 100vh;
+}
+
+.champa-watermark-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('../images/champa_watermark.svg');
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: 1920px auto;
+    opacity: 0.16;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.champa-workspace-inner {
+    position: relative;
+    z-index: 1;
+}
+
+/* --------------------------------------------------------------------------
+   4. PUBLIC HEADER (FIGMA 614:375) WITH SMART AUTO-HIDE ON SCROLL
+   -------------------------------------------------------------------------- */
+.cham-header-figma {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1040;
+    background-color: var(--cham-header-bg);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(0);
+    will-change: transform;
+}
+
+.cham-header-figma.header-hidden {
+    transform: translateY(-100%);
+}
+
+/* Placeholder keeps page content from jumping when header is fixed */
+.header-placeholder {
+    height: 127px; /* 76px top-bar + 1px line + 50px nav-bar */
+    width: 100%;
+    background-color: transparent;
+}
+
+.header-top-bar {
+    height: 76px;
+    padding: 0 32px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    max-width: 1600px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* Top Left: 4 Social Icons (facebook, instagram, tiktok, phone) */
+.top-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-self: start;
+}
+
+.top-left .social-icon {
+    color: #FFFFFF;
+    font-size: 15px;
+    opacity: 0.85;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+}
+
+.top-left .social-icon:hover {
+    opacity: 1;
+    color: var(--cham-gold);
+    transform: scale(1.1);
+}
+
+/* Center Logo - Chuẩn xác 100% chính giữa thanh Header */
+.header-logo-center {
+    justify-self: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.header-logo-center a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-logo-center img {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Top Right: Search + Profile */
+.top-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-self: end;
+}
+
+.header-search-btn {
+    background: none;
+    border: none;
+    color: #FFFFFF;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.header-search-btn:hover {
+    color: var(--cham-gold);
+    transform: scale(1.1);
+}
+
+.profile-pill-figma {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 999px;
+    transition: opacity 0.2s ease;
+}
+
+.profile-pill-figma:hover {
+    opacity: 0.9;
+}
+
+.profile-name-figma {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    color: #FAF7F0;
+    letter-spacing: 0.3px;
+}
+
+.profile-avatar-figma {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: #FFFFFF;
+    color: var(--cham-header-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* Nút Đăng nhập / Đăng ký khi CHƯA đăng nhập trên Public Header */
+.btn-header-login {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 18px;
+    border-radius: 999px;
+    background-color: var(--cham-gold);
+    color: #2E1D17;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-header-login:hover {
+    background-color: var(--cham-gold-light);
+    color: #2E1D17;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(194, 161, 92, 0.35);
+}
+
+.btn-header-register {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 18px;
+    border-radius: 999px;
+    background-color: transparent;
+    color: #FFF6EE;
+    border: 1px solid rgba(255, 246, 238, 0.4);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-header-register:hover {
+    color: var(--cham-gold);
+    border-color: var(--cham-gold);
+    background-color: rgba(208, 181, 129, 0.1);
+}
+
+.header-divider-line {
+    width: 100%;
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.header-nav-bar {
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 48px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.header-nav-item {
+    font-family: var(--font-nav);
+    font-weight: 500;
+    font-size: 15px;
+    color: #FFF6EE;
+    position: relative;
+    padding: 6px 0;
+    letter-spacing: 0.2px;
+    transition: color 0.2s ease;
+}
+
+.header-nav-item:hover,
+.header-nav-item.active {
+    color: var(--cham-gold);
+}
+
+.header-nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--cham-gold);
+    border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   5. PUBLIC FOOTER (FIGMA 614:281)
+   -------------------------------------------------------------------------- */
+.cham-footer-figma {
+    background-color: var(--cham-footer-bg);
+    color: #FFFFFF;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+}
+
+.footer-inner-container {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 48px 32px 56px 32px;
+}
+
+.footer-eyebrow-figma {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cham-gold);
+    letter-spacing: 2.5px;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.footer-eyebrow-figma::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: rgba(208, 181, 129, 0.25);
+}
+
+.footer-columns-figma {
+    display: flex;
+    gap: 50px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.footer-col-brand {
+    width: 430px;
+    max-width: 100%;
+}
+
+.footer-logo-img {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
+.footer-tagline-figma {
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.7;
+    margin-top: 18px;
+    margin-bottom: 24px;
+}
+
+.footer-social-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.social-circle-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: #1a1a1a;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: background-color 0.25s ease, color 0.25s ease, transform 0.2s ease;
+}
+
+.social-circle-btn:hover {
+    background-color: var(--cham-gold);
+    color: var(--cham-black);
+    transform: translateY(-2px);
+}
+
+.footer-location-note {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: #898989;
+    letter-spacing: 1.5px;
+    font-weight: 500;
+}
+
+.footer-col-links {
+    flex: 1;
+    min-width: 200px;
+}
+
+.footer-col-contact {
+    width: 420px;
+    max-width: 100%;
+}
+
+.footer-col-header {
+    margin-bottom: 24px;
+}
+
+.footer-col-title-figma {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cham-gold);
+    margin: 0;
+}
+
+.footer-accent-rule {
+    width: 28px;
+    height: 2px;
+    background-color: var(--cham-gold);
+    margin-top: 10px;
+}
+
+.footer-link-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.footer-link-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 28px;
+}
+
+.link-marker-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--cham-gold);
+    display: inline-block;
+}
+
+.footer-link-list li a {
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.footer-link-list li a:hover {
+    color: var(--cham-gold);
+    padding-left: 4px;
+}
+
+.footer-contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.contact-item-figma {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.contact-icon-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--cham-gold);
+    color: var(--cham-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.contact-text-figma {
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    color: rgba(255, 255, 255, 0.88);
+    line-height: 1.4;
+}
+
+.footer-bottom-bar-figma {
+    height: 90px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0 32px;
+    max-width: 1500px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.footer-copyright-figma {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: #898989;
+}
+
+.footer-legal-links-figma {
+    display: flex;
+    gap: 32px;
+}
+
+.footer-legal-links-figma a {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: #B8B8B8;
+}
+
+.footer-legal-links-figma a:hover {
+    color: var(--cham-gold);
+}
+
+/* --------------------------------------------------------------------------
+   6. ADMIN SIDEBAR (FIGMA 608:5236)
+   -------------------------------------------------------------------------- */
+.admin-sidebar {
+    width: 306px;
+    min-height: calc(100vh - 32px);
+    background-color: var(--cham-white);
+    border-radius: 20px;
+    padding: 24px 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--cham-border-subtle);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-brand-lockup {
+    text-align: center;
+    padding-bottom: 20px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--cham-gold-light);
+}
+
+.sidebar-brand-lockup img {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+}
+
+.workspace-badge-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    color: var(--cham-red);
+}
+
+.workspace-badge-label::before,
+.workspace-badge-label::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background-color: var(--cham-gold);
+}
+
+.admin-identity-card {
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    border-radius: 12px;
+    background-color: var(--cham-card-bg);
+    border: 1px solid var(--cham-border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.admin-name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 14.5px;
+    color: var(--cham-red);
+    line-height: 1.2;
+}
+
+.admin-role {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cham-muted);
+    letter-spacing: 1.2px;
+}
+
+.sidebar-category-label {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cham-gold-dark);
+    letter-spacing: 1.5px;
+    padding: 14px 14px 6px 14px;
+    text-transform: uppercase;
+}
+
+.sidebar-nav-item {
+    padding: 10px 14px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13.5px;
+    color: var(--cham-dark);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.sidebar-nav-item i {
+    color: var(--cham-red);
+    font-size: 16px;
+    transition: color 0.2s ease;
+    -webkit-text-stroke: 0.25px currentColor;
+}
+
+.sidebar-nav-item:hover {
+    background-color: var(--cham-card-bg);
+    color: var(--cham-red);
+}
+
+.sidebar-nav-item.active {
+    background-color: var(--cham-red);
+    color: #FFFFFF !important;
+    font-weight: 600;
+}
+
+.sidebar-nav-item.active i {
+    color: #FFFFFF !important;
+    -webkit-text-stroke: 0.25px currentColor;
+}
+
+.sidebar-logout-item {
+    color: #DC2626 !important;
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--cham-gold-light);
+}
+
+.sidebar-logout-item:hover {
+    background-color: #FEF2F2 !important;
+}
+
+/* --------------------------------------------------------------------------
+   7. STAFF SIDEBAR (FIGMA 608:3413)
+   -------------------------------------------------------------------------- */
+.staff-sidebar {
+    width: 286px;
+    min-height: calc(100vh - 32px);
+    background-color: var(--cham-red);
+    border-radius: 20px;
+    padding: 20px 18px;
+    box-shadow: 0 8px 30px rgba(120, 26, 36, 0.25);
+    display: flex;
+    flex-direction: column;
+}
+
+.staff-brand-panel {
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.staff-brand-panel img {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
+.staff-identity-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 10px;
+    margin-bottom: 20px;
+}
+
+.staff-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #FFFFFF;
+    color: var(--cham-red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.staff-name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 14px;
+    color: #FFFFFF;
+}
+
+.staff-shift-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.staff-nav-item {
+    padding: 10px 14px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13.5px;
+    color: #FFFFFF;
+    opacity: 0.9;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.staff-nav-item i {
+    color: var(--cham-gold);
+    font-size: 16px;
+    transition: color 0.2s ease;
+    -webkit-text-stroke: 0.25px currentColor;
+}
+
+.staff-nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    opacity: 1;
+    color: #FFFFFF;
+}
+
+.staff-nav-item.active {
+    background-color: #FFFFFF;
+    color: var(--cham-red) !important;
+    opacity: 1;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.staff-nav-item.active i {
+    color: var(--cham-red) !important;
+    -webkit-text-stroke: 0.25px currentColor;
+}
+
+.staff-unread-badge {
+    background-color: var(--cham-red-light);
+    color: var(--cham-red);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.staff-logout-item {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.staff-logout-item:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #FFFFFF !important;
+}
+
+/* --------------------------------------------------------------------------
+   8. CUSTOMER SIDEBAR (FIGMA 614:415)
+   -------------------------------------------------------------------------- */
+.customer-sidebar {
+    width: 330px;
+    max-width: 100%;
+    background-color: var(--cham-white);
+    border-radius: 20px;
+    padding: 24px 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--cham-border-subtle);
+}
+
+.customer-profile-card {
+    padding: 16px;
+    margin-bottom: 20px;
+    border-radius: 14px;
+    background-color: var(--cham-card-bg);
+    border: 1px solid var(--cham-border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.customer-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 17px;
+    flex-shrink: 0;
+}
+
+.customer-name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--cham-red);
+    line-height: 1.2;
+}
+
+.customer-phone {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--cham-dark);
+}
+
+.customer-nav-item {
+    padding: 11px 16px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14.5px;
+    color: var(--cham-dark);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.customer-nav-item i {
+    color: var(--cham-red);
+    font-size: 17px;
+    transition: color 0.2s ease;
+    -webkit-text-stroke: 0.25px currentColor;
+}
+
+.customer-nav-item:hover {
+    background-color: var(--cham-card-bg);
+    color: var(--cham-red);
+}
+
+.customer-nav-item.active {
+    background-color: var(--cham-red);
+    color: #FFFFFF !important;
+    font-weight: 600;
+}
+
+.customer-nav-item.active i {
+    color: #FFFFFF !important;
+    -webkit-text-stroke: 0.25px currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   MŨI TÊN CHEVRON ACTIVE (ADMIN, STAFF, CUSTOMER)
+   -------------------------------------------------------------------------- */
+.sidebar-chevron {
+    display: none;
+    font-size: 13px;
+    margin-left: auto;
+    transition: transform 0.2s ease;
+}
+
+.sidebar-nav-item.active .sidebar-chevron,
+.customer-nav-item.active .sidebar-chevron {
+    display: inline-block;
+    color: #FFFFFF !important;
+}
+
+.staff-nav-item.active .sidebar-chevron {
+    display: inline-block;
+    color: var(--cham-red) !important;
+}
+
+/* --------------------------------------------------------------------------
+   9. WORKSPACE TOPBAR (FIGMA 772:2 & 760:751)
+   -------------------------------------------------------------------------- */
+.workspace-topbar {
+    height: 70px;
+    background-color: #FFFFFF;
+    padding: 0 24px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--cham-border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.workspace-search-box {
+    position: relative;
+    width: 520px;
+    max-width: 60%;
+}
+
+.workspace-search-box input {
+    height: 42px;
+    background-color: var(--cham-card-bg);
+    border: 1px solid var(--cham-gold-light);
+    border-radius: 999px;
+    padding-left: 44px;
+    font-size: 13.5px;
+    color: var(--cham-dark);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.workspace-search-box input:focus {
+    border-color: var(--cham-red);
+    box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.12);
+    outline: none;
+}
+
+.workspace-search-icon {
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    transform: translateY(-50%);
+    color: var(--cham-muted);
+    font-size: 15px;
+    pointer-events: none;
+}
+
+.workspace-bell-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: var(--cham-card-bg);
+    border: 1px solid var(--cham-gold-light);
+    color: var(--cham-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Nút Xem Website trên Topbar Workspace */
+.btn-workspace-view-web {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    height: 40px;
+    background-color: var(--cham-card-bg);
+    border: 1px solid var(--cham-gold-light);
+    border-radius: 999px;
+    color: var(--cham-dark);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-workspace-view-web:hover {
+    background-color: var(--cham-header-bg);
+    border-color: var(--cham-header-bg);
+    color: #FFFFFF;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(46, 29, 23, 0.15);
+}
+
+.btn-workspace-view-web i {
+    font-size: 15px;
+    color: var(--cham-gold-dark);
+    transition: color 0.2s ease;
+}
+
+.btn-workspace-view-web:hover i {
+    color: var(--cham-gold);
+}
+
+.workspace-bell-btn:hover {
+    background-color: var(--cham-gold-light);
+}
+
+.workspace-unread-dot {
+    display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   10. BUTTONS & BADGES (FIGMA SPEC)
+   -------------------------------------------------------------------------- */
+.btn-figma-gold {
+    background-color: var(--cham-gold);
+    color: var(--cham-dark);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    border: 1px solid var(--cham-gold);
+    padding: 12px 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+}
+
+.btn-figma-gold:hover {
+    background-color: var(--cham-gold-dark);
+    border-color: var(--cham-gold-dark);
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(208, 181, 129, 0.35);
+}
+
+.btn-figma-red {
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    border: 1px solid var(--cham-red);
+    padding: 12px 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+}
+
+.btn-figma-red:hover {
+    background-color: var(--cham-red-dark);
+    border-color: var(--cham-red-dark);
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(120, 26, 36, 0.35);
+}
+
+.btn-figma-outline-white {
+    background-color: transparent;
+    color: #FFFFFF;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    border: 1px solid #FFFFFF;
+    padding: 12px 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+}
+
+.btn-figma-outline-white:hover {
+    background-color: #FFFFFF;
+    color: var(--cham-dark);
+    transform: translateY(-2px);
+}
+
+.btn-figma-outline-dark {
+    background-color: transparent;
+    color: var(--cham-dark);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    border: 1px solid var(--cham-dark);
+    padding: 10px 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+}
+
+.btn-figma-outline-dark:hover {
+    background-color: var(--cham-dark);
+    color: #FFFFFF;
+    transform: translateY(-2px);
+}
+
+/* --------------------------------------------------------------------------
+   11. CHATBOT FLOATING WIDGET (58x58px FAB)
+   -------------------------------------------------------------------------- */
+.cham-chatbot-fab {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    border: 2px solid var(--cham-gold);
+    z-index: 1050;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(120, 26, 36, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.cham-chatbot-fab:hover {
+    transform: scale(1.08) rotate(4deg);
+    box-shadow: 0 8px 24px rgba(120, 26, 36, 0.5);
+}
+
+.cham-chat-window {
+    position: fixed;
+    bottom: 96px;
+    right: 28px;
+    width: 360px;
+    max-width: calc(100vw - 40px);
+    height: 480px;
+    background-color: #FFFFFF;
+    border-radius: 18px;
+    border: 1px solid var(--cham-border-subtle);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    z-index: 1050;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+}
+
+/* --------------------------------------------------------------------------
+   12. RESPONSIVENESS & MEDIA QUERIES
+   -------------------------------------------------------------------------- */
+@media (max-width: 991.98px) {
+    .header-top-bar {
+        padding: 0 16px;
+        height: 68px;
+    }
+
+    .header-placeholder {
+        height: 119px;
+    }
+
+    .header-nav-bar {
+        gap: 24px;
+    }
+
+    .footer-columns-figma {
+        gap: 36px;
+    }
+
+    .footer-col-brand,
+    .footer-col-contact {
+        width: 100%;
+    }
+
+    .workspace-search-box {
+        width: 100%;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   13. FLOATING BADGES OVER IMAGES (FIGMA 777:3)
+   -------------------------------------------------------------------------- */
+.philosophy-image-wrapper {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.philosophy-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    max-height: 480px;
+    object-fit: cover;
+    display: block;
+}
+
+.experience-seal-badge {
+    position: absolute;
+    bottom: 32px;
+    right: 32px;
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    min-width: 154px;
+    padding: 16px 22px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(120, 26, 36, 0.35);
+    border: 1px solid rgba(208, 181, 129, 0.4);
+    z-index: 2;
+}
+
+.location-image-wrapper {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.location-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    max-height: 440px;
+    object-fit: cover;
+    display: block;
+}
+
+.location-map-card {
+    position: absolute;
+    bottom: 32px;
+    left: 32px;
+    background-color: #FFFFFF;
+    padding: 18px 24px;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--cham-gold-light);
+    z-index: 2;
+    max-width: calc(100% - 64px);
+}
+
+@media (max-width: 576px) {
+    .experience-seal-badge {
+        bottom: 16px;
+        right: 16px;
+        padding: 12px 16px;
+        min-width: 130px;
+    }
+    .location-map-card {
+        bottom: 16px;
+        left: 16px;
+        padding: 14px 18px;
+        max-width: calc(100% - 32px);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   14. MEMBERSHIP SERENITY CARD WITH INNER IMAGE (FIGMA SPEC)
+   -------------------------------------------------------------------------- */
+.membership-card-figma {
+    background: linear-gradient(135deg, #1f1612 0%, #3d271d 100%);
+    border: 1px solid var(--cham-gold);
+    border-radius: 20px;
+    padding: 32px 28px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+    position: relative;
+    overflow: hidden;
+    min-height: 280px;
+}
+
+.membership-card-image-box {
+    position: relative;
+    width: 100%;
+    max-width: 210px;
+    height: 195px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(208, 181, 129, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    margin: 4px;
+}
+
+.membership-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.membership-card-figma:hover .membership-card-img {
+    transform: scale(1.05);
+}
+
+/* --------------------------------------------------------------------------
+   15. PROFILE HOVER DROPDOWN MENU (FIGMA 777:440)
+   -------------------------------------------------------------------------- */
+.profile-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 310px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background-color: #FFFFFF;
+    border-radius: 18px;
+    box-shadow: 0 14px 36px rgba(46, 29, 23, 0.22);
+    border: 1px solid rgba(208, 181, 129, 0.35);
+    padding: 12px 0 10px 0;
+    z-index: 1060;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0.25s;
+    pointer-events: none;
+}
+
+.profile-dropdown-menu::-webkit-scrollbar {
+    width: 5px;
+}
+
+.profile-dropdown-menu::-webkit-scrollbar-track {
+    background: #FAF7F0;
+    border-radius: 8px;
+}
+
+.profile-dropdown-menu::-webkit-scrollbar-thumb {
+    background: rgba(208, 181, 129, 0.45);
+    border-radius: 8px;
+}
+
+.profile-dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: var(--cham-gold);
+}
+
+.dropdown-category-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--cham-gold-dark);
+    letter-spacing: 1.2px;
+    padding: 10px 20px 4px 20px;
+    text-transform: uppercase;
+}
+
+/* Invisible bridge so mouse hover doesn't break when moving between pill and menu */
+.profile-dropdown-container::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 16px;
+    background: transparent;
+}
+
+.profile-dropdown-container:hover .profile-dropdown-menu,
+.profile-dropdown-container:focus-within .profile-dropdown-menu,
+.profile-dropdown-container.show .profile-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.dropdown-account-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 20px 14px 20px;
+}
+
+.dropdown-avatar-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1.5px solid var(--cham-gold);
+    background-color: var(--cham-card-bg);
+    color: var(--cham-red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.dropdown-account-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.dropdown-account-name {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--cham-dark);
+    line-height: 1.25;
+}
+
+.dropdown-account-phone {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--cham-muted);
+    margin-top: 2px;
+}
+
+.dropdown-divider-line {
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.07);
+    margin: 4px 0 6px 0;
+}
+
+.dropdown-menu-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.dropdown-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 20px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--cham-dark);
+    transition: background-color 0.15s ease, color 0.15s ease, padding-left 0.15s ease;
+}
+
+.dropdown-menu-item i {
+    font-size: 17px;
+    color: #4A3E39;
+    width: 20px;
+    display: flex;
+    justify-content: center;
+    transition: color 0.15s ease;
+}
+
+.dropdown-menu-item:hover {
+    background-color: var(--cham-card-bg);
+    color: var(--cham-red);
+    padding-left: 24px;
+}
+
+.dropdown-menu-item:hover i {
+    color: var(--cham-red);
+}
+
+.dropdown-item-logout {
+    color: #C92A2A !important;
+    margin-top: 4px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding-top: 12px;
+}
+
+.dropdown-item-logout i {
+    color: #C92A2A !important;
+}
+
+.dropdown-item-logout:hover {
+    background-color: #FFF5F5 !important;
+    color: #A61E1E !important;
+}
+
+/* ==========================================================================
+   10. CUSTOMER PROFILE CARD (FIGMA NODE 218:9161)
+   Tokens: #781A24 (Deep Red), #D0B581 (Cham Gold), #FAF7EF (Sand Panel), #EFE4CD (Champagne Badge)
+   Fonts: Lora (Serif titles), Cabin (Body & Form)
+   ========================================================================== */
+.cham-profile-card {
+    background-color: #FFFFFF;
+    border: 1px solid #D0B581 !important;
+    border-radius: 18px !important;
+    box-shadow: 0 14px 36px rgba(46, 29, 23, 0.08);
+    overflow: hidden;
+}
+
+.cham-profile-summary {
+    background-color: #FAF7EF;
+    border-right: 1px solid #DED2BA;
+    padding: 36px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+    min-height: 100%;
+    flex-grow: 1;
+}
+
+.cham-profile-avatar-wrap {
+    width: 124px;
+    height: 124px;
+    position: relative;
+    margin: 0 auto 12px auto;
+}
+
+.cham-profile-avatar-img {
+    width: 124px;
+    height: 124px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #D0B581;
+}
+
+.cham-profile-avatar-placeholder {
+    width: 124px;
+    height: 124px;
+    border-radius: 50%;
+    background-color: #781A24;
+    color: #FFFFFF;
+    font-size: 42px;
+    font-weight: 700;
+    font-family: var(--font-serif);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #D0B581;
+}
+
+.cham-avatar-camera-btn {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: #781A24;
+    color: #FFFFFF;
+    border: 2px solid #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.cham-avatar-camera-btn:hover {
+    transform: scale(1.08);
+    background-color: #5c121b;
+}
+
+.cham-upload-link {
+    color: #781A24 !important;
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: underline !important;
+    cursor: pointer;
+}
+
+.cham-status-badge {
+    display: inline-block;
+    background-color: #EFE4CD;
+    color: #781A24;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    padding: 4px 14px;
+    border-radius: 999px;
+}
+
+.cham-subnav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 11px 18px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #4A3E39;
+    background: transparent;
+    border: none;
+    text-align: left;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.cham-subnav-btn:hover {
+    background-color: rgba(208, 181, 129, 0.25);
+    color: #781A24;
+}
+
+.cham-subnav-btn.active {
+    background-color: #781A24 !important;
+    color: #FFFFFF !important;
+}
+
+.cham-subnav-btn.active i {
+    color: #FFFFFF !important;
+}
+
+.cham-subnav-logout:hover {
+    background-color: #FFF5F5 !important;
+    color: #DC2626 !important;
+}
+
+.cham-profile-content {
+    padding: 40px 44px;
+}
+
+.cham-field-label {
+    display: block;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    color: #171311;
+    margin-bottom: 7px;
+}
+
+.cham-field-input-wrap {
+    display: flex;
+    align-items: center;
+    background-color: #FFFFFF;
+    border: 1px solid #DED2BA;
+    border-radius: 8px;
+    height: 48px;
+    padding: 0 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cham-field-input-wrap:focus-within {
+    border-color: #781A24 !important;
+    box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.12);
+}
+
+.cham-field-icon {
+    color: #6F665E;
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+.cham-field-input {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    width: 100%;
+    height: 100%;
+    padding: 0 !important;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    color: #171311;
+}
+
+.cham-field-input:focus {
+    outline: none !important;
+}
+
+.cham-verified-badge {
+    margin-left: auto;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.cham-gender-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 22px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    font-weight: 500;
+    color: #171311;
+}
+
+.cham-gender-radio input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid #8C827A;
+    border-radius: 50%;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+    margin: 0;
+    transition: all 0.2s ease;
+}
+
+.cham-gender-radio input[type="radio"]:checked {
+    border-color: #781A24;
+    background-color: #781A24;
+    box-shadow: inset 0 0 0 3px #FFFFFF;
+}
+
+.cham-profile-submit-btn {
+    background-color: #781A24;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 28px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+    cursor: pointer;
+}
+
+.cham-profile-submit-btn:hover {
+    background-color: #5c121b;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+}
+
+
+
+

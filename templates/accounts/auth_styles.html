@@ -1,0 +1,407 @@
+{% load static %}
+<style>
+/* ==========================================================================
+   MODULE 05: AUTHENTICATION STYLES (FIGMA SYNC: 188:27886, 188:27928, 188:27987, 188:28011)
+   Moodboard Tokens: #781A24 (Deep Red), #D0B581 (Cham Gold), #F4EFE3 (Sand), #EFE4CD (Champagne)
+   Fonts: Lora (Title), Cabin (Body & Form)
+   ========================================================================== */
+
+/* 1. Fullscreen Ambience & Dark Backdrop */
+.cham-auth-viewport {
+    min-height: 100vh;
+    width: 100%;
+    background-color: #501018;
+    background-image: url("{% static 'images/spa_bg.jpg' %}");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 15px;
+}
+
+.cham-auth-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(23, 9, 10, 0.50);
+    z-index: 1;
+}
+
+/* 2. Container & Card Structure */
+.cham-auth-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.cham-auth-card {
+    background-color: #FFFFFF;
+    border: 1px solid #D0B581 !important;
+    border-radius: 18px !important;
+    box-shadow: 0 20px 45px rgba(23, 9, 10, 0.35);
+    width: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cham-auth-card-wide {
+    max-width: 540px;
+    padding: 36px;
+}
+
+.cham-auth-card-register {
+    max-width: 540px;
+    padding: 32px;
+}
+
+.cham-auth-card-narrow {
+    max-width: 480px;
+    padding: 34px;
+}
+
+/* 3. Brand Identity & Header */
+.cham-auth-logo-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.cham-auth-logo {
+    width: 144px;
+    height: 66px;
+    object-fit: contain;
+}
+
+.cham-auth-title {
+    font-family: var(--font-serif), 'Lora', 'Tinos', serif;
+    font-weight: 700;
+    font-size: 27px;
+    line-height: 35px;
+    color: #781A24;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.cham-auth-subtitle {
+    font-family: var(--font-body), 'Cabin', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 17px;
+    color: #6F665E;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* 4. Authentication Tabs */
+.cham-auth-tabs {
+    display: flex;
+    border-bottom: 1px solid #DED2BA;
+    margin-bottom: 22px;
+}
+
+.cham-auth-tab {
+    flex: 1;
+    text-align: center;
+    padding: 12px 6px 14px;
+    font-family: var(--font-body), 'Cabin', sans-serif;
+    font-size: 15px;
+    line-height: 18px;
+    text-decoration: none !important;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.cham-auth-tab.active {
+    font-weight: 700;
+    color: #781A24;
+}
+
+.cham-auth-tab:not(.active) {
+    font-weight: 500;
+    color: #6F665E;
+}
+
+.cham-auth-tab:not(.active):hover {
+    color: #781A24;
+}
+
+.cham-auth-tab.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #D0B581;
+    border-radius: 2px 2px 0 0;
+}
+
+/* 5. Form Elements & Floating Style */
+.cham-auth-field {
+    margin-bottom: 16px;
+}
+
+.cham-auth-label {
+    display: block;
+    font-family: var(--font-body), 'Cabin', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 17px;
+    color: #171311;
+    margin-bottom: 7px;
+}
+
+.cham-auth-input-wrap {
+    display: flex;
+    align-items: center;
+    background-color: #FFFFFF;
+    border: 1px solid #DED2BA;
+    border-radius: 8px;
+    height: 48px;
+    padding: 0 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cham-auth-input-wrap:focus-within {
+    border-color: #781A24 !important;
+    box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.12);
+}
+
+.cham-auth-input-wrap .auth-icon {
+    color: #6F665E;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.cham-auth-input {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    width: 100%;
+    height: 100%;
+    padding: 0 0 0 10px !important;
+    font-family: var(--font-body), 'Cabin', sans-serif;
+    font-size: 15px;
+    color: #171311;
+}
+
+.cham-auth-input:focus {
+    outline: none !important;
+}
+
+/* Ẩn hoàn toàn nút con mắt mặc định của trình duyệt (Microsoft Edge, Chrome, IE) để tránh bị đè 2 con mắt */
+.cham-auth-input::-ms-reveal,
+.cham-auth-input::-ms-clear,
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    pointer-events: none !important;
+}
+
+.cham-auth-input::-webkit-credentials-auto-fill-button,
+.cham-auth-input::-webkit-contacts-auto-fill-button {
+    visibility: hidden;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+}
+
+.cham-auth-input::placeholder {
+    color: #8C827A;
+    font-size: 14px;
+    font-family: var(--font-body), 'Cabin', sans-serif;
+}
+
+.cham-auth-pwd-toggle {
+    background: none;
+    border: none;
+    color: #6F665E;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: color 0.15s;
+}
+
+.cham-auth-pwd-toggle:hover {
+    color: #781A24;
+}
+
+/* 6. Form Options (Remember & Forgot) */
+.cham-auth-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+    margin-bottom: 20px;
+    font-family: var(--font-body), 'Cabin', sans-serif;
+}
+
+.cham-auth-remember {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.cham-auth-remember input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #DED2BA;
+    border-radius: 4px;
+    accent-color: #781A24;
+    cursor: pointer;
+}
+
+.cham-auth-remember label {
+    font-size: 14px;
+    color: #171311;
+    cursor: pointer;
+    margin: 0;
+}
+
+.cham-auth-forgot {
+    font-weight: 700;
+    font-size: 14px;
+    color: #781A24;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.cham-auth-forgot:hover {
+    color: #5C121B;
+    text-decoration: underline;
+}
+
+/* 7. Action Button */
+.cham-auth-btn {
+    width: 100%;
+    height: 48px;
+    background-color: #781A24;
+    border: 1px solid #781A24;
+    border-radius: 8px;
+    color: #FFFFFF;
+    font-family: var(--font-body), 'Cabin', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cham-auth-btn:hover {
+    background-color: #5C121B;
+    border-color: #5C121B;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(120, 26, 36, 0.3);
+}
+
+.cham-auth-btn:active {
+    transform: scale(0.99);
+}
+
+/* 8. Policy & Footer Note */
+.cham-auth-policy {
+    font-family: var(--font-body), 'Cabin', sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 18px;
+    color: #6F665E;
+    text-align: center;
+    margin-top: 16px;
+    margin-bottom: 0;
+}
+
+.cham-auth-policy a {
+    color: #781A24;
+    text-decoration: none;
+}
+
+.cham-auth-policy a:hover {
+    text-decoration: underline;
+}
+
+/* 9. Security Circle Badge (Forgot / Reset Password) */
+.cham-auth-security-icon {
+    width: 52px;
+    height: 52px;
+    background-color: #EFE4CD;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+}
+
+.cham-auth-security-icon i {
+    font-size: 24px;
+    color: #781A24;
+}
+
+.cham-auth-back-link {
+    display: block;
+    font-family: var(--font-body), 'Cabin', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #781A24;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 20px;
+    transition: color 0.15s;
+}
+
+.cham-auth-back-link:hover {
+    color: #5C121B;
+    text-decoration: underline;
+}
+
+/* 10. Password Strength Meter */
+.cham-strength-meter {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    margin-bottom: 4px;
+}
+
+.cham-strength-bar {
+    flex: 1;
+    height: 4px;
+    background-color: #E9DFC9;
+    border-radius: 2px;
+    transition: background-color 0.25s ease;
+}
+
+.cham-strength-hint {
+    font-family: var(--font-body), 'Cabin', sans-serif;
+    font-size: 11px;
+    color: #6F665E;
+    margin-top: 3px;
+    margin-bottom: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .cham-auth-card-wide,
+    .cham-auth-card-register,
+    .cham-auth-card-narrow {
+        padding: 24px 18px;
+    }
+    .cham-auth-title {
+        font-size: 22px;
+        line-height: 28px;
+    }
+}
+</style>

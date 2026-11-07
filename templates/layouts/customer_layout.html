@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block layout %}
+    {% include "components/header_public.html" %}
+
+    <div class="champa-watermark-wrapper py-4 py-md-5">
+        <div class="champa-workspace-inner container-fluid px-3 px-xl-5" style="max-width: 1720px;">
+            <div class="row g-4">
+                <!-- Customer Sidebar (Figma 614:415 & 218:9161) -->
+                <div class="col-lg-4 col-xl-3">
+                    {% include "components/sidebar_customer.html" %}
+                </div>
+
+                <!-- Customer Workspace (Figma 218:9161) -->
+                <div class="col-lg-8 col-xl-9">
+                    <!-- Page Heading -->
+                    <div class="customer-page-header mb-3">
+                        <h2 class="font-serif fw-bold" style="color: var(--cham-red); font-size: 28px; margin-bottom: 0;">
+                            {% block page_title %}Thông tin cá nhân{% endblock %}
+                        </h2>
+                    </div>
+
+                    <!-- Support Banner (Figma 218:9161) -->
+                    <div class="customer-support-banner p-3 mb-4 rounded-3 d-flex align-items-center gap-2" style="background-color: #FAF7EF; border: 1px solid #D0B581; font-size: 13.5px; color: var(--cham-dark); box-shadow: 0 4px 12px rgba(46, 29, 23, 0.04);">
+                        <span style="font-size: 18px;">✨</span>
+                        <div>
+                            <strong>Cham Spa luôn đồng hành cùng bạn</strong> - Cần hỗ trợ thêm? Hotline <strong style="color: var(--cham-red);">0905 409 257</strong> sẵn sàng tư vấn lịch trình phù hợp.
+                        </div>
+                    </div>
+
+                    <!-- Main Workspace Area -->
+                    {% block customer_content %}{% endblock %}
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "components/chat_widget.html" %}
+    {% include "components/footer_public.html" %}
+{% endblock %}

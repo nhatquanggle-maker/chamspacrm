@@ -5,11 +5,11 @@
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![VietQR](https://img.shields.io/badge/Payment-VietQR-blue?style=for-the-badge)](https://vietqr.io/)
-[![Project Status](https://img.shields.io/badge/Project_Status-Sprint_2_In_Progress-orange?style=for-the-badge)](#-ii-lộ-trình-phát-triển-dự-án-project-roadmap--sprints)
+[![Project Status](https://img.shields.io/badge/Project_Status-Phase_2_In_Progress-orange?style=for-the-badge)](#-v-lộ-trình-thực-hiện-chi-tiết-từng-phase-phase-by-phase-roadmap)
 
 ---
 
-> **Tài liệu đặc tả kỹ thuật, hướng dẫn phát triển đồng bộ và chuẩn hóa quy trình làm việc nhóm bằng AI Agent.**  
+> **Tài liệu đặc tả kỹ thuật, từ điển dữ liệu và lộ trình phát triển theo từng giai đoạn (Phase-by-Phase Roadmap) của hệ thống ChamSPA CRM.**  
 > *Căn cứ 100% theo Bảng đặc tả chức năng chốt cuối cùng, file đối chiếu `Chốt lỗi.xlsx` và cấu trúc 20 bảng CSDL trong `Sửa database.docx`.*
 
 ---
@@ -53,58 +53,7 @@
 
 ---
 
-## 🗺️ III. LỘ TRÌNH PHÁT TRIỂN DỰ ÁN (PROJECT ROADMAP & SPRINTS)
-
-Dự án được chia làm **4 Giai đoạn (Sprints)** theo mô hình Agile, dựa trên quan hệ phụ thuộc dữ liệu (Dependencies) giữa 10 phân hệ:
-
-```mermaid
-flowchart TD
-    subgraph S1["SPRINT 1: NỀN TẢNG FRAMEWORK & DỮ LIỆU GỐC"]
-        M05["MOD-05: Quản lý Tài khoản & Phân quyền (Quang)"]
-        M03["MOD-03: Danh mục & Gói Dịch vụ (Khánh)"]
-    end
-
-    subgraph S2["SPRINT 2: VẬN HÀNH DỊCH VỤ CỐT LÕI"]
-        M08["MOD-08: Hồ sơ Sức khỏe 1-1 (Ngọc)"]
-        M01["MOD-01: Đặt lịch hẹn 3 bước (Quang)"]
-        M02["MOD-02: Boxchat FAQ & Tư vấn (Ngọc)"]
-    end
-
-    subgraph S3["SPRINT 3: THANH TOÁN, HỘI VIÊN & CSKH"]
-        M09["MOD-09: Thanh toán VietQR & Hóa đơn (Thảo)"]
-        M04["MOD-04: Đánh giá & Xử lý Khiếu nại (Thảo)"]
-        M06["MOD-06: Hội viên & Tích điểm tự động (Khánh)"]
-        M07["MOD-07: Khuyến mãi & Kho Voucher (Kha)"]
-    end
-
-    subgraph S4["SPRINT 4: DASHBOARD, KIỂM THỬ & NGHIỆM THU"]
-        M10["MOD-10: Dashboard KPI & Xuất Báo cáo (Kha)"]
-        E2E["Kiểm thử toàn diện E2E khép kín (Cả nhóm)"]
-        PROD["Đóng gói mã nguồn & Bảo vệ đồ án (Leader Quang)"]
-    end
-
-    M05 --> M01
-    M03 --> M01
-    M05 --> M08
-    M08 -. Tự điền lực massage .-> M01
-    M01 --> M09
-    M01 --> M04
-    M09 --> M06
-    M04 -. Cấp voucher đền bù .-> M07
-    M09 --> M10
-    M01 --> M10
-    M06 --> M10
-    M10 --> E2E --> PROD
-
-    style S1 fill:#FAF7F0,stroke:#C5A059,stroke-width:2px
-    style S2 fill:#FFFDF9,stroke:#781A24,stroke-width:2px
-    style S3 fill:#FAF7F0,stroke:#C5A059,stroke-width:2px
-    style S4 fill:#FFFDF9,stroke:#10B981,stroke-width:2px
-```
-
----
-
-## 👥 IV. CƠ CHẾ PHÂN QUYỀN NGƯỜI DÙNG (3 CẤP ĐỘ)
+## 👥 III. CƠ CHẾ PHÂN QUYỀN NGƯỜI DÙNG (3 CẤP ĐỘ)
 
 Hệ thống sử dụng Custom User Model kế thừa `AbstractUser`, chia làm 3 phân quyền chuẩn:
 
@@ -116,7 +65,7 @@ Hệ thống sử dụng Custom User Model kế thừa `AbstractUser`, chia làm
 
 ---
 
-## 📋 V. TỔNG HỢP 10 PHÂN HỆ NGHIỆP VỤ (MOD-01 ĐẾN MOD-10)
+## 📋 IV. TỔNG HỢP 10 PHÂN HỆ NGHIỆP VỤ (MOD-01 ĐẾN MOD-10)
 
 | Mã Module | Tên Phân hệ | Số UC | Phụ trách | Tác nhân chính | Tóm tắt nghiệp vụ cốt lõi | Bảng CSDL trọng tâm |
 | :---: | :--- | :---: | :---: | :--- | :--- | :--- |
@@ -130,6 +79,215 @@ Hệ thống sử dụng Custom User Model kế thừa `AbstractUser`, chia làm
 | **MOD-08** | **Quản lý Hồ sơ Sức khỏe** | 2 UCs | **Thảo Ngọc** | Khách hàng, Quản lý, Nhân viên | Khảo sát thể trạng sức khỏe (Body map vùng đau, mức độ đau 1-10, huyết áp, lực massage...). **Chuẩn 1-1 tối giản: bản ghi mới ghi đè bản ghi cũ; bỏ xem lịch sử nhiều lần**. | `User_Health_Profile`, `User`, `Appointment` |
 | **MOD-09** | **Quản lý Thanh toán & Hóa đơn** | 3 UCs | **Thanh Thảo** | Khách hàng, Nhân viên Thu ngân, Quản lý | Tạo hóa đơn cho lịch hẹn; **Thanh toán VietQR Napas247 tự động cập nhật trạng thái lịch hẹn sang `Confirmed`**; Đối soát hóa đơn tại quầy; Tra cứu và in hóa đơn bán lẻ CSS Print. Bỏ đếm ngược 10 phút và cronjob hủy đơn. | `Invoice`, `Appointment`, `Membership`, `Membership_Point` |
 | **MOD-10** | **Quản lý Dashboard & Báo cáo** | 2 UCs | **Minh Kha** | Quản lý / Ban Giám đốc | Dashboard thống kê thời gian thực với biểu đồ Chart.js (Doanh thu, Lịch hẹn, Top dịch vụ bán chạy). **Xuất báo cáo trực tiếp tại trình duyệt bằng SheetJS & html2pdf.js**. Đã xóa bỏ bảng `Report_export` khỏi CSDL. | `Invoice`, `Appointment`, `Service`, `Membership`, `User` |
+
+---
+
+## 🗺️ V. LỘ TRÌNH THỰC HIỆN CHI TIẾT TỪNG PHASE (PHASE-BY-PHASE ROADMAP)
+
+Hệ thống được thiết kế và triển khai tuần tự qua **4 Phase chuyên sâu**, bám sát luồng vận hành thực tế của chuỗi Spa trị liệu cao cấp:
+
+```mermaid
+flowchart TD
+    subgraph P1["PHASE 1: NỀN TẢNG FRAMEWORK, TÀI KHOẢN & DỮ LIỆU GỐC"]
+        CORE["Setup Core Framework (Quang)"]
+        M05["MOD-05: Quản lý Tài khoản & Phân quyền (Quang - 14 UCs)"]
+        M03["MOD-03: Danh mục & Gói Dịch vụ Spa (Khánh - 3 UCs)"]
+    end
+
+    subgraph P2["PHASE 2: VẬN HÀNH DỊCH VỤ CỐT LÕI: SỨC KHỎE, ĐẶT LỊCH & BOXCHAT"]
+        M08["MOD-08: Khảo sát Hồ sơ Sức khỏe 1-1 (Ngọc - 2 UCs)"]
+        M01["MOD-01: Đặt lịch hẹn 3 bước & Điều phối (Quang - 5 UCs)"]
+        M02["MOD-02: Boxchat FAQ & Livechat Console (Ngọc - 3 UCs)"]
+    end
+
+    subgraph P3["PHASE 3: DÒNG TIỀN VIETQR, TÍCH ĐIỂM & CHĂM SÓC KHÁCH HÀNG"]
+        M09["MOD-09: Thanh toán VietQR & Hóa đơn (Thảo - 3 UCs)"]
+        M06["MOD-06: Hội viên VIP & Tích điểm tự động (Khánh - 3 UCs)"]
+        M04["MOD-04: Đánh giá 5 sao & Xử lý Khiếu nại (Thảo - 5 UCs)"]
+        M07["MOD-07: Khuyến mãi & Kho Voucher linh hoạt (Kha - 5 UCs)"]
+    end
+
+    subgraph P4["PHASE 4: DASHBOARD DOANH THU, XUẤT BÁO CÁO & KIỂM THỬ E2E"]
+        M10["MOD-10: Dashboard KPI Chart.js & SheetJS Export (Kha - 2 UCs)"]
+        E2E["Kiểm thử khép kín toàn hệ thống End-to-End (Cả nhóm)"]
+        ACCEPT["Nghiệm thu Đồ án & Đóng gói sản phẩm (Leader Quang)"]
+    end
+
+    CORE --> M05 --> M01
+    CORE --> M03 --> M01
+    M05 --> M08
+    M08 -. Tự nạp lực massage vào form .-> M01
+    M01 --> M09
+    M01 --> M04
+    M09 -. Trigger Signal tích điểm .-> M06
+    M04 -. Cấp voucher đền bù .-> M07
+    M09 --> M10
+    M01 --> M10
+    M06 --> M10
+    M10 --> E2E --> ACCEPT
+
+    style P1 fill:#FAF7F0,stroke:#C5A059,stroke-width:2px
+    style P2 fill:#FFFDF9,stroke:#781A24,stroke-width:2px
+    style P3 fill:#FAF7F0,stroke:#C5A059,stroke-width:2px
+    style P4 fill:#FFFDF9,stroke:#10B981,stroke-width:2px
+```
+
+---
+
+### 🟢 GIAI ĐOẠN 1 (PHASE 1): NỀN TẢNG FRAMEWORK, TÀI KHOẢN & DỮ LIỆU GỐC
+> **Mục tiêu:** Xây dựng khung xương dự án, chuẩn hóa 20 Model CSDL, hoàn thiện hệ thống xác thực 3 cấp và chuẩn bị sẵn sàng danh mục dịch vụ ban đầu.
+
+#### 1. Setup Core Framework (Phụ trách: Nhật Quang)
+* **Nhiệm vụ:**
+  - Cấu hình Django 6.1.2 + Django REST Framework + SQLite (`db.sqlite3`).
+  - Định nghĩa tập trung toàn bộ 20 Model trong [`core/models.py`](file:///d:/1.+DUE/05.+Kì+1+Năm+3/Lập+trình+web/CHAMSPA+CRM/core/models.py).
+  - Đăng ký đầy đủ 20 Model vào Django Admin Panel [`core/admin.py`](file:///d:/1.+DUE/05.+Kì+1+Năm+3/Lập+trình+web/CHAMSPA+CRM/core/admin.py).
+  - Trích xuất Design System từ Figma (Màu `#781A24`, `#F4EFE3`, `#D0B581`, Font `Lora`, `Cabin`, `Manrope`).
+  - Xây dựng 4 Master Layouts kế thừa (`public_layout`, `customer_layout`, `staff_layout`, `admin_layout`) và 3 Sidebar chuyên biệt.
+  - Tạo sẵn dữ liệu hạt giống (Seed Data): 3 tài khoản demo (`admin`, `staff`, `customer`), 8 Danh mục, 6 Dịch vụ, 4 Hạng thẻ VIP (`Tier`).
+
+#### 2. MOD-05: Quản lý Tài khoản & Phân quyền (Phụ trách: Nhật Quang - 14 Use Cases)
+* **Use Cases:** `UC-5.1` đến `UC-5.14`
+* **Nhiệm vụ cụ thể:**
+  - [x] `UC-5.1`: Form đăng ký tài khoản có validate email, regex SĐT 10 số, băm mật khẩu PBKDF2, tự động cấp thẻ hội viên.
+  - [x] `UC-5.2`: Đăng nhập đa kênh bằng Email hoặc Số điện thoại, kiểm tra cờ `is_active`, phân luồng chuyển trang theo vai trò.
+  - [x] `UC-5.3`: Quên và đặt lại mật khẩu với token an toàn `PasswordResetTokenGenerator`.
+  - [x] `UC-5.4` & `UC-5.5`: Hồ sơ cá nhân (upload avatar vào `media/avatars/`) và Đăng xuất phiên làm việc.
+  - [x] `UC-5.6` & `UC-5.7`: Bảng quản lý người dùng, tìm kiếm realtime, Toggle Status Mở / Khóa tài khoản an toàn (`is_active = False`).
+  - [x] `UC-5.8` - `UC-5.10`: Hồ sơ khách hàng 360 độ (xem lịch sử, sửa thông tin, khóa tài khoản khách hàng).
+  - [x] `UC-5.11` - `UC-5.14`: Quản lý nhân sự Spa (thêm nhân viên `is_staff=True`, xem danh sách, cập nhật, khóa tài khoản).
+
+#### 3. MOD-03: Quản lý Danh mục & Dịch vụ (Phụ trách: Minh Khánh - 3 Use Cases)
+* **Use Cases:** `UC-3.1` đến `UC-3.3`
+* **Nhiệm vụ cụ thể:**
+  - [ ] `UC-3.1`: Giao diện Danh sách dịch vụ hiện đại: thanh lọc danh mục ngang, lưới card responsive, phân trang Paginator, sắp xếp theo giá / đánh giá sao.
+  - [ ] `UC-3.2`: Trang Chi tiết dịch vụ sang trọng theo `slug`: Slider bộ sưu tập ảnh `Service_Image`, khối giá & thời lượng, mô tả quy trình liệu trình, nhận xét từ `Feedback`.
+  - [ ] `UC-3.3`: Màn hình Quản trị Dịch vụ (Tab Quản lý Danh mục `Category` tự lưu `updated_at`, Tab Quản lý Dịch vụ `Service` kèm upload nhiều ảnh gallery, nút chuyển trạng thái `Hoạt động` / `Ngừng hoạt động`).
+
+* **Tiêu chuẩn nghiệm thu Gate 1 (Acceptance Criteria):**
+  - Hệ thống chạy `python manage.py check` đạt **0 lỗi**.
+  - Người dùng có thể đăng ký, đăng nhập tài khoản Khách hàng, Nhân viên, Quản trị viên.
+  - Khách vãng lai và thành viên xem được danh sách dịch vụ và chi tiết gói dịch vụ với đầy đủ hình ảnh.
+
+---
+
+### 🟡 GIAI ĐOẠN 2 (PHASE 2): VẬN HÀNH DỊCH VỤ CỐT LÕI: SỨC KHỎE, ĐẶT LỊCH & BOXCHAT
+> **Mục tiêu:** Hoàn thiện trải nghiệm đặt lịch trị liệu của khách hàng: khảo sát thể trạng, đặt lịch thông minh 3 bước và kênh tư vấn trực tuyến.
+
+#### 1. MOD-08: Quản lý Hồ sơ Sức khỏe (Phụ trách: Thảo Ngọc - 2 Use Cases)
+* **Use Cases:** `UC-8.1`, `UC-8.2`
+* **Nhiệm vụ cụ thể:**
+  - [ ] `UC-8.1`: Form khảo sát thể trạng chuẩn 1-1 tối giản: Sơ đồ cơ thể (Body map) chọn vùng đau mỏi (`focus_areas`), thanh trượt slider chọn mức độ đau (1-10), lực massage mong muốn, bệnh lý đặc biệt (`health_conditions`), ghi đè bản ghi duy nhất.
+  - [ ] `UC-8.2`: Thẻ tóm tắt sức khỏe (Health Profile Card) dạng Infographic có các nhãn cảnh báo an toàn y tế (badge vàng/đỏ) để nhân viên lưu ý trước khi làm dịch vụ.
+
+#### 2. MOD-01: Đặt lịch & Quản lý lịch hẹn (Phụ trách: Nhật Quang - 5 Use Cases)
+* **Use Cases:** `UC-1.1` đến `UC-1.5`
+* **Nhiệm vụ cụ thể:**
+  - [x] `UC-1.1`: Wizard Form 3 bước đặt lịch (Dịch vụ & Giờ -> Thông tin khách & Lực massage -> Áp voucher & Xác nhận). Tự động lấy lực massage từ MOD-08. Kiểm soát slot tối đa 10 khách/giờ. Tạo `Appointment` (status='Hold'/'Pending') và `Appointment_Detail` trong transaction. Bỏ chọn KTV.
+  - [x] `UC-1.2`: Giao diện Lịch hẹn của tôi gồm 4 tab (Sắp tới, Đang làm, Hoàn thành, Đã hủy) hiển thị badge trạng thái màu, tổng tiền, mã lịch hẹn.
+  - [x] `UC-1.3`: Popup Modal Dời lịch hẹn (kiểm tra điều kiện >= 2 tiếng trước giờ hẹn, kiểm tra slot trống giờ mới, cập nhật atomic).
+  - [x] `UC-1.4`: Popup Modal Hủy lịch hẹn (nhập lý do `cancel_reason` và số tài khoản ngân hàng `refund_account_number` để kế toán hoàn tiền).
+  - [x] `UC-1.5`: Bảng Data Table Quản lý lịch hẹn toàn Spa cho Staff/Admin (lọc theo ngày, khung giờ, trạng thái; chuyển trạng thái Confirmed -> In_Progress -> Completed).
+
+#### 3. MOD-02: Quản lý Boxchat tư vấn (Phụ trách: Thảo Ngọc - 3 Use Cases)
+* **Use Cases:** `UC-2.1` đến `UC-2.3`
+* **Nhiệm vụ cụ thể:**
+  - [ ] `UC-2.1`: Floating Chat Widget tự động phản hồi theo kịch bản FAQ thuần TEXT. Khách vãng lai lưu tạm in-memory (không ghi CSDL); Khách đăng nhập lưu phiên vào `Conversation` (status='Bot xử lý').
+  - [ ] `UC-2.2`: Livechat Console dành cho nhân viên CSKH: danh sách phiên chat đang chờ, tiếp nhận chat, trò chuyện trực tiếp (giao diện hiển thị rõ tên nhân viên tư vấn), đóng phiên chat.
+  - [ ] `UC-2.3`: Màn hình Quản trị kịch bản Chatbot (FAQ): thêm, sửa, ẩn/hiện câu hỏi thường gặp thuần văn bản dạng text.
+
+* **Tiêu chuẩn nghiệm thu Gate 2 (Acceptance Criteria):**
+  - Khách hàng điền hồ sơ sức khỏe -> thông tin lực massage tự động đồng bộ sang màn hình Đặt lịch.
+  - Đặt lịch tạo thành công bản ghi trong `Appointment` và `Appointment_Detail`, kiểm soát chặt chẽ tối đa 10 khách/khung giờ.
+  - Chatbot tự động trả lời đúng từ khóa FAQ; khi cần gặp nhân viên, phiên chat xuất hiện trên màn hình Livechat Console của Staff.
+
+---
+
+### 🟠 GIAI ĐOẠN 3 (PHASE 3): DÒNG TIỀN VIETQR, TÍCH ĐIỂM & CHĂM SÓC KHÁCH HÀNG
+> **Mục tiêu:** Khép kín luồng giao dịch tài chính, tự động kích hoạt quyền lợi hội viên VIP, kích cầu bằng voucher khuyến mãi và giải quyết khiếu nại khách hàng.
+
+#### 1. MOD-09: Quản lý Thanh toán & Hóa đơn (Phụ trách: Thanh Thảo - 3 Use Cases)
+* **Use Cases:** `UC-9.1` đến `UC-9.3`
+* **Nhiệm vụ cụ thể:**
+  - [ ] `UC-9.1`: Tích hợp tạo mã VietQR động (img.vietqr.io) chuẩn Napas247 chứa chính xác số tiền và cú pháp `CHAMSPA [Mã lịch]`. Khi thanh toán thành công, hệ thống **tự động cập nhật `Invoice.status = 'Đã thanh toán'` và `Appointment.status = 'Confirmed'`**. Bỏ đếm ngược 10 phút.
+  - [ ] `UC-9.2`: Bảng Đối soát Hóa đơn tại quầy: nhân viên kiểm tra giao dịch chuyển khoản hoặc thu tiền mặt, bấm 'Xác nhận đã nhận tiền' hoặc 'Từ chối' (lưu lý do `reason_refuse`).
+  - [ ] `UC-9.3`: Giao diện tra cứu lịch sử hóa đơn và Phiếu thu điện tử chuẩn in ấn (CSS Print Layout) mang thương hiệu Cham Spa.
+
+#### 2. MOD-06: Quản lý Hội viên & Tích điểm (Phụ trách: Minh Khánh - 3 Use Cases)
+* **Use Cases:** `UC-6.1` đến `UC-6.3`
+* **Nhiệm vụ cụ thể:**
+  - [ ] `UC-6.1`: Thẻ Hội viên điện tử (Digital VIP Card) hiệu ứng sang trọng, thanh Progress Bar tiến trình thăng hạng (Bạc -> Vàng -> Kim Cương) và bảng lịch sử biến động điểm từ `Membership_Point`.
+  - [ ] `UC-6.2`: Công cụ tra cứu nhanh thông tin hội viên qua Số điện thoại tại quầy lễ tân để áp dụng chiết khấu đặc quyền.
+  - [ ] `UC-6.3`: **Django Signal (post_save trên Invoice)**: Tự động tính điểm (10.000 VNĐ = 1 điểm), cộng điểm vào `Membership_Point`, cộng dồn `total_spent`, tự động nâng hạng thẻ `Tier` và sinh thông báo chúc mừng. Bỏ trừ điểm khi hủy đơn, bỏ cronjob sinh nhật.
+
+#### 3. MOD-04: Quản lý Phản hồi & Khiếu nại (Phụ trách: Thanh Thảo - 5 Use Cases)
+* **Use Cases:** `UC-4.1` đến `UC-4.5`
+* **Nhiệm vụ cụ thể:**
+  - [ ] `UC-4.1`: Modal Đánh giá (Star rating 1-5 sao, chọn tag cảm nhận nhanh, upload tối đa 3 ảnh) và Modal Khiếu nại (`description`, ảnh bằng chứng `attached_proofs`, yêu cầu `desired_resolution`) chỉ áp dụng cho lịch hẹn `Completed`.
+  - [ ] `UC-4.2`: Bảng duyệt/ẩn đánh giá của Quản lý: lọc theo sao, nút Ẩn/Bỏ ẩn nhanh để bảo vệ uy tín thương hiệu.
+  - [ ] `UC-4.3`: Nhân viên phản hồi công khai đánh giá của khách: lưu `replied_by_id = request.user`, lưu `replied_at`, giao diện hiển thị rõ nhãn: 'Được phản hồi bởi: [Tên nhân viên]'.
+  - [ ] `UC-4.4`: Xử lý khiếu nại tinh giản: gán nhân viên phụ trách, nhập tóm tắt vào 1 ô `resolution_note`, tích chọn 'Cấp Voucher đền bù' tự động tạo `Voucher` gắn với `complaint_id`.
+  - [ ] `UC-4.5`: Theo dõi tiến độ khiếu nại với Timeline trạng thái trực quan (Gửi -> Đang xử lý -> Hoàn tất kèm Voucher).
+
+#### 4. MOD-07: Quản lý Thông báo & Khuyến mãi (Phụ trách: Minh Kha - 5 Use Cases)
+* **Use Cases:** `UC-7.1` đến `UC-7.5`
+* **Nhiệm vụ cụ thể:**
+  - [ ] `UC-7.1`: Dropdown thông báo tại quả chuông và Trang danh sách thông báo dạng Timeline bảng tin (bỏ trường `is_read`).
+  - [ ] `UC-7.2`: Trang Ưu đãi 2 tab: Tab 1 hiển thị Chương trình khuyến mãi dạng thẻ Card CSS gradient; Tab 2 hiển thị Ví Voucher với nút sao chép mã tiện lợi.
+  - [ ] `UC-7.3`: Màn hình Quản lý thông báo: soạn thông báo mới gửi cho cá nhân hoặc phát hàng loạt (`bulk_create`) cho toàn bộ khách hàng.
+  - [ ] `UC-7.4`: Quản lý chương trình khuyến mãi và Phát hành Voucher linh hoạt: hỗ trợ cả giảm % có mức trần (`max_discount_amount`) hoặc giảm tiền mặt cố định, áp dụng đơn hàng tối thiểu (`min_order_amount`).
+  - [ ] `UC-7.5`: Xây dựng hàm helper `create_system_notification(user, title, content)` để các module khác gọi tự động gửi thông báo khi có sự kiện (đặt lịch, thanh toán, thăng hạng).
+
+* **Tiêu chuẩn nghiệm thu Gate 3 (Acceptance Criteria):**
+  - Quét VietQR thành công -> Hóa đơn thành 'Đã thanh toán' -> Lịch hẹn tự động chuyển sang 'Confirmed' -> Điểm thưởng hội viên tự động tăng và thăng hạng thẻ.
+  - Đánh giá dịch vụ hiển thị rõ tên nhân viên phản hồi; Khiếu nại có thể giải quyết và cấp mã voucher đền bù dùng được ngay ở lần đặt lịch kế tiếp.
+
+---
+
+### 🔴 GIAI ĐOẠN 4 (PHASE 4): DASHBOARD DOANH THU, XUẤT BÁO CÁO & KIỂM THỬ E2E
+> **Mục tiêu:** Hoàn thiện bức tranh phân tích kinh doanh cho Ban Giám đốc, kiểm thử khép kín toàn hệ thống và đóng gói sản phẩm hoàn chỉnh để bảo vệ đồ án.
+
+#### 1. MOD-10: Quản lý Dashboard & Báo cáo (Phụ trách: Minh Kha - 2 Use Cases)
+* **Use Cases:** `UC-10.1`, `UC-10.2`
+* **Nhiệm vụ cụ thể:**
+  - [ ] `UC-10.1`: Dashboard thống kê thời gian thực dành cho Quản lý:
+    + 4 Thẻ KPI: Tổng doanh thu (VNĐ), Tổng lượt khách, Tỷ lệ hoàn thành lịch hẹn (%), Số hội viên mới.
+    + Biểu đồ đường (Line Chart): Xu hướng biến động doanh thu theo tuần/tháng bằng **Chart.js**.
+    + Biểu đồ cột (Bar Chart): Top 5 dịch vụ bán chạy nhất (dựa trên số lượng lịch hẹn `Completed`).
+    + Biểu đồ tròn (Doughnut Chart): Tỷ lệ cơ cấu thành viên theo hạng (Bạc, Vàng, Kim Cương).
+    + Bộ lọc thời gian: Hôm nay, 7 ngày qua, Tháng này, Năm nay.
+  - [ ] `UC-10.2`: **Xuất báo cáo trực tiếp tại trình duyệt (Client-side Export)** bằng thư viện SheetJS (`xlsx.full.min.js`) xuất file `.xlsx` và `html2pdf.js` xuất file `.pdf`. Hoàn toàn không tốn tài nguyên lưu file trên server (đã xóa bỏ bảng `Report_export`).
+
+#### 2. Kiểm thử toàn diện End-to-End (E2E Integration Test - Cả nhóm thực hiện)
+* **Kịch bản kiểm thử luồng nghiệp vụ khép kín (Life of a Booking):**
+  1. Khách vãng lai vào website xem Danh sách dịch vụ -> Trò chuyện với Chatbot hỏi giá (`MOD-03`, `MOD-02`).
+  2. Khách thực hiện Đăng ký tài khoản mới -> Hệ thống tự cấp thẻ hội viên hạng Bạc (`MOD-05`, `MOD-06`).
+  3. Khách điền Form Khảo sát Sức khỏe 1-1: chọn đau vai gáy, lực vừa (`MOD-08`).
+  4. Khách mở Form Đặt lịch -> Lực massage tự điền sẵn, khách nhập mã voucher `CHAMSPA10` giảm giá thành công (`MOD-01`, `MOD-07`).
+  5. Màn hình thanh toán VietQR hiển thị mã QR kèm cú pháp -> Xác nhận thanh toán thành công (`MOD-09`).
+  6. Lịch hẹn tự chuyển sang `Confirmed` -> Điểm thưởng tự động tích lũy và kiểm tra thăng hạng (`MOD-01`, `MOD-06`).
+  7. Nhân viên vận hành chuyển lịch sang `In_Progress` -> `Completed` (`MOD-01`).
+  8. Khách hàng gửi Đánh giá 5 sao -> Nhân viên phản hồi công khai (`MOD-04`).
+  9. Quản lý mở Dashboard -> Số tiền hóa đơn và lịch hẹn completed lập tức phản ánh lên biểu đồ Chart.js và KPI (`MOD-10`).
+  10. Quản lý bấm 'Xuất báo cáo Excel' -> Trình duyệt tải ngay file `.xlsx` báo cáo doanh thu (`MOD-10`).
+
+#### 3. Nghiệm thu, Tối ưu & Bảo vệ Đồ án (Leader: Nhật Quang)
+* **Nhiệm vụ:**
+  - Rà soát toàn bộ giao diện theo chuẩn Responsive (Desktop, Laptop, Tablet, Smartphone).
+  - Kiểm tra bảo mật phân quyền (ngăn chặn khách hàng truy cập trái phép URL quản trị viên).
+  - Kiểm tra toàn vẹn CSDL, xuất bản demo ổn định trên SQLite.
+  - Hoàn thiện Slide thuyết trình, Video demo kịch bản và Báo cáo đồ án nộp Khoa/Trường.
+
+---
+
+### 📋 BẢNG TIÊU CHÍ NGHIỆM THU TỪNG PHASE (GATE CRITERIA)
+
+| Giai đoạn | Thời gian dự kiến | Đầu ra bắt buộc (Deliverables) | Tiêu chí vượt qua Gate (Gate Exit Criteria) |
+| :---: | :---: | :--- | :--- |
+| **Phase 1** | Tuần 1 | • Core Framework & 20 Models<br>• Giao diện Figma Tokens & Master Layouts<br>• Module 5 (Auth & Tài khoản)<br>• Module 3 (Danh mục & Dịch vụ) | • `python manage.py check` đạt 0 lỗi.<br>• Đăng ký, đăng nhập 3 cấp quyền thành công.<br>• Xem danh sách và chi tiết dịch vụ đầy đủ ảnh. |
+| **Phase 2** | Tuần 2 | • Module 8 (Hồ sơ Sức khỏe 1-1)<br>• Module 1 (Đặt lịch hẹn 3 bước)<br>• Module 2 (Boxchat FAQ & Console) | • Khảo sát sức khỏe tự đồng bộ lực massage sang đặt lịch.<br>• Đặt lịch kiểm soát tối đa 10 khách/giờ.<br>• Chatbot trả lời FAQ text và chuyển tiếp nhân viên. |
+| **Phase 3** | Tuần 3 | • Module 9 (Thanh toán VietQR & Hóa đơn)<br>• Module 6 (Hội viên VIP & Tích điểm)<br>• Module 4 (Đánh giá & Khiếu nại)<br>• Module 7 (Khuyến mãi & Kho Voucher) | • Quét VietQR tự động chuyển lịch sang Confirmed.<br>• Hóa đơn thanh toán tự kích hoạt cộng điểm thăng hạng.<br>• Đánh giá hiển thị tên nhân viên, khiếu nại cấp voucher đền bù. |
+| **Phase 4** | Tuần 4 | • Module 10 (Dashboard Chart.js & SheetJS)<br>• Bộ Test E2E khép kín 100%<br>• Báo cáo đồ án & Slide bảo vệ | • Biểu đồ Chart.js nhảy số doanh thu thời gian thực.<br>• Xuất file Excel/PDF tại trình duyệt hoàn hảo.<br>• Vượt qua toàn bộ kịch bản kiểm thử E2E không lỗi. |
 
 ---
 
@@ -272,98 +430,7 @@ core/models.py (Tập trung toàn bộ 20 Bảng CSDL của hệ thống)
 
 ---
 
-## 🤖 X. QUY TRÌNH DÀNH CHO 4 THÀNH VIÊN DÙNG AI AGENT ĐỂ CODE MODULE
-
-Để cả 5 thành viên làm việc độc lập mà **không bị xung đột Git và không làm hỏng Database**, tất cả thành viên bắt buộc phải tuân thủ quy trình sau:
-
-### 1. Chuẩn bị môi trường & Clone dự án
-1. Lên GitHub copy link repo: `https://github.com/nhatquanggle-maker/chamspacrm.git`
-2. Mở IDE (Antigravity hoặc PyCharm), mở Terminal và clone code về máy:
-   ```bash
-   git clone https://github.com/nhatquanggle-maker/chamspacrm.git
-   cd chamspacrm
-   ```
-3. Tạo nhánh làm việc riêng cho module của mình (**TUYỆT ĐỐI KHÔNG CODE TRÊN `main`**):
-   * Thảo Ngọc: `git checkout -b feature/module-02` (cho Boxchat) hoặc `feature/module-08` (cho Sức khỏe)
-   * Minh Khánh: `git checkout -b feature/module-03` (cho Dịch vụ) hoặc `feature/module-06` (cho Hội viên)
-   * Thanh Thảo: `git checkout -b feature/module-04` (cho Đánh giá) hoặc `feature/module-09` (cho Thanh toán)
-   * Minh Kha: `git checkout -b feature/module-07` (cho Khuyến mãi) hoặc `feature/module-10` (cho Dashboard)
-
-### 2. Mẫu Prompt chuẩn để gửi cho AI Agent của bạn
-
-Copy toàn bộ đoạn văn bản dưới đây và dán vào AI Agent của bạn để AI hiểu đúng ngữ cảnh và code chính xác:
-
-```text
-Tôi là [Điền Tên Bạn: Thảo Ngọc / Minh Khánh / Thanh Thảo / Minh Kha], được phân công thực hiện [Điền Tên Module: ví dụ Module 3 Quản lý Danh mục Dịch vụ].
-
-HÃY ĐỌC TOÀN BỘ FILE README.MD VÀ TOÀN BỘ SOURCE CODE DỰ ÁN TẠI THƯ MỤC NÀY ĐỂ HIỂU NGHIỆP VỤ VÀ KIẾN TRÚC HỆ THỐNG CHAMSPA CRM.
-
-QUY TẮC PHÁT TRIỂN SỐNG CÒN (BẮT BUỘC TUÂN THỦ 100%):
-1. KHÔNG ĐƯỢC TẠO MODEL MỚI, KHÔNG ĐƯỢC CHẠY LỆNH 'makemigrations' HOẶC 'migrate'. Toàn bộ 20 bảng CSDL đã được Leader Nhật Quang định nghĩa chuẩn tập trung trong 'core/models.py' và có sẵn trong 'db.sqlite3'. Mọi Model chỉ được phép import từ 'core.models' (ví dụ: from core.models import Service, Category, User,...). Khi cần import User, dùng: from core.models import User hoặc from django.contrib.auth import get_user_model.
-2. KHÔNG ĐƯỢC THÊM, SỬA, XÓA TRONG THƯ MỤC CỦA CÁC MODULE KHÁC VÀ KHÔNG SỬA CÁC FILE CẤU HÌNH TỔNG (config/settings.py, config/urls.py, core/models.py, static/css/chamspa.css).
-3. TẤT CẢ CODE CỦA TÔI CHỈ ĐƯỢC PHÉP NẰM TRONG 2 NƠI:
-   - Thư mục app của tôi: [Ví dụ: services/ (views.py, urls.py, api.py, serializers.py)]
-   - Thư mục templates của tôi: [Ví dụ: templates/services/]
-4. GIAO DIỆN PHẢI KẾ THỪA TỪ CÁC MASTER LAYOUT ĐÃ CÓ SẴN TRONG templates/layouts/ ({% extends 'layouts/public_layout.html' %} hoặc 'customer_layout.html', 'staff_layout.html', 'admin_layout.html').
-5. PHONG CÁCH GIAO DIỆN: Sử dụng Bootstrap 5.3 + Bootstrap Icons kết hợp bộ biến màu Cham Spa trong static/css/chamspa.css (Màu đỏ chủ đạo: var(--cham-red) #781A24, Màu nền: var(--cham-bg) #F4EFE3, Màu vàng gold: var(--cham-gold) #D0B581, Font chữ tiêu đề: Lora, Nội dung: Cabin).
-6. TƯƠNG TÁC ĐỘNG: Dùng Vanilla JavaScript (Fetch API thuần) để gọi API ngầm, cập nhật DOM không reload trang, hiển thị modal popup, toast thông báo.
-
-NHIỆM VỤ CỦA BẠN:
-- Căn cứ vào bảng 45 Use Cases trong README.md cho phân hệ của tôi.
-- Thiết kế hoàn thiện toàn bộ Giao diện (Templates HTML) và Logic xử lý (Views, DRF API Serializers) khớp 100% với yêu cầu nghiệp vụ và các giá trị trạng thái chuẩn trong README.md.
-```
-
-### 3. Kiểm thử & Đẩy code lên GitHub
-1. Sau khi AI Agent code xong, bạn tự mở trình duyệt test kỹ:
-   * **Giao diện (Frontend):** Bấm thử các nút bấm, modal popup, thanh lọc, xem trên máy tính và điện thoại.
-   * **Xử lý ngầm (Backend):** Kiểm tra xem dữ liệu có lưu đúng vào CSDL không, API có trả về dữ liệu chuẩn không.
-2. Kiểm tra lại Git status xem có sửa nhầm file nào ngoài module của mình không:
-   ```bash
-   git status
-   ```
-3. Commit và đẩy code lên nhánh feature của bạn:
-   ```bash
-   git add .
-   git commit -m "feat(module-XX): Hoàn thành giao diện và logic phân hệ [Tên Module]"
-   git push origin feature/module-XX
-   ```
-4. Báo cho Leader Nhật Quang để Quang kiểm tra (Review Code) và merge vào nhánh `main` an toàn!
-
----
-
-## 🚀 XI. HƯỚNG DẪN CÀI ĐẶT & CHẠY LOCAL (DEVELOPER GUIDE)
-
-```bash
-# 1. Di chuyển vào thư mục dự án
-cd "CHAMSPA CRM"
-
-# 2. Tạo và kích hoạt môi trường ảo
-python -m venv .venv
-# Trên Windows PowerShell:
-.venv\Scripts\Activate.ps1
-# Hoặc trên Windows Command Prompt:
-.venv\Scripts\activate.bat
-
-# 3. Cài đặt các thư viện cần thiết
-pip install -r requirements.txt
-
-# 4. Kiểm tra hệ thống (Đạt 0 lỗi)
-python manage.py check
-
-# 5. Khởi chạy máy chủ phát triển
-python manage.py runserver
-```
-
-* **Trang chủ Website:** `http://127.0.0.1:8000/`
-* **Trang Quản trị Django Admin:** `http://127.0.0.1:8000/admin/`
-* **Tài khoản Demo có sẵn trong hệ thống:**
-  * **Admin (Quản lý):** `admin` / `admin123`
-  * **Staff (Nhân viên):** `staff` / `staff123`
-  * **Customer (Khách hàng):** `customer` / `customer123`
-
----
-
-## 📄 XII. BẢN QUYỀN & GIẤY PHÉP
+## 📄 X. BẢN QUYỀN & GIẤY PHÉP
 
 Dự án được xây dựng phục vụ mục đích học tập và nghiên cứu thực tế tại **Trường Đại học Kinh tế – Đại học Đà Nẵng (DUE)**.  
 Mọi quyền sở hữu thương hiệu và hình ảnh thuộc về **ChamSpa & Massage Đà Nẵng** (05 Lê Quang Hoà, Cẩm Lệ, Đà Nẵng).  

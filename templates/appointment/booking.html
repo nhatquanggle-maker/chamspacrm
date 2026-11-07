@@ -6,53 +6,41 @@
 {% block extra_css %}
 <style>
     /* ==========================================================================
-       BẢN THIẾT KẾ CHUẨN XÁC FIGMA NODE 828:515 (ĐẶT LỊCH TRẢI NGHIỆM)
-       Kích thước chuẩn: 1920x1152 | Khung làm việc: 1652x884
+       CHUẨN XÁC 100% THEO THIẾT KẾ FIGMA NODE 828:515
+       Palette: Maroon #781A24 | Gold #D0B581 | Linen #F4EFE3 | Card #FAF7F0 | White #FFFFFF
+       Typography: Headings Lora (Serif) | Body & Controls Cabin (Sans-serif)
        ========================================================================== */
     body {
         background-color: #F4EFE3 !important;
-        font-family: 'Cabin', sans-serif;
-        color: #201A18;
+        font-family: 'Cabin', sans-serif !important;
+        color: #000000;
         position: relative;
     }
 
-    /* Hoa văn chìm Champa văn hóa nghệ thuật */
-    .champa-bg-pattern {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: radial-gradient(rgba(120, 26, 36, 0.03) 1px, transparent 1px);
-        background-size: 32px 32px;
-        pointer-events: none;
-        z-index: 0;
-    }
-
-    .booking-page-container {
+    .booking-canvas-wrap {
         max-width: 1680px;
         margin: 0 auto;
         padding: 24px 20px 80px;
         position: relative;
-        z-index: 1;
     }
 
     /* 1. Header row (Figma 1640x72) */
-    .figma-header-row {
+    .figma-header-bar {
         display: flex;
         align-items: center;
         justify-content: space-between;
         margin-bottom: 20px;
     }
-    .figma-logo-box img {
+    .figma-logo-wrap img {
         height: 60px;
         width: auto;
         object-fit: contain;
     }
-    .figma-title-area {
+    .figma-title-group {
         text-align: center;
     }
-    .figma-eyebrow {
+    .figma-eyebrow-text {
+        font-family: 'Cabin', sans-serif;
         font-size: 11px;
         letter-spacing: 3px;
         color: #716761;
@@ -60,7 +48,7 @@
         font-weight: 700;
         margin-bottom: 3px;
     }
-    .figma-main-title {
+    .figma-headline-text {
         font-family: 'Lora', serif;
         font-size: 36px;
         font-weight: 700;
@@ -68,7 +56,7 @@
         margin: 0;
         line-height: 1.1;
     }
-    .figma-close-btn {
+    .figma-close-circle {
         width: 44px;
         height: 44px;
         border-radius: 50%;
@@ -81,17 +69,17 @@
         font-size: 16px;
         font-weight: 700;
         text-decoration: none;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
         box-shadow: 0 2px 6px rgba(0,0,0,0.03);
     }
-    .figma-close-btn:hover {
+    .figma-close-circle:hover {
         background: #781A24;
         color: #FFFFFF;
         border-color: #781A24;
     }
 
     /* 2. Confirmation notice (Figma 1640x62) */
-    .figma-notice-bar {
+    .figma-notice-box {
         background: #FFFFFF;
         border: 1px solid #EBE4D5;
         border-radius: 12px;
@@ -102,7 +90,7 @@
         margin-bottom: 24px;
         box-shadow: 0 2px 8px rgba(120, 26, 36, 0.02);
     }
-    .figma-notice-icon {
+    .figma-notice-check {
         width: 32px;
         height: 32px;
         border-radius: 50%;
@@ -114,54 +102,54 @@
         font-size: 16px;
         flex-shrink: 0;
     }
-    .figma-notice-text {
+    .figma-notice-desc {
+        font-family: 'Cabin', sans-serif;
         font-size: 13.5px;
         color: #554D48;
         margin: 0;
         line-height: 1.5;
     }
 
-    /* Khung cảnh báo khi CHƯA ĐĂNG NHẬP KHÁCH HÀNG */
-    .auth-alert-lock-box {
+    /* Khung cảnh báo phân quyền */
+    .figma-auth-banner {
         background: #FFF5F5;
         border: 1.5px solid #F8B4B4;
-        border-radius: 14px;
-        padding: 16px 24px;
+        border-radius: 12px;
+        padding: 14px 22px;
         margin-bottom: 24px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 20px;
-        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.06);
+        gap: 16px;
     }
-    .auth-alert-title {
+    .figma-auth-title {
         font-family: 'Lora', serif;
+        font-size: 16px;
         font-weight: 700;
         color: #991B1B;
-        font-size: 17px;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
     }
-    .auth-alert-desc {
+    .figma-auth-text {
+        font-size: 13px;
         color: #7F1D1D;
-        font-size: 13.5px;
         margin: 0;
     }
 
     /* 3. Booking workspace (Figma 1652x884: Form 1200px + Summary 420px) */
-    .figma-workspace-grid {
+    .figma-layout-row {
         display: grid;
         grid-template-columns: minmax(0, 1fr) 420px;
         gap: 32px;
         align-items: start;
     }
     @media (max-width: 1200px) {
-        .figma-workspace-grid {
+        .figma-layout-row {
             grid-template-columns: 1fr;
         }
     }
 
-    /* Khung Form lớn duy nhất (Figma 1200x884, Background #FFFFFF, Radius 16px) */
-    .figma-booking-form-card {
+    /* Form Container lớn duy nhất (Figma 1200x884) */
+    .figma-form-block {
         background: #FFFFFF;
         border: 1px solid #EBE4D5;
         border-radius: 16px;
@@ -170,49 +158,52 @@
     }
 
     /* Tiêu đề từng Section */
-    .figma-section-title {
+    .figma-sec-header {
         display: flex;
         align-items: center;
         gap: 12px;
-        font-family: 'Lora', serif;
-        font-size: 21px;
-        font-weight: 700;
-        color: #201A18;
         margin-bottom: 20px;
     }
-    .figma-step-num {
+    .figma-badge-idx {
         width: 28px;
         height: 28px;
         border-radius: 50%;
         background: #781A24;
         color: #FFFFFF;
         font-family: 'Cabin', sans-serif;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
     }
-    .figma-step-flower {
+    .figma-sec-title {
+        font-family: 'Lora', serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: #000000;
+        margin: 0;
+    }
+    .figma-sec-lotus {
         color: #781A24;
         font-size: 17px;
     }
 
-    /* Đường kẻ phân cách giữa các section (Figma Section divider 1px #EBE4D5) */
-    .figma-section-divider {
+    /* Section divider (Figma 1px #EBE4D5) */
+    .figma-divider-line {
         height: 1px;
         background-color: #EBE4D5;
         margin: 28px 0;
     }
 
-    /* Bộ đếm khách (Counter row) */
-    .figma-counter-control {
+    /* Controls: Counter */
+    .figma-counter-pill {
         display: inline-flex;
         align-items: center;
         background: #FAF7F0;
         border: 1px solid #E5DEC9;
-        border-radius: 10px;
+        border-radius: 8px;
         padding: 3px 6px;
     }
     .figma-counter-btn {
@@ -222,61 +213,63 @@
         border: none;
         background: #FFFFFF;
         color: #781A24;
-        font-weight: 800;
+        font-weight: 700;
         font-size: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.15s;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
     .figma-counter-btn:hover {
         background: #781A24;
         color: #FFFFFF;
     }
-    .figma-counter-val {
-        width: 44px;
+    .figma-counter-num {
+        width: 40px;
         text-align: center;
+        font-family: 'Cabin', sans-serif;
         font-weight: 800;
         font-size: 15px;
-        color: #201A18;
+        color: #000000;
     }
 
     /* Thẻ khách hàng chi tiết 1 & 2 (Side by side) */
-    .guest-cards-grid {
+    .figma-guest-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 18px;
     }
     @media (max-width: 768px) {
-        .guest-cards-grid {
+        .figma-guest-grid {
             grid-template-columns: 1fr;
         }
     }
-    .guest-single-card {
+    .figma-guest-item {
         background: #FAF7F0;
         border: 1px solid #EDE6D6;
         border-radius: 12px;
         padding: 16px 20px;
     }
-    .guest-single-header {
+    .figma-guest-head {
         display: flex;
         align-items: center;
         gap: 8px;
+        font-family: 'Cabin', sans-serif;
         font-size: 14px;
         font-weight: 700;
-        color: #201A18;
+        color: #000000;
         margin-bottom: 12px;
     }
-    .guest-gender-label {
-        color: #716761;
-        font-weight: 500;
-        font-size: 13px;
+    .figma-guest-gender {
+        color: #781A24;
+        font-weight: 600;
+        font-size: 12px;
     }
 
-    /* Nút chọn lực massage */
-    .pressure-toggle-group {
+    /* Lực massage buttons */
+    .figma-pressure-bar {
         display: flex;
         gap: 4px;
         background: #FFFFFF;
@@ -285,42 +278,44 @@
         padding: 3px;
         width: fit-content;
     }
-    .pressure-toggle-btn {
+    .figma-press-btn {
         padding: 5px 14px;
         border-radius: 6px;
         border: none;
         background: transparent;
-        font-size: 13px;
+        font-family: 'Cabin', sans-serif;
+        font-size: 12px;
         font-weight: 600;
         color: #554D48;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.15s;
     }
-    .pressure-toggle-btn.active {
+    .figma-press-btn.active {
         background: #781A24;
         color: #FFFFFF;
         font-weight: 700;
     }
 
     /* Mini Calendar */
-    .figma-mini-calendar {
+    .figma-calendar-frame {
         background: #FAF7F0;
         border: 1px solid #EDE6D6;
         border-radius: 12px;
-        padding: 16px 18px;
+        padding: 16px 20px;
     }
-    .mini-cal-header {
+    .figma-cal-top {
         display: flex;
         align-items: center;
         justify-content: space-between;
         margin-bottom: 12px;
     }
-    .mini-cal-title {
+    .figma-cal-month-title {
+        font-family: 'Cabin', sans-serif;
         font-weight: 700;
-        font-size: 14.5px;
-        color: #201A18;
+        font-size: 15px;
+        color: #000000;
     }
-    .mini-cal-arrow {
+    .figma-cal-nav {
         width: 28px;
         height: 28px;
         border-radius: 50%;
@@ -333,94 +328,106 @@
         color: #554D48;
         font-size: 12px;
     }
-    .mini-cal-weekdays {
+    .figma-cal-nav:hover {
+        border-color: #781A24;
+        color: #781A24;
+    }
+    .figma-cal-week-labels {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         text-align: center;
+        font-family: 'Cabin', sans-serif;
         font-size: 11.5px;
         font-weight: 700;
-        color: #8C8078;
+        color: #716761;
         margin-bottom: 6px;
     }
-    .mini-cal-grid {
+    .figma-cal-days-box {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         gap: 4px;
     }
-    .mini-cal-cell {
+    .figma-day-number {
         aspect-ratio: 1;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-family: 'Cabin', sans-serif;
         font-size: 13px;
         font-weight: 600;
-        border-radius: 8px;
+        border-radius: 50%;
         cursor: pointer;
         transition: all 0.15s;
         border: 1px solid transparent;
-        color: #201A18;
+        color: #000000;
     }
-    .mini-cal-cell:hover:not(.disabled) {
+    .figma-day-number:hover:not(.disabled) {
         border-color: #781A24;
         color: #781A24;
     }
-    .mini-cal-cell.selected {
+    .figma-day-number.selected {
         background: #781A24 !important;
         color: #FFFFFF !important;
         font-weight: 700;
     }
-    .mini-cal-cell.disabled {
-        opacity: 0.3;
+    .figma-day-number.disabled {
+        opacity: 0.25;
         cursor: not-allowed;
     }
 
-    /* Khung giờ Slot */
-    .figma-slot-card {
-        border: 1.5px solid #E5DEC9;
-        background: #FAF7F0;
-        border-radius: 10px;
-        padding: 12px;
-        text-align: center;
-        font-size: 15px;
-        font-weight: 700;
-        color: #201A18;
-        cursor: pointer;
-        transition: all 0.2s;
+    /* Slots */
+    .figma-time-slot-btn {
+        height: 44px;
+        border: 1px solid #E5DEC9;
+        background: #FFFFFF;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        font-family: 'Cabin', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: #000000;
+        cursor: pointer;
+        transition: all 0.15s;
     }
-    .figma-slot-card:hover {
+    .figma-time-slot-btn:hover {
         border-color: #781A24;
         color: #781A24;
     }
-    .figma-slot-card.active {
+    .figma-time-slot-btn.active {
         background: #781A24;
         border-color: #781A24;
         color: #FFFFFF;
+        font-weight: 700;
     }
 
     /* Inputs */
-    .figma-control-input {
+    .figma-input-field {
         background: #FAF7F0;
         border: 1px solid #E5DEC9;
-        border-radius: 10px;
-        padding: 11px 14px;
-        font-size: 14px;
-        color: #201A18;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-family: 'Cabin', sans-serif;
+        font-size: 13.5px;
+        color: #000000;
         width: 100%;
-        transition: all 0.2s;
+        transition: all 0.15s;
     }
-    .figma-control-input:focus {
+    .figma-input-field:focus {
         background: #FFFFFF;
         border-color: #781A24;
         box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.08);
         outline: none;
     }
+    .figma-input-field[readonly] {
+        background-color: #F8F5EE;
+        cursor: not-allowed;
+        color: #494540;
+    }
 
     /* 4. Booking summary (Figma 420x786) */
-    .figma-summary-container {
+    .figma-summary-card {
         background: #FFFFFF;
         border: 1px solid #EBE4D5;
         border-radius: 16px;
@@ -429,27 +436,43 @@
         top: 80px;
         box-shadow: 0 6px 24px rgba(120, 26, 36, 0.04);
     }
-    .figma-summary-header {
+    .figma-sum-header {
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
         margin-bottom: 18px;
     }
-    .figma-badge-ready {
+    .figma-sum-title {
+        font-family: 'Lora', serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: #000000;
+        margin-bottom: 2px;
+    }
+    .figma-sum-sub {
+        font-family: 'Cabin', sans-serif;
+        font-size: 11px;
+        color: #716761;
+        margin: 0;
+    }
+    .figma-ready-tag {
         background: #EAF5EF;
         color: #167455;
         border-radius: 20px;
         padding: 4px 12px;
-        font-size: 11px;
-        font-weight: 800;
+        font-family: 'Cabin', sans-serif;
+        font-size: 10px;
+        font-weight: 700;
         letter-spacing: 0.5px;
         display: inline-flex;
         align-items: center;
         gap: 5px;
     }
-    .figma-schedule-banner {
+
+    /* Schedule banner (Figma #781A24) */
+    .figma-hero-date-banner {
         background: #781A24;
-        border-radius: 12px;
+        border-radius: 10px;
         padding: 14px 18px;
         color: #FFFFFF;
         display: flex;
@@ -457,7 +480,7 @@
         gap: 16px;
         margin-bottom: 20px;
     }
-    .figma-schedule-calbox {
+    .figma-cal-white-box {
         background: #FFFFFF;
         color: #781A24;
         border-radius: 8px;
@@ -465,25 +488,33 @@
         text-align: center;
         flex-shrink: 0;
     }
-    .figma-calbox-thg {
+    .figma-thg-label {
+        font-family: 'Cabin', sans-serif;
         font-size: 10px;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-    .figma-calbox-day {
+    .figma-day-big {
+        font-family: 'Cabin', sans-serif;
         font-size: 20px;
         font-weight: 800;
         line-height: 1;
     }
-
-    .figma-summary-divider {
-        height: 1px;
-        background-color: #EBE4D5;
-        margin: 16px 0;
+    .figma-banner-weekday {
+        font-family: 'Cabin', sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        color: #FFFFFF;
+    }
+    .figma-banner-slot {
+        font-family: 'Cabin', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.85);
     }
 
-    .figma-guest-overview-box {
+    .figma-sum-item {
         background: #FAF7F0;
         border-radius: 10px;
         padding: 10px 14px;
@@ -492,57 +523,57 @@
         align-items: center;
         gap: 10px;
     }
-    .figma-guest-icon-circle {
-        width: 28px;
-        height: 28px;
+    .figma-item-icon {
+        width: 34px;
+        height: 34px;
         border-radius: 50%;
-        background: #FFFFFF;
-        border: 1px solid #E5DEC9;
+        background: #F4EFE3;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 13px;
+        font-size: 14px;
         flex-shrink: 0;
     }
 
-    .figma-total-price {
-        font-family: 'Cabin', sans-serif;
-        font-size: 28px;
-        font-weight: 800;
-        color: #D0B581; /* Gold chuẩn Figma */
+    .figma-total-money {
+        font-family: 'Lora', serif !important;
+        font-size: 24px;
+        font-weight: 700;
+        color: #D0B581 !important; /* Gold chuẩn Figma */
         letter-spacing: -0.5px;
     }
 
-    .figma-confirm-btn {
+    .figma-submit-button {
         background: #781A24;
         color: #FFFFFF;
         border: none;
         border-radius: 10px;
-        padding: 15px;
-        font-size: 15px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
+        height: 52px;
         width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        transition: all 0.2s;
+        font-family: 'Cabin', sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        transition: all 0.2s ease;
         box-shadow: 0 4px 15px rgba(120, 26, 36, 0.2);
     }
-    .figma-confirm-btn:hover:not(:disabled) {
+    .figma-submit-button:hover:not(:disabled) {
         background: #5d141c;
         transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(120, 26, 36, 0.3);
+        box-shadow: 0 6px 20px rgba(120, 26, 36, 0.3);
         color: #FFFFFF;
     }
-    .figma-confirm-btn:disabled {
+    .figma-submit-button:disabled {
         opacity: 0.55;
         cursor: not-allowed;
     }
 
-    /* Modal VietQR */
-    .vietqr-left-panel {
+    /* Modal VietQR (Figma Node 818:2) */
+    .vietqr-left-col {
         background: #781A24;
         color: #FFFFFF;
         padding: 36px 32px;
@@ -550,44 +581,38 @@
         flex-direction: column;
         justify-content: space-between;
     }
-    .vietqr-right-panel {
+    .vietqr-right-col {
         background: #FFFFFF;
         padding: 36px 32px;
         text-align: center;
-    }
-    .qr-box-frame img {
-        max-width: 240px;
-        height: auto;
     }
 </style>
 {% endblock %}
 
 {% block layout %}
-<div class="champa-bg-pattern"></div>
-
-<div class="booking-page-container">
+<div class="booking-canvas-wrap">
     <!-- ============================================================== -->
     <!-- 1. HEADER ROW (FIGMA 1640x72) -->
     <!-- ============================================================== -->
-    <div class="figma-header-row">
-        <a href="{% url 'home' %}" class="figma-logo-box">
+    <div class="figma-header-bar">
+        <a href="{% url 'home' %}" class="figma-logo-wrap">
             <img src="{% static 'images/chamspa-logo.png' %}" alt="Cham Spa & Massage">
         </a>
-        <div class="figma-title-area">
-            <div class="figma-eyebrow">RESERVE YOUR MOMENT OF PEACE</div>
-            <h1 class="figma-main-title">Đặt lịch trải nghiệm</h1>
+        <div class="figma-title-group">
+            <div class="figma-eyebrow-text">RESERVE YOUR MOMENT OF PEACE</div>
+            <h1 class="figma-headline-text">Đặt lịch trải nghiệm</h1>
         </div>
-        <a href="{% url 'home' %}" class="figma-close-btn" title="Đóng">X</a>
+        <a href="{% url 'home' %}" class="figma-close-circle" title="Đóng">X</a>
     </div>
 
     <!-- ============================================================== -->
     <!-- 2. CONFIRMATION NOTICE (FIGMA 1640x62) -->
     <!-- ============================================================== -->
-    <div class="figma-notice-bar">
-        <div class="figma-notice-icon">
+    <div class="figma-notice-box">
+        <div class="figma-notice-check">
             <i class="bi bi-check2"></i>
         </div>
-        <p class="figma-notice-text">
+        <p class="figma-notice-desc">
             Cảm ơn quý khách đã gửi yêu cầu. Đội ngũ Cham Spa sẽ liên hệ trong thời gian sớm nhất để xác nhận lịch hẹn và chuẩn bị chu đáo cho trải nghiệm của quý khách.
         </p>
     </div>
@@ -596,20 +621,18 @@
     <!-- THÔNG BÁO BẮT BUỘC: CHỈ DÀNH CHO KHÁCH HÀNG ĐÃ ĐĂNG NHẬP -->
     <!-- ============================================================== -->
     {% if not is_customer %}
-    <div class="auth-alert-lock-box" id="authWarningAlert">
+    <div class="figma-auth-banner">
         <div class="d-flex align-items-center gap-3">
-            <div class="fs-2 text-danger">
-                <i class="bi bi-shield-lock-fill"></i>
-            </div>
+            <div class="fs-3 text-danger"><i class="bi bi-shield-lock-fill"></i></div>
             <div>
                 {% if auth_warning == 'NOT_LOGGED_IN' %}
-                <div class="auth-alert-title">Yêu cầu đăng nhập tài khoản Khách hàng</div>
-                <p class="auth-alert-desc">
+                <div class="figma-auth-title">Yêu cầu đăng nhập tài khoản Khách hàng</div>
+                <p class="figma-auth-text">
                     Quý khách chưa đăng nhập. <strong>Chỉ tài khoản Khách hàng mới được phép đặt lịch hẹn trực tuyến</strong>. Vui lòng đăng nhập hoặc tạo tài khoản mới để tiếp tục đặt lịch và nhận ưu đãi độc quyền.
                 </p>
                 {% else %}
-                <div class="auth-alert-title">Thông báo: Tài khoản hiện tại là Quản lý / Nhân viên</div>
-                <p class="auth-alert-desc">
+                <div class="figma-auth-title">Thông báo: Tài khoản hiện tại là Quản lý / Nhân viên</div>
+                <p class="figma-auth-text">
                     Bạn đang đăng nhập bằng tài khoản nội bộ (Admin/Staff). <strong>Chức năng đặt lịch này chỉ dành cho tài khoản Khách hàng</strong>. Quản lý/Lễ tân vui lòng tạo lịch tại mục Quản lý Lịch hẹn hoặc chuyển sang tài khoản Khách hàng để trải nghiệm.
                 </p>
                 {% endif %}
@@ -635,27 +658,27 @@
     <!-- ============================================================== -->
     <!-- 3. BOOKING WORKSPACE (FIGMA 1652x884) -->
     <!-- ============================================================== -->
-    <div class="figma-workspace-grid">
-        <!-- CỘT TRÁI: BOOKING FORM LỚN DUY NHẤT (1200px) -->
-        <div class="figma-booking-form-card">
-            <form id="bookingMainForm" onsubmit="event.preventDefault(); handleBookingSubmit();">
-                <!-- ========================================== -->
+    <div class="figma-layout-row">
+        <!-- CỘT TRÁI: FORM LỚN DUY NHẤT (1200px) -->
+        <div class="figma-form-block">
+            <form id="appointmentForm" onsubmit="event.preventDefault(); triggerSubmit();">
+                <!-- ====================================================== -->
                 <!-- SECTION 1: LỰA CHỌN SỐ LƯỢNG & DỊCH VỤ -->
-                <!-- ========================================== -->
+                <!-- ====================================================== -->
                 <div>
-                    <div class="figma-section-title">
-                        <span class="figma-step-num">1</span>
-                        <i class="bi bi-flower1 figma-step-flower"></i>
-                        <span>Lựa chọn Số lượng & Dịch vụ</span>
+                    <div class="figma-sec-header">
+                        <span class="figma-badge-idx">1</span>
+                        <i class="bi bi-flower1 figma-sec-lotus"></i>
+                        <h2 class="figma-sec-title">Lựa chọn Số lượng & Dịch vụ</h2>
                     </div>
 
-                    <!-- Chi nhánh Cham Spa & Bộ 3 Counter -->
+                    <!-- Hàng 1: Chi nhánh Cham Spa & Bộ 3 Counter -->
                     <div class="row g-3 align-items-end mb-4">
                         <div class="col-lg-6">
-                            <label class="form-label small fw-bold text-muted mb-1">Chi nhánh Cham Spa</label>
+                            <label class="form-label small fw-bold text-dark mb-1" style="font-size: 12px;">Chi nhánh Cham Spa</label>
                             <div class="position-relative">
                                 <i class="bi bi-geo-alt-fill text-danger position-absolute top-50 start-0 translate-middle-y ms-3"></i>
-                                <select class="figma-control-input ps-5" id="selBranch">
+                                <select class="figma-input-field ps-5" id="branchInput" style="height: 44px;">
                                     <option value="Cham Spa - 05 Lê Quang Hoà, Đà Nẵng" selected>Cham Spa - 05 Lê Quang Hoà, Đà Nẵng</option>
                                 </select>
                             </div>
@@ -665,67 +688,67 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                                 <!-- Tổng khách -->
                                 <div>
-                                    <div class="small fw-bold text-muted mb-1"><i class="bi bi-people-fill text-danger me-1"></i> Tổng khách*</div>
-                                    <div class="figma-counter-control">
-                                        <button type="button" class="figma-counter-btn" onclick="modifyGuests('total', -1)">-</button>
-                                        <span class="figma-counter-val" id="cntTotal">2</span>
-                                        <button type="button" class="figma-counter-btn" onclick="modifyGuests('total', 1)">+</button>
+                                    <div class="small fw-bold text-dark mb-1" style="font-size: 12px;"><i class="bi bi-people-fill text-danger me-1"></i> Tổng khách*</div>
+                                    <div class="figma-counter-pill">
+                                        <button type="button" class="figma-counter-btn" onclick="stepGuestCount('total', -1)">-</button>
+                                        <span class="figma-counter-num" id="displayTotalGuests">2</span>
+                                        <button type="button" class="figma-counter-btn" onclick="stepGuestCount('total', 1)">+</button>
                                     </div>
                                 </div>
                                 <!-- Nam -->
                                 <div>
-                                    <div class="small fw-bold text-muted mb-1"><i class="bi bi-gender-male text-primary me-1"></i> Nam</div>
-                                    <div class="figma-counter-control">
-                                        <button type="button" class="figma-counter-btn" onclick="modifyGuests('male', -1)">-</button>
-                                        <span class="figma-counter-val" id="cntMale">1</span>
-                                        <button type="button" class="figma-counter-btn" onclick="modifyGuests('male', 1)">+</button>
+                                    <div class="small fw-bold text-dark mb-1" style="font-size: 12px;"><i class="bi bi-gender-male text-primary me-1"></i> Nam</div>
+                                    <div class="figma-counter-pill">
+                                        <button type="button" class="figma-counter-btn" onclick="stepGuestCount('male', -1)">-</button>
+                                        <span class="figma-counter-num" id="displayMaleGuests">1</span>
+                                        <button type="button" class="figma-counter-btn" onclick="stepGuestCount('male', 1)">+</button>
                                     </div>
                                 </div>
                                 <!-- Nữ -->
                                 <div>
-                                    <div class="small fw-bold text-muted mb-1"><i class="bi bi-gender-female text-danger me-1"></i> Nữ</div>
-                                    <div class="figma-counter-control">
-                                        <button type="button" class="figma-counter-btn" onclick="modifyGuests('female', -1)">-</button>
-                                        <span class="figma-counter-val" id="cntFemale">1</span>
-                                        <button type="button" class="figma-counter-btn" onclick="modifyGuests('female', 1)">+</button>
+                                    <div class="small fw-bold text-dark mb-1" style="font-size: 12px;"><i class="bi bi-gender-female text-danger me-1"></i> Nữ</div>
+                                    <div class="figma-counter-pill">
+                                        <button type="button" class="figma-counter-btn" onclick="stepGuestCount('female', -1)">-</button>
+                                        <span class="figma-counter-num" id="displayFemaleGuests">1</span>
+                                        <button type="button" class="figma-counter-btn" onclick="stepGuestCount('female', 1)">+</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Danh sách Khách 1, Khách 2... (Side by side cards) -->
-                    <div class="guest-cards-grid" id="guestCardsContainer">
+                    <!-- Hàng 2: Thẻ chi tiết từng khách (Side by Side) -->
+                    <div class="figma-guest-grid" id="guestCardsGrid">
                         <!-- Tự động render bằng JavaScript -->
                     </div>
                 </div>
 
                 <!-- SECTION DIVIDER -->
-                <div class="figma-section-divider"></div>
+                <div class="figma-divider-line"></div>
 
-                <!-- ========================================== -->
+                <!-- ====================================================== -->
                 <!-- SECTION 2: CHỌN NGÀY & GIỜ TRẢI NGHIỆM -->
-                <!-- ========================================== -->
+                <!-- ====================================================== -->
                 <div>
-                    <div class="figma-section-title">
-                        <span class="figma-step-num">2</span>
-                        <i class="bi bi-flower1 figma-step-flower"></i>
-                        <span>Chọn ngày & Giờ trải nghiệm</span>
+                    <div class="figma-sec-header">
+                        <span class="figma-badge-idx">2</span>
+                        <i class="bi bi-flower1 figma-sec-lotus"></i>
+                        <h2 class="figma-sec-title">Chọn ngày & Giờ trải nghiệm</h2>
                     </div>
 
                     <div class="row g-4">
                         <!-- Cột Trái: Mini Calendar -->
                         <div class="col-md-6">
-                            <div class="figma-mini-calendar">
-                                <div class="mini-cal-header">
-                                    <button type="button" class="mini-cal-arrow" onclick="moveMonth(-1)"><i class="bi bi-chevron-left"></i></button>
-                                    <div class="mini-cal-title" id="calMonthTitle">Tháng 10, 2026</div>
-                                    <button type="button" class="mini-cal-arrow" onclick="moveMonth(1)"><i class="bi bi-chevron-right"></i></button>
+                            <div class="figma-calendar-frame">
+                                <div class="figma-cal-top">
+                                    <button type="button" class="figma-cal-nav" onclick="navMonth(-1)"><i class="bi bi-chevron-left"></i></button>
+                                    <div class="figma-cal-month-title" id="calTitleDisplay">Tháng 10, 2026</div>
+                                    <button type="button" class="figma-cal-nav" onclick="navMonth(1)"><i class="bi bi-chevron-right"></i></button>
                                 </div>
-                                <div class="mini-cal-weekdays">
+                                <div class="figma-cal-week-labels">
                                     <div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div>
                                 </div>
-                                <div class="mini-cal-grid" id="calDaysGrid">
+                                <div class="figma-cal-days-box" id="calDaysGrid">
                                     <!-- Render ngày bằng JS -->
                                 </div>
                             </div>
@@ -734,25 +757,25 @@
                         <!-- Cột Phải: Khung giờ còn trống -->
                         <div class="col-md-6">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <label class="small fw-bold text-muted mb-0">
+                                <label class="small fw-bold text-dark mb-0" style="font-size: 13px;">
                                     <i class="bi bi-clock-history me-1 text-danger"></i> Khung giờ còn trống
                                 </label>
-                                <span class="badge bg-success-subtle text-success small rounded-pill px-2 py-1">
+                                <span class="badge bg-success-subtle text-success small rounded-pill px-2 py-1" style="font-size: 11px;">
                                     <i class="bi bi-dot"></i> Còn chỗ
                                 </span>
                             </div>
-                            <div class="row g-2" id="timeSlotsGrid">
+                            <div class="row g-2" id="slotButtonsGrid">
                                 <div class="col-6">
-                                    <div class="figma-slot-card" onclick="pickSlot('09:00', this)">09:00</div>
+                                    <div class="figma-time-slot-btn" onclick="selectSlot('09:00', this)">09:00</div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="figma-slot-card" onclick="pickSlot('10:00', this)">10:00</div>
+                                    <div class="figma-time-slot-btn" onclick="selectSlot('10:00', this)">10:00</div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="figma-slot-card active" onclick="pickSlot('14:00', this)">✓ 14:00</div>
+                                    <div class="figma-time-slot-btn active" onclick="selectSlot('14:00', this)">✓ 14:00</div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="figma-slot-card" onclick="pickSlot('16:00', this)">16:00</div>
+                                    <div class="figma-time-slot-btn" onclick="selectSlot('16:00', this)">16:00</div>
                                 </div>
                             </div>
                         </div>
@@ -760,96 +783,101 @@
                 </div>
 
                 <!-- SECTION DIVIDER -->
-                <div class="figma-section-divider"></div>
+                <div class="figma-divider-line"></div>
 
-                <!-- ========================================== -->
+                <!-- ====================================================== -->
                 <!-- SECTION 3: THÔNG TIN LIÊN HỆ -->
-                <!-- ========================================== -->
+                <!-- ====================================================== -->
                 <div>
-                    <div class="figma-section-title">
-                        <span class="figma-step-num">3</span>
-                        <i class="bi bi-flower1 figma-step-flower"></i>
-                        <span>Thông tin liên hệ</span>
+                    <div class="figma-sec-header">
+                        <span class="figma-badge-idx">3</span>
+                        <i class="bi bi-flower1 figma-sec-lotus"></i>
+                        <h2 class="figma-sec-title">Thông tin liên hệ</h2>
+                        {% if is_customer %}
+                        <span class="badge bg-success-subtle text-success small ms-2 px-2 py-1" style="font-size: 11px;">
+                            <i class="bi bi-check-circle-fill me-1"></i> Tự động lấy từ tài khoản của bạn
+                        </span>
+                        {% endif %}
                     </div>
 
-                    <!-- Họ tên / SĐT / Email -->
+                    <!-- 3 ô input thẳng hàng: Họ tên / SĐT / Email -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold text-muted mb-1">Họ và tên*</label>
-                            <input type="text" class="figma-control-input" id="custName" value="{{ initial_user.name|default:'Thanh Thỏ' }}" placeholder="Thanh Thỏ" required>
+                            <label class="form-label small fw-bold text-dark mb-1" style="font-size: 12px;">Họ và tên*</label>
+                            <input type="text" class="figma-input-field" id="formCustName" value="{{ initial_user.name }}" placeholder="Nhập họ và tên" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold text-muted mb-1">Số điện thoại (+84)*</label>
+                            <label class="form-label small fw-bold text-dark mb-1" style="font-size: 12px;">Số điện thoại (+84)*</label>
                             <div class="position-relative">
                                 <span class="position-absolute top-50 start-0 translate-middle-y ms-3 small fw-bold text-muted">🇻🇳 +84</span>
-                                <input type="tel" class="figma-control-input ps-5" id="custPhone" value="{{ initial_user.phone|default:'901234567' }}" placeholder="901 234 567" required>
+                                <input type="tel" class="figma-input-field ps-5" id="formCustPhone" value="{{ initial_user.phone }}" placeholder="901 234 567" required>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold text-muted mb-1">Email</label>
-                            <input type="email" class="figma-control-input" id="custEmail" value="{{ initial_user.email|default:'thanhtho.nguyen@gmail.com' }}" placeholder="thanhtho.nguyen@gmail.com">
+                            <label class="form-label small fw-bold text-dark mb-1" style="font-size: 12px;">Email</label>
+                            <input type="email" class="figma-input-field" id="formCustEmail" value="{{ initial_user.email }}" placeholder="name@example.com">
                         </div>
                     </div>
 
                     <!-- Voucher -->
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted mb-1 text-uppercase">VOUCHER</label>
+                        <label class="form-label small fw-bold text-uppercase mb-1" style="color: #781A24; font-size: 12px;">VOUCHER</label>
                         <div class="d-flex gap-2">
-                            <input type="text" class="figma-control-input text-uppercase fw-bold" id="voucherInput" value="CHARMSPA" placeholder="Nhập mã voucher">
-                            <button type="button" class="btn text-white fw-bold px-4" style="background: #781A24; border-radius: 10px;" onclick="checkVoucher()">ÁP DỤNG</button>
+                            <input type="text" class="figma-input-field text-uppercase fw-bold" id="formVoucherInput" value="CHARMSPA" placeholder="Nhập mã voucher" style="max-width: 400px; color: #781A24;">
+                            <button type="button" class="btn text-white fw-bold px-4" style="background: #781A24; border-radius: 8px; font-size: 12px;" onclick="validateVoucher()">ÁP DỤNG</button>
                         </div>
-                        <div id="voucherMsg" class="small mt-1 text-success fw-bold">
+                        <div id="formVoucherMsg" class="small mt-1 text-success fw-bold" style="font-size: 12px;">
                             <i class="bi bi-check-circle-fill me-1"></i> Mã CHARMSPA: Giảm 111.000 VNĐ cho đơn hàng.
                         </div>
                     </div>
 
                     <!-- Ghi chú cho spa -->
                     <div>
-                        <label class="form-label small fw-bold text-muted mb-1">Ghi chú cho spa (không bắt buộc)</label>
-                        <input type="text" class="figma-control-input" id="spaNotes" value="Ưu tiên phòng yên tĩnh, yêu cầu KTV, tình trạng sức khoẻ... " placeholder="Ưu tiên phòng yên tĩnh, yêu cầu KTV, tình trạng sức khoẻ...">
+                        <label class="form-label small fw-bold text-muted mb-1" style="font-size: 12px;">Ghi chú cho spa (không bắt buộc)</label>
+                        <input type="text" class="figma-input-field" id="formSpaNotes" value="Ưu tiên phòng yên tĩnh, yêu cầu KTV, tình trạng sức khoẻ... " placeholder="Ưu tiên phòng yên tĩnh, yêu cầu KTV, tình trạng sức khoẻ...">
                     </div>
                 </div>
             </form>
         </div>
 
-        <!-- CỘT PHẢI: BOOKING SUMMARY STICKY (420px) -->
-        <div class="figma-summary-container">
-            <!-- 0. Summary header -->
-            <div class="figma-summary-header">
+        <!-- CỘT PHẢI: TÓM TẮT ĐẶT LỊCH STICKY (420px) -->
+        <div class="figma-summary-card">
+            <!-- 0. Header -->
+            <div class="figma-sum-header">
                 <div>
-                    <h3 class="h5 fw-bold mb-1" style="font-family: 'Lora', serif; color: #201A18;">Tóm tắt đặt lịch</h3>
-                    <p class="small text-muted mb-0">Vui lòng kiểm tra thông tin</p>
+                    <h3 class="figma-sum-title">Tóm tắt đặt lịch</h3>
+                    <p class="figma-sum-sub">Vui lòng kiểm tra thông tin</p>
                 </div>
-                <div class="figma-badge-ready">
+                <div class="figma-ready-tag">
                     <i class="bi bi-dot"></i> SẴN SÀNG
                 </div>
             </div>
 
-            <!-- 1. Selected schedule banner (Đỏ mận #781A24) -->
-            <div class="figma-schedule-banner">
-                <div class="figma-schedule-calbox">
-                    <div class="figma-calbox-thg" id="sideMonthText">THG 10</div>
-                    <div class="figma-calbox-day" id="sideDayNum">16</div>
+            <!-- 1. Hero Date Banner (#781A24) -->
+            <div class="figma-hero-date-banner">
+                <div class="figma-cal-white-box">
+                    <div class="figma-thg-label" id="sideMonthLabel">THG 10</div>
+                    <div class="figma-day-big" id="sideDayLabel">16</div>
                 </div>
                 <div>
-                    <div class="fw-bold fs-6" id="sideDateFull">Thứ Sáu, 16 tháng 10, 2026</div>
-                    <div class="opacity-75 small" id="sideSlotTime">🕒 14:00</div>
+                    <div class="figma-banner-weekday" id="sideFullDateLabel">Thứ Sáu, 16 tháng 10, 2026</div>
+                    <div class="figma-banner-slot" id="sideSlotLabel">🕒 14:00</div>
                 </div>
             </div>
 
             <!-- 2. Guest overview -->
             <div class="mb-3">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small fw-bold text-muted">Khách trải nghiệm</span>
-                    <span class="badge bg-light text-dark border small" id="sideGuestCountBadge">2 khách · 1 Nam · 1 Nữ</span>
+                    <span class="small fw-bold text-dark" style="font-size: 13px;">Khách trải nghiệm</span>
+                    <span class="badge small" id="sideGuestCountBadge" style="background: #FDF2F2; color: #781A24; font-size: 11px;">2 khách · 1 Nam · 1 Nữ</span>
                 </div>
-                <div id="sideGuestRows">
+                <div id="sideGuestListWrap">
                     <!-- Tự động cập nhật bằng JS -->
                 </div>
             </div>
 
             <!-- 3. Summary divider -->
-            <div class="figma-summary-divider"></div>
+            <div class="figma-divider-line" style="margin: 16px 0;"></div>
 
             <!-- 4. Appointment details -->
             <div class="small mb-3">
@@ -859,25 +887,25 @@
                 </div>
                 <div class="d-flex align-items-center gap-2 text-muted">
                     <i class="bi bi-person text-danger"></i>
-                    <span>Người đặt lịch: <strong class="text-dark" id="sideBookerName">Thanh Thỏ · +84 901 234 567</strong></span>
+                    <span>Người đặt lịch: <strong class="text-dark" id="sideBookerDisplay">{{ initial_user.name|default:'Thanh Thỏ' }} · +84 {{ initial_user.display_phone|default:'901 234 567' }}</strong></span>
                 </div>
             </div>
 
             <!-- 5. Voucher section -->
-            <div class="figma-summary-divider"></div>
-            <div class="d-flex justify-content-between align-items-center mb-3" id="sideVoucherLine">
-                <span class="small text-muted text-uppercase">VOUCHER: <strong class="text-danger" id="sideVoucherCode">CHARMSPA</strong></span>
-                <span class="small fw-bold text-success" id="sideVoucherAmount">-111.000 VNĐ</span>
+            <div class="figma-divider-line" style="margin: 16px 0;"></div>
+            <div class="d-flex justify-content-between align-items-center mb-3" id="sideVoucherBox">
+                <span class="small text-uppercase" style="color: #781A24; font-weight: 700; font-size: 12px;">VOUCHER: <span id="sideVoucherCode">CHARMSPA</span></span>
+                <span class="fw-bold" id="sideVoucherVal" style="font-family: 'Lora', serif; color: #781A24; font-size: 18px;">-111.000 VNĐ</span>
             </div>
 
             <!-- 6. Total -->
             <div class="d-flex justify-content-between align-items-baseline mb-3">
-                <span class="small fw-bold text-muted text-uppercase">TỔNG TIỀN THANH TOÁN</span>
-                <div class="figma-total-price" id="sideFinalPrice">1.110.000 VNĐ</div>
+                <span class="small fw-bold text-uppercase" style="color: #781A24; font-size: 10px;">TỔNG TIỀN THANH TOÁN</span>
+                <div class="figma-total-money" id="sideTotalPrice">1.110.000 VNĐ</div>
             </div>
 
             <!-- 7. Confirm booking button -->
-            <button type="button" class="figma-confirm-btn" id="btnSubmitBooking" onclick="handleBookingSubmit()">
+            <button type="button" class="figma-submit-button" id="btnConfirmSubmit" onclick="triggerSubmit()">
                 {% if is_customer %}
                 <span>XÁC NHẬN ĐẶT LỊCH</span>
                 <i class="bi bi-arrow-right"></i>
@@ -888,16 +916,16 @@
 
             <!-- 8. Privacy note -->
             <div class="text-center mt-3 text-muted" style="font-size: 11px;">
-                <i class="bi bi-shield-lock-fill text-success me-1"></i> Thông tin của quý khách được bảo mật tuyệt đối.
+                <i class="bi bi-shield-lock-fill text-dark me-1"></i> Thông tin của quý khách được bảo mật tuyệt đối.
             </div>
         </div>
     </div>
 </div>
 
 <!-- ============================================================== -->
-<!-- MODAL THÔNG BÁO BẮT BUỘC ĐĂNG NHẬP KHÁCH HÀNG -->
+<!-- MODAL BÁO CẦN ĐĂNG NHẬP KHÁCH HÀNG -->
 <!-- ============================================================== -->
-<div class="modal fade" id="authRequiredModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="authPromptModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 p-3 shadow-lg">
             <div class="modal-header border-0 pb-0">
@@ -915,7 +943,7 @@
                     {% endif %}
                 </p>
                 <div class="p-3 rounded-3 mb-3" style="background: #FAF7F0; border: 1px dashed #E5DEC9;">
-                    <div class="small text-muted mb-1">💡 <strong>Tài khoản Khách hàng dùng thử:</strong></div>
+                    <div class="small text-muted mb-1">💡 <strong>Tài khoản Khách hàng mẫu:</strong></div>
                     <div class="small">• Tên đăng nhập: <strong class="text-dark">customer</strong> hoặc <strong class="text-dark">0909888999</strong></div>
                     <div class="small">• Mật khẩu: <strong class="text-dark">customer123456</strong></div>
                 </div>
@@ -931,35 +959,35 @@
 </div>
 
 <!-- ============================================================== -->
-<!-- MODAL THANH TOÁN VIETQR THEO CHUẨN FIGMA NODE 818:2 -->
+<!-- MODAL THANH TOÁN VIETQR (FIGMA NODE 818:2) -->
 <!-- ============================================================== -->
-<div class="modal fade" id="vietqrModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+<div class="modal fade" id="vietqrModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 overflow-hidden shadow-lg">
             <div class="row g-0">
                 <!-- Cột Trái: Nền đỏ mận #781A24 -->
-                <div class="col-md-5 vietqr-left-panel">
+                <div class="col-md-5 vietqr-left-col">
                     <div>
                         <div class="small opacity-75 text-uppercase fw-bold mb-1">ĐƠN VỊ CUNG CẤP</div>
                         <h5 class="fw-bold mb-3 fs-6">CHAM SPA & MASSAGE<br><small class="fw-normal opacity-75">Chi nhánh 05 Lê Quang Hoà, Đà Nẵng</small></h5>
 
-                        <div class="badge bg-white text-danger fw-bold px-3 py-2 rounded-pill mb-4" id="modalBadgeCode">
+                        <div class="badge bg-white text-danger fw-bold px-3 py-2 rounded-pill mb-4" id="modalOrderCodeBadge">
                             Mã đơn hàng #LH88392
                         </div>
 
                         <div class="mb-3">
                             <div class="small opacity-75 mb-1"><i class="bi bi-person me-1"></i> Khách hàng</div>
-                            <div class="fw-bold" id="modalCustInfo">Thanh Thỏ (+84 901 234 567)</div>
+                            <div class="fw-bold" id="modalCustomerText">Thanh Thỏ (+84 901 234 567)</div>
                         </div>
 
                         <div class="mb-3">
                             <div class="small opacity-75 mb-1"><i class="bi bi-calendar3 me-1"></i> Thời gian</div>
-                            <div class="fw-bold" id="modalTimeInfo">14:00 - Thứ Sáu, 16/10/2026</div>
+                            <div class="fw-bold" id="modalTimeText">14:00 - Thứ Sáu, 16/10/2026</div>
                         </div>
 
                         <div class="mb-3">
                             <div class="small opacity-75 mb-1"><i class="bi bi-stars me-1"></i> Dịch vụ</div>
-                            <div class="small" id="modalServicesSummary">
+                            <div class="small" id="modalServicesText">
                                 1x Massage Body (60 phút - Lực Vừa)<br>
                                 1x Massage Foot (60 phút - Lực Nhẹ)
                             </div>
@@ -968,7 +996,7 @@
 
                     <div class="border-top border-white-50 pt-3 mt-4">
                         <div class="small opacity-75 text-uppercase mb-1">TỔNG TIỀN THANH TOÁN</div>
-                        <div class="fs-3 fw-bold text-warning" id="modalFinalPrice">1.110.000 VNĐ</div>
+                        <div class="fs-3 fw-bold text-warning" id="modalAmountText">1.110.000 VNĐ</div>
                         <button type="button" class="btn btn-link text-white-50 text-decoration-none small p-0 mt-3" data-bs-dismiss="modal">
                             <i class="bi bi-arrow-left me-1"></i> Quay lại chỉnh sửa lịch hẹn
                         </button>
@@ -976,7 +1004,7 @@
                 </div>
 
                 <!-- Cột Phải: Quét mã QR VietQR NAPAS -->
-                <div class="col-md-7 vietqr-right-panel">
+                <div class="col-md-7 vietqr-right-col">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <div class="fw-bold text-danger fs-5" style="font-family: 'Lora', serif;">CHAM SPA</div>
                         <div class="badge bg-light text-dark border px-2 py-1 small">
@@ -988,7 +1016,7 @@
                     <p class="small text-muted mb-3">Sử dụng App Ngân hàng hoặc Ví điện tử hỗ trợ QR code để quét mã</p>
 
                     <div class="border rounded-4 p-3 d-inline-block bg-white shadow-sm mb-3">
-                        <img id="modalQrImg" src="https://img.vietqr.io/image/MB-0946020526-compact2.png?amount=1110000&addInfo=CHAMSPA%20LH88392&accountName=CHAM%20SPA%20MASSAGE" alt="VietQR" style="max-width: 240px;">
+                        <img id="qrImageElement" src="https://img.vietqr.io/image/MB-0946020526-compact2.png?amount=1110000&addInfo=CHAMSPA%20LH88392&accountName=CHAM%20SPA%20MASSAGE" alt="VietQR" style="max-width: 240px;">
                         <div class="mt-2 small text-muted">
                             <strong>MB BANK</strong> · 0946 020 526 · <strong>CHAM SPA MASSAGE</strong>
                         </div>
@@ -999,7 +1027,7 @@
                         <span>⏳ Đang chờ bạn quét mã thanh toán...</span>
                     </div>
 
-                    <button type="button" class="btn btn-success fw-bold py-2 w-100" id="btnFinishPayment" onclick="handleFinishPayment()">
+                    <button type="button" class="btn btn-success fw-bold py-2 w-100" id="btnConfirmPaid" onclick="completePayment()">
                         <i class="bi bi-check-circle-fill me-1"></i> Tôi đã hoàn tất thanh toán
                     </button>
                 </div>
@@ -1011,10 +1039,10 @@
 
 {% block extra_js %}
 <script>
-    const IS_CUSTOMER = {{ is_customer|yesno:"true,false" }};
-    const AUTH_WARNING = "{{ auth_warning|default:'' }}";
+    const IS_AUTH_CUSTOMER = {{ is_customer|yesno:"true,false" }};
+    const AUTH_STATUS_CODE = "{{ auth_warning|default:'' }}";
 
-    const SERVICES_CATALOG = [
+    const ALL_SERVICES = [
         {% for s in services %}
         {
             id: {{ s.id }},
@@ -1025,207 +1053,209 @@
         {% endfor %}
     ];
 
-    // Trạng thái Form đặt lịch
-    let state = {
-        total: 2,
-        male: 1,
-        female: 1,
-        date: new Date(2026, 9, 16), // Khớp chính xác ngày mẫu Figma: 16/10/2026
+    // State biểu mẫu
+    let bookState = {
+        totalGuests: 2,
+        maleGuests: 1,
+        femaleGuests: 1,
+        date: new Date(2026, 9, 16), // Khớp ngày chuẩn thiết kế Figma: 16/10/2026
         slot: '14:00',
         guests: [
-            { index: 1, gender: 'Nam', serviceId: SERVICES_CATALOG[0]?.id || 1, pressure: 'Vừa' },
-            { index: 2, gender: 'Nữ', serviceId: SERVICES_CATALOG[1]?.id || (SERVICES_CATALOG[0]?.id || 1), pressure: 'Nhẹ' }
+            { index: 1, gender: 'Nam', serviceId: ALL_SERVICES[0]?.id || 1, pressure: 'Vừa' },
+            { index: 2, gender: 'Nữ', serviceId: ALL_SERVICES[1]?.id || (ALL_SERVICES[0]?.id || 1), pressure: 'Nhẹ' }
         ],
         voucherCode: 'CHARMSPA',
-        discount: 111000,
-        calMonth: 9, // Tháng 10
-        calYear: 2026,
-        createdId: null,
-        createdCode: '#LH88392'
+        discountVal: 111000,
+        calendarMonth: 9, // Tháng 10
+        calendarYear: 2026,
+        createdApptId: null,
+        createdApptCode: '#LH88392'
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-        renderGuests();
-        renderMiniCalendar();
-        recalculate();
+        renderGuestBoxes();
+        renderCalendarDays();
+        syncSummary();
 
-        document.getElementById('custName').addEventListener('input', recalculate);
-        document.getElementById('custPhone').addEventListener('input', recalculate);
+        document.getElementById('formCustName').addEventListener('input', syncSummary);
+        document.getElementById('formCustPhone').addEventListener('input', syncSummary);
     });
 
-    // Điều khiển tăng giảm khách
-    function modifyGuests(type, delta) {
-        if (type === 'total') {
-            const next = state.total + delta;
-            if (next >= 1 && next <= 10) {
-                state.total = next;
-                if (state.male + state.female < next) {
-                    state.female += (next - (state.male + state.female));
-                } else if (state.male + state.female > next) {
-                    if (state.female > 0) state.female--;
-                    else state.male--;
+    // 1. TĂNG GIẢM SỐ LƯỢNG NGƯỜI
+    function stepGuestCount(category, step) {
+        if (category === 'total') {
+            const val = bookState.totalGuests + step;
+            if (val >= 1 && val <= 10) {
+                bookState.totalGuests = val;
+                // Cân đối nam và nữ
+                if (bookState.maleGuests + bookState.femaleGuests < val) {
+                    bookState.femaleGuests += (val - (bookState.maleGuests + bookState.femaleGuests));
+                } else if (bookState.maleGuests + bookState.femaleGuests > val) {
+                    if (bookState.femaleGuests > 0) bookState.femaleGuests--;
+                    else bookState.maleGuests--;
                 }
             }
-        } else if (type === 'male') {
-            const next = state.male + delta;
-            if (next >= 0 && next <= 10) {
-                state.male = next;
-                state.total = state.male + state.female;
+        } else if (category === 'male') {
+            const val = bookState.maleGuests + step;
+            if (val >= 0 && val <= 10) {
+                bookState.maleGuests = val;
+                bookState.totalGuests = bookState.maleGuests + bookState.femaleGuests;
             }
-        } else if (type === 'female') {
-            const next = state.female + delta;
-            if (next >= 0 && next <= 10) {
-                state.female = next;
-                state.total = state.male + state.female;
+        } else if (category === 'female') {
+            const val = bookState.femaleGuests + step;
+            if (val >= 0 && val <= 10) {
+                bookState.femaleGuests = val;
+                bookState.totalGuests = bookState.maleGuests + bookState.femaleGuests;
             }
         }
 
-        document.getElementById('cntTotal').innerText = state.total;
-        document.getElementById('cntMale').innerText = state.male;
-        document.getElementById('cntFemale').innerText = state.female;
+        document.getElementById('displayTotalGuests').innerText = bookState.totalGuests;
+        document.getElementById('displayMaleGuests').innerText = bookState.maleGuests;
+        document.getElementById('displayFemaleGuests').innerText = bookState.femaleGuests;
 
-        // Tái tạo mảng guests
-        const list = [];
-        let maleRem = state.male;
-        for (let i = 1; i <= state.total; i++) {
-            const gender = (maleRem > 0) ? 'Nam' : 'Nữ';
-            if (maleRem > 0) maleRem--;
-            const exist = state.guests[i - 1];
-            list.push({
+        // Cập nhật mảng guests
+        const updated = [];
+        let maleLeft = bookState.maleGuests;
+        for (let i = 1; i <= bookState.totalGuests; i++) {
+            const gender = (maleLeft > 0) ? 'Nam' : 'Nữ';
+            if (maleLeft > 0) maleLeft--;
+            const ex = bookState.guests[i - 1];
+            updated.push({
                 index: i,
                 gender: gender,
-                serviceId: exist ? exist.serviceId : (SERVICES_CATALOG[0]?.id || 1),
-                pressure: exist ? exist.pressure : (gender === 'Nam' ? 'Vừa' : 'Nhẹ')
+                serviceId: ex ? ex.serviceId : (ALL_SERVICES[0]?.id || 1),
+                pressure: ex ? ex.pressure : (gender === 'Nam' ? 'Vừa' : 'Nhẹ')
             });
         }
-        state.guests = list;
+        bookState.guests = updated;
 
-        renderGuests();
-        recalculate();
+        renderGuestBoxes();
+        syncSummary();
     }
 
-    // Render danh sách thẻ Khách 1, Khách 2
-    function renderGuests() {
-        const container = document.getElementById('guestCardsContainer');
-        container.innerHTML = '';
+    // 2. RENDER THẺ KHÁCH HÀNG (Side-by-side)
+    function renderGuestBoxes() {
+        const box = document.getElementById('guestCardsGrid');
+        box.innerHTML = '';
 
-        state.guests.forEach((g, idx) => {
-            const card = document.createElement('div');
-            card.className = 'guest-single-card';
-            card.innerHTML = `
-                <div class="guest-single-header">
+        bookState.guests.forEach((g, i) => {
+            const item = document.createElement('div');
+            item.className = 'figma-guest-item';
+            item.innerHTML = `
+                <div class="figma-guest-head">
                     <i class="bi ${g.gender === 'Nam' ? 'bi-gender-male text-primary' : 'bi-gender-female text-danger'} fs-5"></i>
                     <span>Khách ${g.index}</span>
-                    <span class="guest-gender-label">(${g.gender})</span>
+                    <span class="figma-guest-gender">(${g.gender})</span>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted mb-1">Dịch vụ</label>
-                    <select class="figma-control-input" onchange="pickGuestService(${idx}, this.value)">
-                        ${SERVICES_CATALOG.map(s => `
+                    <label class="form-label small fw-bold text-dark mb-1" style="font-size: 12px;">Dịch vụ</label>
+                    <select class="figma-input-field" onchange="updateGuestService(${i}, this.value)">
+                        ${ALL_SERVICES.map(s => `
                             <option value="${s.id}" ${s.id === g.serviceId ? 'selected' : ''}>
-                                ${s.name} - ${formatVND(s.price)}
+                                ${s.name} - ${toCurrency(s.price)}
                             </option>
                         `).join('')}
                     </select>
                 </div>
                 <div>
-                    <label class="form-label small fw-bold text-muted mb-1">Lực massage</label>
-                    <div class="pressure-toggle-group">
-                        <button type="button" class="pressure-toggle-btn ${g.pressure === 'Nhẹ' ? 'active' : ''}" onclick="pickGuestPressure(${idx}, 'Nhẹ', this)">Nhẹ</button>
-                        <button type="button" class="pressure-toggle-btn ${g.pressure === 'Vừa' ? 'active' : ''}" onclick="pickGuestPressure(${idx}, 'Vừa', this)">Vừa</button>
-                        <button type="button" class="pressure-toggle-btn ${g.pressure === 'Mạnh' ? 'active' : ''}" onclick="pickGuestPressure(${idx}, 'Mạnh', this)">Mạnh</button>
+                    <label class="form-label small fw-bold text-dark mb-1" style="font-size: 12px;">Lực massage</label>
+                    <div class="figma-pressure-bar">
+                        <button type="button" class="figma-press-btn ${g.pressure === 'Nhẹ' ? 'active' : ''}" onclick="updateGuestPressure(${i}, 'Nhẹ', this)">Nhẹ</button>
+                        <button type="button" class="figma-press-btn ${g.pressure === 'Vừa' ? 'active' : ''}" onclick="updateGuestPressure(${i}, 'Vừa', this)">Vừa</button>
+                        <button type="button" class="figma-press-btn ${g.pressure === 'Mạnh' ? 'active' : ''}" onclick="updateGuestPressure(${i}, 'Mạnh', this)">Mạnh</button>
                     </div>
                 </div>
             `;
-            container.appendChild(card);
+            box.appendChild(item);
         });
     }
 
-    function pickGuestService(idx, sId) {
-        state.guests[idx].serviceId = parseInt(sId);
-        recalculate();
+    function updateGuestService(index, id) {
+        bookState.guests[index].serviceId = parseInt(id);
+        syncSummary();
     }
 
-    function pickGuestPressure(idx, press, btn) {
-        state.guests[idx].pressure = press;
-        btn.parentElement.querySelectorAll('.pressure-toggle-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        recalculate();
+    function updateGuestPressure(index, pressure, el) {
+        bookState.guests[index].pressure = pressure;
+        el.parentElement.querySelectorAll('.figma-press-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        syncSummary();
     }
 
-    // Mini Calendar
-    function renderMiniCalendar() {
+    // 3. CHỌN NGÀY (MINI CALENDAR TƯƠNG TÁC)
+    function renderCalendarDays() {
         const grid = document.getElementById('calDaysGrid');
         grid.innerHTML = '';
-        const y = state.calYear;
-        const m = state.calMonth;
+        const y = bookState.calendarYear;
+        const m = bookState.calendarMonth;
 
         const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
-        document.getElementById('calMonthTitle').innerText = `${months[m]}, ${y}`;
+        document.getElementById('calTitleDisplay').innerText = `${months[m]}, ${y}`;
 
         const first = new Date(y, m, 1).getDay();
-        const startDay = (first === 0) ? 6 : first - 1;
+        const startOffset = (first === 0) ? 6 : first - 1;
         const daysInMonth = new Date(y, m + 1, 0).getDate();
 
-        for (let i = 0; i < startDay; i++) {
-            const empty = document.createElement('div');
-            empty.className = 'mini-cal-cell disabled';
-            grid.appendChild(empty);
+        for (let i = 0; i < startOffset; i++) {
+            const blank = document.createElement('div');
+            blank.className = 'figma-day-number disabled';
+            grid.appendChild(blank);
         }
 
         for (let d = 1; d <= daysInMonth; d++) {
             const cell = document.createElement('div');
-            cell.className = 'mini-cal-cell';
+            cell.className = 'figma-day-number';
             cell.innerText = d;
 
-            if (state.date.getDate() === d && state.date.getMonth() === m && state.date.getFullYear() === y) {
+            if (bookState.date.getDate() === d && bookState.date.getMonth() === m && bookState.date.getFullYear() === y) {
                 cell.classList.add('selected');
             }
 
             cell.onclick = () => {
-                state.date = new Date(y, m, d);
-                renderMiniCalendar();
-                recalculate();
+                bookState.date = new Date(y, m, d);
+                renderCalendarDays();
+                syncSummary();
             };
             grid.appendChild(cell);
         }
     }
 
-    function moveMonth(delta) {
-        state.calMonth += delta;
-        if (state.calMonth < 0) {
-            state.calMonth = 11;
-            state.calYear--;
-        } else if (state.calMonth > 11) {
-            state.calMonth = 0;
-            state.calYear++;
+    function navMonth(delta) {
+        bookState.calendarMonth += delta;
+        if (bookState.calendarMonth < 0) {
+            bookState.calendarMonth = 11;
+            bookState.calendarYear--;
+        } else if (bookState.calendarMonth > 11) {
+            bookState.calendarMonth = 0;
+            bookState.calendarYear++;
         }
-        renderMiniCalendar();
+        renderCalendarDays();
     }
 
-    function pickSlot(slot, el) {
-        state.slot = slot;
-        document.querySelectorAll('#timeSlotsGrid .figma-slot-card').forEach(s => {
-            s.classList.remove('active');
-            s.innerText = s.innerText.replace('✓ ', '');
+    // 4. CHỌN GIỜ
+    function selectSlot(slot, el) {
+        bookState.slot = slot;
+        document.querySelectorAll('#slotButtonsGrid .figma-time-slot-btn').forEach(btn => {
+            btn.classList.remove('active');
+            btn.innerText = btn.innerText.replace('✓ ', '');
         });
         el.classList.add('active');
         el.innerText = `✓ ${slot}`;
-        recalculate();
+        syncSummary();
     }
 
-    // Áp dụng voucher
-    async function checkVoucher() {
-        const code = document.getElementById('voucherInput').value.trim();
-        const msg = document.getElementById('voucherMsg');
+    // 5. VOUCHER
+    async function validateVoucher() {
+        const code = document.getElementById('formVoucherInput').value.trim();
+        const msg = document.getElementById('formVoucherMsg');
         if (!code) {
             msg.innerHTML = '<span class="text-danger">Vui lòng nhập mã Voucher.</span>';
             return;
         }
 
         let raw = 0;
-        state.guests.forEach(g => {
-            const s = SERVICES_CATALOG.find(x => x.id === g.serviceId) || SERVICES_CATALOG[0];
+        bookState.guests.forEach(g => {
+            const s = ALL_SERVICES.find(x => x.id === g.serviceId) || ALL_SERVICES[0];
             if (s) raw += s.price;
         });
 
@@ -1237,112 +1267,114 @@
             });
             const data = await res.json();
             if (res.ok) {
-                state.voucherCode = data.voucher_code;
-                state.discount = data.discount_amount;
-                msg.innerHTML = `<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Mã ${data.voucher_code}: Giảm ${formatVND(data.discount_amount)}.</span>`;
+                bookState.voucherCode = data.voucher_code;
+                bookState.discountVal = data.discount_amount;
+                msg.innerHTML = `<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Mã ${data.voucher_code}: Giảm ${toCurrency(data.discount_amount)}.</span>`;
             } else {
-                state.voucherCode = '';
-                state.discount = 0;
+                bookState.voucherCode = '';
+                bookState.discountVal = 0;
                 msg.innerHTML = `<span class="text-danger">${data.error || 'Voucher không hợp lệ'}</span>`;
             }
         } catch (e) {
             msg.innerHTML = '<span class="text-danger">Lỗi kiểm tra voucher.</span>';
         }
-        recalculate();
+        syncSummary();
     }
 
-    // Tự động tính toán Tóm tắt
-    function recalculate() {
-        const d = state.date;
+    // 6. ĐỒNG BỘ CỘT TÓM TẮT ĐẶT LỊCH (Sticky 420px)
+    function syncSummary() {
+        const d = bookState.date;
         const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-        const dayName = days[d.getDay()];
+        const dayText = days[d.getDay()];
 
-        document.getElementById('sideMonthText').innerText = `THG ${d.getMonth() + 1}`;
-        document.getElementById('sideDayNum').innerText = d.getDate();
-        document.getElementById('sideDateFull').innerText = `${dayName}, ${d.getDate()} tháng ${d.getMonth() + 1}, ${d.getFullYear()}`;
-        document.getElementById('sideSlotTime').innerText = `🕒 ${state.slot}`;
+        document.getElementById('sideMonthLabel').innerText = `THG ${d.getMonth() + 1}`;
+        document.getElementById('sideDayLabel').innerText = d.getDate();
+        document.getElementById('sideFullDateLabel').innerText = `${dayText}, ${d.getDate()} tháng ${d.getMonth() + 1}, ${d.getFullYear()}`;
+        document.getElementById('sideSlotLabel').innerText = `🕒 ${bookState.slot}`;
 
-        document.getElementById('sideGuestCountBadge').innerText = `${state.total} khách · ${state.male} Nam · ${state.female} Nữ`;
+        document.getElementById('sideGuestCountBadge').innerText = `${bookState.totalGuests} khách · ${bookState.maleGuests} Nam · ${bookState.femaleGuests} Nữ`;
 
-        // Danh sách khách tóm tắt
-        const rows = document.getElementById('sideGuestRows');
-        rows.innerHTML = '';
-        state.guests.forEach(g => {
-            const s = SERVICES_CATALOG.find(x => x.id === g.serviceId) || SERVICES_CATALOG[0];
+        // Danh sách khách thu nhỏ
+        const list = document.getElementById('sideGuestListWrap');
+        list.innerHTML = '';
+        bookState.guests.forEach(g => {
+            const s = ALL_SERVICES.find(x => x.id === g.serviceId) || ALL_SERVICES[0];
             const div = document.createElement('div');
-            div.className = 'figma-guest-overview-box';
+            div.className = 'figma-sum-item';
             div.innerHTML = `
-                <div class="figma-guest-icon-circle">
+                <div class="figma-item-icon">
                     <i class="bi ${g.gender === 'Nam' ? 'bi-gender-male text-primary' : 'bi-gender-female text-danger'}"></i>
                 </div>
                 <div class="small flex-grow-1">
-                    <div class="fw-bold text-dark">Khách ${g.index} (${g.gender})</div>
-                    <div class="text-muted" style="font-size: 12px;">${s ? s.name : 'Dịch vụ'}</div>
-                    <div class="text-danger fw-semibold" style="font-size: 11px;">Lực massage: ${g.pressure}</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong class="text-dark" style="font-size: 14px;">Khách ${g.index}</strong>
+                        <span style="font-size: 12px; font-weight: 600; color: #781A24;">${g.gender}</span>
+                    </div>
+                    <div class="text-dark" style="font-size: 13px;">${s ? s.name : 'Dịch vụ'}</div>
+                    <div class="text-dark" style="font-size: 12px;">Lực massage: ${g.pressure}</div>
                 </div>
             `;
-            rows.appendChild(div);
+            list.appendChild(div);
         });
 
-        // Người đặt
-        const name = document.getElementById('custName').value || 'Thanh Thỏ';
-        const phone = document.getElementById('custPhone').value || '901 234 567';
-        document.getElementById('sideBookerName').innerText = `${name} · +84 ${phone}`;
+        // Người đặt lịch
+        const name = document.getElementById('formCustName').value || 'Thanh Thỏ';
+        const phone = document.getElementById('formCustPhone').value || '901 234 567';
+        document.getElementById('sideBookerDisplay').innerText = `${name} · +84 ${phone}`;
 
-        // Tính tiền
-        let subtotal = 0;
-        state.guests.forEach(g => {
-            const s = SERVICES_CATALOG.find(x => x.id === g.serviceId) || SERVICES_CATALOG[0];
-            if (s) subtotal += s.price;
+        // Tổng tiền
+        let sub = 0;
+        bookState.guests.forEach(g => {
+            const s = ALL_SERVICES.find(x => x.id === g.serviceId) || ALL_SERVICES[0];
+            if (s) sub += s.price;
         });
 
-        const discount = state.discount || 0;
-        const finalPrice = Math.max(0, subtotal - discount);
+        const disc = bookState.discountVal || 0;
+        const finalAmount = Math.max(0, sub - disc);
 
-        if (state.voucherCode && discount > 0) {
-            document.getElementById('sideVoucherLine').style.display = 'flex';
-            document.getElementById('sideVoucherCode').innerText = state.voucherCode;
-            document.getElementById('sideVoucherAmount').innerText = `-${formatVND(discount)}`;
+        if (bookState.voucherCode && disc > 0) {
+            document.getElementById('sideVoucherBox').style.display = 'flex';
+            document.getElementById('sideVoucherCode').innerText = bookState.voucherCode;
+            document.getElementById('sideVoucherVal').innerText = `-${toCurrency(disc)}`;
         } else {
-            document.getElementById('sideVoucherLine').style.display = 'none';
+            document.getElementById('sideVoucherBox').style.display = 'none';
         }
 
-        document.getElementById('sideFinalPrice').innerText = formatVND(finalPrice);
+        document.getElementById('sideTotalPrice').innerText = toCurrency(finalAmount);
     }
 
-    // Xử lý gửi Form Đặt lịch
-    async function handleBookingSubmit() {
-        // KIỂM TRA PHÂN QUYỀN KHÁCH HÀNG
-        if (!IS_CUSTOMER) {
-            new bootstrap.Modal(document.getElementById('authRequiredModal')).show();
+    // 7. GỬI ĐẶT LỊCH
+    async function triggerSubmit() {
+        if (!IS_AUTH_CUSTOMER) {
+            new bootstrap.Modal(document.getElementById('authPromptModal')).show();
             return;
         }
 
-        const name = document.getElementById('custName').value.trim();
-        const phone = document.getElementById('custPhone').value.trim();
-        const email = document.getElementById('custEmail').value.trim();
-        const notes = document.getElementById('spaNotes').value.trim();
+        const name = document.getElementById('formCustName').value.trim();
+        const phone = document.getElementById('formCustPhone').value.trim();
+        const email = document.getElementById('formCustEmail').value.trim();
+        const note = document.getElementById('formSpaNotes').value.trim();
 
         if (!name || !phone) {
-            alert('Vui lòng nhập đầy đủ Họ tên và Số điện thoại liên hệ.');
+            alert('Vui lòng kiểm tra lại Họ tên và Số điện thoại liên hệ.');
             return;
         }
 
-        const dateStr = `${state.date.getFullYear()}-${String(state.date.getMonth() + 1).padStart(2, '0')}-${String(state.date.getDate()).padStart(2, '0')}`;
+        const dateFormatted = `${bookState.date.getFullYear()}-${String(bookState.date.getMonth() + 1).padStart(2, '0')}-${String(bookState.date.getDate()).padStart(2, '0')}`;
 
         const payload = {
-            appointment_date: dateStr,
-            time_slot: state.slot,
-            total_guests: state.total,
-            male_guests: state.male,
-            female_guests: state.female,
+            appointment_date: dateFormatted,
+            time_slot: bookState.slot,
+            total_guests: bookState.totalGuests,
+            male_guests: bookState.maleGuests,
+            female_guests: bookState.femaleGuests,
             customer_name: name,
             customer_phone: phone,
             customer_email: email,
             preferred_contact_channel: 'Zalo / Điện thoại',
-            note: notes,
-            voucher_code: state.voucherCode,
-            guest_details: state.guests.map(g => ({
+            note: note,
+            voucher_code: bookState.voucherCode,
+            guest_details: bookState.guests.map(g => ({
                 guest_index: g.index,
                 gender: g.gender,
                 service_id: g.serviceId,
@@ -1350,9 +1382,9 @@
             }))
         };
 
-        const btn = document.getElementById('btnSubmitBooking');
+        const btn = document.getElementById('btnConfirmSubmit');
         btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...`;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Đang tạo đơn...`;
 
         try {
             const res = await fetch('/appointment/api/create/', {
@@ -1363,23 +1395,22 @@
             const data = await res.json();
 
             if (res.ok) {
-                state.createdId = data.appointment_id;
-                state.createdCode = data.appointment_code;
+                bookState.createdApptId = data.appointment_id;
+                bookState.createdApptCode = data.appointment_code;
 
-                // Điền thông tin vào VietQR Modal
-                document.getElementById('modalBadgeCode').innerText = `Mã đơn hàng ${data.appointment_code}`;
-                document.getElementById('modalCustInfo').innerText = `${name} (+84 ${phone})`;
-                document.getElementById('modalTimeInfo').innerText = `${data.time_slot} - ${data.date_display}`;
-                document.getElementById('modalFinalPrice').innerText = data.formatted_total_price;
-                document.getElementById('modalQrImg').src = data.vietqr_url;
+                // Điền thông tin vào Modal VietQR
+                document.getElementById('modalOrderCodeBadge').innerText = `Mã đơn hàng ${data.appointment_code}`;
+                document.getElementById('modalCustomerText').innerText = `${name} (+84 ${phone})`;
+                document.getElementById('modalTimeText').innerText = `${data.time_slot} - ${data.date_display}`;
+                document.getElementById('modalAmountText').innerText = data.formatted_total_price;
+                document.getElementById('qrImageElement').src = data.vietqr_url;
 
-                const svcSummary = state.guests.map(g => {
-                    const s = SERVICES_CATALOG.find(x => x.id === g.serviceId);
+                const svcSummary = bookState.guests.map(g => {
+                    const s = ALL_SERVICES.find(x => x.id === g.serviceId);
                     return `1x ${s ? s.name : 'Dịch vụ'} (${g.pressure})`;
                 }).join('<br>');
-                document.getElementById('modalServicesSummary').innerHTML = svcSummary;
+                document.getElementById('modalServicesText').innerHTML = svcSummary;
 
-                // Mở Modal
                 new bootstrap.Modal(document.getElementById('vietqrModal')).show();
             } else {
                 alert(data.error || 'Không thể tạo lịch hẹn.');
@@ -1392,17 +1423,17 @@
         }
     }
 
-    // Hoàn tất quét QR -> Chuyển sang màn hình Digital Pass
-    async function handleFinishPayment() {
-        const btn = document.getElementById('btnFinishPayment');
+    // 8. HOÀN TẤT THANH TOÁN QR -> CHUYỂN TRANG DIGITAL PASS
+    async function completePayment() {
+        const btn = document.getElementById('btnConfirmPaid');
         btn.disabled = true;
         btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Đang xác nhận...`;
 
         try {
-            const res = await fetch(`/appointment/api/${state.createdId}/confirm-payment/`, {
+            const res = await fetch(`/appointment/api/${bookState.createdApptId}/confirm-payment/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-                body: JSON.stringify({ appointment_code: state.createdCode })
+                body: JSON.stringify({ appointment_code: bookState.createdApptCode })
             });
             const data = await res.json();
             if (res.ok) {
@@ -1413,12 +1444,12 @@
                 btn.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Tôi đã hoàn tất thanh toán`;
             }
         } catch(e) {
-            const cleanCode = state.createdCode.replace('#', '');
+            const cleanCode = bookState.createdApptCode.replace('#', '');
             window.location.href = `/appointment/success/${cleanCode}/`;
         }
     }
 
-    function formatVND(val) {
+    function toCurrency(val) {
         return Math.round(val).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
     }
 </script>

@@ -306,7 +306,8 @@ class ConfirmPaymentAPI(APIView):
                 user=appointment.user,
                 title="Đặt lịch thành công!",
                 content=f"Lịch hẹn {appointment.appointment_code} lúc {appointment.time_slot} ngày {appointment.appointment_date} đã được xác nhận thanh toán.",
-                notification_type="Lịch hẹn"
+                delivery_channels="Web",
+                status="Đã gửi"
             )
 
         return Response({
@@ -415,7 +416,8 @@ class RescheduleAPI(APIView):
             user=request.user,
             title="Dời lịch hẹn thành công",
             content=f"Lịch hẹn {appointment.appointment_code} đã được dời sang ngày {new_date} lúc {new_slot}.",
-            notification_type="Lịch hẹn"
+            delivery_channels="Web",
+            status="Đã gửi"
         )
 
         return Response({
@@ -459,7 +461,8 @@ class CancelAPI(APIView):
             user=request.user,
             title="Đã hủy lịch hẹn",
             content=f"Lịch hẹn {appointment.appointment_code} đã được hủy. Kế toán sẽ đối soát và hoàn tiền cọc về STK {refund_account_number} theo quy định.",
-            notification_type="Lịch hẹn"
+            delivery_channels="Web",
+            status="Đã gửi"
         )
 
         return Response({

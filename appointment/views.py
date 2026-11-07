@@ -8,7 +8,9 @@ def booking_view(request):
     """
     Màn hình Đặt lịch trải nghiệm (UC-1.1)
     Khớp 100% Figma Node 828:515 (Form đặt lịch) & Node 818:2 (Modal VietQR)
-    QUY TẮC: Chỉ tài khoản Khách hàng đã đăng nhập mới được phép đặt lịch.
+    QUY TẮC:
+    1. Chỉ tài khoản Khách hàng (is_staff=False, is_superuser=False, is_authenticated=True) mới được phép đặt lịch.
+    2. Tự động lấy thông tin từ tài khoản khách hàng đăng nhập để khách không phải nhập lại.
     """
     services = Service.objects.filter(status='Hoạt động').order_by('id')
     today = timezone.localdate()
@@ -25,18 +27,36 @@ def booking_view(request):
     else:
         is_customer = True
 
-    # Tự động điền thông tin nếu khách hàng đã đăng nhập
+    # Tự động lấy thông tin từ chính tài khoản khách hàng đang đăng nhập
     initial_user = {
         'name': '',
         'phone': '',
-        'email': ''
+        'email': '',
+        'display_phone': ''
     }
     if request.user.is_authenticated:
-        initial_user['name'] = request.user.name or request.user.get_full_name() or request.user.username
-        initial_user['phone'] = request.user.phone or (request.user.username if request.user.username.isdigit() else '')
+        # Lấy tên hiển thị
+        user_name = request.user.name or request.user.get_full_name() or request.user.username
+        if user_name.isdigit():
+            user_name = f"Khách hàng {user_name}"
+        initial_user['name'] = user_name
+
+        # Lấy số điện thoại
+        raw_phone = request.user.phone or (request.user.username if request.user.username.isdigit() else '')
+        # Chuẩn hóa số điện thoại cho ô input (+84)
+        clean_phone = raw_phone.strip()
+        if clean_phone.startswith('+84'):
+            clean_phone = clean_phone[3:].strip()
+        elif clean_phone.startswith('84') and len(clean_phone) == 11:
+            clean_phone = clean_phone[2:].strip()
+        elif clean_phone.startswith('0'):
+            clean_phone = clean_phone[1:].strip()
+
+        initial_user['phone'] = clean_phone
+        initial_user['display_phone'] = raw_phone or ('0' + clean_phone if clean_phone else '')
         initial_user['email'] = request.user.email or ''
 
-    # Danh sách khung giờ mẫu
+    # Danh sách khung giờ chuẩn
     time_slots = [
         {"slot": "09:00", "label": "09:00"},
         {"slot": "10:00", "label": "10:00"},
@@ -67,10 +87,8 @@ def booking_success_view(request, code):
     clean_code = code if code.startswith('#') else f"#{code}"
     appointment = get_object_or_404(Appointment, appointment_code=clean_code)
 
-    # Chi tiết từng khách
     details = appointment.details.all().select_related('service')
 
-    # Định dạng thứ trong tuần bằng tiếng Việt
     weekday_map = {
         0: 'Thứ Hai', 1: 'Thứ Ba', 2: 'Thứ Tư', 3: 'Thứ Năm',
         4: 'Thứ Sáu', 5: 'Thứ Bảy', 6: 'Chủ Nhật'
@@ -78,7 +96,6 @@ def booking_success_view(request, code):
     d = appointment.appointment_date
     date_display = f"{weekday_map.get(d.weekday(), '')}, ngày {d.day} tháng {d.month}, {d.year}"
 
-    # Tính giảm giá nếu có voucher
     discount_amount = 0
     if appointment.voucher:
         v = appointment.voucher

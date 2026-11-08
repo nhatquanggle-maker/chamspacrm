@@ -148,12 +148,54 @@ class ProfileUpdateSerializer(serializers.Serializer):
         return instance
 
 
+class StaffSerializer(serializers.ModelSerializer):
+    """Serializer chuẩn cho Nhân viên phục vụ REST API & Giao diện Admin"""
+    profile = UserProfileSerializer(read_only=True)
+    position = serializers.SerializerMethodField()
+    work_status = serializers.SerializerMethodField()
+    staff_code = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'name',
+            'email',
+            'phone',
+            'position',
+            'work_status',
+            'staff_code',
+            'is_staff',
+            'is_superuser',
+            'is_active',
+            'date_joined',
+            'profile',
+        ]
+        read_only_fields = ['id', 'is_staff', 'is_superuser', 'date_joined']
+
+    def get_position(self, obj):
+        return obj.first_name or 'Kỹ thuật viên (KTV)'
+
+    def get_work_status(self, obj):
+        if not obj.is_active:
+            return 'Tạm khóa'
+        return obj.last_name or 'Hoạt động'
+
+    def get_staff_code(self, obj):
+        return f"#NV{obj.id:03d}"
+
+
 class StaffCreateSerializer(serializers.Serializer):
     """UC-5.11: Tạo tài khoản nhân viên mới (is_staff=True)"""
     name = serializers.CharField(max_length=150, required=True)
     phone = serializers.CharField(max_length=20, required=True)
     email = serializers.EmailField(required=True)
-    password = serializers.CharField(write_only=True, min_length=8)
+    password = serializers.CharField(write_only=True, min_length=6, required=False, default='Cham@2026')
+    position = serializers.CharField(max_length=100, required=False, default='Kỹ thuật viên (KTV)')
+    work_status = serializers.CharField(max_length=50, required=False, default='Hoạt động')
+    gender = serializers.ChoiceField(choices=['Nữ', 'Nam', 'Khác'], required=False, default='Nữ')
+    birthday = serializers.DateField(required=False, allow_null=True)
 
     def validate_phone(self, value):
         val = value.strip().replace(' ', '').replace('.', '')
@@ -168,18 +210,36 @@ class StaffCreateSerializer(serializers.Serializer):
         return val
 
     def create(self, validated_data):
+        from django.contrib.auth.models import Group
         phone = validated_data['phone']
+        pwd = validated_data.get('password') or 'Cham@2026'
+        position = validated_data.get('position', 'Kỹ thuật viên (KTV)').strip()
+        work_status = validated_data.get('work_status', 'Hoạt động').strip()
+        is_active = (work_status != 'Tạm khóa')
+
         user = User.objects.create_user(
             username=phone,
             name=validated_data['name'].strip(),
             phone=phone,
             email=validated_data['email'].strip().lower(),
-            password=validated_data['password'],
+            password=pwd,
             is_staff=True,
             is_superuser=False,
-            is_active=True
+            is_active=is_active,
+            first_name=position,
+            last_name=work_status
         )
-        UserProfile.objects.get_or_create(user=user)
+        if position:
+            grp, _ = Group.objects.get_or_create(name=position)
+            user.groups.set([grp])
+
+        UserProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                'gender': validated_data.get('gender', 'Nữ'),
+                'birthday': validated_data.get('birthday')
+            }
+        )
         return user
 
 
@@ -187,19 +247,56 @@ class StaffUpdateSerializer(serializers.Serializer):
     """UC-5.13: Cập nhật thông tin nhân viên"""
     name = serializers.CharField(max_length=150, required=False)
     phone = serializers.CharField(max_length=20, required=False)
-    password = serializers.CharField(write_only=True, min_length=8, required=False)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    position = serializers.CharField(max_length=100, required=False)
+    work_status = serializers.CharField(max_length=50, required=False)
+    is_active = serializers.BooleanField(required=False)
+    password = serializers.CharField(write_only=True, min_length=6, required=False, allow_blank=True)
+    gender = serializers.ChoiceField(choices=['Nữ', 'Nam', 'Khác'], required=False, allow_null=True)
+    birthday = serializers.DateField(required=False, allow_null=True)
 
     def update(self, instance, validated_data):
-        if 'name' in validated_data:
+        from django.contrib.auth.models import Group
+        if 'name' in validated_data and validated_data['name']:
             instance.name = validated_data['name'].strip()
-        if 'phone' in validated_data:
+        if 'phone' in validated_data and validated_data['phone']:
             new_phone = validated_data['phone'].strip().replace(' ', '')
             if User.objects.exclude(pk=instance.pk).filter(phone=new_phone).exists():
                 raise serializers.ValidationError({"phone": "Số điện thoại đã bị trùng với tài khoản khác."})
             instance.phone = new_phone
+        if 'email' in validated_data and validated_data['email']:
+            new_email = validated_data['email'].strip().lower()
+            if User.objects.exclude(pk=instance.pk).filter(email=new_email).exists():
+                raise serializers.ValidationError({"email": "Email đã bị trùng với tài khoản khác."})
+            instance.email = new_email
+        if 'position' in validated_data and validated_data['position']:
+            instance.first_name = validated_data['position'].strip()
+            grp, _ = Group.objects.get_or_create(name=instance.first_name)
+            instance.groups.set([grp])
+        if 'work_status' in validated_data and validated_data['work_status']:
+            instance.last_name = validated_data['work_status'].strip()
+            if instance.last_name == 'Tạm khóa':
+                instance.is_active = False
+            elif instance.last_name in ['Hoạt động', 'Nghỉ phép']:
+                instance.is_active = True
+        if 'is_active' in validated_data:
+            instance.is_active = validated_data['is_active']
+            if not instance.is_active:
+                instance.last_name = 'Tạm khóa'
+            elif instance.last_name == 'Tạm khóa':
+                instance.last_name = 'Hoạt động'
         if 'password' in validated_data and validated_data['password']:
             instance.set_password(validated_data['password'])
         instance.save()
+
+        # Profile
+        profile, _ = UserProfile.objects.get_or_create(user=instance)
+        if 'gender' in validated_data and validated_data['gender']:
+            profile.gender = validated_data['gender']
+        if 'birthday' in validated_data:
+            profile.birthday = validated_data['birthday']
+        profile.save()
+
         return instance
 
 

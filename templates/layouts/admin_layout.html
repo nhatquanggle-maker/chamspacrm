@@ -27,12 +27,14 @@
 {% block admin_modals %}{% endblock %}
 
 <script>
-    // Tự động nhận diện ?tab=chatbox để chuyển hướng sang màn hình Quản lý Boxchat của Admin
+    // Tự động nhận diện ?tab= để chuyển hướng sang màn hình chuyên trách của Admin
     (function() {
         const urlParams = new URLSearchParams(window.location.search);
         const tab = urlParams.get('tab');
         if (tab === 'chatbox' && !window.location.pathname.includes('/chatbox/admin/')) {
             window.location.replace("{% url 'chatbox:admin_monitor' %}");
+        } else if (tab === 'appointments' && !window.location.pathname.includes('/appointment/admin/')) {
+            window.location.replace("{% url 'appointment:admin_appointments' %}");
         }
     })();
 </script>

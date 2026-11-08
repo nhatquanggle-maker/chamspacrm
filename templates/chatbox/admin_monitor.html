@@ -26,14 +26,13 @@
     </div>
 
     <!-- ========================================================================
-         LAYOUT 3 CỘT GIÁM SÁT REALTIME (FIGMA NODE 502:2005)
+         LAYOUT 2 CỘT GIÁM SÁT REALTIME (KHUNG CHAT RỘNG RÃI & THOÁNG ĐÃNG)
          Cột 1: Danh sách hội thoại (Tabs, Search, Cards)
-         Cột 2: Khung giám sát & Can thiệp chat (Header, Bot history, Chat, Input)
-         Cột 3: Card Thông tin khách hàng & Card Giám sát SLA
+         Cột 2: Khung giám sát & Can thiệp chat (kèm Nút nhỏ xem chi tiết khách hàng)
          ======================================================================== -->
     <div class="row g-3">
-        <!-- CỘT 1: DANH SÁCH HỘI THOẠI (350px / Col-lg-3) -->
-        <div class="col-12 col-lg-3 col-xl-3">
+        <!-- CỘT 1: DANH SÁCH HỘI THOẠI (Col-lg-4 Col-xl-3) -->
+        <div class="col-12 col-md-5 col-lg-4 col-xl-3">
             <div class="card border-0 shadow-sm rounded-4 h-100" style="background-color: #FFFFFF;">
                 <div class="p-3 border-bottom">
                     <div class="d-flex align-items-center justify-content-between mb-3">
@@ -167,8 +166,8 @@
             </div>
         </div>
 
-        <!-- CỘT 2: KHUNG GIÁM SÁT & CAN THIỆP PHIÊN CHAT (Col-lg-6) -->
-        <div class="col-12 col-lg-6 col-xl-6">
+        <!-- CỘT 2: KHUNG GIÁM SÁT & CAN THIỆP PHIÊN CHAT (Col-md-7 Col-lg-8 Col-xl-9) -->
+        <div class="col-12 col-md-7 col-lg-8 col-xl-9">
             <div class="card border-0 shadow-sm rounded-4 h-100 d-flex flex-column" style="background-color: #FFFFFF;">
                 <!-- Header Khung Chat Giám sát -->
                 <div class="p-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -179,8 +178,19 @@
                             {{ active_conv.customer.name|default:"TT"|slice:":2"|upper }}
                         </div>
                         <div>
-                            <div class="fw-bold text-dark" id="monitorCustomerName" style="font-size: 16px;">
-                                {{ active_conv.customer.name|default:"Trần Trần Thảo Ngọc" }}
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="fw-bold text-dark" id="monitorCustomerName" style="font-size: 16px;">
+                                    {{ active_conv.customer.name|default:"Trần Trần Thảo Ngọc" }}
+                                </div>
+                                <!-- Nút nhỏ xem thông tin chi tiết khách hàng (Link tới trang chi tiết chuẩn dự án) -->
+                                <a id="btnViewCustomerDetail" 
+                                   href="{% if active_conv %}{% url 'accounts:admin_customer_detail' active_conv.customer.id %}{% else %}#{% endif %}" 
+                                   target="_blank" 
+                                   class="btn btn-sm py-0 px-2 rounded-pill d-inline-flex align-items-center gap-1 shadow-2xs" 
+                                   style="font-size: 11.5px; background-color: #FAF4E6; border: 1px solid #D0B581; color: var(--cham-red); font-weight: 600; text-decoration: none;"
+                                   title="Xem hồ sơ chi tiết khách hàng">
+                                    <i class="bi bi-person-lines-fill"></i> Chi tiết khách hàng
+                                </a>
                             </div>
                             <div class="d-flex align-items-center gap-1" id="monitorStaffIndicator" style="font-size: 12.5px; color: #10B981;">
                                 <i class="bi bi-circle-fill" style="font-size: 7px;"></i>
@@ -224,7 +234,7 @@
                 <!-- Vùng hiển thị tin nhắn (Chat Log) -->
                 <div class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-3" 
                      id="adminChatLog" 
-                     style="background-color: #FAF9F6; min-height: 400px; max-height: 480px;">
+                     style="background-color: #FAF9F6; min-height: 480px; max-height: 560px;">
                     {% for msg in messages_list %}
                         {% if msg.sender_type == 'Customer' %}
                         <!-- Tin nhắn khách hàng (Trái) -->
@@ -317,83 +327,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- CỘT 3: 2 CARD THÔNG TIN KHÁCH HÀNG & GIÁM SÁT SLA (Col-lg-3) -->
-        <div class="col-12 col-lg-3 col-xl-3">
-            <div class="d-flex flex-column gap-3 h-100">
-                <!-- CARD 1: THÔNG TIN KHÁCH HÀNG (FIGMA 502:2005) -->
-                <div class="card border-0 shadow-sm rounded-4 p-3" style="background-color: #FFFFFF;">
-                    <h3 class="fw-bold mb-3 text-dark" style="font-size: 15px;">Thông tin khách hàng</h3>
-                    
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" 
-                             id="cardCustomerAvatar"
-                             style="width: 44px; height: 44px; background-color: var(--cham-red); font-size: 15px;">
-                            {{ customer_info.user.name|default:"TT"|slice:":2"|upper }}
-                        </div>
-                        <div>
-                            <div class="fw-bold text-dark" id="cardCustomerName" style="font-size: 15px;">
-                                {{ customer_info.user.name|default:"Trần Trần Thảo Ngọc" }}
-                            </div>
-                            <span class="badge py-1 px-2 rounded-pill mt-1" 
-                                  id="cardCustomerTier"
-                                  style="background-color: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 600;">
-                                👑 {{ customer_info.tier_name|default:"Hạng VÀNG" }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Tổng chi tiêu -->
-                    <div class="mb-3">
-                        <div class="text-muted" style="font-size: 12px;">Tổng chi tiêu</div>
-                        <div class="fw-bold text-dark mt-1" id="cardCustomerSpent" style="font-size: 18px; font-family: var(--font-serif); color: var(--cham-red) !important;">
-                            {{ customer_info.total_spent|default:"18.500.000 VNĐ" }}
-                        </div>
-                    </div>
-
-                    <!-- Lưu ý sức khỏe (Cảnh báo vàng) -->
-                    <div class="p-2 rounded-3 border" style="background-color: #FFFBEB; border-color: #FDE68A !important;">
-                        <div class="fw-bold mb-1 d-flex align-items-center gap-1" style="font-size: 12px; color: #92400E;">
-                            <i class="bi bi-exclamation-triangle-fill"></i> Lưu ý sức khỏe
-                        </div>
-                        <div class="text-dark" id="cardCustomerHealth" style="font-size: 12px; line-height: 1.4;">
-                            {{ customer_info.health_summary|default:"Da nhạy cảm, ưu tiên lực nhẹ." }}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CARD 2: GIÁM SÁT PHIÊN TƯ VẤN (FIGMA 502:2005) -->
-                <div class="card border-0 shadow-sm rounded-4 p-3 flex-grow-1" style="background-color: #FFFFFF;">
-                    <h3 class="fw-bold mb-3 d-flex align-items-center gap-2 text-dark" style="font-size: 15px;">
-                        <i class="bi bi-activity text-danger"></i> Giám sát phiên tư vấn
-                    </h3>
-
-                    <!-- Đồng hồ đếm thời lượng hiện tại -->
-                    <div class="p-3 rounded-3 text-center mb-3" style="background-color: #FAF9F6; border: 1px dashed #D0B581;">
-                        <div class="text-muted" style="font-size: 11.5px;">Thời lượng hiện tại</div>
-                        <div class="fw-bold mt-1 text-dark" id="monitorSessionTimer" style="font-size: 32px; font-family: monospace; letter-spacing: 2px;">
-                            {{ duration_display }}
-                        </div>
-                    </div>
-
-                    <!-- Staff Response SLA -->
-                    <div class="mb-3">
-                        <div class="text-muted mb-1" style="font-size: 12px;">Staff Response SLA</div>
-                        <span class="badge py-1 px-2 rounded-pill" style="background-color: #ECFDF5; color: #065F46; font-size: 12px; font-weight: 500;">
-                            • Tốt (< 30 giây)
-                        </span>
-                    </div>
-
-                    <!-- Trạng thái phiên -->
-                    <div>
-                        <div class="text-muted mb-1 text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Trạng thái phiên</div>
-                        <div class="text-dark" style="font-size: 12.5px;">
-                            Đã chuyển giao từ Chatbot sang Staff lúc 14:28.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -437,21 +370,6 @@
 <script>
 // Biến lưu trạng thái toàn cục
 let currentConvId = {{ active_conv.id|default:"null" }};
-let adminTimerInterval = null;
-let sessionSeconds = 252; // 04:12
-
-// Khởi chạy timer đồng hồ
-function startSessionTimer() {
-    if (adminTimerInterval) clearInterval(adminTimerInterval);
-    adminTimerInterval = setInterval(() => {
-        sessionSeconds++;
-        const mins = String(Math.floor(sessionSeconds / 60)).padStart(2, '0');
-        const secs = String(sessionSeconds % 60).padStart(2, '0');
-        const el = document.getElementById('monitorSessionTimer');
-        if (el) el.textContent = `${mins}:${secs}`;
-    }, 1000);
-}
-startSessionTimer();
 
 // Chuyển đổi tab danh sách hội thoại
 function switchConvTab(tabName) {
@@ -519,12 +437,11 @@ function selectConversation(convId) {
                 document.getElementById('monitorStaffName').textContent = 'Chưa có nhân viên tiếp nhận';
             }
 
-            // Cập nhật Cột 3 Thông tin khách hàng
-            document.getElementById('cardCustomerName').textContent = data.customer.name;
-            document.getElementById('cardCustomerAvatar').textContent = data.customer.name.slice(0, 2).toUpperCase();
-            document.getElementById('cardCustomerTier').textContent = `👑 ${data.customer.tier_name}`;
-            document.getElementById('cardCustomerSpent').textContent = data.customer.total_spent;
-            document.getElementById('cardCustomerHealth').textContent = data.customer.health_summary;
+            // Cập nhật Nút nhỏ xem chi tiết khách hàng
+            const btnDetail = document.getElementById('btnViewCustomerDetail');
+            if (btnDetail && data.customer) {
+                btnDetail.href = `/accounts/admin/customers/${data.customer.id}/`;
+            }
 
             // Render lại tin nhắn
             renderAdminChatLog(data.messages, data.customer.name);

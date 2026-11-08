@@ -8,6 +8,8 @@ def admin_dashboard(request):
     tab = request.GET.get('tab')
     if tab == 'customers':
         return redirect('accounts:admin_customer_list')
+    if tab == 'staff':
+        return redirect('accounts:admin_staff_list')
     return render(request, 'layouts/admin_layout.html')
 
 

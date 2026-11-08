@@ -1,0 +1,997 @@
+{% extends "layouts/admin_layout.html" %}
+{% load static %}
+
+{% block title %}Quản lý Nhân viên | Quản trị Cham Spa & Massage Đà Nẵng{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================================
+       CHUẨN XÁC 100% THEO THIẾT KẾ FIGMA NODE 221:3117
+       Admin - Danh sách & Quản lý tài khoản Nhân viên
+       ========================================================================== */
+    .staff-admin-page {
+        font-family: 'Cabin', sans-serif;
+        color: #171311;
+    }
+
+    .breadcrumb-item-custom {
+        font-size: 11px;
+        color: #716761;
+    }
+    .breadcrumb-sep {
+        color: #D0B581;
+        margin: 0 6px;
+    }
+    .breadcrumb-active {
+        color: #781A24;
+        font-weight: 700;
+    }
+
+    .page-title-staff {
+        font-family: 'Lora', serif;
+        font-weight: 700;
+        font-size: 28px;
+        color: #781A24;
+        margin-bottom: 4px;
+    }
+    .page-subtitle-staff {
+        font-size: 14px;
+        color: #6F665E;
+    }
+
+    /* Toolbar & Search Input */
+    .staff-search-box {
+        background: #FFFFFF;
+        border: 1px solid #EFE4CD;
+        border-radius: 8px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .staff-search-box:focus-within {
+        border-color: #D0B581;
+        box-shadow: 0 0 0 3px rgba(208, 181, 129, 0.2);
+    }
+    .staff-search-input {
+        border: none;
+        outline: none;
+        font-size: 14px;
+        color: #171311;
+        width: 100%;
+        background: transparent;
+    }
+    .staff-search-input::placeholder {
+        color: #6F665E;
+    }
+
+    .select-dept-filter {
+        background-color: #FFFFFF;
+        border: 1px solid #EFE4CD;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #171311;
+        font-weight: 600;
+        padding: 9px 14px;
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .select-dept-filter:focus {
+        border-color: #D0B581;
+        box-shadow: 0 0 0 3px rgba(208, 181, 129, 0.2);
+    }
+
+    .btn-add-staff {
+        background-color: #781A24 !important;
+        color: #FFFFFF !important;
+        font-weight: 700;
+        font-size: 14px;
+        border-radius: 8px;
+        padding: 9px 20px;
+        border: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    .btn-add-staff:hover {
+        background-color: #5c141c !important;
+        color: #FFFFFF !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(120, 26, 36, 0.25);
+    }
+
+    /* Table Card */
+    .table-container-card {
+        background: #FFFFFF;
+        border: 1px solid #EFE4CD;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    .custom-staff-table {
+        margin-bottom: 0;
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .custom-staff-table thead tr {
+        background-color: #781A24;
+    }
+    .custom-staff-table thead th {
+        color: #FFFFFF;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 13px 16px;
+        border: none;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+    .custom-staff-table tbody tr {
+        transition: background-color 0.15s ease;
+        border-bottom: 1px solid #F4EFE3;
+    }
+    .custom-staff-table tbody tr:hover {
+        background-color: #FAF7F0;
+    }
+    .custom-staff-table tbody td {
+        padding: 14px 16px;
+        font-size: 14px;
+        color: #171311;
+        vertical-align: middle;
+        border-top: 1px solid #F4EFE3;
+    }
+
+    /* Staff Avatar Circle Pill */
+    .staff-avatar-pill {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background-color: #EFE4CD;
+        color: #781A24;
+        font-family: 'Lora', serif;
+        font-weight: 700;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        text-transform: uppercase;
+    }
+
+    /* Status Badges */
+    .badge-status-active {
+        background-color: #E8F4ED;
+        color: #2F7D5B;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+    }
+    .badge-status-leave {
+        background-color: #FFFBEB;
+        color: #D97706;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+    }
+    .badge-status-locked {
+        background-color: #FEE2E2;
+        color: #DC2626;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+    }
+
+    /* Row Action Text Buttons (Figma Node 221:3117) */
+    .row-action-link {
+        font-size: 13px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+    }
+    .action-view-staff {
+        color: #315C86;
+    }
+    .action-view-staff:hover {
+        background-color: #EBF3FA;
+        color: #1F3C59;
+    }
+    .action-edit-staff {
+        color: #781A24;
+    }
+    .action-edit-staff:hover {
+        background-color: #FDF2F3;
+        color: #5C141C;
+    }
+    .action-lock-staff {
+        color: #B4232F;
+    }
+    .action-lock-staff:hover {
+        background-color: #FEE2E2;
+        color: #991B1B;
+    }
+    .action-unlock-staff {
+        color: #2F7D5B;
+    }
+    .action-unlock-staff:hover {
+        background-color: #E8F4ED;
+        color: #1E563E;
+    }
+
+    /* Pagination */
+    .pagination-custom .page-link {
+        color: #171311;
+        border: 1px solid #EFE4CD;
+        padding: 6px 12px;
+        font-size: 13px;
+        background: #FFFFFF;
+    }
+    .pagination-custom .page-item.active .page-link {
+        background-color: #781A24;
+        border-color: #781A24;
+        color: #FFFFFF;
+    }
+
+    /* Fix Bootstrap Modal Stacking Context & Backdrop Overlay */
+    .modal {
+        z-index: 1060 !important;
+    }
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="staff-admin-page py-2">
+    <!-- 1. Breadcrumb -->
+    <div class="d-flex align-items-center gap-1 mb-2">
+        <span class="breadcrumb-item-custom">Hệ thống</span>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-active">Quản lý Nhân viên</span>
+    </div>
+
+    <!-- 2. Page Heading (Figma 221:3117) -->
+    <div class="mb-3">
+        <h1 class="page-title-staff">Quản lý Danh sách & Hồ sơ Nhân viên</h1>
+        <p class="page-subtitle-staff mb-0">Theo dõi thông tin, phân công ca trực và trạng thái tài khoản đội ngũ Cham Spa.</p>
+    </div>
+
+    <!-- 3. Toolbar: Search Bar + Department Filter + Add Staff Button -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+        <!-- Search Input -->
+        <form method="GET" action="{% url 'accounts:admin_staff_list' %}" class="d-flex align-items-center flex-grow-1" style="max-width: 580px;">
+            <div class="staff-search-box d-flex align-items-center px-3 py-2 w-100">
+                <i class="bi bi-search text-muted me-2"></i>
+                <input type="text" name="search" class="staff-search-input" placeholder="Tìm kiếm nhân viên theo tên, SĐT, Email, chức vụ..." value="{{ search_query }}">
+                {% if search_query %}
+                    <a href="{% url 'accounts:admin_staff_list' %}{% if current_department != 'Tất cả bộ phận' %}?department={{ current_department }}{% endif %}" class="text-muted ms-2" title="Xóa bộ lọc">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </a>
+                {% endif %}
+            </div>
+            {% if current_department != 'Tất cả bộ phận' %}
+                <input type="hidden" name="department" value="{{ current_department }}">
+            {% endif %}
+            {% if current_status != 'all' %}
+                <input type="hidden" name="status" value="{{ current_status }}">
+            {% endif %}
+        </form>
+
+        <!-- Filters & Action Button -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- Bộ lọc bộ phận -->
+            <form method="GET" action="{% url 'accounts:admin_staff_list' %}" id="departmentFilterForm">
+                {% if search_query %}
+                    <input type="hidden" name="search" value="{{ search_query }}">
+                {% endif %}
+                {% if current_status != 'all' %}
+                    <input type="hidden" name="status" value="{{ current_status }}">
+                {% endif %}
+                <select name="department" class="select-dept-filter" onchange="document.getElementById('departmentFilterForm').submit()">
+                    {% for dept in departments %}
+                        <option value="{{ dept }}" {% if current_department == dept %}selected{% endif %}>{{ dept }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <!-- Nút Thêm mới Nhân viên (Figma Node 188:29841) -->
+            <button type="button" class="btn-add-staff" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+                <i class="bi bi-plus-lg"></i> Thêm mới Nhân viên
+            </button>
+        </div>
+    </div>
+
+    <!-- Thông báo hệ thống Flash Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show rounded-3 py-2 px-3 mb-3 shadow-sm" role="alert">
+                <i class="bi {% if message.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-check-circle-fill{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- 4. Data Table Danh sách Nhân viên (Figma 221:3117) -->
+    <div class="table-container-card mb-3">
+        <div class="table-responsive">
+            <table class="custom-staff-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Mã NV</th>
+                        <th style="width: 90px; text-align: center;">Ảnh Avatar</th>
+                        <th style="width: 200px;">Họ và tên</th>
+                        <th style="width: 220px;">Chức vụ</th>
+                        <th style="width: 150px;">SĐT</th>
+                        <th style="width: 230px;">Email</th>
+                        <th style="width: 130px; text-align: center;">Trạng thái</th>
+                        <th style="width: 220px; text-align: center;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in page_obj %}
+                    <tr>
+                        <td>
+                            <span class="fw-bold" style="color: #781A24;">{{ s.staff_code }}</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="staff-avatar-pill mx-auto">
+                                {{ s.initials }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fw-bold text-dark d-block text-truncate" style="max-width: 200px;">
+                                {{ s.name }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-nowrap" style="color: #171311;">
+                                {{ s.position }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-nowrap">{{ s.phone|default:"Chưa có" }}</span>
+                        </td>
+                        <td>
+                            <span class="text-muted text-truncate d-inline-block" style="max-width: 220px;">
+                                {{ s.email|default:"Chưa cập nhật" }}
+                            </span>
+                        </td>
+                        <td style="text-align: center;">
+                            {% if s.work_status == 'Hoạt động' %}
+                                <span class="badge-status-active">
+                                    <i class="bi bi-circle-fill" style="font-size: 6px;"></i> Hoạt động
+                                </span>
+                            {% elif s.work_status == 'Nghỉ phép' %}
+                                <span class="badge-status-leave">
+                                    <i class="bi bi-calendar-check" style="font-size: 11px;"></i> Nghỉ phép
+                                </span>
+                            {% else %}
+                                <span class="badge-status-locked">
+                                    <i class="bi bi-lock-fill" style="font-size: 10px;"></i> Tạm khóa
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <!-- Xem -->
+                                <button type="button" class="row-action-link action-view-staff btn-view-staff"
+                                        title="Xem chi tiết nhân viên"
+                                        data-id="{{ s.id }}"
+                                        data-code="{{ s.staff_code }}"
+                                        data-name="{{ s.name }}"
+                                        data-phone="{{ s.phone }}"
+                                        data-email="{{ s.email }}"
+                                        data-position="{{ s.position }}"
+                                        data-status="{{ s.work_status }}"
+                                        data-gender="{{ s.profile.gender|default:'Chưa rõ' }}"
+                                        data-birthday="{{ s.profile.birthday|date:'d/m/Y'|default:'Chưa cập nhật' }}"
+                                        data-joined="{{ s.date_joined|date:'d/m/Y' }}">
+                                    <i class="bi bi-eye"></i> Xem
+                                </button>
+
+                                <!-- Sửa -->
+                                <button type="button" class="row-action-link action-edit-staff btn-edit-staff"
+                                        title="Chỉnh sửa thông tin nhân viên"
+                                        data-id="{{ s.id }}"
+                                        data-code="{{ s.staff_code }}"
+                                        data-name="{{ s.name }}"
+                                        data-phone="{{ s.phone }}"
+                                        data-email="{{ s.email }}"
+                                        data-position="{{ s.position }}"
+                                        data-status="{{ s.work_status }}"
+                                        data-gender="{{ s.profile.gender|default:'Nữ' }}"
+                                        data-birthday="{{ s.profile.birthday|date:'Y-m-d'|default:'' }}">
+                                    <i class="bi bi-pencil-square"></i> Sửa
+                                </button>
+
+                                <!-- Khóa / Mở khóa -->
+                                <button type="button" class="row-action-link {% if s.is_active %}action-lock-staff{% else %}action-unlock-staff{% endif %} btn-toggle-staff"
+                                        title="{% if s.is_active %}Tạm khóa tài khoản{% else %}Mở khóa tài khoản{% endif %}"
+                                        data-id="{{ s.id }}"
+                                        data-name="{{ s.name }}"
+                                        data-active="{{ s.is_active|yesno:'true,false' }}">
+                                    {% if s.is_active %}
+                                        <i class="bi bi-lock"></i> Khóa
+                                    {% else %}
+                                        <i class="bi bi-unlock"></i> Mở khóa
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-person-badge fs-1 d-block mb-2 text-muted"></i>
+                            <div class="fw-bold mb-1">Không tìm thấy tài khoản nhân viên nào</div>
+                            <div style="font-size: 13px;">Thử thay đổi từ khóa tìm kiếm hoặc chọn bộ phận khác</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 5. Phân trang Pagination (Figma 221:3117 "Hiển thị 1–7 trong 25 nhân viên") -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2">
+        <div class="text-muted" style="font-size: 13px;">
+            {% if page_obj.paginator.count > 0 %}
+                Hiển thị {{ page_obj.start_index }}–{{ page_obj.end_index }} trong <strong>{{ page_obj.paginator.count }}</strong> nhân viên
+            {% else %}
+                Hiển thị 0 nhân viên
+            {% endif %}
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Phân trang nhân viên">
+            <ul class="pagination pagination-sm pagination-custom mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_department != 'Tất cả bộ phận' %}&department={{ current_department }}{% endif %}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}">
+                        ‹
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_department != 'Tất cả bộ phận' %}&department={{ current_department }}{% endif %}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_department != 'Tất cả bộ phận' %}&department={{ current_department }}{% endif %}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}">
+                        ›
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock admin_content %}
+
+{% block admin_modals %}
+<!-- =========================================================================
+     MODAL 1: THÊM MỚI NHÂN VIÊN (FIGMA NODE 188:29841)
+     ========================================================================= -->
+<div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow" style="border-radius: 14px; overflow: hidden;">
+            <!-- Modal Header -->
+            <div class="modal-header text-white px-4 py-3" style="background-color: #781A24;">
+                <h5 class="modal-title fs-6 fw-bold d-flex align-items-center gap-2" id="addStaffModalLabel">
+                    <i class="bi bi-shield-check fs-5"></i> Thêm mới / Cập nhật Thông tin Nhân viên
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+
+            <!-- Mode Indicator Banner (Figma 188:29841) -->
+            <div class="d-flex align-items-center justify-content-between px-4 py-3" style="background-color: #FAF7F0; border-bottom: 1px solid #EFE4CD;">
+                <div class="text-muted" style="font-size: 13px;">
+                    Tạo hồ sơ và tài khoản đăng nhập nội bộ cho nhân viên mới.
+                </div>
+                <span class="badge-status-active">
+                    Chế độ Thêm mới
+                </span>
+            </div>
+
+            <form method="POST" action="{% url 'accounts:admin_staff_list' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_staff">
+                <div class="modal-body p-4" style="font-family: 'Cabin', sans-serif;">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Mã nhân viên</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-hash"></i></span>
+                                <input type="text" class="form-control bg-light" value="{{ next_code }}" readonly>
+                                <span class="input-group-text bg-light text-success"><i class="bi bi-check-circle-fill"></i></span>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Họ và tên <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
+                                <input type="text" name="name" class="form-control" placeholder="Nhập họ và tên đầy đủ" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Chức vụ / Bộ phận <span class="text-danger">*</span></label>
+                        <select name="position" class="form-select" required>
+                            <option value="Lễ tân / CSKH">Lễ tân / CSKH</option>
+                            <option value="Kỹ thuật viên (KTV)" selected>Kỹ thuật viên (KTV)</option>
+                            <option value="Thu ngân">Thu ngân</option>
+                            <option value="Quản lý ca">Quản lý ca</option>
+                            <option value="Bác sĩ / Chuyên gia">Bác sĩ / Chuyên gia</option>
+                        </select>
+                        <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                            Lựa chọn: Lễ tân / CSKH · Kỹ thuật viên (KTV) · Thu ngân · Quản lý ca
+                        </small>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Số điện thoại <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" name="phone" class="form-control" placeholder="09xx xxx xxx" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Email <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope"></i></span>
+                                <input type="email" name="email" class="form-control" placeholder="ten@chamspa.vn" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Giới tính</label>
+                            <select name="gender" class="form-select">
+                                <option value="Nữ" selected>Nữ</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Ngày sinh</label>
+                            <input type="date" name="birthday" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Trạng thái ban đầu</label>
+                            <select name="work_status" class="form-select">
+                                <option value="Hoạt động" selected>Hoạt động</option>
+                                <option value="Nghỉ phép">Nghỉ phép</option>
+                                <option value="Tạm khóa">Tạm khóa</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Mật khẩu khởi tạo <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
+                            <input type="text" name="password" id="newStaffPassword" class="form-control" value="Cham@2026" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('newStaffPassword').value='Cham@' + Math.floor(1000 + Math.random() * 9000)" title="Tạo mật khẩu ngẫu nhiên">
+                                <i class="bi bi-arrow-repeat"></i> Tạo mới
+                            </button>
+                        </div>
+                        <small class="text-muted" style="font-size: 11px;">Mặc định: Cham@2026 (Nhân viên có thể đổi mật khẩu khi đăng nhập).</small>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #781A24;">
+                        <i class="bi bi-floppy me-1"></i> Lưu thông tin Nhân viên
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 2: CẬP NHẬT THÔNG TIN NHÂN VIÊN (FIGMA NODE 188:30139)
+     ========================================================================= -->
+<div class="modal fade" id="editStaffModal" tabindex="-1" aria-labelledby="editStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow" style="border-radius: 14px; overflow: hidden;">
+            <!-- Modal Header -->
+            <div class="modal-header text-white px-4 py-3" style="background-color: #781A24;">
+                <h5 class="modal-title fs-6 fw-bold d-flex align-items-center gap-2" id="editStaffModalLabel">
+                    <i class="bi bi-shield-check fs-5"></i> Thêm mới / Cập nhật Thông tin Nhân viên
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+
+            <!-- Mode Indicator Banner (Figma 188:30139) -->
+            <div class="d-flex align-items-center justify-content-between px-4 py-3" style="background-color: #FAF7F0; border-bottom: 1px solid #EFE4CD;">
+                <div class="text-muted" style="font-size: 13px;">
+                    Cập nhật hồ sơ và phân công công việc cho nhân viên hiện tại.
+                </div>
+                <span class="badge-status-leave" style="background-color: #FEF3C7; color: #B45309;">
+                    Chế độ Cập nhật
+                </span>
+            </div>
+
+            <form method="POST" action="{% url 'accounts:admin_staff_list' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit_staff">
+                <input type="hidden" name="staff_id" id="editStaffId">
+                <div class="modal-body p-4" style="font-family: 'Cabin', sans-serif;">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Mã nhân viên</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-hash"></i></span>
+                                <input type="text" id="editStaffCode" class="form-control bg-light" readonly>
+                                <span class="input-group-text bg-light text-success"><i class="bi bi-check-circle-fill"></i></span>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Họ và tên <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
+                                <input type="text" name="name" id="editStaffName" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Chức vụ / Bộ phận <span class="text-danger">*</span></label>
+                        <select name="position" id="editStaffPosition" class="form-select" required>
+                            <option value="Lễ tân / CSKH">Lễ tân / CSKH</option>
+                            <option value="Kỹ thuật viên (KTV)">Kỹ thuật viên (KTV)</option>
+                            <option value="Thu ngân">Thu ngân</option>
+                            <option value="Quản lý ca">Quản lý ca</option>
+                            <option value="Bác sĩ / Chuyên gia">Bác sĩ / Chuyên gia</option>
+                        </select>
+                        <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                            Lựa chọn: Lễ tân / CSKH · Kỹ thuật viên (KTV) · Thu ngân · Quản lý ca
+                        </small>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Số điện thoại <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" name="phone" id="editStaffPhone" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Email <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope"></i></span>
+                                <input type="email" name="email" id="editStaffEmail" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Giới tính</label>
+                            <select name="gender" id="editStaffGender" class="form-select">
+                                <option value="Nữ">Nữ</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Ngày sinh</label>
+                            <input type="date" name="birthday" id="editStaffBirthday" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Trạng thái làm việc <span class="text-danger">*</span></label>
+                            <select name="work_status" id="editStaffStatus" class="form-select">
+                                <option value="Hoạt động">Hoạt động</option>
+                                <option value="Nghỉ phép">Nghỉ phép</option>
+                                <option value="Tạm khóa">Tạm khóa</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Mật khẩu mới (để trống nếu không đổi)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-key"></i></span>
+                            <input type="password" name="password" class="form-control" placeholder="Nhập mật khẩu mới nếu muốn thay đổi">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #781A24;">
+                        <i class="bi bi-floppy me-1"></i> Lưu thông tin Nhân viên
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 3: XÁC NHẬN KHÓA / MỞ KHÓA TÀI KHOẢN AN TOÀN (UC-5.14)
+     ========================================================================= -->
+<div class="modal fade" id="toggleStaffModal" tabindex="-1" aria-labelledby="toggleStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header text-white" id="toggleStaffHeader" style="background-color: #781A24;">
+                <h5 class="modal-title fs-6 fw-bold" id="toggleStaffModalLabel">
+                    <i class="bi bi-shield-exclamation me-2"></i> Xác nhận thay đổi trạng thái nhân viên
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <form method="POST" action="{% url 'accounts:admin_staff_list' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle_status">
+                <input type="hidden" name="staff_id" id="toggleStaffId">
+                <div class="modal-body p-4 text-center" style="font-family: 'Cabin', sans-serif;">
+                    <div class="mb-3">
+                        <i class="bi bi-exclamation-triangle-fill text-warning fs-1"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2" id="toggleStaffTitle">Tạm khóa tài khoản nhân viên?</h6>
+                    <p class="text-muted mb-0" id="toggleStaffMsg" style="font-size: 14px;">
+                        Nhân viên sẽ không thể đăng nhập vào hệ thống quản lý ca trực. Toàn bộ lịch sử phân công và các lượt dịch vụ đã thực hiện vẫn được bảo toàn an toàn trong cơ sở dữ liệu.
+                    </p>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3 justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn text-white px-4 fw-bold" id="toggleStaffSubmitBtn" style="background-color: #781A24;">Xác nhận</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 4: XEM CHI TIẾT NHANH HỒ SƠ NHÂN VIÊN
+     ========================================================================= -->
+<div class="modal fade" id="viewStaffModal" tabindex="-1" aria-labelledby="viewStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header text-white" style="background-color: #781A24;">
+                <h5 class="modal-title fs-6 fw-bold" id="viewStaffModalLabel">
+                    <i class="bi bi-person-badge me-2"></i> Hồ sơ nhân viên Cham Spa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body p-4" style="font-family: 'Cabin', sans-serif;">
+                <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded-3" style="background-color: #FAF7F0; border: 1px solid #EFE4CD;">
+                    <div class="staff-avatar-pill" id="viewStaffAvatar" style="width: 50px; height: 50px; font-size: 18px;">
+                        NV
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1" id="viewStaffName" style="font-size: 16px;">Tên nhân viên</h6>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge" id="viewStaffCode" style="background-color: #781A24; color: #FFF;">#NV000</span>
+                            <span class="badge bg-secondary" id="viewStaffPosition">Chức vụ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="list-group list-group-flush mb-2" style="font-size: 14px;">
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted"><i class="bi bi-telephone me-2"></i>Số điện thoại:</span>
+                        <strong id="viewStaffPhone" class="text-dark">---</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted"><i class="bi bi-envelope me-2"></i>Địa chỉ Email:</span>
+                        <strong id="viewStaffEmail" class="text-dark">---</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted"><i class="bi bi-gender-ambiguous me-2"></i>Giới tính:</span>
+                        <strong id="viewStaffGender" class="text-dark">---</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted"><i class="bi bi-calendar-event me-2"></i>Ngày sinh:</span>
+                        <strong id="viewStaffBirthday" class="text-dark">---</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted"><i class="bi bi-clock-history me-2"></i>Ngày tham gia:</span>
+                        <strong id="viewStaffJoined" class="text-dark">---</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0 border-bottom-0">
+                        <span class="text-muted"><i class="bi bi-activity me-2"></i>Trạng thái làm việc:</span>
+                        <strong id="viewStaffStatus" class="text-success">Hoạt động</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light px-4 py-3 justify-content-center">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock admin_modals %}
+
+{% block extra_js %}
+<script>
+    // =========================================================================
+    // FIX BOOTSTRAP MODAL STACKING CONTEXT & LỚP NỀN MỜ BACKDROP
+    // Đảm bảo modal luôn nổi bật trên lớp nền mờ khi hiển thị
+    // =========================================================================
+    function ensureStaffModalsOnBody() {
+        ['addStaffModal', 'editStaffModal', 'toggleStaffModal', 'viewStaffModal'].forEach(function(id) {
+            const el = document.getElementById(id);
+            if (el && el.parentElement !== document.body) {
+                document.body.appendChild(el);
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        ensureStaffModalsOnBody();
+
+        // Bắt sự kiện click nút Sửa
+        document.querySelectorAll('.btn-edit-staff').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.getAttribute('data-id');
+                const code = this.getAttribute('data-code');
+                const name = this.getAttribute('data-name');
+                const phone = this.getAttribute('data-phone');
+                const email = this.getAttribute('data-email');
+                const position = this.getAttribute('data-position');
+                const status = this.getAttribute('data-status');
+                const gender = this.getAttribute('data-gender');
+                const birthday = this.getAttribute('data-birthday');
+
+                openEditStaffModal(id, code, name, phone, email, position, status, gender, birthday);
+            });
+        });
+
+        // Bắt sự kiện click nút Khóa / Mở khóa
+        document.querySelectorAll('.btn-toggle-staff').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const isActive = this.getAttribute('data-active') === 'true';
+
+                openToggleStaffModal(id, name, isActive);
+            });
+        });
+
+        // Bắt sự kiện click nút Xem
+        document.querySelectorAll('.btn-view-staff').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const code = this.getAttribute('data-code');
+                const name = this.getAttribute('data-name');
+                const phone = this.getAttribute('data-phone');
+                const email = this.getAttribute('data-email');
+                const position = this.getAttribute('data-position');
+                const status = this.getAttribute('data-status');
+                const gender = this.getAttribute('data-gender');
+                const birthday = this.getAttribute('data-birthday');
+                const joined = this.getAttribute('data-joined');
+
+                openViewStaffModal(code, name, phone, email, position, status, gender, birthday, joined);
+            });
+        });
+    });
+
+    // Mở Modal Cập nhật Nhân viên
+    function openEditStaffModal(id, code, name, phone, email, position, status, gender, birthday) {
+        ensureStaffModalsOnBody();
+        const modalEl = document.getElementById('editStaffModal');
+        if (!modalEl) return;
+
+        document.getElementById('editStaffId').value = id || '';
+        document.getElementById('editStaffCode').value = code || '';
+        document.getElementById('editStaffName').value = name || '';
+        document.getElementById('editStaffPhone').value = phone || '';
+        document.getElementById('editStaffEmail').value = email || '';
+        document.getElementById('editStaffPosition').value = position || 'Kỹ thuật viên (KTV)';
+        document.getElementById('editStaffStatus').value = status || 'Hoạt động';
+        document.getElementById('editStaffGender').value = gender || 'Nữ';
+        document.getElementById('editStaffBirthday').value = birthday || '';
+
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modalInstance.show();
+    }
+
+    // Mở Modal Khóa / Mở khóa Nhân viên
+    function openToggleStaffModal(id, name, isActive) {
+        ensureStaffModalsOnBody();
+        const modalEl = document.getElementById('toggleStaffModal');
+        if (!modalEl) return;
+
+        document.getElementById('toggleStaffId').value = id;
+        const titleEl = document.getElementById('toggleStaffTitle');
+        const msgEl = document.getElementById('toggleStaffMsg');
+        const submitBtn = document.getElementById('toggleStaffSubmitBtn');
+
+        if (isActive) {
+            titleEl.innerText = `Tạm khóa tài khoản nhân viên "${name}"?`;
+            msgEl.innerText = `Nhân viên sẽ không thể đăng nhập vào hệ thống quản lý ca trực. Toàn bộ lịch sử phân công và các lượt dịch vụ đã thực hiện vẫn được bảo toàn an toàn trong cơ sở dữ liệu.`;
+            submitBtn.innerText = "Tạm khóa an toàn";
+            submitBtn.style.backgroundColor = "#781A24";
+        } else {
+            titleEl.innerText = `Mở khóa tài khoản nhân viên "${name}"?`;
+            msgEl.innerText = `Tài khoản sẽ được kích hoạt trở lại và nhân viên có thể đăng nhập bình thường.`;
+            submitBtn.innerText = "Mở khóa tài khoản";
+            submitBtn.style.backgroundColor = "#2F7D5B";
+        }
+
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modalInstance.show();
+    }
+
+    // Mở Modal Xem chi tiết nhanh
+    function openViewStaffModal(code, name, phone, email, position, status, gender, birthday, joined) {
+        ensureStaffModalsOnBody();
+        const modalEl = document.getElementById('viewStaffModal');
+        if (!modalEl) return;
+
+        document.getElementById('viewStaffCode').innerText = code || '';
+        document.getElementById('viewStaffName').innerText = name || '';
+        document.getElementById('viewStaffPhone').innerText = phone || '---';
+        document.getElementById('viewStaffEmail').innerText = email || '---';
+        document.getElementById('viewStaffPosition').innerText = position || 'Kỹ thuật viên';
+        document.getElementById('viewStaffGender').innerText = gender || '---';
+        document.getElementById('viewStaffBirthday').innerText = birthday || '---';
+        document.getElementById('viewStaffJoined').innerText = joined || '---';
+        
+        const statusEl = document.getElementById('viewStaffStatus');
+        statusEl.innerText = status || 'Hoạt động';
+        if (status === 'Hoạt động') {
+            statusEl.className = 'text-success fw-bold';
+        } else if (status === 'Nghỉ phép') {
+            statusEl.className = 'text-warning fw-bold';
+        } else {
+            statusEl.className = 'text-danger fw-bold';
+        }
+
+        // Initials Avatar
+        const parts = (name || '').trim().split(' ');
+        let initials = 'NV';
+        if (parts.length >= 2) {
+            initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        document.getElementById('viewStaffAvatar').innerText = initials;
+
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modalInstance.show();
+    }
+</script>
+{% endblock %}

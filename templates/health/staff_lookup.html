@@ -157,34 +157,35 @@
         font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        padding: 13px 18px;
+        padding: 12px 16px;
         border-bottom: 1px solid #DED2BA;
         vertical-align: middle;
         white-space: nowrap;
     }
 
     .cham-table td {
-        padding: 14px 18px;
+        padding: 12px 16px;
         vertical-align: middle;
         font-size: 13.5px;
         color: #171311;
         border-bottom: 1px solid #F0EAE1;
     }
 
+    .cham-table td.cell-nowrap {
+        white-space: nowrap;
+    }
+
     .cham-table tbody tr:hover {
         background-color: #FAF7EF;
     }
 
-    /* Nút Xem hồ sơ nằm ngang gọn gàng, thanh lịch */
+    /* Nút Xem hồ sơ tối giản, không icon rườm rà */
     .btn-cham-view-link {
-        display: inline-flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 6px;
+        display: inline-block !important;
+        text-align: center;
         padding: 6px 14px;
         border-radius: 6px;
-        font-size: 13px;
+        font-size: 12.5px;
         font-weight: 600;
         color: #781A24;
         border: 1px solid #D0B581;
@@ -199,14 +200,12 @@
         color: #FFFFFF !important;
         border-color: #781A24;
         transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(120, 26, 36, 0.2);
+        box-shadow: 0 2px 6px rgba(120, 26, 36, 0.15);
     }
 
-    /* Pill cảnh báo KTV tinh gọn, màu chính */
+    /* Pill cảnh báo KTV tinh gọn, không nhồi nhét icon */
     .alert-pill-cham {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
+        display: inline-block;
         padding: 3px 10px;
         border-radius: 999px;
         background-color: #FAF7EF;
@@ -214,16 +213,15 @@
         color: #781A24;
         font-size: 11.5px;
         font-weight: 600;
-        margin: 2px;
+        margin: 2px 3px 2px 0;
+        white-space: nowrap;
     }
 
     .safe-text-cham {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
         color: #716761;
-        font-size: 12px;
+        font-size: 12.5px;
         font-weight: 500;
+        white-space: nowrap;
     }
 </style>
 {% endblock %}
@@ -315,7 +313,7 @@
                 </a>
                 <a href="{% url 'health:staff_lookup' %}?alert=alert{% if query %}&q={{ query }}{% endif %}"
                     class="filter-btn {% if filter_alert == 'alert' %}active{% endif %}">
-                    <i class="bi bi-exclamation-circle me-1"></i> Có cảnh báo ({{ high_alert_count }})
+                    Có cảnh báo ({{ high_alert_count }})
                 </a>
                 <a href="{% url 'health:staff_lookup' %}?alert=normal{% if query %}&q={{ query }}{% endif %}"
                     class="filter-btn {% if filter_alert == 'normal' %}active{% endif %}">
@@ -344,7 +342,7 @@
                     {% with p=item.obj data=item.data %}
                     <tr>
                         <!-- Mã hồ sơ -->
-                        <td>
+                        <td class="cell-nowrap">
                             <a href="{% url 'health:staff_detail' p.user.id %}" class="fw-bold text-decoration-none" style="color: #781A24;">
                                 {{ p.health_code }}
                             </a>
@@ -352,7 +350,7 @@
                         </td>
 
                         <!-- Khách hàng -->
-                        <td>
+                        <td class="cell-nowrap">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
                                     style="width: 34px; height: 34px; background-color: #781A24; font-size: 13px;">
@@ -360,13 +358,13 @@
                                 </div>
                                 <div>
                                     <div class="fw-bold text-dark" style="font-size: 13.5px;">{{ p.user.name|default:p.user.username }}</div>
-                                    <div class="text-muted" style="font-size: 12px;"><i class="bi bi-telephone me-1" style="color: #781A24;"></i>{{ p.user.phone }}</div>
+                                    <div class="text-muted" style="font-size: 12px;">{{ p.user.phone }}</div>
                                 </div>
                             </div>
                         </td>
 
-                        <!-- Chỉ số thể trạng (Gọn gàng, không badge xanh lá chói) -->
-                        <td>
+                        <!-- Chỉ số thể trạng -->
+                        <td class="cell-nowrap">
                             <div class="fw-semibold text-dark" style="font-size: 13.5px;">
                                 {{ data.formatted_height|default:p.height_cm|default:"--" }} cm · {{ data.formatted_weight|default:p.weight_kg|default:"--" }} kg
                             </div>
@@ -375,8 +373,8 @@
                             </div>
                         </td>
 
-                        <!-- Huyết áp (Dùng màu chính, không màu mè) -->
-                        <td>
+                        <!-- Huyết áp -->
+                        <td class="cell-nowrap">
                             {% if p.blood_pressure == 'Cao' %}
                             <span class="badge rounded-pill px-2 py-1 fw-bold" style="background-color: #FAF7EF; border: 1px solid #781A24; color: #781A24; font-size: 11px;">
                                 Cao
@@ -392,42 +390,41 @@
                             {% endif %}
                         </td>
 
-                        <!-- Mức độ đau (Số màu đỏ Champa, không cam chói) -->
-                        <td>
+                        <!-- Mức độ đau -->
+                        <td class="cell-nowrap">
                             <span class="fw-bold font-serif" style="color: #781A24; font-size: 14.5px;">
                                 {{ p.pain_level|default:5 }}/10
                             </span>
                         </td>
 
                         <!-- Lực massage -->
-                        <td>
+                        <td class="cell-nowrap">
                             <span class="text-dark" style="font-size: 13px;">
                                 {{ p.massage_pressure|default:"Lực vừa" }}
                             </span>
                         </td>
 
-                        <!-- Cảnh báo an toàn KTV (Chỉ dùng màu chính đỏ Champa và kem, không xanh đỏ lẫn lộn) -->
+                        <!-- Cảnh báo an toàn KTV (Không icon rườm rà) -->
                         <td>
                             {% if data.has_medical_alert and data.alert_details %}
                             <div class="d-flex flex-wrap gap-1">
                                 {% for alert in data.alert_details %}
                                 <span class="alert-pill-cham" title="{{ alert.desc }}">
-                                    <i class="bi bi-exclamation-triangle-fill"></i> {{ alert.title }}
+                                    {{ alert.title }}
                                 </span>
                                 {% endfor %}
                             </div>
                             {% else %}
                             <span class="safe-text-cham">
-                                <i class="bi bi-check2 text-muted"></i> Ổn định
+                                Ổn định
                             </span>
                             {% endif %}
                         </td>
 
-                        <!-- Thao tác (Nút ngang thanh lịch, không bị kéo dãn thành ô đứng) -->
-                        <td class="text-end">
+                        <!-- Thao tác -->
+                        <td class="text-end cell-nowrap">
                             <a href="{% url 'health:staff_detail' p.user.id %}" class="btn-cham-view-link">
-                                <i class="bi bi-eye"></i>
-                                <span>Xem hồ sơ</span>
+                                Xem hồ sơ
                             </a>
                         </td>
                     </tr>

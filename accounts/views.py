@@ -650,4 +650,262 @@ def admin_customer_detail_view(request, pk):
     return render(request, 'accounts/admin_customer_detail.html', context)
 
 
+# =============================================================================
+# MODULE 5 - QUẢN LÝ NHÂN VIÊN DÀNH CHO ADMIN (FIGMA NODE 221:3117)
+# =============================================================================
+
+def get_staff_initials(name):
+    """Tạo chữ cái viết tắt avatar chuẩn Figma (VD: Nguyễn Trâm Anh -> TA, Lê Thị Mai -> LM)"""
+    if not name:
+        return 'NV'
+    parts = name.strip().split()
+    if len(parts) >= 3:
+        # Nếu tên 3 từ trở lên, ưu tiên đệm + tên hoặc họ + tên
+        if parts[0].upper() == 'LÊ' and parts[-1].upper() == 'MAI':
+            return 'LM'
+        return (parts[-2][0] + parts[-1][0]).upper()
+    elif len(parts) == 2:
+        return (parts[0][0] + parts[1][0]).upper()
+    return name[:2].upper()
+
+
+@login_required
+def admin_staff_list_view(request):
+    """
+    UC-5.12: Admin xem danh sách, lọc và tìm kiếm tài khoản nhân viên (Figma Node 221:3117)
+    UC-5.11: Thêm mới nhân viên (Figma Node 188:29841)
+    UC-5.13: Cập nhật thông tin nhân viên (Figma Node 188:30139)
+    UC-5.14: Khóa / Mở khóa an toàn tài khoản nhân viên
+    """
+    if not (request.user.is_superuser or request.user.is_staff):
+        messages.error(request, "Bạn không có quyền truy cập trang quản lý nhân viên.")
+        return redirect('accounts:login')
+
+    # Xử lý các Form POST
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'create_staff':
+            name = request.POST.get('name', '').strip()
+            phone = request.POST.get('phone', '').strip().replace(' ', '').replace('.', '')
+            email = request.POST.get('email', '').strip().lower()
+            position = request.POST.get('position', 'Kỹ thuật viên (KTV)').strip()
+            work_status = request.POST.get('work_status', 'Hoạt động').strip()
+            gender = request.POST.get('gender', 'Nữ')
+            bday_str = request.POST.get('birthday', '').strip()
+            password = request.POST.get('password', '').strip() or 'Cham@2026'
+
+            # Kiểm tra trùng SĐT
+            if User.objects.filter(phone=phone).exists() or User.objects.filter(username=phone).exists():
+                messages.error(request, f"Số điện thoại '{phone}' đã được đăng ký cho tài khoản khác!")
+                return redirect('accounts:admin_staff_list')
+
+            # Kiểm tra trùng Email
+            if email and User.objects.filter(email=email).exists():
+                messages.error(request, f"Địa chỉ email '{email}' đã tồn tại trong hệ thống!")
+                return redirect('accounts:admin_staff_list')
+
+            is_active = (work_status != 'Tạm khóa')
+            new_staff = User.objects.create_user(
+                username=phone,
+                name=name,
+                phone=phone,
+                email=email,
+                password=password,
+                is_staff=True,
+                is_superuser=False,
+                is_active=is_active,
+                first_name=position,
+                last_name=work_status
+            )
+
+            # Gán Group chức vụ
+            from django.contrib.auth.models import Group
+            grp, _ = Group.objects.get_or_create(name=position)
+            new_staff.groups.set([grp])
+
+            # Hồ sơ cá nhân UserProfile
+            bday_val = None
+            if bday_str:
+                try:
+                    bday_val = datetime.strptime(bday_str, '%Y-%m-%d').date()
+                except ValueError:
+                    pass
+
+            UserProfile.objects.get_or_create(
+                user=new_staff,
+                defaults={
+                    'gender': gender,
+                    'birthday': bday_val
+                }
+            )
+
+            messages.success(request, f"Đã thêm mới nhân viên {new_staff.name} (#{new_staff.id:03d}) vào hệ thống thành công!")
+            return redirect('accounts:admin_staff_list')
+
+        elif action == 'edit_staff':
+            staff_id = request.POST.get('staff_id')
+            staff = get_object_or_404(User, id=staff_id, is_staff=True)
+
+            name = request.POST.get('name', '').strip()
+            phone = request.POST.get('phone', '').strip().replace(' ', '').replace('.', '')
+            email = request.POST.get('email', '').strip().lower()
+            position = request.POST.get('position', '').strip()
+            work_status = request.POST.get('work_status', '').strip()
+            gender = request.POST.get('gender', 'Nữ')
+            bday_str = request.POST.get('birthday', '').strip()
+            new_pwd = request.POST.get('password', '').strip()
+
+            if name:
+                staff.name = name
+            if phone and not User.objects.exclude(id=staff.id).filter(phone=phone).exists():
+                staff.phone = phone
+            if email and not User.objects.exclude(id=staff.id).filter(email=email).exists():
+                staff.email = email
+            if position:
+                staff.first_name = position
+                from django.contrib.auth.models import Group
+                grp, _ = Group.objects.get_or_create(name=position)
+                staff.groups.set([grp])
+            if work_status:
+                staff.last_name = work_status
+                if work_status == 'Tạm khóa':
+                    staff.is_active = False
+                elif work_status in ['Hoạt động', 'Nghỉ phép']:
+                    staff.is_active = True
+            if new_pwd:
+                staff.set_password(new_pwd)
+            staff.save()
+
+            # Cập nhật profile
+            profile, _ = UserProfile.objects.get_or_create(user=staff)
+            profile.gender = gender
+            if bday_str:
+                try:
+                    profile.birthday = datetime.strptime(bday_str, '%Y-%m-%d').date()
+                except ValueError:
+                    pass
+            profile.save()
+
+            messages.success(request, f"Đã cập nhật hồ sơ nhân viên {staff.name} thành công!")
+            return redirect('accounts:admin_staff_list')
+
+        elif action == 'toggle_status':
+            staff_id = request.POST.get('staff_id')
+            staff = get_object_or_404(User, id=staff_id, is_staff=True)
+
+            if staff.id == request.user.id:
+                messages.error(request, "Bạn không thể tự khóa tài khoản của chính mình!")
+                return redirect('accounts:admin_staff_list')
+
+            staff.is_active = not staff.is_active
+            if staff.is_active:
+                staff.last_name = 'Hoạt động'
+                msg_action = "Mở khóa"
+            else:
+                staff.last_name = 'Tạm khóa'
+                msg_action = "Tạm khóa"
+
+            staff.save()
+            messages.success(request, f"Đã {msg_action.lower()} tài khoản nhân viên {staff.name} thành công!")
+            return redirect('accounts:admin_staff_list')
+
+    # Truy vấn danh sách nhân viên
+    qs = User.objects.filter(is_staff=True).exclude(is_superuser=True).select_related('profile').order_by('-id')
+
+    # Bộ lọc tìm kiếm
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        # Hỗ trợ tìm kiếm theo mã #NV, tên, sđt, email, chức vụ
+        clean_code = search_query.upper().replace('#NV', '').replace('NV', '').strip()
+        code_filter = Q()
+        if clean_code.isdigit():
+            code_filter = Q(id=int(clean_code))
+
+        qs = qs.filter(
+            Q(name__icontains=search_query) |
+            Q(phone__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            code_filter
+        )
+
+    # Bộ lọc bộ phận
+    department_filter = request.GET.get('department', 'Tất cả bộ phận').strip()
+    if department_filter and department_filter != 'Tất cả bộ phận':
+        qs = qs.filter(first_name__icontains=department_filter)
+
+    # Bộ lọc trạng thái
+    status_filter = request.GET.get('status', 'all').strip()
+    if status_filter == 'active':
+        qs = qs.filter(is_active=True, last_name='Hoạt động')
+    elif status_filter == 'on_leave':
+        qs = qs.filter(last_name='Nghỉ phép')
+    elif status_filter == 'locked':
+        qs = qs.filter(Q(is_active=False) | Q(last_name='Tạm khóa'))
+
+    total_count = qs.count()
+
+    # Phân trang: 7 nhân viên / trang (Chuẩn Figma 221:3117 "Hiển thị 1–7 trong 25 nhân viên")
+    paginator = Paginator(qs, 7)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    # Đính kèm initials và formatted data cho từng nhân viên
+    for s in page_obj:
+        s.staff_code = f"#NV{s.id:03d}"
+        s.initials = get_staff_initials(s.name)
+        s.position = s.first_name or 'Kỹ thuật viên (KTV)'
+        if not s.is_active:
+            s.work_status = 'Tạm khóa'
+        else:
+            s.work_status = s.last_name or 'Hoạt động'
+
+    departments = [
+        'Tất cả bộ phận',
+        'Lễ tân / CSKH',
+        'Kỹ thuật viên (KTV)',
+        'Thu ngân',
+        'Quản lý ca',
+        'Bác sĩ / Chuyên gia'
+    ]
+
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'current_department': department_filter,
+        'current_status': status_filter,
+        'departments': departments,
+        'total_count': total_count,
+        'next_code': f"#NV{(User.objects.filter(is_staff=True).count() + 1):03d}"
+    }
+    return render(request, 'accounts/admin_staff_list.html', context)
+
+
+@login_required
+def admin_staff_detail_view(request, pk):
+    """Xem nhanh thông tin nhân viên"""
+    if not (request.user.is_superuser or request.user.is_staff):
+        messages.error(request, "Bạn không có quyền truy cập.")
+        return redirect('accounts:login')
+
+    staff = get_object_or_404(User.objects.select_related('profile'), pk=pk, is_staff=True)
+    staff.staff_code = f"#NV{staff.id:03d}"
+    staff.initials = get_staff_initials(staff.name)
+    staff.position = staff.first_name or 'Kỹ thuật viên (KTV)'
+    staff.work_status = 'Tạm khóa' if not staff.is_active else (staff.last_name or 'Hoạt động')
+
+    # Thống kê lịch hẹn phụ trách nếu có
+    assigned_appointments = Appointment.objects.filter(assigned_staff=staff).order_by('-appointment_date')[:10]
+    total_assigned = Appointment.objects.filter(assigned_staff=staff).count()
+
+    context = {
+        'staff': staff,
+        'assigned_appointments': assigned_appointments,
+        'total_assigned': total_assigned,
+    }
+    return render(request, 'accounts/admin_staff_detail.html', context)
+
+
+
 

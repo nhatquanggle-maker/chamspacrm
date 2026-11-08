@@ -185,17 +185,7 @@
                                     <button type="button" class="btn btn-action-cancel btn-sm" onclick="updateAppointmentStatus({{ appt.id }}, 'Cancelled')" title="Hủy lịch">
                                         Hủy
                                     </button>
-                                {% elif appt.status == 'Confirmed' %}
-                                    <button type="button" class="btn btn-action-serve btn-sm" onclick="updateAppointmentStatus({{ appt.id }}, 'In_Progress')" title="Bắt đầu phục vụ">
-                                        <i class="bi bi-play-fill me-1"></i>Phục vụ
-                                    </button>
-                                    <button type="button" class="btn btn-action-complete btn-sm" onclick="updateAppointmentStatus({{ appt.id }}, 'Completed')" title="Hoàn thành dịch vụ">
-                                        Hoàn thành
-                                    </button>
-                                    <button type="button" class="btn btn-action-cancel btn-sm" onclick="updateAppointmentStatus({{ appt.id }}, 'Cancelled')" title="Hủy lịch">
-                                        Hủy
-                                    </button>
-                                {% elif appt.status == 'In_Progress' %}
+                                {% elif appt.status == 'Confirmed' or appt.status == 'In_Progress' %}
                                     <button type="button" class="btn btn-action-complete btn-sm" onclick="updateAppointmentStatus({{ appt.id }}, 'Completed')" title="Hoàn thành dịch vụ">
                                         Hoàn thành
                                     </button>
@@ -308,7 +298,6 @@
                             <label class="form-label fw-semibold small text-dark">Trạng thái tiếp nhận</label>
                             <select class="form-select" name="status" id="qcStatus">
                                 <option value="Confirmed" selected>Đã xác nhận</option>
-                                <option value="In_Progress">Bắt đầu phục vụ ngay</option>
                                 <option value="Hold">Chờ xác nhận</option>
                             </select>
                         </div>
@@ -702,19 +691,6 @@
     background-color: #0E513A;
     color: #FFFFFF;
 }
-.btn-action-serve {
-    background-color: #026AA2;
-    border-color: #026AA2;
-    color: #FFFFFF;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 10px;
-}
-.btn-action-serve:hover {
-    background-color: #014C74;
-    color: #FFFFFF;
-}
 .btn-action-complete {
     background-color: #781A24;
     border-color: #781A24;
@@ -1003,15 +979,7 @@ function updateRowStatusUI(id, status) {
                 </button>
                 <button type="button" class="btn btn-action-cancel btn-sm" onclick="updateAppointmentStatus(${id}, 'Cancelled')" title="Hủy lịch">Hủy</button>
             `;
-        } else if (status === 'Confirmed') {
-            buttonsHtml = `
-                <button type="button" class="btn btn-action-serve btn-sm" onclick="updateAppointmentStatus(${id}, 'In_Progress')" title="Bắt đầu phục vụ">
-                    <i class="bi bi-play-fill me-1"></i>Phục vụ
-                </button>
-                <button type="button" class="btn btn-action-complete btn-sm" onclick="updateAppointmentStatus(${id}, 'Completed')" title="Hoàn thành dịch vụ">Hoàn thành</button>
-                <button type="button" class="btn btn-action-cancel btn-sm" onclick="updateAppointmentStatus(${id}, 'Cancelled')" title="Hủy lịch">Hủy</button>
-            `;
-        } else if (status === 'In_Progress') {
+        } else if (status === 'Confirmed' || status === 'In_Progress') {
             buttonsHtml = `
                 <button type="button" class="btn btn-action-complete btn-sm" onclick="updateAppointmentStatus(${id}, 'Completed')" title="Hoàn thành dịch vụ">Hoàn thành</button>
                 <button type="button" class="btn btn-action-cancel btn-sm" onclick="updateAppointmentStatus(${id}, 'Cancelled')" title="Hủy lịch">Hủy</button>
@@ -1116,16 +1084,11 @@ function renderDetailActionButtons(id, status) {
     if (!container) return;
 
     let html = '';
-    if (status !== 'Confirmed') {
-        html += `<button type="button" class="btn btn-sm btn-cham-outline" onclick="updateAppointmentStatus(${id}, 'Confirmed')">Xác nhận</button>`;
+    if (status === 'Hold' || status === 'Pending') {
+        html += `<button type="button" class="btn btn-sm btn-action-confirm" onclick="updateAppointmentStatus(${id}, 'Confirmed')">Xác nhận</button>`;
     }
-    if (status !== 'In_Progress') {
-        html += `<button type="button" class="btn btn-sm btn-cham-outline" onclick="updateAppointmentStatus(${id}, 'In_Progress')">Phục vụ</button>`;
-    }
-    if (status !== 'Completed') {
+    if (status !== 'Completed' && status !== 'Cancelled') {
         html += `<button type="button" class="btn btn-sm btn-cham-primary" onclick="updateAppointmentStatus(${id}, 'Completed')">Hoàn thành</button>`;
-    }
-    if (status !== 'Cancelled') {
         html += `<button type="button" class="btn btn-sm btn-action-cancel" onclick="updateAppointmentStatus(${id}, 'Cancelled')">Hủy lịch</button>`;
     }
     container.innerHTML = html;

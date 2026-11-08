@@ -27,10 +27,12 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
 
     # =========================================================================
-    # 7. MODULE 5 - GIAO DIỆN QUẢN TRỊ VIÊN (ADMIN CUSTOMER MANAGEMENT)
+    # 7. MODULE 5 - GIAO DIỆN QUẢN TRỊ VIÊN (ADMIN CUSTOMER & STAFF MANAGEMENT)
     # =========================================================================
     path('admin/customers/', views.admin_customer_list_view, name='admin_customer_list'),
     path('admin/customers/<int:pk>/', views.admin_customer_detail_view, name='admin_customer_detail'),
+    path('admin/staff/', views.admin_staff_list_view, name='admin_staff_list'),
+    path('admin/staff/<int:pk>/', views.admin_staff_detail_view, name='admin_staff_detail'),
 
     # =========================================================================
     # 8. HỆ THỐNG REST API CHO MODULE 5 (GIAO TIẾP ĐỒNG BỘ ĐA THIẾT BỊ / ĐA MÁY)
@@ -40,5 +42,10 @@ urlpatterns = [
     path('api/me/', api.MeAPI.as_view(), name='api_me'),
     path('api/customers/', api.CustomerListAPI.as_view(), name='api_customers'),
     path('api/admin/customers/create/', api.AdminCustomerCreateAPI.as_view(), name='api_admin_customer_create'),
+    path('api/admin/staff/', api.AdminStaffListAPI.as_view(), name='api_staff_list'),
+    path('api/admin/staff/create/', api.AdminStaffCreateAPI.as_view(), name='api_staff_create'),
+    path('api/admin/staff/<int:pk>/', api.AdminStaffDetailAPI.as_view(), name='api_staff_detail'),
+    path('api/admin/staff/<int:pk>/update/', api.AdminStaffUpdateAPI.as_view(), name='api_staff_update'),
+    path('api/admin/staff/<int:pk>/deactivate/', api.AdminStaffDeactivateAPI.as_view(), name='api_staff_deactivate'),
     path('api/stats/', api.AccountStatsAPI.as_view(), name='api_stats'),
 ]

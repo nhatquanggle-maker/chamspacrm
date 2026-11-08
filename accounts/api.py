@@ -398,14 +398,14 @@ class AdminStaffCreateAPI(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        from .serializers import StaffCreateSerializer
+        from .serializers import StaffCreateSerializer, StaffSerializer
         serializer = StaffCreateSerializer(data=request.data)
         if serializer.is_valid():
             staff = serializer.save()
             return Response({
                 "status": "success",
                 "message": f"Tạo tài khoản nhân viên {staff.name} thành công!",
-                "staff": UserSerializer(staff).data,
+                "staff": StaffSerializer(staff).data,
             }, status=status.HTTP_201_CREATED)
         return Response({"status": "error", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -418,20 +418,56 @@ class AdminStaffListAPI(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
-        staff_members = User.objects.filter(is_staff=True).select_related('profile').order_by('-date_joined')
+        from .serializers import StaffSerializer
+        staff_members = User.objects.filter(is_staff=True).exclude(is_superuser=True).select_related('profile').order_by('-date_joined')
+        
         q = request.GET.get('search', '').strip()
         if q:
             staff_members = staff_members.filter(
                 Q(name__icontains=q) |
                 Q(phone__icontains=q) |
-                Q(email__icontains=q)
+                Q(email__icontains=q) |
+                Q(first_name__icontains=q)
             )
 
-        serializer = UserSerializer(staff_members, many=True)
+        department = request.GET.get('department', '').strip()
+        if department and department != 'Tất cả bộ phận':
+            staff_members = staff_members.filter(first_name__icontains=department)
+
+        status_filter = request.GET.get('status', '').strip()
+        if status_filter:
+            if status_filter == 'active':
+                staff_members = staff_members.filter(is_active=True, last_name='Hoạt động')
+            elif status_filter == 'on_leave':
+                staff_members = staff_members.filter(last_name='Nghỉ phép')
+            elif status_filter == 'locked':
+                staff_members = staff_members.filter(Q(is_active=False) | Q(last_name='Tạm khóa'))
+
+        serializer = StaffSerializer(staff_members, many=True)
         return Response({
             "status": "success",
             "total_count": staff_members.count(),
             "staff": serializer.data,
+        }, status=status.HTTP_200_OK)
+
+
+class AdminStaffDetailAPI(APIView):
+    """
+    Chi tiết nhân viên
+    GET /api/admin/staff/<pk>/
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, pk):
+        from .serializers import StaffSerializer
+        try:
+            staff = User.objects.select_related('profile').get(pk=pk, is_staff=True)
+        except User.DoesNotExist:
+            return Response({"status": "error", "message": "Nhân viên không tồn tại."}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({
+            "status": "success",
+            "staff": StaffSerializer(staff).data,
         }, status=status.HTTP_200_OK)
 
 
@@ -448,21 +484,21 @@ class AdminStaffUpdateAPI(APIView):
         except User.DoesNotExist:
             return Response({"status": "error", "message": "Nhân viên không tồn tại."}, status=status.HTTP_404_NOT_FOUND)
 
-        from .serializers import StaffUpdateSerializer
+        from .serializers import StaffUpdateSerializer, StaffSerializer
         serializer = StaffUpdateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.update(staff, serializer.validated_data)
             return Response({
                 "status": "success",
-                "message": "Cập nhật thông tin nhân viên thành công!",
-                "staff": UserSerializer(staff).data,
+                "message": f"Cập nhật thông tin nhân viên {staff.name} thành công!",
+                "staff": StaffSerializer(staff).data,
             }, status=status.HTTP_200_OK)
         return Response({"status": "error", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AdminStaffDeactivateAPI(APIView):
     """
-    UC-5.14: Khóa tài khoản nhân viên (is_active = False)
+    UC-5.14: Khóa / Mở khóa tài khoản nhân viên (Soft Deactivation an toàn)
     PUT /api/admin/staff/{id}/deactivate/
     """
     permission_classes = [permissions.AllowAny]
@@ -476,12 +512,28 @@ class AdminStaffDeactivateAPI(APIView):
         if request.user.is_authenticated and request.user.pk == staff.pk:
             return Response({"status": "error", "message": "Không thể tự khóa tài khoản của chính mình."}, status=status.HTTP_400_BAD_REQUEST)
 
-        staff.is_active = False
+        # Toggle hoặc set is_active
+        action = request.data.get('action')
+        if action == 'unlock':
+            staff.is_active = True
+            staff.last_name = 'Hoạt động'
+            msg = f"Đã mở khóa tài khoản nhân viên {staff.name} thành công!"
+        elif action == 'lock':
+            staff.is_active = False
+            staff.last_name = 'Tạm khóa'
+            msg = f"Đã tạm khóa tài khoản nhân viên {staff.name} thành công!"
+        else:
+            staff.is_active = not staff.is_active
+            staff.last_name = 'Hoạt động' if staff.is_active else 'Tạm khóa'
+            action_label = "mở khóa" if staff.is_active else "tạm khóa"
+            msg = f"Đã {action_label} tài khoản nhân viên {staff.name} thành công!"
+
         staff.save()
         return Response({
             "status": "success",
-            "is_active": False,
-            "message": f"Tài khoản nhân viên {staff.name} đã được khóa thành công.",
+            "is_active": staff.is_active,
+            "work_status": staff.last_name,
+            "message": msg,
         }, status=status.HTTP_200_OK)
 
 

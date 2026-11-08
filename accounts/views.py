@@ -658,21 +658,27 @@ def get_staff_initials(name):
     """Tạo chữ cái viết tắt avatar chuẩn Figma (VD: Nguyễn Trâm Anh -> TA, Lê Thị Mai -> LM)"""
     if not name:
         return 'NV'
-    parts = name.strip().split()
+    import re
+    # Loại bỏ ngoặc đơn/chữ phụ trong ngoặc nếu có
+    clean_name = re.sub(r'\(.*?\)', '', name).strip()
+    clean_name = re.sub(r'[^a-zA-ZÀ-ỹ\s]', '', clean_name).strip()
+    parts = clean_name.split()
+    if not parts:
+        return 'NV'
     if len(parts) >= 3:
-        # Nếu tên 3 từ trở lên, ưu tiên đệm + tên hoặc họ + tên
         if parts[0].upper() == 'LÊ' and parts[-1].upper() == 'MAI':
             return 'LM'
         return (parts[-2][0] + parts[-1][0]).upper()
     elif len(parts) == 2:
         return (parts[0][0] + parts[1][0]).upper()
-    return name[:2].upper()
+    return clean_name[:2].upper()
 
 
 @login_required
 def admin_staff_list_view(request):
     """
     UC-5.12: Admin xem danh sách, lọc và tìm kiếm tài khoản nhân viên (Figma Node 221:3117)
+    Tất cả nhân viên có chung một chức vụ là Staff.
     UC-5.11: Thêm mới nhân viên (Figma Node 188:29841)
     UC-5.13: Cập nhật thông tin nhân viên (Figma Node 188:30139)
     UC-5.14: Khóa / Mở khóa an toàn tài khoản nhân viên
@@ -689,7 +695,7 @@ def admin_staff_list_view(request):
             name = request.POST.get('name', '').strip()
             phone = request.POST.get('phone', '').strip().replace(' ', '').replace('.', '')
             email = request.POST.get('email', '').strip().lower()
-            position = request.POST.get('position', 'Kỹ thuật viên (KTV)').strip()
+            position = 'Staff'
             work_status = request.POST.get('work_status', 'Hoạt động').strip()
             gender = request.POST.get('gender', 'Nữ')
             bday_str = request.POST.get('birthday', '').strip()
@@ -750,7 +756,6 @@ def admin_staff_list_view(request):
             name = request.POST.get('name', '').strip()
             phone = request.POST.get('phone', '').strip().replace(' ', '').replace('.', '')
             email = request.POST.get('email', '').strip().lower()
-            position = request.POST.get('position', '').strip()
             work_status = request.POST.get('work_status', '').strip()
             gender = request.POST.get('gender', 'Nữ')
             bday_str = request.POST.get('birthday', '').strip()
@@ -762,11 +767,7 @@ def admin_staff_list_view(request):
                 staff.phone = phone
             if email and not User.objects.exclude(id=staff.id).filter(email=email).exists():
                 staff.email = email
-            if position:
-                staff.first_name = position
-                from django.contrib.auth.models import Group
-                grp, _ = Group.objects.get_or_create(name=position)
-                staff.groups.set([grp])
+            staff.first_name = 'Staff'
             if work_status:
                 staff.last_name = work_status
                 if work_status == 'Tạm khóa':
@@ -810,13 +811,18 @@ def admin_staff_list_view(request):
             messages.success(request, f"Đã {msg_action.lower()} tài khoản nhân viên {staff.name} thành công!")
             return redirect('accounts:admin_staff_list')
 
-    # Truy vấn danh sách nhân viên
-    qs = User.objects.filter(is_staff=True).exclude(is_superuser=True).select_related('profile').order_by('-id')
+    # Toàn bộ danh sách nhân viên
+    base_qs = User.objects.filter(is_staff=True).exclude(is_superuser=True)
+    total_staff_all = base_qs.count()
+    active_count = base_qs.filter(is_active=True, last_name='Hoạt động').count()
+    leave_count = base_qs.filter(last_name='Nghỉ phép').count()
+    locked_count = base_qs.filter(Q(is_active=False) | Q(last_name='Tạm khóa')).count()
+
+    qs = base_qs.select_related('profile').order_by('-id')
 
     # Bộ lọc tìm kiếm
     search_query = request.GET.get('search', '').strip()
     if search_query:
-        # Hỗ trợ tìm kiếm theo mã #NV, tên, sđt, email, chức vụ
         clean_code = search_query.upper().replace('#NV', '').replace('NV', '').strip()
         code_filter = Q()
         if clean_code.isdigit():
@@ -826,16 +832,10 @@ def admin_staff_list_view(request):
             Q(name__icontains=search_query) |
             Q(phone__icontains=search_query) |
             Q(email__icontains=search_query) |
-            Q(first_name__icontains=search_query) |
             code_filter
         )
 
-    # Bộ lọc bộ phận
-    department_filter = request.GET.get('department', 'Tất cả bộ phận').strip()
-    if department_filter and department_filter != 'Tất cả bộ phận':
-        qs = qs.filter(first_name__icontains=department_filter)
-
-    # Bộ lọc trạng thái
+    # Bộ lọc trạng thái tabs
     status_filter = request.GET.get('status', 'all').strip()
     if status_filter == 'active':
         qs = qs.filter(is_active=True, last_name='Hoạt động')
@@ -844,9 +844,9 @@ def admin_staff_list_view(request):
     elif status_filter == 'locked':
         qs = qs.filter(Q(is_active=False) | Q(last_name='Tạm khóa'))
 
-    total_count = qs.count()
+    filtered_count = qs.count()
 
-    # Phân trang: 7 nhân viên / trang (Chuẩn Figma 221:3117 "Hiển thị 1–7 trong 25 nhân viên")
+    # Phân trang: 7 nhân viên / trang (Chuẩn Figma 221:3117)
     paginator = Paginator(qs, 7)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
@@ -855,28 +855,21 @@ def admin_staff_list_view(request):
     for s in page_obj:
         s.staff_code = f"#NV{s.id:03d}"
         s.initials = get_staff_initials(s.name)
-        s.position = s.first_name or 'Kỹ thuật viên (KTV)'
+        s.position = 'Staff'
         if not s.is_active:
             s.work_status = 'Tạm khóa'
         else:
             s.work_status = s.last_name or 'Hoạt động'
 
-    departments = [
-        'Tất cả bộ phận',
-        'Lễ tân / CSKH',
-        'Kỹ thuật viên (KTV)',
-        'Thu ngân',
-        'Quản lý ca',
-        'Bác sĩ / Chuyên gia'
-    ]
-
     context = {
         'page_obj': page_obj,
         'search_query': search_query,
-        'current_department': department_filter,
         'current_status': status_filter,
-        'departments': departments,
-        'total_count': total_count,
+        'total_count': total_staff_all,
+        'active_count': active_count,
+        'leave_count': leave_count,
+        'locked_count': locked_count,
+        'filtered_count': filtered_count,
         'next_code': f"#NV{(User.objects.filter(is_staff=True).count() + 1):03d}"
     }
     return render(request, 'accounts/admin_staff_list.html', context)
@@ -892,7 +885,7 @@ def admin_staff_detail_view(request, pk):
     staff = get_object_or_404(User.objects.select_related('profile'), pk=pk, is_staff=True)
     staff.staff_code = f"#NV{staff.id:03d}"
     staff.initials = get_staff_initials(staff.name)
-    staff.position = staff.first_name or 'Kỹ thuật viên (KTV)'
+    staff.position = 'Staff'
     staff.work_status = 'Tạm khóa' if not staff.is_active else (staff.last_name or 'Hoạt động')
 
     # Thống kê lịch hẹn phụ trách nếu có

@@ -162,14 +162,14 @@ def run_seed():
         u.email = s['email']
         u.is_staff = True
         u.is_active = s['is_active']
-        u.first_name = s['position']  # Chức vụ
+        u.first_name = 'Staff'  # Tất cả nhân viên đều có chung chức vụ là Staff
         u.last_name = s['status']    # Trạng thái làm việc
         u.set_password('Cham@2026')
         u.save()
 
         # Nhóm quyền Group
-        if s['position'] in group_map:
-            u.groups.set([group_map[s['position']]])
+        grp, _ = Group.objects.get_or_create(name='Staff')
+        u.groups.set([grp])
 
         # UserProfile
         p, _ = UserProfile.objects.get_or_create(user=u)

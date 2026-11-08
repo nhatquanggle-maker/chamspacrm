@@ -210,6 +210,7 @@
         background: transparent;
         border: none;
         cursor: pointer;
+        white-space: nowrap;
     }
     .action-view-staff {
         color: #315C86;
@@ -238,6 +239,31 @@
     .action-unlock-staff:hover {
         background-color: #E8F4ED;
         color: #1E563E;
+    }
+
+    /* Tabs Filter */
+    .filter-tab-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .filter-tab-pill.active {
+        background-color: #781A24;
+        color: #FFFFFF !important;
+    }
+    .filter-tab-pill:not(.active) {
+        background-color: #FAF7F0;
+        color: #716761;
+        border: 1px solid #EFE4CD;
+    }
+    .filter-tab-pill:not(.active):hover {
+        background-color: #EFE4CD;
+        color: #171311;
     }
 
     /* Pagination */
@@ -279,49 +305,48 @@
         <p class="page-subtitle-staff mb-0">Theo dõi thông tin, phân công ca trực và trạng thái tài khoản đội ngũ Cham Spa.</p>
     </div>
 
-    <!-- 3. Toolbar: Search Bar + Department Filter + Add Staff Button -->
+    <!-- 3. Toolbar: Search Bar + Add Staff Button -->
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
         <!-- Search Input -->
         <form method="GET" action="{% url 'accounts:admin_staff_list' %}" class="d-flex align-items-center flex-grow-1" style="max-width: 580px;">
             <div class="staff-search-box d-flex align-items-center px-3 py-2 w-100">
                 <i class="bi bi-search text-muted me-2"></i>
-                <input type="text" name="search" class="staff-search-input" placeholder="Tìm kiếm nhân viên theo tên, SĐT, Email, chức vụ..." value="{{ search_query }}">
+                <input type="text" name="search" class="staff-search-input" placeholder="Tìm kiếm nhân viên theo tên, SĐT, Email..." value="{{ search_query }}">
                 {% if search_query %}
-                    <a href="{% url 'accounts:admin_staff_list' %}{% if current_department != 'Tất cả bộ phận' %}?department={{ current_department }}{% endif %}" class="text-muted ms-2" title="Xóa bộ lọc">
+                    <a href="{% url 'accounts:admin_staff_list' %}{% if current_status != 'all' %}?status={{ current_status }}{% endif %}" class="text-muted ms-2" title="Xóa bộ lọc">
                         <i class="bi bi-x-circle-fill"></i>
                     </a>
                 {% endif %}
             </div>
-            {% if current_department != 'Tất cả bộ phận' %}
-                <input type="hidden" name="department" value="{{ current_department }}">
-            {% endif %}
             {% if current_status != 'all' %}
                 <input type="hidden" name="status" value="{{ current_status }}">
             {% endif %}
         </form>
 
-        <!-- Filters & Action Button -->
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <!-- Bộ lọc bộ phận -->
-            <form method="GET" action="{% url 'accounts:admin_staff_list' %}" id="departmentFilterForm">
-                {% if search_query %}
-                    <input type="hidden" name="search" value="{{ search_query }}">
-                {% endif %}
-                {% if current_status != 'all' %}
-                    <input type="hidden" name="status" value="{{ current_status }}">
-                {% endif %}
-                <select name="department" class="select-dept-filter" onchange="document.getElementById('departmentFilterForm').submit()">
-                    {% for dept in departments %}
-                        <option value="{{ dept }}" {% if current_department == dept %}selected{% endif %}>{{ dept }}</option>
-                    {% endfor %}
-                </select>
-            </form>
+        <!-- Nút Thêm mới Nhân viên (Figma Node 188:29841) -->
+        <button type="button" class="btn-add-staff" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+            <i class="bi bi-plus-lg"></i> Thêm mới Nhân viên
+        </button>
+    </div>
 
-            <!-- Nút Thêm mới Nhân viên (Figma Node 188:29841) -->
-            <button type="button" class="btn-add-staff" data-bs-toggle="modal" data-bs-target="#addStaffModal">
-                <i class="bi bi-plus-lg"></i> Thêm mới Nhân viên
-            </button>
-        </div>
+    <!-- 3.1. Tabs lọc trạng thái làm việc -->
+    <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+        <a href="{% url 'accounts:admin_staff_list' %}{% if search_query %}?search={{ search_query }}{% endif %}"
+           class="filter-tab-pill {% if current_status == 'all' %}active{% endif %}">
+            Tất cả ({{ total_count }})
+        </a>
+        <a href="{% url 'accounts:admin_staff_list' %}?status=active{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="filter-tab-pill {% if current_status == 'active' %}active{% endif %}">
+            Hoạt động ({{ active_count }})
+        </a>
+        <a href="{% url 'accounts:admin_staff_list' %}?status=on_leave{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="filter-tab-pill {% if current_status == 'on_leave' %}active{% endif %}">
+            Nghỉ phép ({{ leave_count }})
+        </a>
+        <a href="{% url 'accounts:admin_staff_list' %}?status=locked{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="filter-tab-pill {% if current_status == 'locked' %}active{% endif %}">
+            Tạm khóa ({{ locked_count }})
+        </a>
     </div>
 
     <!-- Thông báo hệ thống Flash Messages -->
@@ -335,20 +360,19 @@
         {% endfor %}
     {% endif %}
 
-    <!-- 4. Data Table Danh sách Nhân viên (Figma 221:3117) -->
+    <!-- 4. Data Table Danh sách Nhân viên (Đã bỏ cột Chức vụ theo yêu cầu) -->
     <div class="table-container-card mb-3">
         <div class="table-responsive">
             <table class="custom-staff-table">
                 <thead>
                     <tr>
-                        <th style="width: 100px;">Mã NV</th>
+                        <th style="width: 110px;">Mã NV</th>
                         <th style="width: 90px; text-align: center;">Ảnh Avatar</th>
-                        <th style="width: 200px;">Họ và tên</th>
-                        <th style="width: 220px;">Chức vụ</th>
-                        <th style="width: 150px;">SĐT</th>
-                        <th style="width: 230px;">Email</th>
-                        <th style="width: 130px; text-align: center;">Trạng thái</th>
-                        <th style="width: 220px; text-align: center;">Thao tác</th>
+                        <th style="width: 250px;">Họ và tên</th>
+                        <th style="width: 170px;">SĐT</th>
+                        <th style="width: 260px;">Email</th>
+                        <th style="width: 140px; text-align: center;">Trạng thái</th>
+                        <th style="width: 240px; text-align: center;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -363,20 +387,15 @@
                             </div>
                         </td>
                         <td>
-                            <span class="fw-bold text-dark d-block text-truncate" style="max-width: 200px;">
+                            <span class="fw-bold text-dark d-block text-truncate" style="max-width: 250px;">
                                 {{ s.name }}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="text-nowrap" style="color: #171311;">
-                                {{ s.position }}
                             </span>
                         </td>
                         <td>
                             <span class="text-nowrap">{{ s.phone|default:"Chưa có" }}</span>
                         </td>
                         <td>
-                            <span class="text-muted text-truncate d-inline-block" style="max-width: 220px;">
+                            <span class="text-muted text-truncate d-inline-block" style="max-width: 260px;">
                                 {{ s.email|default:"Chưa cập nhật" }}
                             </span>
                         </td>
@@ -396,7 +415,7 @@
                             {% endif %}
                         </td>
                         <td style="text-align: center;">
-                            <div class="d-flex align-items-center justify-content-center gap-2">
+                            <div class="d-flex align-items-center justify-content-center gap-2 text-nowrap">
                                 <!-- Xem -->
                                 <button type="button" class="row-action-link action-view-staff btn-view-staff"
                                         title="Xem chi tiết nhân viên"
@@ -405,7 +424,6 @@
                                         data-name="{{ s.name }}"
                                         data-phone="{{ s.phone }}"
                                         data-email="{{ s.email }}"
-                                        data-position="{{ s.position }}"
                                         data-status="{{ s.work_status }}"
                                         data-gender="{{ s.profile.gender|default:'Chưa rõ' }}"
                                         data-birthday="{{ s.profile.birthday|date:'d/m/Y'|default:'Chưa cập nhật' }}"
@@ -421,7 +439,6 @@
                                         data-name="{{ s.name }}"
                                         data-phone="{{ s.phone }}"
                                         data-email="{{ s.email }}"
-                                        data-position="{{ s.position }}"
                                         data-status="{{ s.work_status }}"
                                         data-gender="{{ s.profile.gender|default:'Nữ' }}"
                                         data-birthday="{{ s.profile.birthday|date:'Y-m-d'|default:'' }}">
@@ -445,10 +462,10 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
+                        <td colspan="7" class="text-center py-5 text-muted">
                             <i class="bi bi-person-badge fs-1 d-block mb-2 text-muted"></i>
                             <div class="fw-bold mb-1">Không tìm thấy tài khoản nhân viên nào</div>
-                            <div style="font-size: 13px;">Thử thay đổi từ khóa tìm kiếm hoặc chọn bộ phận khác</div>
+                            <div style="font-size: 13px;">Thử thay đổi từ khóa tìm kiếm hoặc chọn bộ lọc trạng thái khác</div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -472,7 +489,7 @@
             <ul class="pagination pagination-sm pagination-custom mb-0">
                 {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_department != 'Tất cả bộ phận' %}&department={{ current_department }}{% endif %}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}">
                         ‹
                     </a>
                 </li>
@@ -483,7 +500,7 @@
                         <li class="page-item active"><span class="page-link">{{ num }}</span></li>
                     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_department != 'Tất cả bộ phận' %}&department={{ current_department }}{% endif %}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}">
                                 {{ num }}
                             </a>
                         </li>
@@ -492,7 +509,7 @@
 
                 {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_department != 'Tất cả bộ phận' %}&department={{ current_department }}{% endif %}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}">
                         ›
                     </a>
                 </li>
@@ -552,17 +569,12 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 13px;">Chức vụ / Bộ phận <span class="text-danger">*</span></label>
-                        <select name="position" class="form-select" required>
-                            <option value="Lễ tân / CSKH">Lễ tân / CSKH</option>
-                            <option value="Kỹ thuật viên (KTV)" selected>Kỹ thuật viên (KTV)</option>
-                            <option value="Thu ngân">Thu ngân</option>
-                            <option value="Quản lý ca">Quản lý ca</option>
-                            <option value="Bác sĩ / Chuyên gia">Bác sĩ / Chuyên gia</option>
-                        </select>
-                        <small class="text-muted d-block mt-1" style="font-size: 11px;">
-                            Lựa chọn: Lễ tân / CSKH · Kỹ thuật viên (KTV) · Thu ngân · Quản lý ca
-                        </small>
+                        <label class="form-label fw-bold" style="font-size: 13px;">Vai trò hệ thống</label>
+                        <div class="p-2 rounded bg-light border d-flex align-items-center gap-2">
+                            <span class="badge text-white px-2 py-1" style="background-color: #781A24; font-size: 12px;">Staff</span>
+                            <span class="text-muted" style="font-size: 13px;">Nhân viên (Staff) nội bộ hệ thống Cham Spa.</span>
+                        </div>
+                        <input type="hidden" name="position" value="Staff">
                     </div>
 
                     <div class="row g-3 mb-3">
@@ -676,17 +688,12 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 13px;">Chức vụ / Bộ phận <span class="text-danger">*</span></label>
-                        <select name="position" id="editStaffPosition" class="form-select" required>
-                            <option value="Lễ tân / CSKH">Lễ tân / CSKH</option>
-                            <option value="Kỹ thuật viên (KTV)">Kỹ thuật viên (KTV)</option>
-                            <option value="Thu ngân">Thu ngân</option>
-                            <option value="Quản lý ca">Quản lý ca</option>
-                            <option value="Bác sĩ / Chuyên gia">Bác sĩ / Chuyên gia</option>
-                        </select>
-                        <small class="text-muted d-block mt-1" style="font-size: 11px;">
-                            Lựa chọn: Lễ tân / CSKH · Kỹ thuật viên (KTV) · Thu ngân · Quản lý ca
-                        </small>
+                        <label class="form-label fw-bold" style="font-size: 13px;">Vai trò hệ thống</label>
+                        <div class="p-2 rounded bg-light border d-flex align-items-center gap-2">
+                            <span class="badge text-white px-2 py-1" style="background-color: #781A24; font-size: 12px;">Staff</span>
+                            <span class="text-muted" style="font-size: 13px;">Nhân viên (Staff) nội bộ hệ thống Cham Spa.</span>
+                        </div>
+                        <input type="hidden" name="position" id="editStaffPosition" value="Staff">
                     </div>
 
                     <div class="row g-3 mb-3">
@@ -756,7 +763,7 @@
         <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
             <div class="modal-header text-white" id="toggleStaffHeader" style="background-color: #781A24;">
                 <h5 class="modal-title fs-6 fw-bold" id="toggleStaffModalLabel">
-                    <i class="bi bi-shield-exclamation me-2"></i> Xác nhận thay đổi trạng thái nhân viên
+                    <i class="bi bi-shield-exclamation me-2"></i> Xác nhận thay đổi trạng thái
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
@@ -768,14 +775,14 @@
                     <div class="mb-3">
                         <i class="bi bi-exclamation-triangle-fill text-warning fs-1"></i>
                     </div>
-                    <h6 class="fw-bold mb-2" id="toggleStaffTitle">Tạm khóa tài khoản nhân viên?</h6>
+                    <h6 class="fw-bold mb-2" id="toggleStaffTitle">Khóa tài khoản nhân viên?</h6>
                     <p class="text-muted mb-0" id="toggleStaffMsg" style="font-size: 14px;">
-                        Nhân viên sẽ không thể đăng nhập vào hệ thống quản lý ca trực. Toàn bộ lịch sử phân công và các lượt dịch vụ đã thực hiện vẫn được bảo toàn an toàn trong cơ sở dữ liệu.
+                        Nhân viên sẽ không thể đăng nhập vào hệ thống. Toàn bộ lịch sử ca trực và các lượt dịch vụ đã thực hiện vẫn được bảo toàn an toàn trong cơ sở dữ liệu.
                     </p>
                 </div>
                 <div class="modal-footer bg-light px-4 py-3 justify-content-center">
                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Hủy bỏ</button>
-                    <button type="submit" class="btn text-white px-4 fw-bold" id="toggleStaffSubmitBtn" style="background-color: #781A24;">Xác nhận</button>
+                    <button type="submit" class="btn text-white px-4 fw-bold" id="toggleStaffSubmitBtn" style="background-color: #781A24;">Khóa tài khoản</button>
                 </div>
             </form>
         </div>
@@ -803,7 +810,7 @@
                         <h6 class="fw-bold text-dark mb-1" id="viewStaffName" style="font-size: 16px;">Tên nhân viên</h6>
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge" id="viewStaffCode" style="background-color: #781A24; color: #FFF;">#NV000</span>
-                            <span class="badge bg-secondary" id="viewStaffPosition">Chức vụ</span>
+                            <span class="badge text-white" style="background-color: #781A24;" id="viewStaffPosition">Staff</span>
                         </div>
                     </div>
                 </div>
@@ -870,12 +877,11 @@
                 const name = this.getAttribute('data-name');
                 const phone = this.getAttribute('data-phone');
                 const email = this.getAttribute('data-email');
-                const position = this.getAttribute('data-position');
                 const status = this.getAttribute('data-status');
                 const gender = this.getAttribute('data-gender');
                 const birthday = this.getAttribute('data-birthday');
 
-                openEditStaffModal(id, code, name, phone, email, position, status, gender, birthday);
+                openEditStaffModal(id, code, name, phone, email, status, gender, birthday);
             });
         });
 
@@ -899,19 +905,18 @@
                 const name = this.getAttribute('data-name');
                 const phone = this.getAttribute('data-phone');
                 const email = this.getAttribute('data-email');
-                const position = this.getAttribute('data-position');
                 const status = this.getAttribute('data-status');
                 const gender = this.getAttribute('data-gender');
                 const birthday = this.getAttribute('data-birthday');
                 const joined = this.getAttribute('data-joined');
 
-                openViewStaffModal(code, name, phone, email, position, status, gender, birthday, joined);
+                openViewStaffModal(code, name, phone, email, status, gender, birthday, joined);
             });
         });
     });
 
     // Mở Modal Cập nhật Nhân viên
-    function openEditStaffModal(id, code, name, phone, email, position, status, gender, birthday) {
+    function openEditStaffModal(id, code, name, phone, email, status, gender, birthday) {
         ensureStaffModalsOnBody();
         const modalEl = document.getElementById('editStaffModal');
         if (!modalEl) return;
@@ -921,7 +926,7 @@
         document.getElementById('editStaffName').value = name || '';
         document.getElementById('editStaffPhone').value = phone || '';
         document.getElementById('editStaffEmail').value = email || '';
-        document.getElementById('editStaffPosition').value = position || 'Kỹ thuật viên (KTV)';
+        document.getElementById('editStaffPosition').value = 'Staff';
         document.getElementById('editStaffStatus').value = status || 'Hoạt động';
         document.getElementById('editStaffGender').value = gender || 'Nữ';
         document.getElementById('editStaffBirthday').value = birthday || '';
@@ -930,7 +935,7 @@
         modalInstance.show();
     }
 
-    // Mở Modal Khóa / Mở khóa Nhân viên
+    // Mở Modal Khóa / Mở khóa Nhân viên (Đồng bộ giao diện xác nhận an toàn)
     function openToggleStaffModal(id, name, isActive) {
         ensureStaffModalsOnBody();
         const modalEl = document.getElementById('toggleStaffModal');
@@ -942,9 +947,9 @@
         const submitBtn = document.getElementById('toggleStaffSubmitBtn');
 
         if (isActive) {
-            titleEl.innerText = `Tạm khóa tài khoản nhân viên "${name}"?`;
-            msgEl.innerText = `Nhân viên sẽ không thể đăng nhập vào hệ thống quản lý ca trực. Toàn bộ lịch sử phân công và các lượt dịch vụ đã thực hiện vẫn được bảo toàn an toàn trong cơ sở dữ liệu.`;
-            submitBtn.innerText = "Tạm khóa an toàn";
+            titleEl.innerText = `Khóa tài khoản nhân viên "${name}"?`;
+            msgEl.innerText = `Tài khoản sẽ chuyển sang trạng thái "Tạm khóa". Nhân viên sẽ không thể đăng nhập vào hệ thống. Toàn bộ lịch sử ca trực và các lượt dịch vụ đã thực hiện vẫn được bảo toàn an toàn.`;
+            submitBtn.innerText = "Khóa tài khoản an toàn";
             submitBtn.style.backgroundColor = "#781A24";
         } else {
             titleEl.innerText = `Mở khóa tài khoản nhân viên "${name}"?`;
@@ -958,7 +963,7 @@
     }
 
     // Mở Modal Xem chi tiết nhanh
-    function openViewStaffModal(code, name, phone, email, position, status, gender, birthday, joined) {
+    function openViewStaffModal(code, name, phone, email, status, gender, birthday, joined) {
         ensureStaffModalsOnBody();
         const modalEl = document.getElementById('viewStaffModal');
         if (!modalEl) return;
@@ -967,7 +972,7 @@
         document.getElementById('viewStaffName').innerText = name || '';
         document.getElementById('viewStaffPhone').innerText = phone || '---';
         document.getElementById('viewStaffEmail').innerText = email || '---';
-        document.getElementById('viewStaffPosition').innerText = position || 'Kỹ thuật viên';
+        document.getElementById('viewStaffPosition').innerText = 'Staff';
         document.getElementById('viewStaffGender').innerText = gender || '---';
         document.getElementById('viewStaffBirthday').innerText = birthday || '---';
         document.getElementById('viewStaffJoined').innerText = joined || '---';
@@ -982,11 +987,14 @@
             statusEl.className = 'text-danger fw-bold';
         }
 
-        // Initials Avatar
-        const parts = (name || '').trim().split(' ');
+        // Initials Avatar (Chuẩn hóa loại bỏ chữ trong ngoặc đơn như Lead KTV)
+        const cleanName = (name || '').replace(/\(.*?\)/g, '').trim();
+        const parts = cleanName.split(/\s+/);
         let initials = 'NV';
         if (parts.length >= 2) {
             initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        } else if (parts.length === 1 && parts[0].length >= 2) {
+            initials = parts[0].substring(0, 2).toUpperCase();
         }
         document.getElementById('viewStaffAvatar').innerText = initials;
 

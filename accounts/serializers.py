@@ -175,7 +175,7 @@ class StaffSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'is_staff', 'is_superuser', 'date_joined']
 
     def get_position(self, obj):
-        return obj.first_name or 'Kỹ thuật viên (KTV)'
+        return 'Staff'
 
     def get_work_status(self, obj):
         if not obj.is_active:
@@ -192,7 +192,7 @@ class StaffCreateSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20, required=True)
     email = serializers.EmailField(required=True)
     password = serializers.CharField(write_only=True, min_length=6, required=False, default='Cham@2026')
-    position = serializers.CharField(max_length=100, required=False, default='Kỹ thuật viên (KTV)')
+    position = serializers.CharField(max_length=100, required=False, default='Staff')
     work_status = serializers.CharField(max_length=50, required=False, default='Hoạt động')
     gender = serializers.ChoiceField(choices=['Nữ', 'Nam', 'Khác'], required=False, default='Nữ')
     birthday = serializers.DateField(required=False, allow_null=True)
@@ -213,7 +213,7 @@ class StaffCreateSerializer(serializers.Serializer):
         from django.contrib.auth.models import Group
         phone = validated_data['phone']
         pwd = validated_data.get('password') or 'Cham@2026'
-        position = validated_data.get('position', 'Kỹ thuật viên (KTV)').strip()
+        position = 'Staff'
         work_status = validated_data.get('work_status', 'Hoạt động').strip()
         is_active = (work_status != 'Tạm khóa')
 

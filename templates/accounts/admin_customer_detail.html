@@ -385,11 +385,19 @@
 <div class="cust-detail-page py-2">
     <!-- 1. Breadcrumb -->
     <div class="d-flex align-items-center gap-1 mb-2">
+        {% if user.is_superuser %}
         <a href="{% url 'accounts:admin_customer_list' %}" class="breadcrumb-item-custom text-decoration-none">Hệ thống</a>
         <span class="breadcrumb-sep">/</span>
         <a href="{% url 'accounts:admin_customer_list' %}" class="breadcrumb-item-custom text-decoration-none">Quản lý Khách hàng</a>
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-active">Chi tiết khách hàng</span>
+        {% else %}
+        <a href="{% url 'health:staff_lookup' %}" class="breadcrumb-item-custom text-decoration-none">Không gian làm việc</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="{% url 'health:staff_lookup' %}" class="breadcrumb-item-custom text-decoration-none">Hồ sơ Khách hàng</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-active">Chi tiết khách hàng</span>
+        {% endif %}
     </div>
 
     <!-- 2. Page Title and Actions (Figma 221:481) -->

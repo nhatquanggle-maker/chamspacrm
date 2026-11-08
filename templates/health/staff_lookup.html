@@ -244,9 +244,10 @@
             <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small fw-normal">
                 <i class="bi bi-clock me-1" style="color: #781A24;"></i> Ca trực: {{ now|date:"d/m/Y" }}
             </span>
-            <button type="button" class="btn btn-sm text-white fw-semibold px-2.5 py-1 d-inline-flex align-items-center gap-1"
-                    style="background-color: #781A24; border-radius: 6px; font-size: 11.5px; border: none; height: 30px; box-shadow: 0 1px 3px rgba(120,26,36,0.15);"
-                    data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Thêm tài khoản khách hàng mới">
+            <button type="button"
+                class="btn btn-sm text-white fw-semibold px-2.5 py-1 d-inline-flex align-items-center gap-1"
+                style="background-color: #781A24; border-radius: 6px; font-size: 11.5px; border: none; height: 30px; box-shadow: 0 1px 3px rgba(120,26,36,0.15);"
+                data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Thêm tài khoản khách hàng mới">
                 <i class="bi bi-plus-lg" style="font-size: 11px;"></i>
                 <span>Thêm tài khoản KHÁCH HÀNG</span>
             </button>
@@ -349,7 +350,8 @@
                     <tr>
                         <!-- Mã hồ sơ -->
                         <td class="cell-nowrap">
-                            <a href="{% url 'health:staff_detail' p.user.id %}" class="fw-bold text-decoration-none" style="color: #781A24;">
+                            <a href="{% url 'accounts:admin_customer_detail' p.user.id %}?tab=health" class="fw-bold text-decoration-none"
+                                style="color: #781A24;">
                                 {{ p.health_code }}
                             </a>
                             <div class="text-muted" style="font-size: 11.5px;">{{ p.created_at|date:"d/m/Y H:i" }}</div>
@@ -363,7 +365,11 @@
                                     {{ p.user.name|default:p.user.username|make_list|first|upper }}
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark" style="font-size: 13.5px;">{{ p.user.name|default:p.user.username }}</div>
+                                    <div class="fw-bold text-dark" style="font-size: 13.5px;">
+                                        <a href="{% url 'accounts:admin_customer_detail' p.user.id %}?tab=info" class="text-dark text-decoration-none fw-bold">
+                                            {{ p.user.name|default:p.user.username }}
+                                        </a>
+                                    </div>
                                     <div class="text-muted" style="font-size: 12px;">{{ p.user.phone }}</div>
                                 </div>
                             </div>
@@ -382,11 +388,13 @@
                         <!-- Huyết áp -->
                         <td class="cell-nowrap">
                             {% if p.blood_pressure == 'Cao' %}
-                            <span class="badge rounded-pill px-2 py-1 fw-bold" style="background-color: #FAF7EF; border: 1px solid #781A24; color: #781A24; font-size: 11px;">
+                            <span class="badge rounded-pill px-2 py-1 fw-bold"
+                                style="background-color: #FAF7EF; border: 1px solid #781A24; color: #781A24; font-size: 11px;">
                                 Cao
                             </span>
                             {% elif p.blood_pressure == 'Thấp' %}
-                            <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background-color: #FAF7EF; border: 1px solid #D0B581; color: #781A24; font-size: 11px;">
+                            <span class="badge rounded-pill px-2 py-1 fw-semibold"
+                                style="background-color: #FAF7EF; border: 1px solid #D0B581; color: #781A24; font-size: 11px;">
                                 Thấp
                             </span>
                             {% else %}
@@ -416,7 +424,7 @@
                             <div class="d-flex flex-wrap gap-1">
                                 {% for alert in data.alert_details %}
                                 <span class="alert-pill-cham" title="{{ alert.desc }}">
-                                    {{ alert.title }}
+                                     {{ alert.title }}
                                 </span>
                                 {% endfor %}
                             </div>
@@ -429,7 +437,7 @@
 
                         <!-- Thao tác -->
                         <td class="text-end cell-nowrap">
-                            <a href="{% url 'health:staff_detail' p.user.id %}" class="btn-cham-view-link">
+                            <a href="{% url 'accounts:admin_customer_detail' p.user.id %}?tab=health" class="btn-cham-view-link">
                                 Xem hồ sơ
                             </a>
                         </td>
@@ -463,20 +471,24 @@
                 <h5 class="modal-title fs-6 fw-bold" id="addCustomerModalLabel">
                     <i class="bi bi-person-plus-fill me-2"></i> Thêm tài khoản Khách hàng
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Đóng"></button>
             </div>
             <form method="POST" action="{% url 'health:staff_lookup' %}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="create_customer">
                 <div class="modal-body p-4" style="font-family: 'Cabin', sans-serif;">
                     <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 13px;">Họ và tên khách hàng <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" placeholder="Ví dụ: Nguyễn Thị Mai" required>
+                        <label class="form-label fw-bold" style="font-size: 13px;">Họ và tên khách hàng <span
+                                class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" placeholder="Ví dụ: Nguyễn Thị Mai"
+                            required>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold" style="font-size: 13px;">Số điện thoại <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold" style="font-size: 13px;">Số điện thoại <span
+                                    class="text-danger">*</span></label>
                             <input type="tel" name="phone" class="form-control" placeholder="0901 234 567" required>
                         </div>
                         <div class="col-md-6">
@@ -505,12 +517,12 @@
                             <label class="form-label fw-bold" style="font-size: 13px;">Hạng thẻ khởi tạo</label>
                             <select name="tier_name" class="form-select">
                                 {% for t in tiers %}
-                                    <option value="{{ t.name }}">{{ t.name }} (từ {{ t.min_points }} điểm)</option>
+                                <option value="{{ t.name }}">{{ t.name }} (từ {{ t.min_points }} điểm)</option>
                                 {% empty %}
-                                    <option value="Thành viên">Thành viên</option>
-                                    <option value="Hạng Bạc">Hạng Bạc</option>
-                                    <option value="Hạng Vàng">Hạng Vàng</option>
-                                    <option value="Hạng Kim Cương">Hạng Kim Cương</option>
+                                <option value="Thành viên">Thành viên</option>
+                                <option value="Hạng Bạc">Hạng Bạc</option>
+                                <option value="Hạng Vàng">Hạng Vàng</option>
+                                <option value="Hạng Kim Cương">Hạng Kim Cương</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -522,13 +534,16 @@
                     </div>
 
                     <div class="mb-2">
-                        <label class="form-label fw-bold" style="font-size: 13px;">Ghi chú chăm sóc / Thể trạng sức khỏe</label>
-                        <textarea name="care_note" class="form-control" rows="2" placeholder="Ví dụ: Ưu tiên phòng yên tĩnh, da nhạy cảm, vùng cổ vai gáy đau mỏi..."></textarea>
+                        <label class="form-label fw-bold" style="font-size: 13px;">Ghi chú chăm sóc / Thể trạng sức
+                            khỏe</label>
+                        <textarea name="care_note" class="form-control" rows="2"
+                            placeholder="Ví dụ: Ưu tiên phòng yên tĩnh, da nhạy cảm, vùng cổ vai gáy đau mỏi..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light px-4 py-3">
                     <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Hủy bỏ</button>
-                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #781A24;">Lưu tài khoản</button>
+                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #781A24;">Lưu tài
+                        khoản</button>
                 </div>
             </form>
         </div>
@@ -540,7 +555,7 @@
 <script>
     // Di chuyển trực tiếp modal ra <body> để modal luôn nằm trên lớp phủ z-index
     function ensureCustomerModalsOnBody() {
-        ['addCustomerModal'].forEach(function(id) {
+        ['addCustomerModal'].forEach(function (id) {
             const el = document.getElementById(id);
             if (el && el.parentElement !== document.body) {
                 document.body.appendChild(el);

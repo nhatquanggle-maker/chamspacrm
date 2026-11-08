@@ -51,7 +51,7 @@
             </div>
         </a>
 
-        <a href="{% url 'dashboard:staff' %}?tab=feedbacks" class="staff-nav-item"
+        <a href="{% url 'feedbacks:admin_management' %}" class="staff-nav-item {% if request.resolver_match.app_name == 'feedbacks' %}active{% endif %}"
             data-nav-target="Đánh giá và Khiếu nại">
             <div class="d-flex align-items-center gap-3">
                 <i class="bi bi-chat-left-dots fs-6"></i>
@@ -61,7 +61,7 @@
         </a>
 
         <a href="{% url 'health:staff_lookup' %}" 
-            class="staff-nav-item {% if request.resolver_match.app_name == 'health' and 'staff' in request.resolver_match.url_name %}active{% endif %}" 
+            class="staff-nav-item {% if request.resolver_match.app_name == 'health' or request.resolver_match.url_name == 'admin_customer_detail' or request.resolver_match.url_name == 'admin_customer_list' %}active{% endif %}" 
             data-nav-target="Hồ sơ Khách hàng">
             <div class="d-flex align-items-center gap-3">
                 <i class="bi bi-people fs-6"></i>

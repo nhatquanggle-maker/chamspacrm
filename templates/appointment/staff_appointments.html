@@ -27,7 +27,8 @@
                 <i class="bi bi-plus-lg" style="font-size: 11px; color: #781A24;"></i>
                 <span class="fw-semibold">Thêm tài khoản KHÁCH HÀNG</span>
             </button>
-            <button type="button" class="btn btn-cham-primary d-inline-flex align-items-center gap-2 px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalStaffQuickCreate">
+            <button type="button" class="btn btn-cham-primary d-inline-flex align-items-center gap-2 px-3 py-2"
+                data-bs-toggle="modal" data-bs-target="#modalStaffQuickCreate">
                 <i class="bi bi-plus-lg fs-6"></i>
                 <span class="fw-semibold">Đặt lịch tại quầy</span>
             </button>
@@ -36,7 +37,8 @@
 
     <!-- 2. SCHEDULE FILTERS (Figma Node 110:4969) -->
     <div class="staff-filter-card mb-4">
-        <form method="GET" action="{% url 'appointment:staff_appointments' %}" id="staffFilterForm" class="row g-3 align-items-end">
+        <form method="GET" action="{% url 'appointment:staff_appointments' %}" id="staffFilterForm"
+            class="row g-3 align-items-end">
             <!-- Filter: Tìm lịch hẹn -->
             <div class="col-12 col-md-6 col-xl-3">
                 <label class="staff-filter-label mb-1">
@@ -45,7 +47,7 @@
                 <div class="staff-input-wrapper">
                     <i class="bi bi-search staff-input-icon"></i>
                     <input type="text" name="search" id="filterSearchInput" class="form-control staff-filter-input"
-                           placeholder="Tên khách / SĐT / Mã đơn" value="{{ search_query }}">
+                        placeholder="Tên khách / SĐT / Mã đơn" value="{{ search_query }}">
                 </div>
             </div>
 
@@ -56,7 +58,7 @@
                 </label>
                 <div class="staff-input-wrapper">
                     <input type="date" name="date" id="filterDateInput" class="form-control staff-filter-input"
-                           value="{{ selected_date }}">
+                        value="{{ selected_date }}">
                 </div>
             </div>
 
@@ -93,11 +95,13 @@
 
             <!-- Filter Buttons: Áp dụng & Đặt lại -->
             <div class="col-12 col-md-6 col-xl-2 d-flex gap-2">
-                <button type="submit" class="btn btn-cham-primary flex-grow-1 py-2 d-inline-flex align-items-center justify-content-center gap-1">
+                <button type="submit"
+                    class="btn btn-cham-primary flex-grow-1 py-2 d-inline-flex align-items-center justify-content-center gap-1">
                     <i class="bi bi-check2"></i>
                     <span>Áp dụng</span>
                 </button>
-                <a href="{% url 'appointment:staff_appointments' %}?date={{ today_str }}" class="btn btn-cham-outline py-2 px-3" title="Đặt lại về hôm nay">
+                <a href="{% url 'appointment:staff_appointments' %}?date={{ today_str }}"
+                    class="btn btn-cham-outline py-2 px-3" title="Đặt lại về hôm nay">
                     <i class="bi bi-arrow-counterclockwise"></i>
                 </a>
             </div>
@@ -135,7 +139,8 @@
                 </thead>
                 <tbody id="appointmentsTableBody">
                     {% for appt in appointments %}
-                    <tr class="appointment-row" id="row-{{ appt.id }}" data-id="{{ appt.id }}" data-status="{{ appt.status }}" data-slot="{{ appt.time_slot }}">
+                    <tr class="appointment-row" id="row-{{ appt.id }}" data-id="{{ appt.id }}"
+                        data-status="{{ appt.status }}" data-slot="{{ appt.time_slot }}">
                         <!-- Giờ -->
                         <td>
                             <div class="time-col">{{ appt.time_slot }}</div>
@@ -152,9 +157,9 @@
                                 <div class="customer-name">{{ appt.customer_name }}</div>
                                 <div class="customer-cue">
                                     {% if appt.user %}
-                                        <i class="bi bi-shield-check text-gold me-1"></i>{{ appt.customer_cue }}
+                                    <i class="bi bi-shield-check text-gold me-1"></i>{{ appt.customer_cue }}
                                     {% else %}
-                                        <i class="bi bi-person text-muted me-1"></i>{{ appt.customer_cue }}
+                                    <i class="bi bi-person text-muted me-1"></i>{{ appt.customer_cue }}
                                     {% endif %}
                                 </div>
                             </div>
@@ -173,7 +178,8 @@
                         <!-- Trạng thái (Badge chuẩn Figma) -->
                         <td>
                             <div class="status-cell" id="status-cell-{{ appt.id }}">
-                                <span class="staff-badge-status {{ appt.status_class }}" style="background-color: {{ appt.status_bg }}; color: {{ appt.status_color }};">
+                                <span class="staff-badge-status {{ appt.status_class }}"
+                                    style="background-color: {{ appt.status_bg }}; color: {{ appt.status_color }};">
                                     <span class="status-dot" style="background-color: {{ appt.status_dot }};"></span>
                                     <span class="status-text">{{ appt.status_display }}</span>
                                 </span>
@@ -182,29 +188,38 @@
 
                         <!-- Cập nhật (Action buttons chuẩn Figma) -->
                         <td class="text-end pe-4">
-                            <div class="action-buttons-group d-inline-flex align-items-center gap-1" id="actions-{{ appt.id }}">
+                            <div class="action-buttons-group d-inline-flex align-items-center gap-1"
+                                id="actions-{{ appt.id }}">
                                 {% if appt.status == 'Hold' or appt.status == 'Pending' %}
-                                    <button type="button" class="btn btn-action-confirm btn-sm" onclick="updateAppointmentStatus({{ appt.id }}, 'Confirmed')" title="Xác nhận lịch">
-                                        <i class="bi bi-check-lg me-1"></i>Xác nhận
-                                    </button>
-                                    <button type="button" class="btn btn-action-cancel btn-sm" onclick="updateAppointmentStatus({{ appt.id }}, 'Cancelled')" title="Hủy lịch">
-                                        Hủy
-                                    </button>
+                                <button type="button" class="btn btn-action-confirm btn-sm"
+                                    onclick="updateAppointmentStatus({{ appt.id }}, 'Confirmed')" title="Xác nhận lịch">
+                                    <i class="bi bi-check-lg me-1"></i>Xác nhận
+                                </button>
+                                <button type="button" class="btn btn-action-cancel btn-sm"
+                                    onclick="updateAppointmentStatus({{ appt.id }}, 'Cancelled')" title="Hủy lịch">
+                                    Hủy
+                                </button>
                                 {% elif appt.status == 'Confirmed' or appt.status == 'In_Progress' %}
-                                    <button type="button" class="btn btn-action-complete btn-sm" onclick="updateAppointmentStatus({{ appt.id }}, 'Completed')" title="Hoàn thành dịch vụ">
-                                        Hoàn thành
-                                    </button>
-                                    <button type="button" class="btn btn-action-cancel btn-sm" onclick="updateAppointmentStatus({{ appt.id }}, 'Cancelled')" title="Hủy lịch">
-                                        Hủy
-                                    </button>
+                                <button type="button" class="btn btn-action-complete btn-sm"
+                                    onclick="updateAppointmentStatus({{ appt.id }}, 'Completed')"
+                                    title="Hoàn thành dịch vụ">
+                                    Hoàn thành
+                                </button>
+                                <button type="button" class="btn btn-action-cancel btn-sm"
+                                    onclick="updateAppointmentStatus({{ appt.id }}, 'Cancelled')" title="Hủy lịch">
+                                    Hủy
+                                </button>
                                 {% elif appt.status == 'Completed' %}
-                                    <span class="text-muted small me-2"><i class="bi bi-check-circle-fill text-success me-1"></i>Đã xong</span>
+                                <span class="text-muted small me-2"><i
+                                        class="bi bi-check-circle-fill text-success me-1"></i>Đã xong</span>
                                 {% elif appt.status == 'Cancelled' %}
-                                    <span class="text-muted small me-2"><i class="bi bi-x-circle-fill text-danger me-1"></i>Đã hủy</span>
+                                <span class="text-muted small me-2"><i
+                                        class="bi bi-x-circle-fill text-danger me-1"></i>Đã hủy</span>
                                 {% endif %}
 
                                 <!-- Nút xem chi tiết -->
-                                <button type="button" class="btn btn-action-detail btn-sm" onclick="viewAppointmentDetail({{ appt.id }})" title="Xem chi tiết">
+                                <button type="button" class="btn btn-action-detail btn-sm"
+                                    onclick="viewAppointmentDetail({{ appt.id }})" title="Xem chi tiết">
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </div>
@@ -216,8 +231,10 @@
                             <div class="empty-state">
                                 <i class="bi bi-calendar-x fs-1 text-gold mb-2 d-block"></i>
                                 <div class="fw-semibold text-dark fs-6 mb-1">Không có lịch hẹn nào phù hợp bộ lọc</div>
-                                <div class="text-muted small">Hãy thử chọn ngày khác hoặc xóa bộ lọc để xem toàn bộ danh sách.</div>
-                                <a href="{% url 'appointment:staff_appointments' %}?date={{ today_str }}" class="btn btn-cham-outline btn-sm mt-3">
+                                <div class="text-muted small">Hãy thử chọn ngày khác hoặc xóa bộ lọc để xem toàn bộ danh
+                                    sách.</div>
+                                <a href="{% url 'appointment:staff_appointments' %}?date={{ today_str }}"
+                                    class="btn btn-cham-outline btn-sm mt-3">
                                     <i class="bi bi-arrow-repeat me-1"></i>Về lịch hẹn hôm nay
                                 </a>
                             </div>
@@ -229,7 +246,8 @@
         </div>
 
         <!-- Schedule Footer (Figma Node 110:4969) -->
-        <div class="staff-schedule-footer d-flex flex-wrap align-items-center justify-content-between px-4 py-3 gap-3 border-top">
+        <div
+            class="staff-schedule-footer d-flex flex-wrap align-items-center justify-content-between px-4 py-3 gap-3 border-top">
             <!-- Left Info: Khung giờ tiếp theo -->
             <div class="next-slot-info d-flex align-items-center gap-2">
                 <i class="bi bi-clock-history text-burgundy"></i>
@@ -262,7 +280,8 @@
 <!-- ========================================================================= -->
 <!-- 4. MODAL: ĐẶT LỊCH NHANH TẠI QUẦY (QUICK CREATE - UC-1.5 STEP 4)           -->
 <!-- ========================================================================= -->
-<div class="modal fade" id="modalStaffQuickCreate" tabindex="-1" aria-labelledby="modalStaffQuickCreateLabel" aria-hidden="true">
+<div class="modal fade" id="modalStaffQuickCreate" tabindex="-1" aria-labelledby="modalStaffQuickCreateLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content staff-modal-content">
             <div class="modal-header staff-modal-header border-0 pb-0">
@@ -281,19 +300,24 @@
                     <div class="row g-3">
                         <!-- Họ và tên khách -->
                         <div class="col-12 col-md-6">
-                            <label class="form-label fw-semibold small text-dark">Họ và tên khách hàng <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="customer_name" id="qcName" placeholder="Ví dụ: Nguyễn Văn An" required>
+                            <label class="form-label fw-semibold small text-dark">Họ và tên khách hàng <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="customer_name" id="qcName"
+                                placeholder="Ví dụ: Nguyễn Văn An" required>
                         </div>
 
                         <!-- Số điện thoại -->
                         <div class="col-12 col-md-6">
-                            <label class="form-label fw-semibold small text-dark">Số điện thoại liên hệ <span class="text-danger">*</span></label>
-                            <input type="tel" class="form-control" name="customer_phone" id="qcPhone" placeholder="Ví dụ: 0905123456" required>
+                            <label class="form-label fw-semibold small text-dark">Số điện thoại liên hệ <span
+                                    class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" name="customer_phone" id="qcPhone"
+                                placeholder="Ví dụ: 0905123456" required>
                         </div>
 
                         <!-- Dịch vụ trải nghiệm -->
                         <div class="col-12 col-md-6">
-                            <label class="form-label fw-semibold small text-dark">Gói dịch vụ <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold small text-dark">Gói dịch vụ <span
+                                    class="text-danger">*</span></label>
                             <select class="form-select" name="service_id" id="qcService" required>
                                 <option value="" disabled selected>-- Chọn gói dịch vụ --</option>
                                 {% for svc in services %}
@@ -313,13 +337,16 @@
 
                         <!-- Ngày trải nghiệm -->
                         <div class="col-12 col-md-6">
-                            <label class="form-label fw-semibold small text-dark">Ngày hẹn <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" name="appointment_date" id="qcDate" value="{{ today_str }}" required>
+                            <label class="form-label fw-semibold small text-dark">Ngày hẹn <span
+                                    class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="appointment_date" id="qcDate"
+                                value="{{ today_str }}" required>
                         </div>
 
                         <!-- Khung giờ trải nghiệm -->
                         <div class="col-12 col-md-6">
-                            <label class="form-label fw-semibold small text-dark">Khung giờ <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold small text-dark">Khung giờ <span
+                                    class="text-danger">*</span></label>
                             <select class="form-select" name="time_slot" id="qcSlot" required>
                                 <option value="" disabled selected>-- Chọn khung giờ --</option>
                                 {% for slot in time_slots %}
@@ -331,7 +358,8 @@
                         <!-- Số lượng khách -->
                         <div class="col-12 col-md-4">
                             <label class="form-label fw-semibold small text-dark">Tổng khách</label>
-                            <input type="number" class="form-control" name="total_guests" id="qcTotalGuests" value="1" min="1" max="10">
+                            <input type="number" class="form-control" name="total_guests" id="qcTotalGuests" value="1"
+                                min="1" max="10">
                         </div>
                         <div class="col-6 col-md-4">
                             <label class="form-label fw-semibold small text-dark">Khách Nam</label>
@@ -339,13 +367,15 @@
                         </div>
                         <div class="col-6 col-md-4">
                             <label class="form-label fw-semibold small text-dark">Khách Nữ</label>
-                            <input type="number" class="form-control" name="female_guests" id="qcFemale" value="1" min="0">
+                            <input type="number" class="form-control" name="female_guests" id="qcFemale" value="1"
+                                min="0">
                         </div>
 
                         <!-- Ghi chú cho ca trực -->
                         <div class="col-12">
                             <label class="form-label fw-semibold small text-dark">Ghi chú tiếp nhận</label>
-                            <textarea class="form-control" name="note" id="qcNote" rows="2" placeholder="Yêu cầu lực massage, phòng riêng, hoặc ghi chú đặc biệt..."></textarea>
+                            <textarea class="form-control" name="note" id="qcNote" rows="2"
+                                placeholder="Yêu cầu lực massage, phòng riêng, hoặc ghi chú đặc biệt..."></textarea>
                         </div>
                     </div>
 
@@ -353,7 +383,8 @@
 
                     <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                         <button type="button" class="btn btn-cham-outline px-4" data-bs-dismiss="modal">Đóng</button>
-                        <button type="submit" class="btn btn-cham-primary px-4 d-inline-flex align-items-center gap-2" id="btnSubmitQuickCreate">
+                        <button type="submit" class="btn btn-cham-primary px-4 d-inline-flex align-items-center gap-2"
+                            id="btnSubmitQuickCreate">
                             <span class="spinner-border spinner-border-sm d-none" id="qcSpinner"></span>
                             <span>Xác nhận tiếp nhận</span>
                         </button>
@@ -367,7 +398,8 @@
 <!-- ========================================================================= -->
 <!-- 5. MODAL: XEM CHI TIẾT LỊCH HẸN                                           -->
 <!-- ========================================================================= -->
-<div class="modal fade" id="modalAppointmentDetail" tabindex="-1" aria-labelledby="modalAppointmentDetailLabel" aria-hidden="true">
+<div class="modal fade" id="modalAppointmentDetail" tabindex="-1" aria-labelledby="modalAppointmentDetailLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content staff-modal-content">
             <div class="modal-header staff-modal-header border-0 pb-0">
@@ -388,10 +420,12 @@
 
                 <div id="detailContent" class="d-none">
                     <!-- Tóm tắt hàng đầu -->
-                    <div class="detail-summary-box p-3 rounded-3 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div
+                        class="detail-summary-box p-3 rounded-3 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
                         <div>
                             <div class="text-muted small">Thời gian trải nghiệm:</div>
-                            <div class="fw-bold fs-6 font-lora text-dark" id="detailDateTime">--:--, Thứ -- - --/--/----</div>
+                            <div class="fw-bold fs-6 font-lora text-dark" id="detailDateTime">--:--, Thứ -- - --/--/----
+                            </div>
                         </div>
                         <div>
                             <div class="text-muted small">Trạng thái:</div>
@@ -415,8 +449,11 @@
                         <div class="col-12 col-md-6">
                             <div class="info-block p-3 rounded-2 h-100">
                                 <div class="info-label text-muted small mb-1">LIÊN HỆ</div>
-                                <div class="text-dark"><i class="bi bi-telephone me-2 text-burgundy"></i><span id="detailPhone">--</span></div>
-                                <div class="text-muted small mt-1"><i class="bi bi-envelope me-2 text-burgundy"></i><span id="detailEmail">--</span></div>
+                                <div class="text-dark"><i class="bi bi-telephone me-2 text-burgundy"></i><span
+                                        id="detailPhone">--</span></div>
+                                <div class="text-muted small mt-1"><i
+                                        class="bi bi-envelope me-2 text-burgundy"></i><span id="detailEmail">--</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -446,7 +483,8 @@
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-md-6" id="detailVoucherBlock">
                             <div class="p-2 border rounded small bg-light">
-                                <span class="fw-semibold">Mã ưu đãi:</span> <span id="detailVoucherCode">Không áp dụng</span>
+                                <span class="fw-semibold">Mã ưu đãi:</span> <span id="detailVoucherCode">Không áp
+                                    dụng</span>
                             </div>
                         </div>
                         <div class="col-12 col-md-6">
@@ -457,7 +495,8 @@
                     </div>
 
                     <!-- Quick change status in Modal -->
-                    <div class="modal-status-actions p-3 rounded-3 mt-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <div
+                        class="modal-status-actions p-3 rounded-3 mt-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
                         <span class="small fw-semibold text-dark">Chuyển trạng thái ca trực:</span>
                         <div class="d-flex gap-2" id="detailStatusButtons">
                             <!-- Dynamic buttons -->
@@ -473,13 +512,15 @@
 <!-- 6. TOAST NOTIFICATION CONTAINER                                           -->
 <!-- ========================================================================= -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
-    <div id="staffToast" class="toast align-items-center text-white border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="staffToast" class="toast align-items-center text-white border-0 shadow-lg" role="alert"
+        aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body d-flex align-items-center gap-2">
                 <i class="bi bi-check-circle-fill fs-5" id="toastIcon"></i>
                 <span id="toastMessage">Thao tác thành công.</span>
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
         </div>
     </div>
 </div>
@@ -488,299 +529,339 @@
 <!-- 7. CSS RIÊNG KHỚP 100% BẢN VẼ FIGMA (NODE 110:4969)                       -->
 <!-- ========================================================================= -->
 <style>
-/* Page Title & Breadcrumb */
-.staff-page-title {
-    font-family: 'Lora', Georgia, serif;
-    font-size: 28px;
-    font-weight: 700;
-    color: #781A24;
-}
-.staff-page-subtitle {
-    font-family: inherit;
-    font-size: 14px;
-    color: #6B5E59;
-}
-.staff-breadcrumb {
-    font-size: 13px;
-}
-.text-burgundy {
-    color: #781A24 !important;
-}
-.text-gold {
-    color: #D0B581 !important;
-}
+    /* Page Title & Breadcrumb */
+    .staff-page-title {
+        font-family: 'Lora', Georgia, serif;
+        font-size: 28px;
+        font-weight: 700;
+        color: #781A24;
+    }
 
-/* Button styles */
-.btn-cham-primary {
-    background-color: #781A24;
-    border-color: #781A24;
-    color: #FFFFFF;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-}
-.btn-cham-primary:hover, .btn-cham-primary:focus {
-    background-color: #5A121A;
-    border-color: #5A121A;
-    color: #FFFFFF;
-    box-shadow: 0 4px 12px rgba(120, 26, 36, 0.25);
-}
-.btn-cham-outline {
-    background-color: #FFFFFF;
-    border: 1px solid #D0B581;
-    color: #781A24;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-}
-.btn-cham-outline:hover {
-    background-color: #FAF7EF;
-    border-color: #781A24;
-    color: #781A24;
-}
+    .staff-page-subtitle {
+        font-family: inherit;
+        font-size: 14px;
+        color: #6B5E59;
+    }
 
-/* Schedule Filters Card */
-.staff-filter-card {
-    background-color: #FFFFFF;
-    border: 1px solid #D0B581;
-    border-radius: 16px;
-    padding: 16px 20px;
-    box-shadow: 0 2px 10px rgba(120, 26, 36, 0.04);
-}
-.staff-filter-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: #8C7E77;
-    text-transform: uppercase;
-}
-.staff-input-wrapper {
-    position: relative;
-}
-.staff-filter-input {
-    background-color: #FFFFFF;
-    border: 1px solid #E9DCC0;
-    border-radius: 8px;
-    font-size: 13.5px;
-    color: #2E1D17;
-    padding: 8px 12px;
-}
-.staff-filter-input:focus {
-    border-color: #781A24;
-    box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.1);
-}
-.staff-input-icon {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #8C7E77;
-    pointer-events: none;
-    font-size: 14px;
-}
+    .staff-breadcrumb {
+        font-size: 13px;
+    }
 
-/* Schedule Table Card */
-.staff-schedule-card {
-    background-color: #FFFFFF;
-    border: 1px solid #D0B581;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 4px 16px rgba(120, 26, 36, 0.04);
-}
-.staff-schedule-header {
-    border-bottom: 1px solid #E9DCC0;
-    background-color: #FFFFFF;
-}
-.schedule-title {
-    font-family: 'Lora', Georgia, serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: #2E1D17;
-}
-.schedule-date-badge {
-    background-color: #FAF7EF;
-    border: 1px solid #E9DCC0;
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: #781A24;
-}
-.schedule-count-badge {
-    background-color: #FAF7EF;
-    border: 1px solid #E9DCC0;
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: #781A24;
-}
+    .text-burgundy {
+        color: #781A24 !important;
+    }
 
-/* Table styling */
-.table-schedule {
-    margin-bottom: 0;
-}
-.table-schedule thead th {
-    background-color: #FCFAF7;
-    border-bottom: 1px solid #E9DCC0;
-    color: #8C7E77;
-    font-size: 12.5px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 12px 16px;
-}
-.table-schedule tbody td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #F1EFEB;
-}
-.appointment-row:hover {
-    background-color: #FAF7EF;
-}
-.time-col {
-    font-family: 'Lora', Georgia, serif;
-    font-size: 15px;
-    font-weight: 700;
-    color: #2E1D17;
-}
-.code-col {
-    font-family: monospace;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: #781A24;
-}
-.customer-name {
-    font-weight: 600;
-    font-size: 14px;
-    color: #2E1D17;
-}
-.customer-cue {
-    font-size: 12px;
-    color: #8C7E77;
-}
-.phone-col {
-    font-size: 13px;
-    color: #4A3E39;
-}
-.service-col {
-    font-size: 13.5px;
-    color: #2E1D17;
-    font-weight: 500;
-}
+    .text-gold {
+        color: #D0B581 !important;
+    }
 
-/* Status Badges */
-.staff-badge-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    border-radius: 999px;
-    font-size: 12.5px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-.status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    display: inline-block;
-}
+    /* Button styles */
+    .btn-cham-primary {
+        background-color: #781A24;
+        border-color: #781A24;
+        color: #FFFFFF;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
 
-/* Action buttons on table rows */
-.btn-action-confirm {
-    background-color: #167455;
-    border-color: #167455;
-    color: #FFFFFF;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 10px;
-}
-.btn-action-confirm:hover {
-    background-color: #0E513A;
-    color: #FFFFFF;
-}
-.btn-action-complete {
-    background-color: #781A24;
-    border-color: #781A24;
-    color: #FFFFFF;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 10px;
-}
-.btn-action-complete:hover {
-    background-color: #5A121A;
-    color: #FFFFFF;
-}
-.btn-action-cancel {
-    background-color: #F7E9EB;
-    border: 1px solid #A63843;
-    color: #A63843;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 10px;
-}
-.btn-action-cancel:hover {
-    background-color: #F3D2D6;
-    color: #8C1C26;
-}
-.btn-action-detail {
-    background-color: transparent;
-    border: 1px solid #E9DCC0;
-    color: #6B5E59;
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-size: 12px;
-}
-.btn-action-detail:hover {
-    background-color: #FAF7EF;
-    color: #781A24;
-    border-color: #781A24;
-}
+    .btn-cham-primary:hover,
+    .btn-cham-primary:focus {
+        background-color: #5A121A;
+        border-color: #5A121A;
+        color: #FFFFFF;
+        box-shadow: 0 4px 12px rgba(120, 26, 36, 0.25);
+    }
 
-/* Schedule Footer & Legend */
-.staff-schedule-footer {
-    background-color: #FCFAF7;
-    font-size: 13px;
-    color: #6B5E59;
-}
-.legend-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-}
-.legend-text {
-    font-size: 12.5px;
-    font-weight: 500;
-    color: #4A3E39;
-}
+    .btn-cham-outline {
+        background-color: #FFFFFF;
+        border: 1px solid #D0B581;
+        color: #781A24;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
 
-/* Modals */
-.staff-modal-content {
-    border-radius: 16px;
-    border: 1px solid #D0B581;
-    overflow: hidden;
-}
-.staff-modal-header {
-    background-color: #FAF7EF;
-    border-bottom: 1px solid #E9DCC0;
-    padding: 20px 24px;
-}
-.detail-summary-box {
-    background-color: #FAF7EF;
-    border: 1px solid #E9DCC0;
-}
-.info-block {
-    background-color: #FAF7EF;
-    border: 1px solid #E9DCC0;
-}
-.modal-status-actions {
-    background-color: #FAF7EF;
-    border: 1px solid #E9DCC0;
-}
+    .btn-cham-outline:hover {
+        background-color: #FAF7EF;
+        border-color: #781A24;
+        color: #781A24;
+    }
+
+    /* Schedule Filters Card */
+    .staff-filter-card {
+        background-color: #FFFFFF;
+        border: 1px solid #D0B581;
+        border-radius: 16px;
+        padding: 16px 20px;
+        box-shadow: 0 2px 10px rgba(120, 26, 36, 0.04);
+    }
+
+    .staff-filter-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #8C7E77;
+        text-transform: uppercase;
+    }
+
+    .staff-input-wrapper {
+        position: relative;
+    }
+
+    .staff-filter-input {
+        background-color: #FFFFFF;
+        border: 1px solid #E9DCC0;
+        border-radius: 8px;
+        font-size: 13.5px;
+        color: #2E1D17;
+        padding: 8px 12px;
+    }
+
+    .staff-filter-input:focus {
+        border-color: #781A24;
+        box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.1);
+    }
+
+    .staff-input-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #8C7E77;
+        pointer-events: none;
+        font-size: 14px;
+    }
+
+    /* Schedule Table Card */
+    .staff-schedule-card {
+        background-color: #FFFFFF;
+        border: 1px solid #D0B581;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(120, 26, 36, 0.04);
+    }
+
+    .staff-schedule-header {
+        border-bottom: 1px solid #E9DCC0;
+        background-color: #FFFFFF;
+    }
+
+    .schedule-title {
+        font-family: 'Lora', Georgia, serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: #2E1D17;
+    }
+
+    .schedule-date-badge {
+        background-color: #FAF7EF;
+        border: 1px solid #E9DCC0;
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #781A24;
+    }
+
+    .schedule-count-badge {
+        background-color: #FAF7EF;
+        border: 1px solid #E9DCC0;
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #781A24;
+    }
+
+    /* Table styling */
+    .table-schedule {
+        margin-bottom: 0;
+    }
+
+    .table-schedule thead th {
+        background-color: #FCFAF7;
+        border-bottom: 1px solid #E9DCC0;
+        color: #8C7E77;
+        font-size: 12.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 16px;
+    }
+
+    .table-schedule tbody td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #F1EFEB;
+    }
+
+    .appointment-row:hover {
+        background-color: #FAF7EF;
+    }
+
+    .time-col {
+        font-family: 'Lora', Georgia, serif;
+        font-size: 15px;
+        font-weight: 700;
+        color: #2E1D17;
+    }
+
+    .code-col {
+        font-family: monospace;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #781A24;
+    }
+
+    .customer-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: #2E1D17;
+    }
+
+    .customer-cue {
+        font-size: 12px;
+        color: #8C7E77;
+    }
+
+    .phone-col {
+        font-size: 13px;
+        color: #4A3E39;
+    }
+
+    .service-col {
+        font-size: 13.5px;
+        color: #2E1D17;
+        font-weight: 500;
+    }
+
+    /* Status Badges */
+    .staff-badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-size: 12.5px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    /* Action buttons on table rows */
+    .btn-action-confirm {
+        background-color: #167455;
+        border-color: #167455;
+        color: #FFFFFF;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+    }
+
+    .btn-action-confirm:hover {
+        background-color: #0E513A;
+        color: #FFFFFF;
+    }
+
+    .btn-action-complete {
+        background-color: #781A24;
+        border-color: #781A24;
+        color: #FFFFFF;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+    }
+
+    .btn-action-complete:hover {
+        background-color: #5A121A;
+        color: #FFFFFF;
+    }
+
+    .btn-action-cancel {
+        background-color: #F7E9EB;
+        border: 1px solid #A63843;
+        color: #A63843;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+    }
+
+    .btn-action-cancel:hover {
+        background-color: #F3D2D6;
+        color: #8C1C26;
+    }
+
+    .btn-action-detail {
+        background-color: transparent;
+        border: 1px solid #E9DCC0;
+        color: #6B5E59;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .btn-action-detail:hover {
+        background-color: #FAF7EF;
+        color: #781A24;
+        border-color: #781A24;
+    }
+
+    /* Schedule Footer & Legend */
+    .staff-schedule-footer {
+        background-color: #FCFAF7;
+        font-size: 13px;
+        color: #6B5E59;
+    }
+
+    .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .legend-text {
+        font-size: 12.5px;
+        font-weight: 500;
+        color: #4A3E39;
+    }
+
+    /* Modals */
+    .staff-modal-content {
+        border-radius: 16px;
+        border: 1px solid #D0B581;
+        overflow: hidden;
+    }
+
+    .staff-modal-header {
+        background-color: #FAF7EF;
+        border-bottom: 1px solid #E9DCC0;
+        padding: 20px 24px;
+    }
+
+    .detail-summary-box {
+        background-color: #FAF7EF;
+        border: 1px solid #E9DCC0;
+    }
+
+    .info-block {
+        background-color: #FAF7EF;
+        border: 1px solid #E9DCC0;
+    }
+
+    .modal-status-actions {
+        background-color: #FAF7EF;
+        border: 1px solid #E9DCC0;
+    }
 </style>
 
 <!-- ========================================================================= -->
@@ -793,7 +874,8 @@
                 <h5 class="modal-title fs-6 fw-bold" id="addCustomerModalLabel">
                     <i class="bi bi-person-plus-fill me-2"></i> Thêm tài khoản Khách hàng
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Đóng"></button>
             </div>
             <form method="POST" action="{% url 'accounts:admin_customer_list' %}">
                 {% csrf_token %}
@@ -801,13 +883,16 @@
                 <input type="hidden" name="redirect_to" value="{{ request.get_full_path }}">
                 <div class="modal-body p-4" style="font-family: 'Cabin', sans-serif;">
                     <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 13px;">Họ và tên khách hàng <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" placeholder="Ví dụ: Nguyễn Thị Mai" required>
+                        <label class="form-label fw-bold" style="font-size: 13px;">Họ và tên khách hàng <span
+                                class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" placeholder="Ví dụ: Nguyễn Thị Mai"
+                            required>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold" style="font-size: 13px;">Số điện thoại <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold" style="font-size: 13px;">Số điện thoại <span
+                                    class="text-danger">*</span></label>
                             <input type="tel" name="phone" class="form-control" placeholder="0901 234 567" required>
                         </div>
                         <div class="col-md-6">
@@ -836,12 +921,12 @@
                             <label class="form-label fw-bold" style="font-size: 13px;">Hạng thẻ khởi tạo</label>
                             <select name="tier_name" class="form-select">
                                 {% for t in tiers %}
-                                    <option value="{{ t.name }}">{{ t.name }} (từ {{ t.min_points }} điểm)</option>
+                                <option value="{{ t.name }}">{{ t.name }} (từ {{ t.min_points }} điểm)</option>
                                 {% empty %}
-                                    <option value="Thành viên">Thành viên</option>
-                                    <option value="Hạng Bạc">Hạng Bạc</option>
-                                    <option value="Hạng Vàng">Hạng Vàng</option>
-                                    <option value="Hạng Kim Cương">Hạng Kim Cương</option>
+                                <option value="Thành viên">Thành viên</option>
+                                <option value="Hạng Bạc">Hạng Bạc</option>
+                                <option value="Hạng Vàng">Hạng Vàng</option>
+                                <option value="Hạng Kim Cương">Hạng Kim Cương</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -853,13 +938,16 @@
                     </div>
 
                     <div class="mb-2">
-                        <label class="form-label fw-bold" style="font-size: 13px;">Ghi chú chăm sóc / Thể trạng sức khỏe</label>
-                        <textarea name="care_note" class="form-control" rows="2" placeholder="Ví dụ: Ưu tiên phòng yên tĩnh, da nhạy cảm, vùng cổ vai gáy đau mỏi..."></textarea>
+                        <label class="form-label fw-bold" style="font-size: 13px;">Ghi chú chăm sóc / Thể trạng sức
+                            khỏe</label>
+                        <textarea name="care_note" class="form-control" rows="2"
+                            placeholder="Ví dụ: Ưu tiên phòng yên tĩnh, da nhạy cảm, vùng cổ vai gáy đau mỏi..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light px-4 py-3">
                     <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Hủy bỏ</button>
-                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #781A24;">Lưu tài khoản</button>
+                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #781A24;">Lưu tài
+                        khoản</button>
                 </div>
             </form>
         </div>
@@ -870,357 +958,366 @@
 <!-- 8. JAVASCRIPT XỬ LÝ TƯƠNG TÁC ĐỘNG KHÔNG RELOAD (FETCH API)                -->
 <!-- ========================================================================= -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Chuyển Modals ra document.body để tránh z-index backdrop conflict
-    ['modalStaffQuickCreate', 'modalAppointmentDetail', 'addCustomerModal'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el && el.parentElement !== document.body) {
-            document.body.appendChild(el);
-            el.style.zIndex = '1065';
+    document.addEventListener('DOMContentLoaded', function () {
+        // 1. Chuyển Modals ra document.body để tránh z-index backdrop conflict
+        ['modalStaffQuickCreate', 'modalAppointmentDetail', 'addCustomerModal'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.parentElement !== document.body) {
+                document.body.appendChild(el);
+                el.style.zIndex = '1065';
+            }
+        });
+
+        // 2. Tìm kiếm tức thì client-side
+        const searchInput = document.getElementById('filterSearchInput');
+        const slotSelect = document.getElementById('filterSlotSelect');
+        const statusSelect = document.getElementById('filterStatusSelect');
+
+        function applyClientFilters() {
+            const query = (searchInput.value || '').trim().toLowerCase();
+            const slot = slotSelect.value;
+            const status = statusSelect.value;
+
+            const rows = document.querySelectorAll('#appointmentsTableBody tr.appointment-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const rowText = row.innerText.toLowerCase();
+                const rowSlot = row.getAttribute('data-slot') || '';
+                const rowStatus = row.getAttribute('data-status') || '';
+
+                const matchQuery = !query || rowText.includes(query);
+                const matchSlot = !slot || rowSlot === slot;
+                const matchStatus = !status || rowStatus === status ||
+                    (status === 'Hold' && (rowStatus === 'Hold' || rowStatus === 'Pending')) ||
+                    (status === 'Confirmed' && (rowStatus === 'Confirmed' || rowStatus === 'In_Progress'));
+
+                if (matchQuery && matchSlot && matchStatus) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Cập nhật số đếm hiển thị
+            const visibleBadge = document.getElementById('visibleCountBadge');
+            if (visibleBadge) visibleBadge.textContent = visibleCount;
+
+            // Xử lý empty state
+            const emptyRow = document.getElementById('noAppointmentsRow');
+            if (emptyRow) {
+                emptyRow.style.display = (visibleCount === 0) ? '' : 'none';
+            }
+        }
+
+        searchInput.addEventListener('input', applyClientFilters);
+        slotSelect.addEventListener('change', applyClientFilters);
+        statusSelect.addEventListener('change', applyClientFilters);
+
+        // 3. Xử lý Quick Create Form
+        const qcForm = document.getElementById('staffQuickCreateForm');
+        if (qcForm) {
+            qcForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const btn = document.getElementById('btnSubmitQuickCreate');
+                const spinner = document.getElementById('qcSpinner');
+                const errBox = document.getElementById('quickCreateError');
+
+                btn.disabled = true;
+                spinner.classList.remove('d-none');
+                errBox.classList.add('d-none');
+
+                const payload = {
+                    customer_name: document.getElementById('qcName').value.trim(),
+                    customer_phone: document.getElementById('qcPhone').value.trim(),
+                    service_id: parseInt(document.getElementById('qcService').value),
+                    status: document.getElementById('qcStatus').value,
+                    appointment_date: document.getElementById('qcDate').value,
+                    time_slot: document.getElementById('qcSlot').value,
+                    total_guests: parseInt(document.getElementById('qcTotalGuests').value) || 1,
+                    male_guests: parseInt(document.getElementById('qcMale').value) || 0,
+                    female_guests: parseInt(document.getElementById('qcFemale').value) || 1,
+                    note: document.getElementById('qcNote').value.trim()
+                };
+
+                try {
+                    const res = await fetch("{% url 'appointment:api_staff_quick_create' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+                    if (res.ok && data.status === 'success') {
+                        showToast('success', data.message || 'Tạo lịch hẹn thành công!');
+                        const modalEl = document.getElementById('modalStaffQuickCreate');
+                        const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modalInstance.hide();
+                        qcForm.reset();
+                        // Reload nhẹ nhàng để tải lại bảng và số đếm chính xác
+                        setTimeout(() => window.location.reload(), 800);
+                    } else {
+                        let errMsg = 'Không thể tạo lịch hẹn.';
+                        if (data.error) {
+                            if (typeof data.error === 'string') errMsg = data.error;
+                            else errMsg = Object.entries(data.error).map(([k, v]) => `${k}: ${v}`).join(', ');
+                        }
+                        errBox.textContent = errMsg;
+                        errBox.classList.remove('d-none');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    errBox.textContent = 'Lỗi kết nối máy chủ. Vui lòng thử lại!';
+                    errBox.classList.remove('d-none');
+                } finally {
+                    btn.disabled = false;
+                    spinner.classList.add('d-none');
+                }
+            });
         }
     });
 
-    // 2. Tìm kiếm tức thì client-side
-    const searchInput = document.getElementById('filterSearchInput');
-    const slotSelect = document.getElementById('filterSlotSelect');
-    const statusSelect = document.getElementById('filterStatusSelect');
-
-    function applyClientFilters() {
-        const query = (searchInput.value || '').trim().toLowerCase();
-        const slot = slotSelect.value;
-        const status = statusSelect.value;
-
-        const rows = document.querySelectorAll('#appointmentsTableBody tr.appointment-row');
-        let visibleCount = 0;
-
-        rows.forEach(row => {
-            const rowText = row.innerText.toLowerCase();
-            const rowSlot = row.getAttribute('data-slot') || '';
-            const rowStatus = row.getAttribute('data-status') || '';
-
-            const matchQuery = !query || rowText.includes(query);
-            const matchSlot = !slot || rowSlot === slot;
-            const matchStatus = !status || rowStatus === status || 
-                                (status === 'Hold' && (rowStatus === 'Hold' || rowStatus === 'Pending')) ||
-                                (status === 'Confirmed' && (rowStatus === 'Confirmed' || rowStatus === 'In_Progress'));
-
-            if (matchQuery && matchSlot && matchStatus) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        // Cập nhật số đếm hiển thị
-        const visibleBadge = document.getElementById('visibleCountBadge');
-        if (visibleBadge) visibleBadge.textContent = visibleCount;
-
-        // Xử lý empty state
-        const emptyRow = document.getElementById('noAppointmentsRow');
-        if (emptyRow) {
-            emptyRow.style.display = (visibleCount === 0) ? '' : 'none';
+    // 4. Hàm cập nhật trạng thái lịch hẹn qua Fetch API
+    async function updateAppointmentStatus(appointmentId, newStatus) {
+        if (!confirm(`Bạn có chắc chắn muốn chuyển lịch hẹn này sang trạng thái '${newStatus}'?`)) {
+            return;
         }
-    }
 
-    searchInput.addEventListener('input', applyClientFilters);
-    slotSelect.addEventListener('change', applyClientFilters);
-    statusSelect.addEventListener('change', applyClientFilters);
+        try {
+            const url = `/appointment/api/admin/appointments/${appointmentId}/status/`;
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
 
-    // 3. Xử lý Quick Create Form
-    const qcForm = document.getElementById('staffQuickCreateForm');
-    if (qcForm) {
-        qcForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btnSubmitQuickCreate');
-            const spinner = document.getElementById('qcSpinner');
-            const errBox = document.getElementById('quickCreateError');
+            const data = await res.json();
+            if (res.ok && data.status === 'success') {
+                showToast('success', data.message || `Đã chuyển sang ${newStatus}!`);
 
-            btn.disabled = true;
-            spinner.classList.remove('d-none');
-            errBox.classList.add('d-none');
+                // Cập nhật DOM trực tiếp
+                updateRowStatusUI(appointmentId, newStatus);
 
-            const payload = {
-                customer_name: document.getElementById('qcName').value.trim(),
-                customer_phone: document.getElementById('qcPhone').value.trim(),
-                service_id: parseInt(document.getElementById('qcService').value),
-                status: document.getElementById('qcStatus').value,
-                appointment_date: document.getElementById('qcDate').value,
-                time_slot: document.getElementById('qcSlot').value,
-                total_guests: parseInt(document.getElementById('qcTotalGuests').value) || 1,
-                male_guests: parseInt(document.getElementById('qcMale').value) || 0,
-                female_guests: parseInt(document.getElementById('qcFemale').value) || 1,
-                note: document.getElementById('qcNote').value.trim()
-            };
-
-            try {
-                const res = await fetch("{% url 'appointment:api_staff_quick_create' %}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await res.json();
-                if (res.ok && data.status === 'success') {
-                    showToast('success', data.message || 'Tạo lịch hẹn thành công!');
-                    const modalEl = document.getElementById('modalStaffQuickCreate');
-                    const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-                    modalInstance.hide();
-                    qcForm.reset();
-                    // Reload nhẹ nhàng để tải lại bảng và số đếm chính xác
-                    setTimeout(() => window.location.reload(), 800);
-                } else {
-                    let errMsg = 'Không thể tạo lịch hẹn.';
-                    if (data.error) {
-                        if (typeof data.error === 'string') errMsg = data.error;
-                        else errMsg = Object.entries(data.error).map(([k, v]) => `${k}: ${v}`).join(', ');
-                    }
-                    errBox.textContent = errMsg;
-                    errBox.classList.remove('d-none');
+                // Nếu đang mở Modal Detail, cập nhật luôn trong Modal
+                const detailBadge = document.getElementById('detailStatusBadge');
+                if (detailBadge) {
+                    renderDetailStatusBadge(newStatus);
+                    renderDetailActionButtons(appointmentId, newStatus);
                 }
-            } catch (err) {
-                console.error(err);
-                errBox.textContent = 'Lỗi kết nối máy chủ. Vui lòng thử lại!';
-                errBox.classList.remove('d-none');
-            } finally {
-                btn.disabled = false;
-                spinner.classList.add('d-none');
+            } else {
+                showToast('danger', data.error || 'Cập nhật thất bại!');
             }
-        });
-    }
-});
-
-// 4. Hàm cập nhật trạng thái lịch hẹn qua Fetch API
-async function updateAppointmentStatus(appointmentId, newStatus) {
-    if (!confirm(`Bạn có chắc chắn muốn chuyển lịch hẹn này sang trạng thái '${newStatus}'?`)) {
-        return;
-    }
-
-    try {
-        const url = `/appointment/api/admin/appointments/${appointmentId}/status/`;
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({ status: newStatus })
-        });
-
-        const data = await res.json();
-        if (res.ok && data.status === 'success') {
-            showToast('success', data.message || `Đã chuyển sang ${newStatus}!`);
-
-            // Cập nhật DOM trực tiếp
-            updateRowStatusUI(appointmentId, newStatus);
-
-            // Nếu đang mở Modal Detail, cập nhật luôn trong Modal
-            const detailBadge = document.getElementById('detailStatusBadge');
-            if (detailBadge) {
-                renderDetailStatusBadge(newStatus);
-                renderDetailActionButtons(appointmentId, newStatus);
-            }
-        } else {
-            showToast('danger', data.error || 'Cập nhật thất bại!');
+        } catch (err) {
+            console.error(err);
+            showToast('danger', 'Lỗi kết nối máy chủ!');
         }
-    } catch (err) {
-        console.error(err);
-        showToast('danger', 'Lỗi kết nối máy chủ!');
     }
-}
 
-// 5. Cập nhật giao diện một hàng sau khi đổi trạng thái
-function updateRowStatusUI(id, status) {
-    const row = document.getElementById(`row-${id}`);
-    if (!row) return;
+    // 5. Cập nhật giao diện một hàng sau khi đổi trạng thái
+    function updateRowStatusUI(id, status) {
+        const row = document.getElementById(`row-${id}`);
+        if (!row) return;
 
-    row.setAttribute('data-status', status);
+        row.setAttribute('data-status', status);
 
-    const statusMap = {
-        'Confirmed': { label: 'Đã xác nhận', bg: '#EAF5EF', color: '#167455', dot: '#167455', cls: 'status-confirmed' },
-        'In_Progress': { label: 'Đã xác nhận', bg: '#EAF5EF', color: '#167455', dot: '#167455', cls: 'status-confirmed' },
-        'Hold': { label: 'Chờ xác nhận', bg: '#FEF6E7', color: '#B25E09', dot: '#B25E09', cls: 'status-pending' },
-        'Pending': { label: 'Chờ xác nhận', bg: '#FEF6E7', color: '#B25E09', dot: '#B25E09', cls: 'status-pending' },
-        'Completed': { label: 'Đã hoàn thành', bg: '#F3EFFB', color: '#5925DC', dot: '#5925DC', cls: 'status-completed' },
-        'Cancelled': { label: 'Đã hủy', bg: '#FEE4E2', color: '#B42318', dot: '#B42318', cls: 'status-cancelled' }
-    };
+        const statusMap = {
+            'Confirmed': { label: 'Đã xác nhận', bg: '#EAF5EF', color: '#167455', dot: '#167455', cls: 'status-confirmed' },
+            'In_Progress': { label: 'Đã xác nhận', bg: '#EAF5EF', color: '#167455', dot: '#167455', cls: 'status-confirmed' },
+            'Hold': { label: 'Chờ xác nhận', bg: '#FEF6E7', color: '#B25E09', dot: '#B25E09', cls: 'status-pending' },
+            'Pending': { label: 'Chờ xác nhận', bg: '#FEF6E7', color: '#B25E09', dot: '#B25E09', cls: 'status-pending' },
+            'Completed': { label: 'Đã hoàn thành', bg: '#F3EFFB', color: '#5925DC', dot: '#5925DC', cls: 'status-completed' },
+            'Cancelled': { label: 'Đã hủy', bg: '#FEE4E2', color: '#B42318', dot: '#B42318', cls: 'status-cancelled' }
+        };
 
-    const cfg = statusMap[status] || statusMap['Hold'];
+        const cfg = statusMap[status] || statusMap['Hold'];
 
-    // Cập nhật cell Trạng thái
-    const cell = document.getElementById(`status-cell-${id}`);
-    if (cell) {
-        cell.innerHTML = `
+        // Cập nhật cell Trạng thái
+        const cell = document.getElementById(`status-cell-${id}`);
+        if (cell) {
+            cell.innerHTML = `
             <span class="staff-badge-status ${cfg.cls}" style="background-color: ${cfg.bg}; color: ${cfg.color};">
                 <span class="status-dot" style="background-color: ${cfg.dot};"></span>
                 <span class="status-text">${cfg.label}</span>
             </span>
         `;
-    }
+        }
 
-    // Cập nhật Action Buttons
-    const actionsContainer = document.getElementById(`actions-${id}`);
-    if (actionsContainer) {
-        let buttonsHtml = '';
-        if (status === 'Hold' || status === 'Pending') {
-            buttonsHtml = `
+        // Cập nhật Action Buttons
+        const actionsContainer = document.getElementById(`actions-${id}`);
+        if (actionsContainer) {
+            let buttonsHtml = '';
+            if (status === 'Hold' || status === 'Pending') {
+                buttonsHtml = `
                 <button type="button" class="btn btn-action-confirm btn-sm" onclick="updateAppointmentStatus(${id}, 'Confirmed')" title="Xác nhận lịch">
                     <i class="bi bi-check-lg me-1"></i>Xác nhận
                 </button>
                 <button type="button" class="btn btn-action-cancel btn-sm" onclick="updateAppointmentStatus(${id}, 'Cancelled')" title="Hủy lịch">Hủy</button>
             `;
-        } else if (status === 'Confirmed' || status === 'In_Progress') {
-            buttonsHtml = `
+            } else if (status === 'Confirmed' || status === 'In_Progress') {
+                buttonsHtml = `
                 <button type="button" class="btn btn-action-complete btn-sm" onclick="updateAppointmentStatus(${id}, 'Completed')" title="Hoàn thành dịch vụ">Hoàn thành</button>
                 <button type="button" class="btn btn-action-cancel btn-sm" onclick="updateAppointmentStatus(${id}, 'Cancelled')" title="Hủy lịch">Hủy</button>
             `;
-        } else if (status === 'Completed') {
-            buttonsHtml = `<span class="text-muted small me-2"><i class="bi bi-check-circle-fill text-success me-1"></i>Đã xong</span>`;
-        } else if (status === 'Cancelled') {
-            buttonsHtml = `<span class="text-muted small me-2"><i class="bi bi-x-circle-fill text-danger me-1"></i>Đã hủy</span>`;
-        }
+            } else if (status === 'Completed') {
+                buttonsHtml = `<span class="text-muted small me-2"><i class="bi bi-check-circle-fill text-success me-1"></i>Đã xong</span>`;
+            } else if (status === 'Cancelled') {
+                buttonsHtml = `<span class="text-muted small me-2"><i class="bi bi-x-circle-fill text-danger me-1"></i>Đã hủy</span>`;
+            }
 
-        buttonsHtml += `
+            buttonsHtml += `
             <button type="button" class="btn btn-action-detail btn-sm" onclick="viewAppointmentDetail(${id})" title="Xem chi tiết">
                 <i class="bi bi-eye"></i>
             </button>
         `;
-        actionsContainer.innerHTML = buttonsHtml;
+            actionsContainer.innerHTML = buttonsHtml;
+        }
     }
-}
 
-// 6. Xem chi tiết lịch hẹn
-async function viewAppointmentDetail(appointmentId) {
-    const modalEl = document.getElementById('modalAppointmentDetail');
-    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-    modal.show();
+    // 6. Xem chi tiết lịch hẹn
+    async function viewAppointmentDetail(appointmentId) {
+        const modalEl = document.getElementById('modalAppointmentDetail');
+        if (!modalEl) {
+            console.error('Không tìm thấy element modalAppointmentDetail');
+            return;
+        }
+        if (modalEl.parentElement !== document.body) {
+            document.body.appendChild(modalEl);
+        }
+        modalEl.style.zIndex = '1065';
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
 
-    const loading = document.getElementById('detailLoading');
-    const content = document.getElementById('detailContent');
-    loading.classList.remove('d-none');
-    content.classList.add('d-none');
+        const loading = document.getElementById('detailLoading');
+        const content = document.getElementById('detailContent');
+        loading.classList.remove('d-none');
+        content.classList.add('d-none');
 
-    try {
-        const res = await fetch(`/appointment/api/detail/${appointmentId}/`);
-        const data = await res.json();
+        try {
+            const res = await fetch(`/appointment/api/detail/${appointmentId}/`);
+            const data = await res.json();
 
-        if (res.ok) {
-            document.getElementById('detailApptCode').textContent = data.appointment_code;
-            document.getElementById('detailDateTime').textContent = `${data.time_slot}, ngày ${data.appointment_date}`;
-            document.getElementById('detailTotalPrice').textContent = `${Number(data.total_price).toLocaleString('vi-VN')} VNĐ`;
+            if (res.ok) {
+                document.getElementById('detailApptCode').textContent = data.appointment_code || '';
+                document.getElementById('detailDateTime').textContent = `${data.time_slot || ''}, ngày ${data.appointment_date || ''}`;
+                document.getElementById('detailTotalPrice').textContent = `${Number(data.total_price || 0).toLocaleString('vi-VN')} VNĐ`;
 
-            renderDetailStatusBadge(data.status);
-            renderDetailActionButtons(data.id, data.status);
+                renderDetailStatusBadge(data.status);
+                renderDetailActionButtons(data.id, data.status);
 
-            document.getElementById('detailCustomerName').textContent = data.customer_name;
-            document.getElementById('detailCustomerCue').textContent = data.user ? (data.user.membership_tier ? `${data.user.membership_tier} · Có hồ sơ sức khỏe` : 'Có hồ sơ sức khỏe') : 'Khách vãng lai';
-            document.getElementById('detailPhone').textContent = data.customer_phone;
-            document.getElementById('detailEmail').textContent = data.customer_email || 'Chưa cung cấp email';
+                document.getElementById('detailCustomerName').textContent = data.customer_name || 'Khách vãng lai';
+                document.getElementById('detailCustomerCue').textContent = data.user ? (data.user.membership_tier ? `${data.user.membership_tier} · Có hồ sơ sức khỏe` : 'Có hồ sơ sức khỏe') : 'Khách vãng lai';
+                document.getElementById('detailPhone').textContent = data.customer_phone || '';
+                document.getElementById('detailEmail').textContent = data.customer_email || 'Chưa cung cấp email';
 
-            document.getElementById('detailNote').textContent = data.note || 'Không có ghi chú';
-            document.getElementById('detailVoucherCode').textContent = data.voucher ? `${data.voucher.voucher_code} (-${Number(data.discount_amount).toLocaleString('vi-VN')}đ)` : 'Không áp dụng';
+                document.getElementById('detailNote').textContent = data.note || 'Không có ghi chú';
+                const voucherText = data.voucher_code ? `${data.voucher_code} (-${Number(data.discount_amount || 0).toLocaleString('vi-VN')}đ)` : (data.voucher && data.voucher.voucher_code ? `${data.voucher.voucher_code} (-${Number(data.discount_amount || 0).toLocaleString('vi-VN')}đ)` : 'Không áp dụng');
+                document.getElementById('detailVoucherCode').textContent = voucherText;
 
-            // Chi tiết khách
-            const tbody = document.getElementById('detailGuestsTableBody');
-            tbody.innerHTML = '';
-            (data.details || []).forEach(d => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
+                // Chi tiết khách
+                const tbody = document.getElementById('detailGuestsTableBody');
+                tbody.innerHTML = '';
+                (data.details || []).forEach(d => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
                     <td>Khách ${d.guest_index}</td>
                     <td>${d.gender}</td>
                     <td><strong>${d.service_name}</strong> (${d.service_duration}p)</td>
                     <td>${d.massage_pressure}</td>
                     <td class="text-end">${Number(d.service_price).toLocaleString('vi-VN')}đ</td>
                 `;
-                tbody.appendChild(tr);
-            });
+                    tbody.appendChild(tr);
+                });
 
+                loading.classList.add('d-none');
+                content.classList.remove('d-none');
+            } else {
+                alert(data.error || 'Không tải được chi tiết lịch hẹn.');
+                modal.hide();
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Lỗi kết nối máy chủ.');
             loading.classList.add('d-none');
-            content.classList.remove('d-none');
-        } else {
-            alert(data.error || 'Không tải được chi tiết lịch hẹn.');
-            modal.hide();
         }
-    } catch (err) {
-        console.error(err);
-        alert('Lỗi kết nối máy chủ.');
-        loading.classList.add('d-none');
     }
-}
 
-function renderDetailStatusBadge(status) {
-    const statusMap = {
-        'Confirmed': { label: 'Đã xác nhận', bg: '#EAF5EF', color: '#167455', dot: '#167455', cls: 'status-confirmed' },
-        'In_Progress': { label: 'Đã xác nhận', bg: '#EAF5EF', color: '#167455', dot: '#167455', cls: 'status-confirmed' },
-        'Hold': { label: 'Chờ xác nhận', bg: '#FEF6E7', color: '#B25E09', dot: '#B25E09', cls: 'status-pending' },
-        'Pending': { label: 'Chờ xác nhận', bg: '#FEF6E7', color: '#B25E09', dot: '#B25E09', cls: 'status-pending' },
-        'Completed': { label: 'Đã hoàn thành', bg: '#F3EFFB', color: '#5925DC', dot: '#5925DC', cls: 'status-completed' },
-        'Cancelled': { label: 'Đã hủy', bg: '#FEE4E2', color: '#B42318', dot: '#B42318', cls: 'status-cancelled' }
-    };
-    const cfg = statusMap[status] || statusMap['Hold'];
-    const badgeEl = document.getElementById('detailStatusBadge');
-    if (badgeEl) {
-        badgeEl.innerHTML = `
+    function renderDetailStatusBadge(status) {
+        const statusMap = {
+            'Confirmed': { label: 'Đã xác nhận', bg: '#EAF5EF', color: '#167455', dot: '#167455', cls: 'status-confirmed' },
+            'In_Progress': { label: 'Đã xác nhận', bg: '#EAF5EF', color: '#167455', dot: '#167455', cls: 'status-confirmed' },
+            'Hold': { label: 'Chờ xác nhận', bg: '#FEF6E7', color: '#B25E09', dot: '#B25E09', cls: 'status-pending' },
+            'Pending': { label: 'Chờ xác nhận', bg: '#FEF6E7', color: '#B25E09', dot: '#B25E09', cls: 'status-pending' },
+            'Completed': { label: 'Đã hoàn thành', bg: '#F3EFFB', color: '#5925DC', dot: '#5925DC', cls: 'status-completed' },
+            'Cancelled': { label: 'Đã hủy', bg: '#FEE4E2', color: '#B42318', dot: '#B42318', cls: 'status-cancelled' }
+        };
+        const cfg = statusMap[status] || statusMap['Hold'];
+        const badgeEl = document.getElementById('detailStatusBadge');
+        if (badgeEl) {
+            badgeEl.innerHTML = `
             <span class="staff-badge-status ${cfg.cls}" style="background-color: ${cfg.bg}; color: ${cfg.color};">
                 <span class="status-dot" style="background-color: ${cfg.dot};"></span>
                 <span class="status-text">${cfg.label}</span>
             </span>
         `;
-    }
-}
-
-function renderDetailActionButtons(id, status) {
-    const container = document.getElementById('detailStatusButtons');
-    if (!container) return;
-
-    let html = '';
-    if (status === 'Hold' || status === 'Pending') {
-        html += `<button type="button" class="btn btn-sm btn-action-confirm" onclick="updateAppointmentStatus(${id}, 'Confirmed')">Xác nhận</button>`;
-    }
-    if (status !== 'Completed' && status !== 'Cancelled') {
-        html += `<button type="button" class="btn btn-sm btn-cham-primary" onclick="updateAppointmentStatus(${id}, 'Completed')">Hoàn thành</button>`;
-        html += `<button type="button" class="btn btn-sm btn-action-cancel" onclick="updateAppointmentStatus(${id}, 'Cancelled')">Hủy lịch</button>`;
-    }
-    container.innerHTML = html;
-}
-
-// 7. Toast helper
-function showToast(type, message) {
-    const toastEl = document.getElementById('staffToast');
-    const msgEl = document.getElementById('toastMessage');
-    const iconEl = document.getElementById('toastIcon');
-
-    toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info');
-    if (type === 'success') {
-        toastEl.classList.add('bg-success');
-        iconEl.className = 'bi bi-check-circle-fill fs-5';
-    } else {
-        toastEl.classList.add('bg-danger');
-        iconEl.className = 'bi bi-exclamation-triangle-fill fs-5';
-    }
-
-    msgEl.textContent = message;
-    const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
-    toast.show();
-}
-
-// Helper lấy CSRF token
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
         }
     }
-    return cookieValue;
-}
+
+    function renderDetailActionButtons(id, status) {
+        const container = document.getElementById('detailStatusButtons');
+        if (!container) return;
+
+        let html = '';
+        if (status === 'Hold' || status === 'Pending') {
+            html += `<button type="button" class="btn btn-sm btn-action-confirm" onclick="updateAppointmentStatus(${id}, 'Confirmed')">Xác nhận</button>`;
+        }
+        if (status !== 'Completed' && status !== 'Cancelled') {
+            html += `<button type="button" class="btn btn-sm btn-cham-primary" onclick="updateAppointmentStatus(${id}, 'Completed')">Hoàn thành</button>`;
+            html += `<button type="button" class="btn btn-sm btn-action-cancel" onclick="updateAppointmentStatus(${id}, 'Cancelled')">Hủy lịch</button>`;
+        }
+        container.innerHTML = html;
+    }
+
+    // 7. Toast helper
+    function showToast(type, message) {
+        const toastEl = document.getElementById('staffToast');
+        const msgEl = document.getElementById('toastMessage');
+        const iconEl = document.getElementById('toastIcon');
+
+        toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info');
+        if (type === 'success') {
+            toastEl.classList.add('bg-success');
+            iconEl.className = 'bi bi-check-circle-fill fs-5';
+        } else {
+            toastEl.classList.add('bg-danger');
+            iconEl.className = 'bi bi-exclamation-triangle-fill fs-5';
+        }
+
+        msgEl.textContent = message;
+        const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+        toast.show();
+    }
+
+    // Helper lấy CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 </script>
 {% endblock %}

@@ -12,6 +12,7 @@ Triển khai giao diện chuẩn Figma:
 import json
 from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
@@ -345,46 +346,14 @@ def staff_health_lookup_view(request):
 @login_required
 def staff_customer_health_detail_view(request, user_id):
     """
-    [MOD-08 - UC-8.2 cho Staff & Figma Node 273:2545]
-    Màn hình Chi tiết Hồ sơ sức khỏe của Khách hàng dành cho Nhân viên / KTV trước ca trực.
-    Hiển thị cảnh báo y tế đỏ nổi bật, sơ đồ vùng đau giải phẫu, lực massage yêu cầu,
-    các dịch vụ khách đã đặt và nút In phiếu hồ sơ sức khỏe chuẩn A4.
+    [MOD-08 & MOD-05] Chi tiết hồ sơ khách hàng 360 độ đầy đủ 3 Tab cho Nhân viên & Admin:
+      - Tab 1 (Figma Node 221:481): Thông tin cá nhân & Liên hệ
+      - Tab 2 (Figma Node 608:1773): Hồ sơ sức khỏe
+      - Tab 3 (Figma Node 608:250): Thẻ hội viên & Tích điểm
     """
     if not is_staff_or_superuser(request.user):
         messages.error(request, "Bạn không có quyền truy cập hồ sơ sức khỏe khách hàng này.")
         return redirect('home')
 
-    base_layout = 'layouts/admin_layout.html' if request.user.is_superuser else 'layouts/staff_layout.html'
-
-    customer = get_object_or_404(User, id=user_id)
-    profile = UserHealthProfile.objects.filter(user=customer).first()
-
-    profile_data = None
-    height_display = ""
-    weight_display = ""
-    if profile:
-        serializer = UserHealthProfileSerializer(profile)
-        profile_data = serializer.data
-        height_display = format_metric_value(profile.height_cm)
-        weight_display = format_metric_value(profile.weight_kg)
-
-    # Lịch hẹn gần đây của khách
-    recent_appointments = (
-        Appointment.objects.filter(user=customer)
-        .prefetch_related('details__service')
-        .order_by('-appointment_date', '-time_slot')[:5]
-    )
-
-    context = {
-        'page_title': f'Hồ sơ sức khỏe: {customer.name or customer.username}',
-        'base_layout': base_layout,
-        'customer': customer,
-        'profile': profile,
-        'profile_data': profile_data,
-        'has_profile': bool(profile),
-        'height_display': height_display,
-        'weight_display': weight_display,
-        'recent_appointments': recent_appointments,
-    }
-
-    return render(request, 'health/staff_detail.html', context)
+    active_tab = request.GET.get('tab', 'health')
+    return redirect(f"{reverse('accounts:admin_customer_detail', kwargs={'pk': user_id})}?tab={active_tab}")

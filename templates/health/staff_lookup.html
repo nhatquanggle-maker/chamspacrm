@@ -240,10 +240,16 @@
             </h2>
         </div>
 
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
             <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small fw-normal">
                 <i class="bi bi-clock me-1" style="color: #781A24;"></i> Ca trực: {{ now|date:"d/m/Y" }}
             </span>
+            <button type="button" class="btn text-white fw-bold px-3 py-2 d-inline-flex align-items-center gap-2"
+                    style="background-color: #781A24; border-radius: 8px; font-size: 13.5px; border: none; box-shadow: 0 2px 6px rgba(120,26,36,0.2);"
+                    data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                <i class="bi bi-person-plus-fill"></i>
+                <span>+ Thêm tài khoản KHÁCH HÀNG</span>
+            </button>
         </div>
     </div>
 
@@ -446,10 +452,106 @@
 </div>
 {% endblock %}
 
+{% block staff_modals %}
+<!-- =========================================================================
+     MODAL: THÊM TÀI KHOẢN KHÁCH HÀNG MỚI (DÀNH CHO STAFF & ADMIN)
+     ========================================================================= -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header text-white" style="background-color: #781A24;">
+                <h5 class="modal-title fs-6 fw-bold" id="addCustomerModalLabel">
+                    <i class="bi bi-person-plus-fill me-2"></i> Thêm tài khoản Khách hàng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <form method="POST" action="{% url 'health:staff_lookup' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_customer">
+                <div class="modal-body p-4" style="font-family: 'Cabin', sans-serif;">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Họ và tên khách hàng <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" placeholder="Ví dụ: Nguyễn Thị Mai" required>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="tel" name="phone" class="form-control" placeholder="0901 234 567" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Địa chỉ Email</label>
+                            <input type="email" name="email" class="form-control" placeholder="mai.nguyen@gmail.com">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Giới tính</label>
+                            <select name="gender" class="form-select">
+                                <option value="Nữ" selected>Nữ</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Ngày sinh</label>
+                            <input type="date" name="birthday" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Hạng thẻ khởi tạo</label>
+                            <select name="tier_name" class="form-select">
+                                {% for t in tiers %}
+                                    <option value="{{ t.name }}">{{ t.name }} (từ {{ t.min_points }} điểm)</option>
+                                {% empty %}
+                                    <option value="Thành viên">Thành viên</option>
+                                    <option value="Hạng Bạc">Hạng Bạc</option>
+                                    <option value="Hạng Vàng">Hạng Vàng</option>
+                                    <option value="Hạng Kim Cương">Hạng Kim Cương</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Mật khẩu ban đầu</label>
+                            <input type="text" name="password" class="form-control" value="customer123456">
+                            <small class="text-muted" style="font-size: 11px;">Mặc định: customer123456</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Ghi chú chăm sóc / Thể trạng sức khỏe</label>
+                        <textarea name="care_note" class="form-control" rows="2" placeholder="Ví dụ: Ưu tiên phòng yên tĩnh, da nhạy cảm, vùng cổ vai gáy đau mỏi..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #781A24;">Lưu tài khoản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block extra_js %}
 <script>
+    // Di chuyển trực tiếp modal ra <body> để modal luôn nằm trên lớp phủ z-index
+    function ensureCustomerModalsOnBody() {
+        ['addCustomerModal'].forEach(function(id) {
+            const el = document.getElementById(id);
+            if (el && el.parentElement !== document.body) {
+                document.body.appendChild(el);
+            }
+        });
+    }
+
     // Kích hoạt trạng thái ACTIVE cho mục "Hồ sơ Khách hàng" trên Sidebar Staff
     document.addEventListener('DOMContentLoaded', function () {
+        ensureCustomerModalsOnBody();
+
         const staffNavItems = document.querySelectorAll('.staff-nav-item');
         staffNavItems.forEach(function (item) {
             const target = item.getAttribute('data-nav-target') || '';

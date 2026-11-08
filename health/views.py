@@ -10,6 +10,7 @@ Triển khai giao diện chuẩn Figma:
 """
 
 import json
+from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -17,7 +18,7 @@ from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
 
-from core.models import UserHealthProfile, User, Appointment
+from core.models import UserHealthProfile, User, Appointment, Tier, Membership, UserProfile
 from .serializers import UserHealthProfileSerializer
 from .api import generate_unique_health_code
 
@@ -239,6 +240,56 @@ def staff_health_lookup_view(request):
 
     base_layout = 'layouts/admin_layout.html' if request.user.is_superuser else 'layouts/staff_layout.html'
 
+    # Xử lý Staff thêm mới tài khoản khách hàng
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'create_customer':
+            name = request.POST.get('name', '').strip()
+            phone = request.POST.get('phone', '').strip().replace(' ', '')
+            email = request.POST.get('email', '').strip().lower()
+            password = request.POST.get('password', '').strip() or 'customer123456'
+            gender = request.POST.get('gender', 'Nữ')
+            bday_str = request.POST.get('birthday', '').strip()
+            tier_name = request.POST.get('tier_name', 'Thành viên')
+            care_note = request.POST.get('care_note', '').strip()
+
+            if not name or not phone:
+                messages.error(request, "Vui lòng nhập đầy đủ Họ tên và Số điện thoại khách hàng.")
+            elif User.objects.filter(username=phone).exists() or User.objects.filter(phone=phone).exists():
+                messages.error(request, f"Số điện thoại {phone} đã được đăng ký tài khoản khác.")
+            elif email and User.objects.filter(email=email).exists():
+                messages.error(request, f"Địa chỉ email {email} đã được đăng ký tài khoản khác.")
+            else:
+                new_user = User.objects.create_user(
+                    username=phone,
+                    name=name,
+                    phone=phone,
+                    email=email,
+                    password=password,
+                    is_staff=False,
+                    is_superuser=False,
+                    is_active=True
+                )
+                bday = datetime.strptime(bday_str, '%Y-%m-%d').date() if bday_str else None
+                UserProfile.objects.create(
+                    user=new_user,
+                    gender=gender,
+                    birthday=bday
+                )
+                tier_obj = Tier.objects.filter(name=tier_name).first() or Tier.objects.first()
+                Membership.objects.create(
+                    user=new_user,
+                    tier=tier_obj,
+                    current_points=tier_obj.min_points if tier_obj else 0
+                )
+                UserHealthProfile.objects.create(
+                    user=new_user,
+                    health_code=f"HS-{new_user.id:04d}",
+                    special_requests=care_note
+                )
+                messages.success(request, f"Đã thêm thành công tài khoản khách hàng {new_user.name} (#{new_user.id:03d})!")
+            return redirect('health:staff_lookup')
+
     # Tìm kiếm
     query = request.GET.get('q', '').strip()
     filter_alert = request.GET.get('alert', '').strip()  # all, danger, normal
@@ -275,6 +326,8 @@ def staff_health_lookup_view(request):
             'data': p_data,
         })
 
+    tiers = Tier.objects.all().order_by('min_points')
+
     context = {
         'page_title': 'Quản lý & Tra cứu Hồ sơ sức khỏe khách hàng (Staff Workspace)',
         'base_layout': base_layout,
@@ -283,6 +336,7 @@ def staff_health_lookup_view(request):
         'total_profiles': total_profiles,
         'high_alert_count': high_alert_count,
         'profiles_list': all_profiles_list,
+        'tiers': tiers,
     }
 
     return render(request, 'health/staff_lookup.html', context)

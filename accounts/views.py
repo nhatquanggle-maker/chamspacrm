@@ -358,6 +358,9 @@ def admin_customer_list_view(request):
                         special_requests=care_note
                     )
                 messages.success(request, f"Đã thêm thành công tài khoản khách hàng {new_user.name} (#{new_user.id:03d})!")
+            redirect_to = request.POST.get('redirect_to')
+            if redirect_to:
+                return redirect(redirect_to)
             return redirect('accounts:admin_customer_list')
 
         # 2. Khóa / Mở khóa tài khoản khách hàng an toàn (Soft deactivation)
@@ -445,6 +448,8 @@ def admin_customer_list_view(request):
 
     tiers = Tier.objects.all().order_by('min_points')
 
+    base_layout = 'layouts/admin_layout.html' if request.user.is_superuser else 'layouts/staff_layout.html'
+
     context = {
         'customers': page_obj,
         'page_obj': page_obj,
@@ -454,6 +459,7 @@ def admin_customer_list_view(request):
         'current_status': status_filter,
         'search_query': search_query,
         'tiers': tiers,
+        'base_layout': base_layout,
     }
     return render(request, 'accounts/admin_customer_list.html', context)
 
@@ -611,6 +617,8 @@ def admin_customer_detail_view(request, pk):
     else:
         initials = "KH"
 
+    base_layout = 'layouts/admin_layout.html' if request.user.is_superuser else 'layouts/staff_layout.html'
+
     context = {
         'customer': customer,
         'profile': profile,
@@ -620,6 +628,7 @@ def admin_customer_detail_view(request, pk):
         'customer_code': customer_code,
         'initials': initials,
         'all_tiers': all_tiers,
+        'base_layout': base_layout,
         # Metric 360
         'total_appointments': total_appointments,
         'completed_appointments': completed_appointments,

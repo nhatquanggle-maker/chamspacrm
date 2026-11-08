@@ -19,8 +19,12 @@
             <p class="staff-page-subtitle mb-0">Tiếp nhận khách, cập nhật trạng thái và phối hợp KTV theo ca.</p>
         </div>
 
-        <!-- Action Button: Đặt lịch tại quầy -->
-        <div>
+        <!-- Action Buttons: Thêm khách & Đặt lịch tại quầy -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <button type="button" class="btn btn-cham-outline d-inline-flex align-items-center gap-2 px-3 py-2" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                <i class="bi bi-person-plus-fill fs-6" style="color: #781A24;"></i>
+                <span class="fw-semibold">Thêm tài khoản KHÁCH HÀNG</span>
+            </button>
             <button type="button" class="btn btn-cham-primary d-inline-flex align-items-center gap-2 px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalStaffQuickCreate">
                 <i class="bi bi-plus-lg fs-6"></i>
                 <span class="fw-semibold">Đặt lịch tại quầy</span>
@@ -79,7 +83,6 @@
                         <option value="" {% if not selected_status %}selected{% endif %}>Tất cả trạng thái</option>
                         <option value="Hold" {% if selected_status == 'Hold' or selected_status == 'Pending' %}selected{% endif %}>Chờ xác nhận</option>
                         <option value="Confirmed" {% if selected_status == 'Confirmed' %}selected{% endif %}>Đã xác nhận</option>
-                        <option value="In_Progress" {% if selected_status == 'In_Progress' %}selected{% endif %}>Đang phục vụ</option>
                         <option value="Completed" {% if selected_status == 'Completed' %}selected{% endif %}>Đã hoàn thành</option>
                         <option value="Cancelled" {% if selected_status == 'Cancelled' %}selected{% endif %}>Đã hủy</option>
                     </select>
@@ -234,16 +237,20 @@
             <!-- Right: Legend chú thích trạng thái -->
             <div class="legend-group d-flex flex-wrap align-items-center gap-3">
                 <div class="legend-item d-flex align-items-center gap-1">
-                    <span class="legend-dot" style="background-color: #026AA2;"></span>
-                    <span class="legend-text">Đang phục vụ</span>
-                </div>
-                <div class="legend-item d-flex align-items-center gap-1">
                     <span class="legend-dot" style="background-color: #B25E09;"></span>
                     <span class="legend-text">Chờ xác nhận</span>
                 </div>
                 <div class="legend-item d-flex align-items-center gap-1">
                     <span class="legend-dot" style="background-color: #167455;"></span>
                     <span class="legend-text">Đã xác nhận</span>
+                </div>
+                <div class="legend-item d-flex align-items-center gap-1">
+                    <span class="legend-dot" style="background-color: #5925DC;"></span>
+                    <span class="legend-text">Đã hoàn thành</span>
+                </div>
+                <div class="legend-item d-flex align-items-center gap-1">
+                    <span class="legend-dot" style="background-color: #B42318;"></span>
+                    <span class="legend-text">Đã hủy</span>
                 </div>
             </div>
         </div>
@@ -775,12 +782,95 @@
 </style>
 
 <!-- ========================================================================= -->
+<!-- MODAL: THÊM TÀI KHOẢN KHÁCH HÀNG MỚI (DÀNH CHO STAFF VẬN HÀNH)            -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header text-white" style="background-color: #781A24;">
+                <h5 class="modal-title fs-6 fw-bold" id="addCustomerModalLabel">
+                    <i class="bi bi-person-plus-fill me-2"></i> Thêm tài khoản Khách hàng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <form method="POST" action="{% url 'accounts:admin_customer_list' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_customer">
+                <input type="hidden" name="redirect_to" value="{{ request.get_full_path }}">
+                <div class="modal-body p-4" style="font-family: 'Cabin', sans-serif;">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Họ và tên khách hàng <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" placeholder="Ví dụ: Nguyễn Thị Mai" required>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="tel" name="phone" class="form-control" placeholder="0901 234 567" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Địa chỉ Email</label>
+                            <input type="email" name="email" class="form-control" placeholder="mai.nguyen@gmail.com">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Giới tính</label>
+                            <select name="gender" class="form-select">
+                                <option value="Nữ" selected>Nữ</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Ngày sinh</label>
+                            <input type="date" name="birthday" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Hạng thẻ khởi tạo</label>
+                            <select name="tier_name" class="form-select">
+                                {% for t in tiers %}
+                                    <option value="{{ t.name }}">{{ t.name }} (từ {{ t.min_points }} điểm)</option>
+                                {% empty %}
+                                    <option value="Thành viên">Thành viên</option>
+                                    <option value="Hạng Bạc">Hạng Bạc</option>
+                                    <option value="Hạng Vàng">Hạng Vàng</option>
+                                    <option value="Hạng Kim Cương">Hạng Kim Cương</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Mật khẩu ban đầu</label>
+                            <input type="text" name="password" class="form-control" value="customer123456">
+                            <small class="text-muted" style="font-size: 11px;">Mặc định: customer123456</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Ghi chú chăm sóc / Thể trạng sức khỏe</label>
+                        <textarea name="care_note" class="form-control" rows="2" placeholder="Ví dụ: Ưu tiên phòng yên tĩnh, da nhạy cảm, vùng cổ vai gáy đau mỏi..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #781A24;">Lưu tài khoản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
 <!-- 8. JAVASCRIPT XỬ LÝ TƯƠNG TÁC ĐỘNG KHÔNG RELOAD (FETCH API)                -->
 <!-- ========================================================================= -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Chuyển Modals ra document.body để tránh z-index backdrop conflict
-    ['modalStaffQuickCreate', 'modalAppointmentDetail'].forEach(id => {
+    ['modalStaffQuickCreate', 'modalAppointmentDetail', 'addCustomerModal'].forEach(id => {
         const el = document.getElementById(id);
         if (el && el.parentElement !== document.body) {
             document.body.appendChild(el);
@@ -809,7 +899,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const matchQuery = !query || rowText.includes(query);
             const matchSlot = !slot || rowSlot === slot;
             const matchStatus = !status || rowStatus === status || 
-                                (status === 'Hold' && (rowStatus === 'Hold' || rowStatus === 'Pending'));
+                                (status === 'Hold' && (rowStatus === 'Hold' || rowStatus === 'Pending')) ||
+                                (status === 'Confirmed' && (rowStatus === 'Confirmed' || rowStatus === 'In_Progress'));
 
             if (matchQuery && matchSlot && matchStatus) {
                 row.style.display = '';
@@ -948,7 +1039,7 @@ function updateRowStatusUI(id, status) {
 
     const statusMap = {
         'Confirmed': { label: 'Đã xác nhận', bg: '#EAF5EF', color: '#167455', dot: '#167455', cls: 'status-confirmed' },
-        'In_Progress': { label: 'Đang phục vụ', bg: '#E8F4FD', color: '#026AA2', dot: '#026AA2', cls: 'status-in-progress' },
+        'In_Progress': { label: 'Đã xác nhận', bg: '#EAF5EF', color: '#167455', dot: '#167455', cls: 'status-confirmed' },
         'Hold': { label: 'Chờ xác nhận', bg: '#FEF6E7', color: '#B25E09', dot: '#B25E09', cls: 'status-pending' },
         'Pending': { label: 'Chờ xác nhận', bg: '#FEF6E7', color: '#B25E09', dot: '#B25E09', cls: 'status-pending' },
         'Completed': { label: 'Đã hoàn thành', bg: '#F3EFFB', color: '#5925DC', dot: '#5925DC', cls: 'status-completed' },
@@ -1061,7 +1152,7 @@ async function viewAppointmentDetail(appointmentId) {
 function renderDetailStatusBadge(status) {
     const statusMap = {
         'Confirmed': { label: 'Đã xác nhận', bg: '#EAF5EF', color: '#167455', dot: '#167455', cls: 'status-confirmed' },
-        'In_Progress': { label: 'Đang phục vụ', bg: '#E8F4FD', color: '#026AA2', dot: '#026AA2', cls: 'status-in-progress' },
+        'In_Progress': { label: 'Đã xác nhận', bg: '#EAF5EF', color: '#167455', dot: '#167455', cls: 'status-confirmed' },
         'Hold': { label: 'Chờ xác nhận', bg: '#FEF6E7', color: '#B25E09', dot: '#B25E09', cls: 'status-pending' },
         'Pending': { label: 'Chờ xác nhận', bg: '#FEF6E7', color: '#B25E09', dot: '#B25E09', cls: 'status-pending' },
         'Completed': { label: 'Đã hoàn thành', bg: '#F3EFFB', color: '#5925DC', dot: '#5925DC', cls: 'status-completed' },

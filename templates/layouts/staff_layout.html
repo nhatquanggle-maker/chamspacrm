@@ -16,12 +16,17 @@
                 {% endblock %}
                 <div class="workspace-content">
                     {% block staff_content %}{% endblock %}
+                    {% block admin_content %}{% endblock %}
                     {% block content %}{% endblock %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal Container cấp Root cho Staff Workspace (Nằm ngoài overflow-hidden) -->
+{% block admin_modals %}{% endblock %}
+{% block staff_modals %}{% endblock %}
 
 <script>
     // Tự động chuyển hướng sang phân hệ tương ứng nếu URL có query ?tab=

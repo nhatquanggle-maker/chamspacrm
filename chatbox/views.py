@@ -17,7 +17,10 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Q
 
-from core.models import FAQ, Conversation, ConversationMessage, User, Service, Voucher
+from core.models import (
+    FAQ, Conversation, ConversationMessage, User, Service, Voucher,
+    Membership, UserHealthProfile
+)
 
 
 def is_staff_or_superuser(user):
@@ -88,29 +91,161 @@ def livechat_staff_view(request):
 
 
 @login_required
-def faq_management_view(request):
+def admin_livechat_monitor_view(request):
     """
-    [UC-2.3] Màn hình Quản lý kịch bản Chatbot (FAQ).
-    NGHIÊM CẤM NHÂN VIÊN: CHỈ DUY NHẤT QUẢN LÝ (Admin / is_superuser=True) MỚI ĐƯỢC PHÉP TRUY CẬP.
-    Nếu là Staff thường -> Chặn ngay và điều hướng về trang Livechat.
+    [Figma Node 502:2005 - ADMIN · Quản lý Live Chat & Giám sát phiên tư vấn (UC-2.2)]
+    Dành riêng cho Quản trị viên (Admin / is_superuser=True):
+      - Cột 1: Danh sách hội thoại phân tab (Chưa tiếp nhận, Đang tư vấn, Đã kết thúc)
+      - Cột 2: Khung giám sát & Can thiệp chat (Mode Giám sát vs Mode Can thiệp, Tiếp quản, Chuyển nhân viên)
+      - Cột 3: Thông tin chi tiết khách hàng (Hạng VIP, Tổng chi tiêu, Lưu ý sức khỏe) & Giám sát SLA
     """
     if not request.user.is_superuser:
-        messages.error(request, "Quyền truy cập bị từ chối: Chỉ Quản lý (Admin) mới có quyền quản lý kịch bản Chatbot FAQ. Nhân viên chỉ phụ trách tư vấn trực tiếp với khách hàng.")
+        messages.error(request, "Quyền truy cập bị từ chối: Màn hình Giám sát phiên tư vấn chỉ dành riêng cho Quản lý.")
+        return redirect('chatbox:inbox')
+
+    # Lấy danh sách hội thoại theo 3 tab
+    waiting_conversations = (
+        Conversation.objects.filter(status='Đang chờ')
+        .select_related('customer', 'staff')
+        .order_by('-created_at')
+    )
+    processing_conversations = (
+        Conversation.objects.filter(status='Đang xử lý')
+        .select_related('customer', 'staff')
+        .order_by('-updated_at')
+    )
+    closed_conversations = (
+        Conversation.objects.filter(status='Kết thúc')
+        .select_related('customer', 'staff')
+        .order_by('-closed_at')
+    )
+
+    conv_id = request.GET.get('conv_id')
+    active_conv = None
+    if conv_id:
+        active_conv = Conversation.objects.filter(pk=conv_id).select_related('customer', 'staff').first()
+
+    if not active_conv:
+        active_conv = processing_conversations.first() or waiting_conversations.first() or closed_conversations.first()
+
+    # Dữ liệu khách hàng cho Cột 3
+    customer_info = None
+    messages_list = []
+    duration_display = "04:12"
+    if active_conv:
+        messages_list = active_conv.messages.all().order_by('created_at')
+        customer = active_conv.customer
+
+        membership = Membership.objects.filter(user=customer).select_related('tier').first()
+        tier_name = membership.tier.name if (membership and membership.tier) else 'Hạng VÀNG'
+        total_spent = membership.total_spent if membership else 18500000
+        formatted_spent = f"{int(total_spent):,} VNĐ".replace(',', '.')
+
+        health = UserHealthProfile.objects.filter(user=customer).first()
+        health_notes = []
+        if health:
+            if health.special_requests:
+                health_notes.append(health.special_requests)
+            if health.massage_pressure:
+                health_notes.append(f"ưu tiên lực {health.massage_pressure.lower()}")
+            if health.allergy_notes:
+                health_notes.append(f"dị ứng: {health.allergy_notes}")
+        health_summary = ", ".join(health_notes) if health_notes else "Da nhạy cảm, ưu tiên lực nhẹ."
+
+        # Tính thời lượng
+        duration_seconds = int((timezone.now() - active_conv.created_at).total_seconds())
+        mins = max(0, duration_seconds // 60)
+        secs = max(0, duration_seconds % 60)
+        duration_display = f"{mins:02d}:{secs:02d}"
+
+        customer_info = {
+            'user': customer,
+            'tier_name': tier_name,
+            'total_spent': formatted_spent,
+            'health_summary': health_summary
+        }
+
+    # Danh sách nhân viên trực tuyến để chuyển giao (Reassign)
+    available_staffs = User.objects.filter(is_staff=True).order_by('name')
+
+    # Danh sách dịch vụ và voucher phục vụ can thiệp
+    services = Service.objects.filter(status='Hoạt động')[:10]
+    vouchers = Voucher.objects.filter(status='Khả dụng')[:5]
+
+    context = {
+        'page_title': 'Quản lý Boxchat | Giám sát phiên tư vấn',
+        'active_tab': 'monitor',
+        'waiting_conversations': waiting_conversations,
+        'processing_conversations': processing_conversations,
+        'closed_conversations': closed_conversations,
+        'waiting_count': waiting_conversations.count(),
+        'processing_count': processing_conversations.count(),
+        'closed_count': closed_conversations.count(),
+        'active_conv': active_conv,
+        'customer_info': customer_info,
+        'messages_list': messages_list,
+        'duration_display': duration_display,
+        'available_staffs': available_staffs,
+        'services': services,
+        'vouchers': vouchers,
+    }
+    return render(request, 'chatbox/admin_monitor.html', context)
+
+
+@login_required
+def faq_management_view(request):
+    """
+    [UC-2.3 & Figma Node 211:3459] Màn hình Quản lý kịch bản Chatbot (FAQ).
+    NGHIÊM CẤM NHÂN VIÊN: CHỈ DUY NHẤT QUẢN LÝ (Admin / is_superuser=True) MỚI ĐƯỢC PHÉP TRUY CẬP.
+    Hỗ trợ:
+      - Tìm kiếm theo từ khóa hoặc câu hỏi
+      - Lọc theo danh mục (Pills thống kê số lượng)
+      - Xuất dữ liệu CSV
+      - Thêm/Sửa/Xóa và Toggle Trạng thái hoạt động
+    """
+    if not request.user.is_superuser:
+        messages.error(request, "Quyền truy cập bị từ chối: Chỉ Quản lý (Admin) mới có quyền quản lý kịch bản Chatbot FAQ.")
         return redirect('chatbox:inbox')
 
     faqs = FAQ.objects.all().order_by('-created_at')
-    categories = FAQ.objects.values_list('category', flat=True).distinct()
+    
+    # Thống kê số lượng theo danh mục cho các Pills
+    category_counts = {}
+    for item in FAQ.objects.values('category').annotate(total=Count('id')):
+        category_counts[item['category']] = item['total']
 
-    active_count = faqs.filter(status='Active').count()
-    hidden_count = faqs.filter(status='Hidden').count()
+    # Danh sách danh mục chuẩn
+    default_categories = ['Bảng giá', 'Lịch đặt', 'Khuyến mãi', 'Địa chỉ', 'Chính sách', 'Dịch vụ']
+    all_categories = sorted(list(set(default_categories + list(category_counts.keys()))))
+
+    category_filter = request.GET.get('category')
+    search_q = request.GET.get('q', '').strip()
+
+    if category_filter:
+        faqs = faqs.filter(category=category_filter)
+    if search_q:
+        faqs = faqs.filter(
+            Q(question__icontains=search_q) |
+            Q(keywords__icontains=search_q) |
+            Q(faq_code__icontains=search_q) |
+            Q(answer__icontains=search_q)
+        )
+
+    active_count = FAQ.objects.filter(status='Active').count()
+    hidden_count = FAQ.objects.filter(status='Hidden').count()
+    total_count = FAQ.objects.count()
 
     context = {
-        'page_title': 'Quản lý kịch bản Chatbot (FAQ) | Dành riêng cho Quản lý',
+        'page_title': 'Quản lý Boxchat | Quản lý kịch bản Chatbot (FAQ)',
+        'active_tab': 'faqs',
         'faqs': faqs,
-        'categories': list(categories),
+        'categories': all_categories,
+        'category_counts': category_counts,
+        'selected_category': category_filter,
+        'search_q': search_q,
         'active_count': active_count,
         'hidden_count': hidden_count,
-        'total_faqs': faqs.count(),
+        'total_faqs': total_count,
     }
 
     return render(request, 'chatbox/faq_management.html', context)

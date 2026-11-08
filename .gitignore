@@ -49,6 +49,15 @@ local_settings.py
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# 8. Scratch & Temporary Files
+scratch/
+scratch_*
+*.tmp
+figma_node_*.json
+inspect_*.py
+staff_analysis.txt
+Thumbs.db
 Desktop.ini
 
 # 8. Logs

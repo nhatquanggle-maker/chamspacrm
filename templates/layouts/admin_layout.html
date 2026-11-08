@@ -22,4 +22,15 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Tự động nhận diện ?tab=chatbox để chuyển hướng sang màn hình Quản lý Boxchat của Admin
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab === 'chatbox' && !window.location.pathname.includes('/chatbox/admin/')) {
+            window.location.replace("{% url 'chatbox:admin_monitor' %}");
+        }
+    })();
+</script>
 {% endblock %}

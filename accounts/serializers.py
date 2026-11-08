@@ -203,21 +203,97 @@ class StaffUpdateSerializer(serializers.Serializer):
         return instance
 
 
+class CustomerCreateAdminSerializer(serializers.Serializer):
+    """UC-5.6: Quản lý tạo tài khoản khách hàng mới"""
+    name = serializers.CharField(max_length=150, required=True)
+    phone = serializers.CharField(max_length=20, required=True)
+    email = serializers.EmailField(required=False, allow_blank=True, default='')
+    password = serializers.CharField(write_only=True, required=False, min_length=6, default='customer123456')
+    gender = serializers.ChoiceField(choices=['Nữ', 'Nam', 'Khác'], required=False, default='Nữ')
+    birthday = serializers.DateField(required=False, allow_null=True)
+    tier_name = serializers.CharField(required=False, default='Thành viên')
+    care_note = serializers.CharField(required=False, allow_blank=True, default='')
+
+    def validate_phone(self, value):
+        val = value.strip().replace(' ', '').replace('.', '')
+        if User.objects.filter(username=val).exists() or User.objects.filter(phone=val).exists():
+            raise serializers.ValidationError("Số điện thoại này đã được sử dụng.")
+        return val
+
+    def validate_email(self, value):
+        val = value.strip().lower()
+        if val and User.objects.filter(email=val).exists():
+            raise serializers.ValidationError("Email này đã tồn tại trong hệ thống.")
+        return val
+
+    def create(self, validated_data):
+        from core.models import Tier, UserHealthProfile
+        phone = validated_data['phone']
+        pwd = validated_data.get('password') or 'customer123456'
+        user = User.objects.create_user(
+            username=phone,
+            name=validated_data['name'].strip(),
+            phone=phone,
+            email=validated_data.get('email', '').strip().lower(),
+            password=pwd,
+            is_staff=False,
+            is_superuser=False,
+            is_active=True
+        )
+        UserProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                'gender': validated_data.get('gender', 'Nữ'),
+                'birthday': validated_data.get('birthday')
+            }
+        )
+        tier_obj = Tier.objects.filter(name=validated_data.get('tier_name')).first() or Tier.objects.first()
+        Membership.objects.get_or_create(
+            user=user,
+            defaults={
+                'tier': tier_obj,
+                'current_points': tier_obj.min_points if tier_obj else 0
+            }
+        )
+        care_note = validated_data.get('care_note', '').strip()
+        if care_note:
+            UserHealthProfile.objects.update_or_create(
+                user=user,
+                defaults={
+                    'health_code': f"HS-{user.id:04d}",
+                    'special_requests': care_note
+                }
+            )
+        return user
+
+
 class CustomerUpdateAdminSerializer(serializers.Serializer):
     """UC-5.9: Quản lý / Nhân viên cập nhật thông tin khách hàng"""
     name = serializers.CharField(max_length=150, required=False)
     phone = serializers.CharField(max_length=20, required=False)
+    email = serializers.EmailField(required=False, allow_blank=True)
     gender = serializers.ChoiceField(choices=['Nữ', 'Nam', 'Khác'], required=False, allow_null=True)
     birthday = serializers.DateField(required=False, allow_null=True)
+    tier_name = serializers.CharField(required=False, allow_blank=True)
+    care_note = serializers.CharField(required=False, allow_blank=True)
+    is_active = serializers.BooleanField(required=False)
 
     def update(self, instance, validated_data):
-        if 'name' in validated_data:
+        from core.models import Tier, UserHealthProfile
+        if 'name' in validated_data and validated_data['name']:
             instance.name = validated_data['name'].strip()
-        if 'phone' in validated_data:
+        if 'phone' in validated_data and validated_data['phone']:
             new_phone = validated_data['phone'].strip().replace(' ', '')
             if User.objects.exclude(pk=instance.pk).filter(phone=new_phone).exists():
                 raise serializers.ValidationError({"phone": "Số điện thoại này đã được tài khoản khác sử dụng."})
             instance.phone = new_phone
+        if 'email' in validated_data:
+            new_email = validated_data['email'].strip().lower()
+            if new_email and User.objects.exclude(pk=instance.pk).filter(email=new_email).exists():
+                raise serializers.ValidationError({"email": "Email này đã được tài khoản khác sử dụng."})
+            instance.email = new_email
+        if 'is_active' in validated_data:
+            instance.is_active = validated_data['is_active']
         instance.save()
 
         profile, _ = UserProfile.objects.get_or_create(user=instance)
@@ -226,6 +302,22 @@ class CustomerUpdateAdminSerializer(serializers.Serializer):
         if 'birthday' in validated_data:
             profile.birthday = validated_data['birthday']
         profile.save()
+
+        if 'tier_name' in validated_data and validated_data['tier_name']:
+            tier_obj = Tier.objects.filter(name=validated_data['tier_name']).first()
+            if tier_obj:
+                membership, _ = Membership.objects.get_or_create(user=instance)
+                membership.tier = tier_obj
+                membership.save()
+
+        if 'care_note' in validated_data:
+            health_prof, _ = UserHealthProfile.objects.get_or_create(
+                user=instance,
+                defaults={'health_code': f"HS-{instance.id:04d}"}
+            )
+            health_prof.special_requests = validated_data['care_note']
+            health_prof.save()
+
         return instance
 
 

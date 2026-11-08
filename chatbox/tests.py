@@ -319,3 +319,36 @@ class ChatboxModuleTests(TestCase):
         self.assertIsNotNone(res.data['conversation'])
         self.assertEqual(len(res.data['messages']), 2)
         self.assertEqual(res.data['messages'][0]['content'], 'Tin nhắn cũ của khách')
+
+    # --------------------------------------------------------------------------
+    # 6. TEST PHÂN QUYỀN HIỂN THỊ CHAT WIDGET TRÊN HOMEPAGE
+    # --------------------------------------------------------------------------
+    def test_homepage_chat_widget_visibility(self):
+        """
+        Ràng buộc giao diện:
+        - Khách vãng lai và Khách hàng: CÓ Chat Widget (chamChatbotFab).
+        - Nhân viên (Staff) và Quản lý (Admin): KHÔNG ĐƯỢC CÓ Chat Widget ngay chỗ homepage.
+        """
+        # 1. Khách vãng lai truy cập Homepage -> CÓ chat widget
+        self.client.logout()
+        res_anon = self.client.get('/')
+        self.assertEqual(res_anon.status_code, 200)
+        self.assertContains(res_anon, 'chamChatbotFab')
+
+        # 2. Khách hàng đã đăng nhập truy cập Homepage -> CÓ chat widget
+        self.client.force_login(self.customer_user)
+        res_customer = self.client.get('/')
+        self.assertEqual(res_customer.status_code, 200)
+        self.assertContains(res_customer, 'chamChatbotFab')
+
+        # 3. Nhân viên (Staff) truy cập Homepage -> KHÔNG CÓ chat widget
+        self.client.force_login(self.staff_user_1)
+        res_staff = self.client.get('/')
+        self.assertEqual(res_staff.status_code, 200)
+        self.assertNotContains(res_staff, 'chamChatbotFab')
+
+        # 4. Quản trị viên (Admin) truy cập Homepage -> KHÔNG CÓ chat widget
+        self.client.force_login(self.admin_user)
+        res_admin = self.client.get('/')
+        self.assertEqual(res_admin.status_code, 200)
+        self.assertNotContains(res_admin, 'chamChatbotFab')

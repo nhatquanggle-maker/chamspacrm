@@ -8,15 +8,17 @@
 <style>
     /* ==========================================================================
        CHAM SPA & MASSAGE - MOD-08: TRA CỨU HỒ SƠ SỨC KHỎE (STAFF WORKSPACE)
-       Thành viên phụ trách: Thảo Ngọc (Meo)
+       Thiết kế tối giản, tinh tế, không màu mè, dùng hệ màu chính thương hiệu:
+       Đỏ Champa #781A24, Nền kem #FAF7EF, Viền #DED2BA, Nâu đen #171311.
        ========================================================================== */
 
     .staff-health-container {
         max-width: 1320px;
         margin: 0 auto;
-        padding-bottom: 60px;
+        padding-bottom: 50px;
     }
 
+    /* 3 Widget thống kê mini tinh gọn */
     .kpi-mini-card {
         background-color: #FFFFFF;
         border: 1px solid #DED2BA;
@@ -36,82 +38,65 @@
     }
 
     .kpi-icon-wrap {
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
         border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
+        font-size: 17px;
         flex-shrink: 0;
+        background-color: #FAF7EF;
+        color: #781A24;
+        border: 1px solid #D0B581;
     }
 
     .kpi-num {
         font-family: var(--font-serif), Georgia, serif;
-        font-size: 20px;
+        font-size: 19px;
         font-weight: 700;
-        color: #171311;
+        color: #781A24;
         line-height: 1.1;
     }
 
     .kpi-title {
-        font-size: 11.5px;
+        font-size: 11px;
         font-weight: 600;
         color: #716761;
         text-transform: uppercase;
         letter-spacing: 0.3px;
     }
 
-    /* Bảng dữ liệu chuẩn Cham Spa */
+    /* Thẻ Card chứa bảng dữ liệu */
     .table-container-card {
         background-color: #FFFFFF;
         border: 1px solid #D0B581;
-        border-radius: 18px;
-        box-shadow: 0 10px 30px rgba(46, 29, 23, 0.06);
+        border-radius: 14px;
+        box-shadow: 0 6px 20px rgba(46, 29, 23, 0.05);
         overflow: hidden;
     }
 
-    .cham-table {
-        margin-bottom: 0;
+    .table-header-toolbar {
+        padding: 16px 22px;
+        background-color: #FFFFFF;
+        border-bottom: 1px solid #EADEC7;
     }
 
-    .cham-table th {
-        background-color: #FAF7EF;
-        color: #781A24;
-        font-family: var(--font-body), sans-serif;
-        font-weight: 700;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 16px 20px;
-        border-bottom: 1px solid #DED2BA;
-        vertical-align: middle;
-    }
-
-    .cham-table td {
-        padding: 16px 20px;
-        vertical-align: middle;
-        font-size: 14px;
-        border-bottom: 1px solid #F0EAE1;
-    }
-
-    .cham-table tbody tr:hover {
-        background-color: #FAF7EF;
-    }
-
+    /* Ô tìm kiếm */
     .search-input-wrap {
         position: relative;
-        max-width: 420px;
+        max-width: 380px;
         width: 100%;
     }
 
     .search-input-box {
         background-color: #FFFFFF;
         border: 1px solid #DED2BA;
-        border-radius: 10px;
-        padding: 10px 16px 10px 42px;
-        font-size: 14px;
+        border-radius: 8px;
+        padding: 8px 14px 8px 36px;
+        font-size: 13.5px;
         width: 100%;
+        color: #171311;
         transition: all 0.2s ease;
     }
 
@@ -123,27 +108,31 @@
 
     .search-icon-pos {
         position: absolute;
-        left: 14px;
+        left: 12px;
         top: 50%;
         transform: translateY(-50%);
         color: #716761;
-        font-size: 16px;
+        font-size: 14px;
     }
 
+    /* Nút lọc tinh tế */
     .filter-btn {
-        padding: 8px 18px;
-        border-radius: 8px;
-        font-size: 13.5px;
+        padding: 7px 16px;
+        border-radius: 6px;
+        font-size: 13px;
         font-weight: 600;
         border: 1px solid #DED2BA;
         background-color: #FFFFFF;
         color: #4A3E39;
         text-decoration: none;
-        transition: all 0.2s ease;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
     }
 
     .filter-btn:hover {
-        border-color: #D0B581;
+        border-color: #781A24;
         background-color: #FAF7EF;
         color: #781A24;
     }
@@ -153,40 +142,118 @@
         border-color: #781A24 !important;
         color: #FFFFFF !important;
     }
+
+    /* Bảng dữ liệu */
+    .cham-table {
+        margin-bottom: 0;
+        width: 100%;
+    }
+
+    .cham-table th {
+        background-color: #FAF7EF;
+        color: #781A24;
+        font-family: var(--font-body), sans-serif;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 13px 18px;
+        border-bottom: 1px solid #DED2BA;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .cham-table td {
+        padding: 14px 18px;
+        vertical-align: middle;
+        font-size: 13.5px;
+        color: #171311;
+        border-bottom: 1px solid #F0EAE1;
+    }
+
+    .cham-table tbody tr:hover {
+        background-color: #FAF7EF;
+    }
+
+    /* Nút Xem hồ sơ nằm ngang gọn gàng, thanh lịch */
+    .btn-cham-view-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #781A24;
+        border: 1px solid #D0B581;
+        background-color: #FAF7EF;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+    }
+
+    .btn-cham-view-link:hover {
+        background-color: #781A24;
+        color: #FFFFFF !important;
+        border-color: #781A24;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(120, 26, 36, 0.2);
+    }
+
+    /* Pill cảnh báo KTV tinh gọn, màu chính */
+    .alert-pill-cham {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background-color: #FAF7EF;
+        border: 1px solid #781A24;
+        color: #781A24;
+        font-size: 11.5px;
+        font-weight: 600;
+        margin: 2px;
+    }
+
+    .safe-text-cham {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: #716761;
+        font-size: 12px;
+        font-weight: 500;
+    }
 </style>
 {% endblock %}
-
-{% block staff_topbar %}{% endblock %}
-{% block admin_topbar %}{% endblock %}
 
 {% block content %}
 <div class="staff-health-container">
 
     <!-- 1. TIÊU ĐỀ TRANG -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <div>
-            <div class="small text-muted mb-1 text-uppercase fw-bold" style="letter-spacing: 0.5px;">
+            <div class="small text-muted mb-0 text-uppercase fw-bold" style="letter-spacing: 0.5px; font-size: 11px;">
                 STAFF WORKSPACE · VẬN HÀNH TRỊ LIỆU AN TOÀN
             </div>
-            <h2 class="font-serif fw-bold mb-0" style="color: #781A24; font-size: 28px;">
+            <h2 class="font-serif fw-bold mb-0" style="color: #781A24; font-size: 24px;">
                 Tra cứu & Quản lý Hồ sơ Sức khỏe Khách hàng
             </h2>
         </div>
 
         <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-light text-dark border p-2 px-3 rounded-pill">
+            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small fw-normal">
                 <i class="bi bi-clock me-1 text-danger"></i> Ca trực: {{ now|date:"d/m/Y" }}
             </span>
         </div>
     </div>
 
-    <!-- 2. KPI WIDGETS THỐNG KÊ NHANH (TINH GỌN, DỄ NHÌN) -->
+    <!-- 2. KPI WIDGETS THỐNG KÊ (GỌN GÀNG, MÀU CHÍNH) -->
     <div class="row g-2 g-md-3 mb-3">
         <!-- Tổng số hồ sơ -->
         <div class="col-md-4">
             <div class="kpi-mini-card">
-                <div class="kpi-icon-wrap" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #D0B581;">
-                    <i class="bi bi-folder-check"></i>
+                <div class="kpi-icon-wrap">
+                    <i class="bi bi-folder2-open"></i>
                 </div>
                 <div>
                     <div class="kpi-num">{{ total_profiles }}</div>
@@ -195,49 +262,49 @@
             </div>
         </div>
 
-        <!-- Cảnh báo y tế đỏ -->
+        <!-- Cảnh báo an toàn -->
         <div class="col-md-4">
             <div class="kpi-mini-card">
-                <div class="kpi-icon-wrap" style="background-color: #FFF5F5; color: #DC2626; border: 1px solid #FECACA;">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
+                <div class="kpi-icon-wrap" style="color: #781A24;">
+                    <i class="bi bi-shield-exclamation"></i>
                 </div>
                 <div>
-                    <div class="kpi-num" style="color: #DC2626;">{{ high_alert_count }}</div>
+                    <div class="kpi-num">{{ high_alert_count }}</div>
                     <div class="kpi-title">Cảnh báo An toàn Y tế</div>
                 </div>
             </div>
         </div>
 
-        <!-- Trạng thái chuẩn bị phòng -->
+        <!-- Tuân thủ KTV -->
         <div class="col-md-4">
             <div class="kpi-mini-card">
-                <div class="kpi-icon-wrap" style="background-color: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0;">
+                <div class="kpi-icon-wrap">
                     <i class="bi bi-shield-check"></i>
                 </div>
                 <div>
-                    <div class="kpi-num" style="color: #16A34A;">100%</div>
+                    <div class="kpi-num">100%</div>
                     <div class="kpi-title">Tuân thủ Khảo sát KTV</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 3. BẢNG DỮ LIỆU & BỘ LỌC TÌM KIẾM -->
+    <!-- 3. BẢNG DỮ LIỆU & BỘ LỌC TÌM KIẾM (GỌN GÀNG, KHÔNG MÀU MÈ) -->
     <div class="table-container-card">
 
-        <!-- Header Bảng: Search & Filters -->
-        <div class="p-4 bg-white border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <!-- Toolbar: Search & Filters -->
+        <div class="table-header-toolbar d-flex flex-wrap align-items-center justify-content-between gap-3">
             <!-- Form Tìm kiếm -->
             <form method="GET" action="{% url 'health:staff_lookup' %}" class="search-input-wrap">
                 <i class="bi bi-search search-icon-pos"></i>
                 <input type="text" name="q" value="{{ query }}" class="search-input-box"
-                    placeholder="Tìm theo Tên, SĐT hoặc Mã hồ sơ (VD: HP-KH001)...">
+                    placeholder="Tìm theo Tên, SĐT hoặc Mã hồ sơ...">
                 {% if filter_alert %}
                 <input type="hidden" name="alert" value="{{ filter_alert }}">
                 {% endif %}
             </form>
 
-            <!-- Bộ lọc Cảnh báo y tế -->
+            <!-- Bộ lọc màu chính -->
             <div class="d-flex align-items-center gap-2">
                 <span class="small fw-bold text-muted me-1">Lọc:</span>
                 <a href="{% url 'health:staff_lookup' %}{% if query %}?q={{ query }}{% endif %}"
@@ -245,8 +312,8 @@
                     Tất cả ({{ total_profiles }})
                 </a>
                 <a href="{% url 'health:staff_lookup' %}?alert=alert{% if query %}&q={{ query }}{% endif %}"
-                    class="filter-btn {% if filter_alert == 'alert' %}active{% endif %}" style="color: #DC2626;">
-                    <i class="bi bi-exclamation-circle-fill me-1"></i> Có cảnh báo ({{ high_alert_count }})
+                    class="filter-btn {% if filter_alert == 'alert' %}active{% endif %}">
+                    <i class="bi bi-exclamation-circle me-1"></i> Có cảnh báo ({{ high_alert_count }})
                 </a>
                 <a href="{% url 'health:staff_lookup' %}?alert=normal{% if query %}&q={{ query }}{% endif %}"
                     class="filter-btn {% if filter_alert == 'normal' %}active{% endif %}">
@@ -255,7 +322,7 @@
             </div>
         </div>
 
-        <!-- Bảng danh sách hồ sơ -->
+        <!-- Bảng danh sách hồ sơ tinh gọn -->
         <div class="table-responsive">
             <table class="table cham-table align-middle">
                 <thead>
@@ -285,69 +352,80 @@
                         <!-- Khách hàng -->
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                                    style="width: 38px; height: 38px; background-color: #781A24; font-size: 14px;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+                                    style="width: 34px; height: 34px; background-color: #781A24; font-size: 13px;">
                                     {{ p.user.name|default:p.user.username|make_list|first|upper }}
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark">{{ p.user.name|default:p.user.username }}</div>
-                                    <div class="text-muted small"><i class="bi bi-telephone me-1"></i>{{ p.user.phone }}</div>
+                                    <div class="fw-bold text-dark" style="font-size: 13.5px;">{{ p.user.name|default:p.user.username }}</div>
+                                    <div class="text-muted" style="font-size: 12px;"><i class="bi bi-telephone me-1 text-danger"></i>{{ p.user.phone }}</div>
                                 </div>
                             </div>
                         </td>
 
-                        <!-- Chỉ số thể trạng -->
+                        <!-- Chỉ số thể trạng (Gọn gàng, không badge xanh lá chói) -->
                         <td>
-                            <div class="small fw-semibold text-dark">
-                                <span>{{ data.formatted_height|default:p.height_cm|default:"--" }} cm</span> / <span>{{ data.formatted_weight|default:p.weight_kg|default:"--" }} kg</span>
+                            <div class="fw-semibold text-dark" style="font-size: 13.5px;">
+                                {{ data.formatted_height|default:p.height_cm|default:"--" }} cm · {{ data.formatted_weight|default:p.weight_kg|default:"--" }} kg
                             </div>
-                            <span class="badge {{ data.bmi_badge_class|default:'bg-secondary' }} rounded-pill" style="font-size: 11px;">
-                                BMI: {{ data.bmi|default:"--" }} ({{ data.bmi_classification }})
-                            </span>
+                            <div class="text-muted" style="font-size: 11.5px;">
+                                BMI: <strong style="color: #781A24;">{{ data.bmi|default:"--" }}</strong> · {{ data.bmi_classification|default:"Cân đối" }}
+                            </div>
                         </td>
 
-                        <!-- Huyết áp -->
+                        <!-- Huyết áp (Dùng màu chính, không màu mè) -->
                         <td>
-                            <span class="badge {% if p.blood_pressure == 'Cao' %}bg-danger{% elif p.blood_pressure == 'Thấp' %}bg-warning text-dark{% else %}bg-success{% endif %} rounded-pill">
-                                {{ p.blood_pressure|default:"Bình thường" }}
+                            {% if p.blood_pressure == 'Cao' %}
+                            <span class="badge rounded-pill px-2 py-1 fw-bold" style="background-color: #FAF7EF; border: 1px solid #781A24; color: #781A24; font-size: 11px;">
+                                Cao
                             </span>
+                            {% elif p.blood_pressure == 'Thấp' %}
+                            <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background-color: #FAF7EF; border: 1px solid #D0B581; color: #781A24; font-size: 11px;">
+                                Thấp
+                            </span>
+                            {% else %}
+                            <span class="text-dark" style="font-size: 13px;">
+                                Bình thường
+                            </span>
+                            {% endif %}
                         </td>
 
-                        <!-- Mức độ đau -->
+                        <!-- Mức độ đau (Số màu đỏ Champa, không cam chói) -->
                         <td>
-                            <span class="badge rounded-pill fw-bold" style="background-color: {{ data.pain_color }}; color: #FFFFFF; font-size: 12px;">
+                            <span class="fw-bold font-serif" style="color: #781A24; font-size: 14.5px;">
                                 {{ p.pain_level|default:5 }}/10
                             </span>
                         </td>
 
                         <!-- Lực massage -->
                         <td>
-                            <span class="fw-semibold text-dark">
+                            <span class="text-dark" style="font-size: 13px;">
                                 {{ p.massage_pressure|default:"Lực vừa" }}
                             </span>
                         </td>
 
-                        <!-- Cảnh báo an toàn -->
+                        <!-- Cảnh báo an toàn KTV (Chỉ dùng màu chính đỏ Champa và kem, không xanh đỏ lẫn lộn) -->
                         <td>
-                            {% if data.has_medical_alert %}
+                            {% if data.has_medical_alert and data.alert_details %}
                             <div class="d-flex flex-wrap gap-1">
                                 {% for alert in data.alert_details %}
-                                <span class="badge bg-danger rounded-pill" style="font-size: 11px;" title="{{ alert.desc }}">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ alert.title }}
+                                <span class="alert-pill-cham" title="{{ alert.desc }}">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> {{ alert.title }}
                                 </span>
                                 {% endfor %}
                             </div>
                             {% else %}
-                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 11px;">
-                                <i class="bi bi-check-circle me-1"></i> An toàn
+                            <span class="safe-text-cham">
+                                <i class="bi bi-check2 text-muted"></i> Ổn định
                             </span>
                             {% endif %}
                         </td>
 
-                        <!-- Thao tác -->
+                        <!-- Thao tác (Nút ngang thanh lịch, không bị kéo dãn thành ô đứng) -->
                         <td class="text-end">
-                            <a href="{% url 'health:staff_detail' p.user.id %}" class="btn btn-sm btn-outline-danger px-3 py-1 rounded-2" style="border-color: #781A24; color: #781A24;">
-                                <i class="bi bi-eye"></i> Xem hồ sơ
+                            <a href="{% url 'health:staff_detail' p.user.id %}" class="btn-cham-view-link">
+                                <i class="bi bi-eye"></i>
+                                <span>Xem hồ sơ</span>
                             </a>
                         </td>
                     </tr>
@@ -355,7 +433,7 @@
                     {% empty %}
                     <tr>
                         <td colspan="8" class="text-center py-5 text-muted">
-                            <i class="bi bi-folder2-open fs-1 d-block mb-2 text-muted"></i>
+                            <i class="bi bi-folder2-open fs-2 d-block mb-2 text-muted"></i>
                             <div>Không tìm thấy hồ sơ sức khỏe nào khớp với điều kiện tra cứu.</div>
                         </td>
                     </tr>
@@ -367,4 +445,20 @@
     </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Kích hoạt trạng thái ACTIVE cho mục "Hồ sơ Khách hàng" trên Sidebar Staff
+    document.addEventListener('DOMContentLoaded', function () {
+        const staffNavItems = document.querySelectorAll('.staff-nav-item');
+        staffNavItems.forEach(function (item) {
+            const target = item.getAttribute('data-nav-target') || '';
+            const txt = item.textContent || '';
+            if (target.includes('Khách hàng') || txt.includes('Khách hàng')) {
+                item.classList.add('active');
+            }
+        });
+    });
+</script>
 {% endblock %}

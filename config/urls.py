@@ -37,6 +37,7 @@ urlpatterns = [
     path('api/admin/users/', accounts_api.AdminUserListAPI.as_view(), name='api_admin_users'),
     path('api/admin/users/<int:pk>/toggle-status/', accounts_api.AdminUserToggleStatusAPI.as_view(), name='api_admin_user_toggle'),
     path('api/admin/customers/', accounts_api.CustomerListAPI.as_view(), name='api_admin_customers'),
+    path('api/admin/customers/create/', accounts_api.AdminCustomerCreateAPI.as_view(), name='api_admin_customers_create'),
     path('api/admin/customers/<int:pk>/', accounts_api.AdminCustomerDetailAPI.as_view(), name='api_admin_customer_detail'),
     path('api/admin/customers/<int:pk>/update/', accounts_api.AdminCustomerUpdateAPI.as_view(), name='api_admin_customer_update'),
     path('api/admin/customers/<int:pk>/deactivate/', accounts_api.AdminCustomerDeactivateAPI.as_view(), name='api_admin_customer_deactivate'),

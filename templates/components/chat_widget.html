@@ -1,8 +1,11 @@
 {% load static %}
+{% if not user.is_staff and not user.is_superuser %}
 <!-- ========================================================================
      CHAM SPA FLOATING CHAT WIDGET (FIGMA COMPONENT)
      Module 2: Quản lý Boxchat tư vấn - Thành viên phụ trách: Thảo Ngọc
      Quy tắc nghiệp vụ cốt lõi:
+       - Phân quyền: STAFF và ADMIN KHÔNG hiển thị chat widget tại homepage.
+         Widget chỉ phục vụ Khách hàng (Customer) và Khách vãng lai (Anonymous).
        - Khách hàng đã đăng nhập: Lưu trữ toàn bộ lịch sử trò chuyện trong CSDL,
          tải lại lịch sử cũ khi mở chat widget, hỗ trợ kết nối nhân viên trực tiếp.
        - Khách vãng lai (chưa đăng nhập): Tuyệt đối KHÔNG lưu trữ trong CSDL,
@@ -348,3 +351,4 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+{% endif %}

@@ -1,0 +1,896 @@
+{% extends "layouts/admin_layout.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================================
+       CHUẨN XÁC 100% THEO THIẾT KẾ FIGMA:
+       - Node 221:481: Admin - Chi tiết khách hàng (Thông tin cá nhân & liên hệ)
+       - Node 608:1773: Admin - Hồ sơ sức khỏe
+       - Node 608:250: Admin - Thẻ hội viên và tích điểm
+       ========================================================================== */
+    .cust-detail-page {
+        font-family: 'Cabin', sans-serif;
+        color: #171311;
+    }
+
+    .breadcrumb-item-custom {
+        font-size: 11px;
+        color: #716761;
+    }
+    .breadcrumb-sep {
+        color: #D0B581;
+        margin: 0 6px;
+    }
+    .breadcrumb-active {
+        color: #781A24;
+        font-weight: 700;
+    }
+
+    /* Page Heading & Actions */
+    .detail-page-title {
+        font-family: 'Lora', serif;
+        font-weight: 700;
+        font-size: 30px;
+        color: #781A24;
+        margin-bottom: 2px;
+    }
+    .detail-page-subtitle {
+        font-size: 15px;
+        color: #6F665E;
+    }
+
+    .btn-edit-outline {
+        border: 1.5px solid #781A24;
+        background: #FFFFFF;
+        color: #781A24 !important;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 8px 18px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-edit-outline:hover {
+        background-color: #FAF7F0;
+        transform: translateY(-1px);
+    }
+
+    .btn-lock-solid {
+        background-color: #781A24 !important;
+        color: #FFFFFF !important;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 9px 18px;
+        border-radius: 8px;
+        border: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-lock-solid:hover {
+        background-color: #5c141c !important;
+        transform: translateY(-1px);
+    }
+    .btn-unlock-solid {
+        background-color: #2F7D5B !important;
+        color: #FFFFFF !important;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 9px 18px;
+        border-radius: 8px;
+        border: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Customer Detail Master Card */
+    .customer-master-card {
+        background: #FFFFFF;
+        border: 1px solid #EFE4CD;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Header Profile Strip */
+    .cust-avatar-large {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background-color: #EFE4CD;
+        color: #781A24;
+        font-family: 'Lora', serif;
+        font-weight: 700;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .cust-name-large {
+        font-family: 'Lora', serif;
+        font-weight: 700;
+        font-size: 25px;
+        color: #171311;
+    }
+    .badge-status-active {
+        background-color: #E8F4ED;
+        color: #2F7D5B;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+    }
+    .badge-status-locked {
+        background-color: #F1ECE1;
+        color: #716761;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+    }
+    .cust-meta-text {
+        font-size: 13px;
+        color: #6F665E;
+    }
+
+    /* 3 Navigation Tabs */
+    .detail-nav-tabs {
+        border-bottom: 1.5px solid #EFE4CD;
+        display: flex;
+        gap: 32px;
+        margin-top: 20px;
+        margin-bottom: 24px;
+    }
+    .detail-nav-tab {
+        padding: 10px 0;
+        color: #6F665E;
+        font-size: 14px;
+        text-decoration: none;
+        position: relative;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+    .detail-nav-tab:hover {
+        color: #781A24;
+    }
+    .detail-nav-tab.active {
+        color: #781A24;
+        font-weight: 700;
+    }
+    .detail-nav-tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1.5px;
+        left: 0;
+        right: 0;
+        height: 2.5px;
+        background-color: #781A24;
+        border-radius: 2px 2px 0 0;
+    }
+
+    /* Tab 1: Profile data & summary */
+    .contact-item-row {
+        display: flex;
+        align-items: center;
+        padding: 11px 0;
+        border-bottom: 1px dashed #F4EFE3;
+    }
+    .contact-item-row:last-child {
+        border-bottom: none;
+    }
+    .contact-item-icon {
+        width: 32px;
+        color: #781A24;
+        font-size: 16px;
+    }
+    .contact-item-label {
+        width: 140px;
+        color: #6F665E;
+        font-size: 13px;
+    }
+    .contact-item-val {
+        font-size: 14px;
+        font-weight: 700;
+        color: #171311;
+    }
+
+    .care-note-box {
+        background-color: #EFE4CD;
+        border-radius: 10px;
+        padding: 20px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .care-note-title {
+        color: #781A24;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+    .care-note-desc {
+        color: #171311;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 0;
+    }
+
+    .metric-card-custom {
+        background-color: #F4EFE3;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .metric-card-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #6F665E;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .metric-card-val {
+        font-family: 'Lora', serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: #781A24;
+    }
+    .metric-card-detail {
+        font-size: 12px;
+        color: #6F665E;
+    }
+
+    /* Tab 2: Health record timeline & pain map */
+    .timeline-container {
+        border-right: 1px solid #EFE4CD;
+        padding-right: 24px;
+    }
+    .timeline-header-strip {
+        background-color: #781A24;
+        color: #FFFFFF;
+        border-radius: 6px;
+        padding: 8px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+    }
+    .timeline-card-item {
+        background-color: #FAF7F0;
+        border: 1px solid #EFE4CD;
+        border-radius: 8px;
+        padding: 12px 14px;
+        margin-top: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .timeline-card-item.active-item {
+        border-color: #781A24;
+        background-color: #FFFFFF;
+        box-shadow: 0 2px 8px rgba(120, 26, 36, 0.08);
+    }
+    .badge-viewing {
+        background-color: #781A24;
+        color: #FFFFFF;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    /* Thước đo đau 10 nấc */
+    .pain-scale-track {
+        display: flex;
+        gap: 6px;
+        margin-top: 10px;
+        margin-bottom: 6px;
+    }
+    .pain-bar-block {
+        flex: 1;
+        height: 18px;
+        border-radius: 3px;
+        transition: background-color 0.2s;
+    }
+    .pain-bar-block.active {
+        background-color: #781A24;
+    }
+    .pain-bar-block.inactive {
+        background-color: #E9DCC0;
+    }
+
+    .health-stat-chip {
+        background-color: #FAF7F0;
+        border: 1px solid #EFE4CD;
+        border-radius: 8px;
+        padding: 14px;
+        text-align: center;
+    }
+
+    /* Tab 3: Tier upgrade & Points */
+    .tier-progress-card {
+        background-color: #FAF7F0;
+        border: 1px solid #EFE4CD;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    .progress-track-custom {
+        height: 12px;
+        background-color: #E8E2D8;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    .progress-bar-gold {
+        background-color: #D0B581;
+        height: 100%;
+        border-radius: 6px;
+        transition: width 0.4s ease;
+    }
+
+    .points-table-custom {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border: 1px solid #EFE4CD;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .points-table-custom thead tr {
+        background-color: #EFE4CD;
+    }
+    .points-table-custom thead th {
+        font-size: 12px;
+        font-weight: 700;
+        color: #3D271D;
+        padding: 12px 16px;
+        border: none;
+    }
+    .points-table-custom tbody tr {
+        border-bottom: 1px solid #F4EFE3;
+        transition: background-color 0.15s;
+    }
+    .points-table-custom tbody tr:hover {
+        background-color: #FAF7F0;
+    }
+    .points-table-custom tbody td {
+        padding: 14px 16px;
+        font-size: 14px;
+        vertical-align: middle;
+        border-top: 1px solid #F4EFE3;
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="cust-detail-page py-2">
+    <!-- 1. Breadcrumb -->
+    <div class="d-flex align-items-center gap-1 mb-2">
+        <a href="{% url 'accounts:admin_customer_list' %}" class="breadcrumb-item-custom text-decoration-none">Hệ thống</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="{% url 'accounts:admin_customer_list' %}" class="breadcrumb-item-custom text-decoration-none">Quản lý Khách hàng</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-active">Chi tiết khách hàng</span>
+    </div>
+
+    <!-- 2. Page Title and Actions (Figma 221:481) -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+        <div>
+            <h1 class="detail-page-title">Mã khách hàng #{{ customer_code }} - {{ customer.name }}</h1>
+            <div class="detail-page-subtitle">
+                Hồ sơ khách hàng · Thành viên từ {{ customer.date_joined|date:"d/m/Y" }}
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <!-- Nút Chỉnh sửa thông tin -->
+            <button type="button" class="btn-edit-outline shadow-sm" data-bs-toggle="modal" data-bs-target="#editCustomerModal">
+                <i class="bi bi-pencil"></i>
+                <span>Chỉnh sửa thông tin</span>
+            </button>
+
+            <!-- Nút Khóa / Mở khóa tài khoản an toàn -->
+            {% if customer.is_active %}
+                <button type="button" class="btn-lock-solid shadow-sm" data-bs-toggle="modal" data-bs-target="#toggleStatusModal">
+                    <i class="bi bi-lock-fill"></i>
+                    <span>Khóa tài khoản</span>
+                </button>
+            {% else %}
+                <button type="button" class="btn-unlock-solid shadow-sm" data-bs-toggle="modal" data-bs-target="#toggleStatusModal">
+                    <i class="bi bi-unlock-fill"></i>
+                    <span>Mở khóa tài khoản</span>
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 3. Customer Detail Master Card -->
+    <div class="customer-master-card mb-4">
+        <!-- Customer Header Strip -->
+        <div class="d-flex align-items-center gap-3">
+            <div class="cust-avatar-large">
+                {{ initials }}
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="cust-name-large">{{ customer.name }}</span>
+                    {% if customer.is_active %}
+                        <span class="badge-status-active">
+                            <i class="bi bi-circle-fill" style="font-size: 6px;"></i> Hoạt động
+                        </span>
+                    {% else %}
+                        <span class="badge-status-locked">
+                            <i class="bi bi-lock-fill" style="font-size: 10px;"></i> Đã khóa
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="cust-meta-text">
+                    #{{ customer_code }} · Hạng thẻ <strong style="color: #781A24;">{{ membership.tier.name|default:"Thành viên" }}</strong> · Điểm tích lũy <strong>{{ membership.current_points|default:0 }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3 Navigation Tabs (Figma 221:481, 608:1773, 608:250) -->
+        <nav class="detail-nav-tabs">
+            <a href="?tab=info" class="detail-nav-tab {% if active_tab == 'info' %}active{% endif %}">
+                Thông tin cá nhân & Liên hệ
+            </a>
+            <a href="?tab=health" class="detail-nav-tab {% if active_tab == 'health' %}active{% endif %}">
+                Hồ sơ sức khỏe
+            </a>
+            <a href="?tab=membership" class="detail-nav-tab {% if active_tab == 'membership' %}active{% endif %}">
+                Thẻ hội viên & Tích điểm
+            </a>
+        </nav>
+
+        <!-- =================================================================
+             TAB 1: THÔNG TIN CÁ NHÂN & LIÊN HỆ (FIGMA NODE 221:481)
+             ================================================================= -->
+        {% if active_tab == 'info' %}
+        <div class="tab-pane-content">
+            <!-- Row 1: Contact details & Care note -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="p-2">
+                        <div class="contact-item-row">
+                            <div class="contact-item-icon"><i class="bi bi-telephone"></i></div>
+                            <div class="contact-item-label">Số điện thoại</div>
+                            <div class="contact-item-val">{{ customer.phone|default:"Chưa có" }}</div>
+                        </div>
+                        <div class="contact-item-row">
+                            <div class="contact-item-icon"><i class="bi bi-envelope"></i></div>
+                            <div class="contact-item-label">Email</div>
+                            <div class="contact-item-val">{{ customer.email|default:"Chưa cập nhật" }}</div>
+                        </div>
+                        <div class="contact-item-row">
+                            <div class="contact-item-icon"><i class="bi bi-calendar"></i></div>
+                            <div class="contact-item-label">Ngày sinh</div>
+                            <div class="contact-item-val">{{ profile.birthday|date:"d/m/Y"|default:"Chưa cập nhật" }}</div>
+                        </div>
+                        <div class="contact-item-row">
+                            <div class="contact-item-icon"><i class="bi bi-shield-check"></i></div>
+                            <div class="contact-item-label">Hạng hội viên</div>
+                            <div class="contact-item-val" style="color: #781A24;">{{ membership.tier.name|default:"Thành viên" }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="care-note-box shadow-sm">
+                        <div class="care-note-title">
+                            <i class="bi bi-chat-heart-fill me-1"></i> GHI CHÚ CHĂM SÓC
+                        </div>
+                        <p class="care-note-desc">
+                            {{ health_profile.special_requests|default:"Ưu tiên phòng yên tĩnh; dị ứng tinh dầu bạc hà. KTV yêu thích: Trâm Anh." }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Booking and spend summary (3 Metric Cards) -->
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="metric-card-custom">
+                        <div class="metric-card-label">
+                            <i class="bi bi-calendar-check" style="color: #781A24;"></i>
+                            <span>Tổng lượt đặt</span>
+                        </div>
+                        <div class="metric-card-val">{{ total_appointments }} lịch hẹn</div>
+                        <div class="metric-card-detail">{{ completed_appointments }} hoàn thành · {{ cancelled_appointments }} đã hủy</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="metric-card-custom">
+                        <div class="metric-card-label">
+                            <i class="bi bi-wallet2" style="color: #781A24;"></i>
+                            <span>Tổng chi tiêu</span>
+                        </div>
+                        <div class="metric-card-val">{{ formatted_total_spent }}</div>
+                        <div class="metric-card-detail">12 tháng gần nhất: {{ formatted_recent_spent }}</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="metric-card-custom">
+                        <div class="metric-card-label">
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <span>Mức độ hài lòng</span>
+                        </div>
+                        <div class="metric-card-val">{{ satisfaction_score }} / 5</div>
+                        <div class="metric-card-detail">{{ total_feedbacks }} đánh giá dịch vụ</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- =================================================================
+             TAB 2: HỒ SƠ SỨC KHỎE (FIGMA NODE 608:1773)
+             ================================================================= -->
+        {% if active_tab == 'health' %}
+        <div class="tab-pane-content">
+            <div class="row g-4">
+                <!-- Cột trái (Timeline cập nhật) -->
+                <div class="col-lg-4 timeline-container">
+                    <h6 class="fw-bold mb-3" style="font-family: 'Lora', serif; color: #781A24; font-size: 16px;">
+                        Timeline cập nhật
+                    </h6>
+
+                    <div class="timeline-header-strip mb-3">
+                        <span class="fw-bold">LỊCH SỬ CẬP NHẬT</span>
+                        <span>Mới nhất trước · 3 hồ sơ</span>
+                    </div>
+
+                    <!-- Item 1 (Đang xem) -->
+                    <div class="timeline-card-item active-item">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold" style="color: #781A24; font-size: 14px;">{{ health_profile.created_at|date:"d/m/Y - H:i"|default:"02/10/2026 - 14:00" }}</span>
+                            <span class="badge-viewing">Đang xem</span>
+                        </div>
+                        <div class="text-muted" style="font-size: 12px;">Mã HS: #{{ health_profile.health_code|default:"HS-20261002" }}</div>
+                        <div class="fw-bold mt-1" style="font-size: 13px; color: #171311;">
+                            {{ health_profile.focus_areas|join:", "|default:"Đau vai gáy" }} ({{ pain_level }}/10)
+                        </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="timeline-card-item">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-muted" style="font-size: 14px;">02/09/2026 - 17:00</span>
+                        </div>
+                        <div class="text-muted" style="font-size: 12px;">Mã HS: #HS-20260902</div>
+                        <div class="fw-bold mt-1 text-muted" style="font-size: 13px;">
+                            Căng cơ thắt lưng
+                        </div>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="timeline-card-item">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-muted" style="font-size: 14px;">15/07/2026 - 10:30</span>
+                        </div>
+                        <div class="text-muted" style="font-size: 12px;">Mã HS: #HS-20260715</div>
+                        <div class="fw-bold mt-1 text-muted" style="font-size: 13px;">
+                            Nhức mỏi cổ vai gáy & mất ngủ
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột phải (Chi tiết hồ sơ sức khỏe) -->
+                <div class="col-lg-8 ps-lg-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0" style="font-family: 'Lora', serif; color: #781A24; font-size: 18px;">
+                            Chi tiết hồ sơ sức khỏe
+                        </h6>
+                        <span class="text-muted" style="font-size: 13px;">
+                            HỒ SƠ #{{ health_profile.health_code|default:"HS-20261002" }} · Cập nhật: {{ health_profile.created_at|date:"d/m/Y - H:i"|default:"02/10/2026 - 14:00" }}
+                        </span>
+                    </div>
+
+                    <!-- Section 1: Thể trạng -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-2" style="font-size: 14px; color: #781A24;">Thể trạng</h6>
+                        <div class="row g-2">
+                            <div class="col-3">
+                                <div class="health-stat-chip">
+                                    <div class="text-muted" style="font-size: 11px;">Chiều cao</div>
+                                    <div class="fw-bold fs-6 mt-1">{{ health_profile.height_cm|default:"162" }}cm</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="health-stat-chip">
+                                    <div class="text-muted" style="font-size: 11px;">Cân nặng</div>
+                                    <div class="fw-bold fs-6 mt-1">{{ health_profile.weight_kg|default:"52" }}kg</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="health-stat-chip">
+                                    <div class="text-muted" style="font-size: 11px;">Chỉ số BMI</div>
+                                    <div class="fw-bold fs-6 mt-1">{{ bmi }}</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="health-stat-chip">
+                                    <div class="text-muted" style="font-size: 11px;">Huyết áp</div>
+                                    <div class="fw-bold fs-6 mt-1">{{ health_profile.blood_pressure|default:"Bình thường" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Vùng đau mỏi & Cường độ (Thước đo 10 nấc) -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-1" style="font-size: 14px; color: #781A24;">Vùng đau mỏi & Cường độ</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span style="font-size: 13px; font-weight: 700;">
+                                Vùng đau: {{ health_profile.focus_areas|join:" & "|default:"Vai gáy & Thắt lưng" }} (Mức đau {{ pain_level }}/10)
+                            </span>
+                            <span class="badge" style="background-color: #FAF7F0; color: #781A24; border: 1px solid #EFE4CD; font-size: 12px;">
+                                Lực yêu cầu: <strong>{{ health_profile.massage_pressure|default:"Lực vừa" }}</strong>
+                            </span>
+                        </div>
+
+                        <!-- 10 Nấc đo trực quan chuẩn Figma 608:1773 -->
+                        <div class="pain-scale-track">
+                            {% for p in pain_scale %}
+                                <div class="pain-bar-block {% if p.is_active %}active{% else %}inactive{% endif %}" title="Mức {{ p.level }}"></div>
+                            {% endfor %}
+                        </div>
+                        <div class="d-flex justify-content-between text-muted" style="font-size: 11px;">
+                            <span>0 · Không đau</span>
+                            <span>10 · Đau nhiều</span>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Cảnh báo y tế & Dị ứng -->
+                    <div>
+                        <h6 class="fw-bold mb-2" style="font-size: 14px; color: #781A24;">
+                            <i class="bi bi-shield-exclamation me-1"></i> Cảnh báo y tế & Dị ứng
+                        </h6>
+                        <div class="p-3" style="background-color: #F7E9EB; border-radius: 8px; border: 1px solid #F1D4D7;">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                                <span class="badge" style="background-color: #781A24; color: #FFFFFF; font-size: 12px; font-weight: 700; padding: 5px 10px;">
+                                    Dị ứng {{ health_profile.allergy_notes|default:"tinh dầu sả chanh" }}
+                                </span>
+                                <span class="mx-1" style="color: #D0B581;">|</span>
+                                <span class="fw-bold" style="color: #781A24; font-size: 13px;">
+                                    {{ health_profile.health_conditions|join:", "|default:"Da nhạy cảm" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- =================================================================
+             TAB 3: THẺ HỘI VIÊN & TÍCH ĐIỂM (FIGMA NODE 608:250)
+             ================================================================= -->
+        {% if active_tab == 'membership' %}
+        <div class="tab-pane-content">
+            <!-- Khối 1: Tiến trình nâng hạng tiếp theo -->
+            <div class="tier-progress-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0 fw-bold" style="font-family: 'Lora', serif; color: #7A1C24; font-size: 20px;">
+                        Tiến trình nâng hạng tiếp theo ({{ next_tier_name }})
+                    </h5>
+                    <span class="badge px-3 py-2 d-inline-flex align-items-center gap-1" style="background-color: #EFE4CD; color: #7A1C24; font-size: 12px; font-weight: 600; border-radius: 6px;">
+                        <i class="bi bi-check-circle-fill"></i> Đồng bộ thực tế
+                    </span>
+                </div>
+
+                <div class="row g-4 mb-3">
+                    <!-- Progress 1: Điểm tích lũy -->
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 15px;">
+                            <span class="text-muted fw-bold">Điểm tích lũy:</span>
+                            <span class="fw-bold" style="color: #3D271D;">{{ membership.current_points }} / {{ next_tier_points }} Điểm</span>
+                        </div>
+                        <div class="progress-track-custom">
+                            <div class="progress-bar-gold" style="width: {{ points_pct }}%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Progress 2: Chi tiêu năm nay -->
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 15px;">
+                            <span class="text-muted fw-bold">Chi tiêu năm nay:</span>
+                            <span class="fw-bold" style="color: #3D271D;">{{ formatted_spent }} / {{ formatted_target_spent }} VNĐ</span>
+                        </div>
+                        <div class="progress-track-custom">
+                            <div class="progress-bar-gold" style="width: {{ spent_pct }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-muted" style="font-size: 14px;">
+                    <i class="bi bi-info-circle me-1" style="color: #7A1C24;"></i>
+                    Cần thêm <strong>{{ remaining_points }} điểm</strong> hoặc chi tiêu thêm <strong>{{ formatted_remaining_spent }}</strong> để lên hạng {{ next_tier_name }}.
+                </div>
+            </div>
+
+            <!-- Khối 2: Lịch sử tích & sử dụng điểm thưởng -->
+            <div>
+                <div class="mb-3">
+                    <h5 class="fw-bold mb-1" style="font-family: 'Lora', serif; color: #7A1C24; font-size: 22px;">
+                        Lịch sử tích & sử dụng điểm thưởng
+                    </h5>
+                    <div class="text-muted" style="font-size: 14px;">
+                        Thống kê chi tiết toàn bộ biến động điểm số của bạn
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="points-table-custom">
+                        <thead>
+                            <tr>
+                                <th>THỜI GIAN</th>
+                                <th>MÃ GIAO DỊCH</th>
+                                <th>LÝ DO / DỊCH VỤ</th>
+                                <th style="text-align: right;">BIẾN ĐỘNG ĐIỂM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pt in point_history %}
+                            <tr>
+                                <td class="fw-semibold text-muted" style="font-size: 13px;">
+                                    {{ pt.created_at|date:"d/m/Y H:i" }}
+                                </td>
+                                <td>
+                                    <span class="fw-bold" style="color: #3D271D;">{{ pt.appointment_id|default:"#HD-CHAMSPA" }}</span>
+                                </td>
+                                <td>
+                                    <span>{{ pt.reason_description }}</span>
+                                </td>
+                                <td style="text-align: right;">
+                                    {% if pt.points_amount > 0 %}
+                                        <span class="fw-bold fs-6" style="color: #16A34A;">+{{ pt.points_amount }} điểm</span>
+                                    {% else %}
+                                        <span class="fw-bold fs-6 text-danger">{{ pt.points_amount }} điểm</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    Chưa có giao dịch tích điểm nào được ghi nhận.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL: CHỈNH SỬA THÔNG TIN KHÁCH HÀNG (UC-5.9)
+     ========================================================================= -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header text-white" style="background-color: #781A24;">
+                <h5 class="modal-title fs-6 fw-bold" id="editCustomerModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i> Chỉnh sửa hồ sơ khách hàng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <form method="POST" action="{% url 'accounts:admin_customer_detail' customer.id %}?tab={{ active_tab }}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit_customer_detail">
+                <div class="modal-body p-4" style="font-family: 'Cabin', sans-serif;">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Họ và tên khách hàng</label>
+                        <input type="text" name="name" class="form-control" value="{{ customer.name }}" required>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Số điện thoại</label>
+                            <input type="tel" name="phone" class="form-control" value="{{ customer.phone }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Email</label>
+                            <input type="email" name="email" class="form-control" value="{{ customer.email }}">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Giới tính</label>
+                            <select name="gender" class="form-select">
+                                <option value="Nữ" {% if profile.gender == 'Nữ' %}selected{% endif %}>Nữ</option>
+                                <option value="Nam" {% if profile.gender == 'Nam' %}selected{% endif %}>Nam</option>
+                                <option value="Khác" {% if profile.gender == 'Khác' %}selected{% endif %}>Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Ngày sinh</label>
+                            <input type="date" name="birthday" class="form-control" value="{{ profile.birthday|date:'Y-m-d' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Hạng thẻ hội viên</label>
+                        <select name="tier_name" class="form-select">
+                            {% for t in all_tiers %}
+                                <option value="{{ t.name }}" {% if membership.tier.id == t.id %}selected{% endif %}>
+                                    {{ t.name }} (từ {{ t.min_points }} điểm)
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Ghi chú chăm sóc khách hàng</label>
+                        <textarea name="care_note" class="form-control" rows="3">{{ health_profile.special_requests }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #781A24;">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL: XÁC NHẬN KHÓA / MỞ KHÓA TÀI KHOẢN AN TOÀN (UC-5.10)
+     ========================================================================= -->
+<div class="modal fade" id="toggleStatusModal" tabindex="-1" aria-labelledby="toggleStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header text-white" style="background-color: #781A24;">
+                <h5 class="modal-title fs-6 fw-bold" id="toggleStatusModalLabel">
+                    <i class="bi bi-shield-exclamation me-2"></i> Xác nhận thay đổi trạng thái
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <form method="POST" action="{% url 'accounts:admin_customer_detail' customer.id %}?tab={{ active_tab }}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle_status">
+                <div class="modal-body p-4 text-center" style="font-family: 'Cabin', sans-serif;">
+                    <div class="mb-3">
+                        <i class="bi bi-exclamation-triangle-fill text-warning fs-1"></i>
+                    </div>
+                    {% if customer.is_active %}
+                        <h6 class="fw-bold mb-2">Khóa tài khoản khách hàng "{{ customer.name }}"?</h6>
+                        <p class="text-muted mb-0" style="font-size: 14px;">
+                            Khách hàng sẽ không thể đăng nhập hoặc đặt lịch hẹn mới. Mọi thông tin hồ sơ sức khỏe, lịch sử đặt lịch và điểm tích lũy vẫn được bảo toàn an toàn trong cơ sở dữ liệu.
+                        </p>
+                    {% else %}
+                        <h6 class="fw-bold mb-2">Mở khóa tài khoản khách hàng "{{ customer.name }}"?</h6>
+                        <p class="text-muted mb-0" style="font-size: 14px;">
+                            Khách hàng sẽ được kích hoạt quyền truy cập và có thể đăng nhập bình thường.
+                        </p>
+                    {% endif %}
+                </div>
+                <div class="modal-footer bg-light px-4 py-3 justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: {% if customer.is_active %}#781A24{% else %}#2F7D5B{% endif %};">
+                        {% if customer.is_active %}Khóa an toàn{% else %}Mở khóa ngay{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

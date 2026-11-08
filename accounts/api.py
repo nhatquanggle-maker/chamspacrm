@@ -2,7 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.contrib.auth import login as auth_login, logout as auth_logout
-from django.db.models import Q
+from decimal import Decimal
+from django.db import models
+from django.db.models import Q, Avg, Sum
 from django.utils import timezone
 from core.models import User, UserProfile
 from .serializers import (
@@ -262,6 +264,26 @@ class AdminUserToggleStatusAPI(APIView):
         }, status=status.HTTP_200_OK)
 
 
+class AdminCustomerCreateAPI(APIView):
+    """
+    UC-5.6: Admin tạo tài khoản khách hàng mới
+    POST /api/admin/customers/create/
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        from .serializers import CustomerCreateAdminSerializer
+        serializer = CustomerCreateAdminSerializer(data=request.data)
+        if serializer.is_valid():
+            customer = serializer.save()
+            return Response({
+                "status": "success",
+                "message": f"Tạo mới tài khoản khách hàng {customer.name} thành công!",
+                "customer": UserSerializer(customer).data,
+            }, status=status.HTTP_201_CREATED)
+        return Response({"status": "error", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class AdminCustomerDetailAPI(APIView):
     """
     UC-5.8: Xem thông tin khách hàng (Dashboard 360)
@@ -271,22 +293,53 @@ class AdminCustomerDetailAPI(APIView):
 
     def get(self, request, pk):
         try:
-            customer = User.objects.select_related('profile').get(pk=pk, is_staff=False, is_superuser=False)
+            customer = User.objects.select_related('profile', 'membership__tier', 'health_profile').get(pk=pk, is_staff=False, is_superuser=False)
         except User.DoesNotExist:
             return Response({"status": "error", "message": "Khách hàng không tồn tại."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = UserSerializer(customer)
         # Thống kê lịch hẹn & lịch sử
-        appointment_count = customer.appointments.count() if hasattr(customer, 'appointments') else 0
-        feedback_count = customer.feedbacks.count() if hasattr(customer, 'feedbacks') else 0
+        appts = customer.appointments.all() if hasattr(customer, 'appointments') else []
+        appointment_count = appts.count() if hasattr(appts, 'count') else len(appts)
+        completed_count = appts.filter(status='Completed').count() if hasattr(appts, 'filter') else 0
+        cancelled_count = appts.filter(status='Cancelled').count() if hasattr(appts, 'filter') else 0
+        total_spent = sum((a.total_price for a in (appts.filter(status__in=['Completed', 'Confirmed']) if hasattr(appts, 'filter') else [])), Decimal(0))
+        
+        feedbacks = customer.feedbacks.all() if hasattr(customer, 'feedbacks') else []
+        feedback_count = feedbacks.count() if hasattr(feedbacks, 'count') else len(feedbacks)
+        avg_rating = feedbacks.aggregate(avg=models.Avg('rating'))['avg'] or 5.0 if hasattr(feedbacks, 'aggregate') else 5.0
+
+        membership = getattr(customer, 'membership', None)
+        health_profile = getattr(customer, 'health_profile', None)
 
         return Response({
             "status": "success",
             "customer": serializer.data,
             "overview_360": {
                 "total_appointments": appointment_count,
+                "completed_appointments": completed_count,
+                "cancelled_appointments": cancelled_count,
+                "total_spent": float(total_spent),
+                "formatted_total_spent": f"{int(total_spent):,}".replace(',', '.') + "đ",
                 "total_feedbacks": feedback_count,
-            }
+                "avg_rating": round(float(avg_rating), 1),
+            },
+            "membership": {
+                "tier_name": membership.tier.name if membership and membership.tier else "Thành viên",
+                "current_points": membership.current_points if membership else 0,
+                "total_spent": float(membership.total_spent) if membership else 0.0,
+            } if membership else None,
+            "health_profile": {
+                "health_code": health_profile.health_code if health_profile else None,
+                "height_cm": float(health_profile.height_cm) if health_profile and health_profile.height_cm else None,
+                "weight_kg": float(health_profile.weight_kg) if health_profile and health_profile.weight_kg else None,
+                "blood_pressure": health_profile.blood_pressure if health_profile else None,
+                "focus_areas": health_profile.focus_areas if health_profile else [],
+                "massage_pressure": health_profile.massage_pressure if health_profile else "Lực vừa",
+                "pain_level": health_profile.pain_level if health_profile else 0,
+                "allergy_notes": health_profile.allergy_notes if health_profile else "",
+                "special_requests": health_profile.special_requests if health_profile else "",
+            } if health_profile else None
         }, status=status.HTTP_200_OK)
 
 

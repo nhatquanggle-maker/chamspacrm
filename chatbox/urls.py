@@ -26,6 +26,11 @@ urlpatterns = [
     path('faqs/', views.faq_management_view, name='faq_management'),
     path('customer/', views.customer_chat_view, name='customer_chat'),
 
+    # Giao diện dành riêng cho Admin (Figma Node 502:2005 & Node 211:3459)
+    path('admin/monitor/', views.admin_livechat_monitor_view, name='admin_monitor'),
+    path('admin/faqs/', views.faq_management_view, name='admin_faq'),
+    path('admin/', views.admin_livechat_monitor_view, name='admin_index'),
+
     # =========================================================================
     # 2. RESTFUL API THEO HỢP ĐỒNG GIAO TIẾP (SPEC SHEET CHỐT)
     # =========================================================================
@@ -48,10 +53,17 @@ urlpatterns = [
     path('api/conversations/<int:pk>/close/', api.ConversationCloseAPI.as_view(), name='api_conversation_close'),
     path('api/conversations/<int:pk>/takeover/', api.ConversationTakeoverAPI.as_view(), name='api_conversation_takeover'),
 
+    # UC-2.2 & Figma Node 502:2005: API Giám sát & Can thiệp của Admin
+    path('api/admin/conversations/<int:pk>/monitor/', api.AdminConversationMonitorAPI.as_view(), name='api_admin_conversation_monitor'),
+    path('api/admin/conversations/<int:pk>/reassign/', api.AdminReassignStaffAPI.as_view(), name='api_admin_conversation_reassign'),
+    path('api/admin/conversations/<int:pk>/takeover/', api.AdminTakeoverConversationAPI.as_view(), name='api_admin_conversation_takeover'),
+    path('api/admin/conversations/<int:pk>/messages/', api.AdminSendMessageAPI.as_view(), name='api_admin_conversation_send_message'),
+
     # UC-2.3: Quản lý kịch bản Chatbot (FAQ) (GET, POST, PUT, DELETE)
     path('api/admin/faqs/', api.AdminFAQListCreateAPI.as_view(), name='api_admin_faqs'),
     path('api/admin/faqs/<int:pk>/', api.AdminFAQDetailAPI.as_view(), name='api_admin_faq_detail'),
     path('api/admin/faqs/<int:pk>/toggle-status/', api.AdminFAQToggleStatusAPI.as_view(), name='api_admin_faq_toggle'),
+    path('api/admin/faqs/export/', api.AdminFAQExportAPI.as_view(), name='api_admin_faq_export'),
     path('api/faqs/', api.AdminFAQListCreateAPI.as_view(), name='api_faqs_alias'),
     path('api/faqs/<int:pk>/', api.AdminFAQDetailAPI.as_view(), name='api_faq_detail_alias'),
 

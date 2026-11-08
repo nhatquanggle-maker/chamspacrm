@@ -22,7 +22,8 @@ from core.models import Appointment, AppointmentDetail, Service, Voucher, Notifi
 from .serializers import (
     AppointmentCreateSerializer,
     AppointmentFullSerializer,
-    ServiceSimpleSerializer
+    ServiceSimpleSerializer,
+    StaffQuickCreateSerializer
 )
 
 
@@ -582,54 +583,190 @@ class CancelAPI(APIView):
 class AdminAppointmentListAPI(APIView):
     """
     API Quản lý danh sách lịch hẹn toàn Spa (UC-1.5)
+    Dành cho Quản lý (is_superuser) và Nhân viên Lễ tân / CSKH (is_staff)
+    Khớp 100% Figma Node 110:4969 (Staff Dashboard / Quản lý lịch hẹn)
     """
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request, pk=None):
         if pk:
-            appointment = Appointment.objects.filter(id=pk).first()
+            appointment = Appointment.objects.filter(id=pk).select_related('voucher', 'user').prefetch_related('details__service').first()
             if not appointment:
                 return Response({'status': 'error', 'error': 'Không tìm thấy lịch hẹn.'}, status=status.HTTP_404_NOT_FOUND)
             serializer = AppointmentFullSerializer(appointment)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         qs = Appointment.objects.all().select_related('voucher', 'user').prefetch_related('details__service')
+
+        # 1. Lọc theo ngày
         date_filter = request.query_params.get('date')
         if date_filter:
-            qs = qs.filter(appointment_date=date_filter)
+            try:
+                d = datetime.strptime(date_filter, '%Y-%m-%d').date()
+                qs = qs.filter(appointment_date=d)
+            except ValueError:
+                pass
 
+        # 2. Lọc theo khung giờ
+        time_slot = request.query_params.get('time_slot')
+        if time_slot and time_slot != 'all' and time_slot != 'Tất cả khung giờ':
+            qs = qs.filter(time_slot=time_slot)
+
+        # 3. Lọc theo trạng thái
         status_filter = request.query_params.get('status')
-        if status_filter:
-            qs = qs.filter(status=status_filter)
+        if status_filter and status_filter != 'all' and status_filter != 'Tất cả trạng thái':
+            if status_filter in ['Hold', 'Pending', 'Confirmed', 'In_Progress', 'Completed', 'Cancelled']:
+                qs = qs.filter(status=status_filter)
+            elif status_filter == 'upcoming':
+                qs = qs.filter(status__in=['Hold', 'Pending', 'Confirmed'])
 
+        # 4. Tìm kiếm từ khóa (Mã đơn, Tên khách, SĐT)
         search_query = request.query_params.get('search') or request.query_params.get('q')
         if search_query:
+            search_query = search_query.strip()
             qs = qs.filter(
                 Q(appointment_code__icontains=search_query) |
                 Q(customer_name__icontains=search_query) |
                 Q(customer_phone__icontains=search_query)
             )
 
-        qs = qs.order_by('-appointment_date', 'time_slot')
+        # Thống kê nhanh theo tập dữ liệu hiện tại
+        today_date = timezone.localdate()
+        today_qs = Appointment.objects.filter(appointment_date=today_date)
+        
+        counts = {
+            'total_today': today_qs.count(),
+            'in_progress': today_qs.filter(status='In_Progress').count(),
+            'confirmed': today_qs.filter(status='Confirmed').count(),
+            'pending': today_qs.filter(status__in=['Hold', 'Pending']).count(),
+            'completed': today_qs.filter(status='Completed').count(),
+            'cancelled': today_qs.filter(status='Cancelled').count(),
+        }
+
+        qs = qs.order_by('time_slot', '-created_at')
         serializer = AppointmentFullSerializer(qs, many=True)
         return Response({
             'status': 'success',
+            'counts': counts,
             'total_count': qs.count(),
             'appointments': serializer.data
         }, status=status.HTTP_200_OK)
 
     def put(self, request, pk=None):
-        target_id = pk or request.data.get('id')
+        return self._update_status(request, pk)
+
+    def post(self, request, pk=None):
+        return self._update_status(request, pk)
+
+    def _update_status(self, request, pk=None):
+        target_id = pk or request.data.get('id') or request.data.get('appointment_id')
         appointment = Appointment.objects.filter(id=target_id).first()
         if not appointment:
             return Response({'status': 'error', 'error': 'Không tìm thấy lịch hẹn.'}, status=status.HTTP_404_NOT_FOUND)
 
         new_status = request.data.get('status')
+        valid_statuses = ['Hold', 'Pending', 'Confirmed', 'In_Progress', 'Completed', 'Cancelled']
+        if new_status not in valid_statuses:
+            return Response({'status': 'error', 'error': f"Trạng thái '{new_status}' không hợp lệ."}, status=status.HTTP_400_BAD_REQUEST)
+
+        old_status = appointment.status
         appointment.status = new_status
         appointment.save()
 
+        # Tạo thông báo thông báo cho khách hàng nếu có tài khoản User
+        if appointment.user and old_status != new_status:
+            status_labels = {
+                'Confirmed': 'đã được xác nhận',
+                'In_Progress': 'đang được phục vụ',
+                'Completed': 'đã hoàn thành',
+                'Cancelled': 'đã bị hủy'
+            }
+            label_txt = status_labels.get(new_status, new_status)
+            try:
+                Notification.objects.create(
+                    notification_code=f"TB{int(timezone.now().timestamp())}",
+                    user=appointment.user,
+                    title=f"Lịch hẹn {appointment.appointment_code} {label_txt}",
+                    content=f"Lịch hẹn {appointment.appointment_code} ({appointment.time_slot} ngày {appointment.appointment_date}) hiện {label_txt}.",
+                    delivery_channels="Web",
+                    status="Đã gửi"
+                )
+            except Exception:
+                pass
+
         return Response({
             'status': 'success',
+            'success': True,
+            'appointment_id': appointment.id,
+            'appointment_code': appointment.appointment_code,
+            'old_status': old_status,
             'updated_status': new_status,
-            'message': f"Đã chuyển trạng thái lịch hẹn thành '{new_status}'."
+            'message': f"Đã cập nhật trạng thái lịch hẹn {appointment.appointment_code} thành '{new_status}'."
         }, status=status.HTTP_200_OK)
+
+
+class StaffQuickCreateAppointmentAPI(APIView):
+    """
+    API tạo nhanh lịch hẹn tại quầy dành cho Nhân viên Lễ tân / CSKH (UC-1.5 Step 4)
+    """
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request):
+        serializer = StaffQuickCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'status': 'error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        service = Service.objects.filter(id=data['service_id'], status='Hoạt động').first()
+        if not service:
+            return Response({'status': 'error', 'error': 'Dịch vụ được chọn không khả dụng.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        total_guests = data.get('total_guests', 1)
+        total_price = service.price_vnd * total_guests
+
+        # Sinh mã lịch hẹn độc nhất #LHxxxxx
+        code = None
+        for _ in range(10):
+            rand_code = f"#{random.randint(10000, 99999)}"
+            if not Appointment.objects.filter(appointment_code=rand_code).exists():
+                code = rand_code
+                break
+        if not code:
+            code = f"#LH{int(timezone.now().timestamp()) % 100000:05d}"
+
+        appointment = Appointment.objects.create(
+            appointment_code=code,
+            user=None, # Đặt tại quầy
+            customer_name=data['customer_name'],
+            customer_phone=data['customer_phone'],
+            customer_email=data.get('customer_email', ''),
+            appointment_date=data['appointment_date'],
+            time_slot=data['time_slot'],
+            total_guests=total_guests,
+            male_guests=data.get('male_guests', 0),
+            female_guests=data.get('female_guests', total_guests),
+            preferred_contact_channel='Quầy lễ tân',
+            note=data.get('note', 'Đặt trực tiếp tại quầy'),
+            total_price=total_price,
+            status=data.get('status', 'Confirmed')
+        )
+
+        # Tạo chi tiết dịch vụ
+        for idx in range(1, total_guests + 1):
+            gender = 'Nam' if idx <= data.get('male_guests', 0) else 'Nữ'
+            AppointmentDetail.objects.create(
+                appointment=appointment,
+                guest_index=idx,
+                gender=gender,
+                service=service,
+                massage_pressure='Vừa',
+                special_notes='Tiếp nhận tại quầy'
+            )
+
+        full_serializer = AppointmentFullSerializer(appointment)
+        return Response({
+            'status': 'success',
+            'success': True,
+            'message': f'Tiếp nhận lịch hẹn {appointment.appointment_code} tại quầy thành công!',
+            'appointment': full_serializer.data
+        }, status=status.HTTP_201_CREATED)

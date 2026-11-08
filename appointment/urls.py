@@ -18,6 +18,8 @@ urlpatterns = [
     path('booking/', views.booking_view, name='booking_direct'),
     path('success/<str:code>/', views.booking_success_view, name='booking_success'),
     path('my-appointments/', views.my_appointments_view, name='my_appointments'),
+    path('staff/', views.staff_appointments_view, name='staff_appointments'),
+    path('staff/appointments/', views.staff_appointments_view, name='staff_appointments_direct'),
 
     # 2. RESTful API CHO ĐẶT LỊCH HẸN & THANH TOÁN VIETQR
     path('api/create/', api.AppointmentCreateAPI.as_view(), name='api_create'),
@@ -36,4 +38,5 @@ urlpatterns = [
     path('api/admin/appointments/', api.AdminAppointmentListAPI.as_view(), name='api_admin_appointments'),
     path('api/admin/appointments/<int:pk>/', api.AdminAppointmentListAPI.as_view(), name='api_admin_appointment_detail'),
     path('api/admin/appointments/<int:pk>/status/', api.AdminAppointmentListAPI.as_view(), name='api_admin_appointment_status'),
+    path('api/staff/quick-create/', api.StaffQuickCreateAppointmentAPI.as_view(), name='api_staff_quick_create'),
 ]

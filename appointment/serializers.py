@@ -192,3 +192,23 @@ class AppointmentFullSerializer(serializers.ModelSerializer):
             'Cancelled': 'Đã hủy',
         }
         return status_map.get(obj.status, obj.status)
+
+
+class StaffQuickCreateSerializer(serializers.Serializer):
+    """
+    Serializer tạo nhanh lịch hẹn tại quầy dành cho Nhân viên Lễ tân / CSKH (UC-1.5)
+    """
+    customer_name = serializers.CharField(max_length=255, required=True)
+    customer_phone = serializers.CharField(max_length=50, required=True)
+    customer_email = serializers.EmailField(required=False, allow_blank=True, default='')
+    appointment_date = serializers.DateField(required=True)
+    time_slot = serializers.CharField(max_length=20, required=True)
+    service_id = serializers.IntegerField(required=True)
+    total_guests = serializers.IntegerField(default=1, min_value=1, max_value=10)
+    male_guests = serializers.IntegerField(default=0, min_value=0)
+    female_guests = serializers.IntegerField(default=1, min_value=0)
+    note = serializers.CharField(required=False, allow_blank=True, default='')
+    status = serializers.ChoiceField(
+        choices=['Confirmed', 'Hold', 'In_Progress'],
+        default='Confirmed'
+    )

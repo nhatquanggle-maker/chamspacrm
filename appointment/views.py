@@ -185,3 +185,12 @@ def my_appointments_view(request):
         'counts': counts,
     }
     return render(request, 'appointment/my_appointments.html', context)
+
+
+@login_required
+def staff_appointments_view(request):
+    """
+    Màn hình Quản lý Lịch hẹn cho Nhân viên / Ca trực
+    """
+    appointments = Appointment.objects.all().select_related('voucher', 'user').prefetch_related('details__service').order_by('-appointment_date', '-time_slot')
+    return render(request, 'layouts/staff_layout.html', {'appointments': appointments})

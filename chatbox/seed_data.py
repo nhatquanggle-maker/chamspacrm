@@ -27,54 +27,62 @@ from core.models import FAQ, Conversation, ConversationMessage, User
 def seed_chatbox_data():
     print("--- Bắt đầu khởi tạo dữ liệu mẫu chuẩn Ảnh 1 Figma Node 207:1040 ---")
 
-    # 1. TẠO CÂU HỎI THƯỜNG GẶP FAQ (UC-2.3 & UC-2.1)
+    # 1. TẠO CÂU HỎI THƯỜNG GẶP FAQ (FIGMA NODE 211:3459)
     faqs_data = [
         {
-            'faq_code': 'FAQ-GIA-01',
+            'faq_code': 'FAQ001',
             'category': 'Bảng giá',
-            'question': 'Bảng giá dịch vụ tại Cham Spa & Massage là bao nhiêu?',
-            'keywords': 'giá, bao nhiêu tiền, chi phí, bảng giá, menu giá, giá dịch vụ',
-            'answer': 'Dạ, các gói trị liệu tại Cham Spa & Massage có mức giá dao động từ 350.000đ đến 1.250.000đ tùy theo liệu trình và thời lượng (60p - 90p - 120p). Chi tiết bảng giá từng gói quý khách có thể tham khảo tại mục Dịch vụ trên website ạ.',
+            'question': 'Giá dịch vụ Massage Body là bao nhiêu?',
+            'keywords': 'bảng giá, giá tiền, bao nhiêu tiền',
+            'answer': 'Dạ các gói massage body tại Cham Spa có mức giá dao động từ 350.000đ đến 650.000đ tùy theo thời lượng 60p, 90p hoặc 120p ạ.',
+            'status': 'Active'
+        },
+        {
+            'faq_code': 'FAQ002',
+            'category': 'Lịch đặt',
+            'question': 'Làm thế nào để đặt lịch tại Cham Spa?',
+            'keywords': 'đặt lịch, lịch hẹn, giữ chỗ',
+            'answer': 'Quý khách có thể dễ dàng đặt lịch trực tuyến ngay trên website bằng cách chọn dịch vụ, kỹ thuật viên và khung giờ, hoặc liên hệ trực tiếp lễ tân ạ.',
+            'status': 'Active'
+        },
+        {
+            'faq_code': 'FAQ003',
+            'category': 'Khuyến mãi',
+            'question': 'Cham Spa đang có ưu đãi nào?',
+            'keywords': 'khuyến mãi, ưu đãi, voucher',
+            'answer': 'Hiện tại Cham Spa đang áp dụng chương trình giảm 20% cho khách hàng lần đầu trải nghiệm và ưu đãi đặc quyền cho hội viên VIP ạ.',
+            'status': 'Active'
+        },
+        {
+            'faq_code': 'FAQ004',
+            'category': 'Địa chỉ',
+            'question': 'Chi nhánh Cham Spa gần nhất ở đâu?',
+            'keywords': 'địa chỉ, chi nhánh, đường đi',
+            'answer': 'Cham Spa hiện có cơ sở chính tại: 05 Lê Quang Hoà, Khu đô thị sinh thái Hoà Xuân, Cẩm Lệ, Đà Nẵng ạ.',
+            'status': 'Active'
+        },
+        {
+            'faq_code': 'FAQ005',
+            'category': 'Bảng giá',
+            'question': 'Liệu trình vai gáy 60 phút có giá bao nhiêu?',
+            'keywords': 'vai gáy, 60 phút, giá liệu trình',
+            'answer': 'Dạ liệu trình Massage Body Trị Liệu Vai Gáy 60 phút có giá niêm yết là 450.000 VNĐ ạ.',
+            'status': 'Hidden'
+        },
+        {
+            'faq_code': 'FAQ006',
+            'category': 'Lịch đặt',
+            'question': 'Tôi có thể đổi hoặc hủy lịch hẹn không?',
+            'keywords': 'đổi lịch, hủy lịch, dời lịch',
+            'answer': 'Quý khách hoàn toàn có thể đổi hoặc hủy lịch trước giờ hẹn tối thiểu 2 tiếng qua mục "Lịch hẹn của tôi" trên website ạ.',
             'status': 'Active'
         },
         {
             'faq_code': 'FAQ-GIO-01',
-            'category': 'Giờ mở cửa',
+            'category': 'Chi nhánh',
             'question': 'Giờ hoạt động mở cửa đón khách của Cham Spa?',
             'keywords': 'giờ mở cửa, mấy giờ mở, thời gian làm việc, mở đến mấy giờ, giờ đón khách',
             'answer': 'Cham Spa & Massage phục vụ quý khách từ 09:00 sáng đến 22:00 đêm tất cả các ngày trong tuần (bao gồm cả thứ Bảy, Chủ Nhật và các ngày Lễ, Tết) ạ.',
-            'status': 'Active'
-        },
-        {
-            'faq_code': 'FAQ-CHI-01',
-            'category': 'Chi nhánh & Địa chỉ',
-            'question': 'Địa chỉ Cham Spa & Massage nằm ở đâu?',
-            'keywords': 'địa chỉ, chi nhánh, ở đâu, vị trí, đường nào, cơ sở',
-            'answer': 'Dạ Cham Spa & Massage tọa lạc tại địa chỉ: 05 Lê Quang Hoà, Khu đô thị sinh thái Hoà Xuân, Cẩm Lệ, Đà Nẵng (bên bờ sông Cẩm Lệ thơ mộng) ạ.',
-            'status': 'Active'
-        },
-        {
-            'faq_code': 'FAQ-DAT-01',
-            'category': 'Đặt lịch hẹn',
-            'question': 'Làm sao để đặt lịch hẹn trước tại Cham Spa?',
-            'keywords': 'đặt lịch, hẹn trước, book phòng, giữ chỗ, cách đặt',
-            'answer': 'Quý khách có thể dễ dàng đặt lịch trực tuyến 24/7 bằng cách bấm nút "Đặt lịch ngay" trên website, chọn ngày giờ và dịch vụ mong muốn, hoặc liên hệ hotline 0987 773 777 để được xếp phòng ưu tiên ạ.',
-            'status': 'Active'
-        },
-        {
-            'faq_code': 'FAQ-DOI-01',
-            'category': 'Chính sách',
-            'question': 'Tôi có thể dời lịch hẹn sang ngày khác được không?',
-            'keywords': 'dời lịch, đổi giờ, đổi ngày, dời hẹn, lùi lịch',
-            'answer': 'Dạ hoàn toàn được ạ! Quý khách có thể dời lịch tối đa 2 lần thông qua trang "Lịch hẹn của tôi", miễn là thao tác trước giờ hẹn cũ tối thiểu 2 tiếng theo quy định của Spa ạ.',
-            'status': 'Active'
-        },
-        {
-            'faq_code': 'FAQ-HUY-01',
-            'category': 'Chính sách',
-            'question': 'Chính sách hủy lịch hẹn và hoàn tiền như thế nào?',
-            'keywords': 'hủy lịch, hoàn tiền, hủy hẹn, trả lại tiền, không đến được',
-            'answer': 'Nếu có việc bận đột xuất, quý khách có thể bấm Hủy lịch trước giờ hẹn tối thiểu 4 tiếng và nhập số tài khoản ngân hàng. Bộ phận kế toán Spa sẽ đối soát và hoàn tiền cọc trong vòng 24 giờ ạ.',
             'status': 'Active'
         },
         {
@@ -85,14 +93,6 @@ def seed_chatbox_data():
             'answer': 'Cham Spa hỗ trợ thanh toán trực tuyến nhanh chóng và tự động qua quét mã Napas247 VietQR của mọi ngân hàng, thanh toán qua thẻ tín dụng và tiền mặt trực tiếp tại quầy lễ tân ạ.',
             'status': 'Active'
         },
-        {
-            'faq_code': 'FAQ-KHOE-01',
-            'category': 'Hồ sơ sức khỏe',
-            'question': 'Khảo sát hồ sơ sức khỏe trước khi làm dịch vụ có tác dụng gì?',
-            'keywords': 'sức khỏe, hồ sơ sức khỏe, khảo sát, vùng đau, lực massage, huyết áp',
-            'answer': 'Hồ sơ sức khỏe giúp kỹ thuật viên nắm rõ vùng đau mỏi cần tập trung, mức độ đau, huyết áp và các lưu ý đặc biệt (như mang thai, da nhạy cảm) để điều chỉnh lực massage và phác đồ an toàn nhất cho quý khách ạ.',
-            'status': 'Active'
-        },
     ]
 
     for item in faqs_data:
@@ -101,14 +101,14 @@ def seed_chatbox_data():
             defaults=item
         )
 
-    # 2. TẠO 4 KHÁCH HÀNG MẪU KHỚP 100% ẢNH 1 FIGMA
+    # 2. TẠO 4 KHÁCH HÀNG MẪU KHỚP 100% FIGMA NODE 502:2005 & ẢNH 1
     customers_mock = [
         {
-            'name': 'Thanh Thỏ',
+            'name': 'Trần Trần Thảo Ngọc',
             'phone': '0901234567',
-            'email': 'thanhtho@gmail.com',
-            'tag': 'Vai gáy / Trị liệu',
-            'minutes_ago': 3,
+            'email': 'thaongoc@gmail.com',
+            'tag': 'Trị liệu vai gáy & Đặt lịch',
+            'minutes_ago': 2,
             'is_selected': True
         },
         {

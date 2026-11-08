@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, logout as auth_logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
@@ -8,8 +8,13 @@ from django.contrib import messages
 from django.urls import reverse
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from django.core.paginator import Paginator
+from django.db.models import Q, Avg, Sum
+from django.utils import timezone
+from datetime import timedelta, datetime
+from decimal import Decimal
 from .forms import LoginForm, RegisterForm, ProfileForm, ForgotPasswordForm, ResetPasswordForm
-from core.models import User, UserProfile, Membership
+from core.models import User, UserProfile, UserHealthProfile, Tier, Membership, MembershipPoint, Appointment, Feedback
 import os
 
 
@@ -276,5 +281,373 @@ def redirect_by_role(user):
     elif user.is_staff:
         return redirect('dashboard:staff')
     return redirect('home')
+
+
+# =============================================================================
+# MODULE 5 - ADMIN: QUẢN LÝ TÀI KHOẢN KHÁCH HÀNG (KHỚP 100% 4 NODE FIGMA)
+# 1. Danh sách khách hàng: Node 218:9398
+# 2. Chi tiết khách hàng (Thông tin cá nhân & liên hệ): Node 221:481
+# 3. Chi tiết khách hàng (Hồ sơ sức khỏe): Node 608:1773
+# 4. Chi tiết khách hàng (Thẻ hội viên & tích điểm): Node 608:250
+# =============================================================================
+
+@login_required
+def admin_customer_list_view(request):
+    """
+    Giao diện Quản lý Danh sách Tài khoản Khách hàng (Figma Node 218:9398)
+    Hỗ trợ:
+      - Tìm kiếm realtime theo Họ tên, SĐT, Email, Mã TK
+      - Lọc theo Tab trạng thái: Tất cả, Đang hoạt động, Đã khóa
+      - Modal Tạo mới tài khoản Khách hàng
+      - Modal Sửa thông tin tài khoản
+      - Modal Khóa / Mở khóa tài khoản an toàn (Soft Deactivation is_active=False)
+      - Phân trang chuẩn 8 tài khoản / trang theo thiết kế Figma
+    """
+    if not (request.user.is_superuser or request.user.is_staff):
+        messages.error(request, "Bạn không có quyền truy cập trang quản trị khách hàng.")
+        return redirect('home')
+
+    # Xử lý các thao tác POST từ Modal Form
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        # 1. Tạo mới tài khoản khách hàng
+        if action == 'create_customer':
+            name = request.POST.get('name', '').strip()
+            phone = request.POST.get('phone', '').strip().replace(' ', '')
+            email = request.POST.get('email', '').strip().lower()
+            password = request.POST.get('password', '').strip() or 'customer123456'
+            gender = request.POST.get('gender', 'Nữ')
+            bday_str = request.POST.get('birthday', '').strip()
+            tier_name = request.POST.get('tier_name', 'Thành viên')
+            care_note = request.POST.get('care_note', '').strip()
+
+            if not name or not phone:
+                messages.error(request, "Vui lòng nhập đầy đủ Họ tên và Số điện thoại khách hàng.")
+            elif User.objects.filter(username=phone).exists() or User.objects.filter(phone=phone).exists():
+                messages.error(request, f"Số điện thoại {phone} đã được đăng ký tài khoản khác.")
+            elif email and User.objects.filter(email=email).exists():
+                messages.error(request, f"Địa chỉ email {email} đã được đăng ký tài khoản khác.")
+            else:
+                new_user = User.objects.create_user(
+                    username=phone,
+                    name=name,
+                    phone=phone,
+                    email=email,
+                    password=password,
+                    is_staff=False,
+                    is_superuser=False,
+                    is_active=True
+                )
+                bday = datetime.strptime(bday_str, '%Y-%m-%d').date() if bday_str else None
+                UserProfile.objects.create(
+                    user=new_user,
+                    gender=gender,
+                    birthday=bday
+                )
+                tier_obj = Tier.objects.filter(name=tier_name).first() or Tier.objects.first()
+                Membership.objects.create(
+                    user=new_user,
+                    tier=tier_obj,
+                    current_points=tier_obj.min_points if tier_obj else 0
+                )
+                if care_note:
+                    UserHealthProfile.objects.create(
+                        user=new_user,
+                        health_code=f"HS-{new_user.id:04d}",
+                        special_requests=care_note
+                    )
+                messages.success(request, f"Đã thêm thành công tài khoản khách hàng {new_user.name} (#{new_user.id:03d})!")
+            return redirect('accounts:admin_customer_list')
+
+        # 2. Khóa / Mở khóa tài khoản khách hàng an toàn (Soft deactivation)
+        elif action == 'toggle_status':
+            target_id = request.POST.get('customer_id')
+            target_user = get_object_or_404(User, id=target_id, is_staff=False, is_superuser=False)
+            target_user.is_active = not target_user.is_active
+            target_user.save()
+            st_text = "mở khóa" if target_user.is_active else "khóa an toàn"
+            messages.success(request, f"Đã {st_text} tài khoản khách hàng {target_user.name} thành công!")
+            return redirect('accounts:admin_customer_list')
+
+        # 3. Cập nhật nhanh thông tin khách hàng từ modal
+        elif action == 'edit_customer':
+            target_id = request.POST.get('customer_id')
+            target_user = get_object_or_404(User, id=target_id, is_staff=False, is_superuser=False)
+            name = request.POST.get('name', '').strip()
+            phone = request.POST.get('phone', '').strip().replace(' ', '')
+            email = request.POST.get('email', '').strip().lower()
+            gender = request.POST.get('gender', 'Nữ')
+            bday_str = request.POST.get('birthday', '').strip()
+            tier_name = request.POST.get('tier_name', '')
+            status_val = request.POST.get('is_active')
+
+            if name:
+                target_user.name = name
+            if phone and not User.objects.exclude(id=target_user.id).filter(phone=phone).exists():
+                target_user.phone = phone
+            if email and not User.objects.exclude(id=target_user.id).filter(email=email).exists():
+                target_user.email = email
+            if status_val is not None:
+                target_user.is_active = (status_val in ['true', '1', 'on'])
+            target_user.save()
+
+            profile, _ = UserProfile.objects.get_or_create(user=target_user)
+            profile.gender = gender
+            if bday_str:
+                profile.birthday = datetime.strptime(bday_str, '%Y-%m-%d').date()
+            profile.save()
+
+            if tier_name:
+                t_obj = Tier.objects.filter(name=tier_name).first()
+                if t_obj:
+                    mem, _ = Membership.objects.get_or_create(user=target_user)
+                    mem.tier = t_obj
+                    mem.save()
+
+            messages.success(request, f"Đã cập nhật thông tin khách hàng {target_user.name} thành công!")
+            return redirect('accounts:admin_customer_list')
+
+    # Truy vấn danh sách khách hàng
+    qs = User.objects.filter(is_staff=False, is_superuser=False).select_related('profile', 'membership__tier').order_by('-date_joined')
+
+    # Thống kê tổng số
+    total_count = qs.count()
+    active_count = qs.filter(is_active=True).count()
+    inactive_count = qs.filter(is_active=False).count()
+
+    # Bộ lọc tab trạng thái
+    status_filter = request.GET.get('status', 'all')
+    if status_filter == 'active':
+        qs = qs.filter(is_active=True)
+    elif status_filter == 'inactive':
+        qs = qs.filter(is_active=False)
+
+    # Tìm kiếm theo từ khóa
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        # Hỗ trợ tìm kiếm mã khách hàng #CUS042, #USR089 hoặc tên, SĐT, Email
+        clean_search = search_query.replace('#', '').replace('CUS', '').replace('USR', '').strip()
+        q_filter = (
+            Q(name__icontains=search_query) |
+            Q(phone__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(username__icontains=search_query)
+        )
+        if clean_search.isdigit():
+            q_filter |= Q(id=int(clean_search))
+        qs = qs.filter(q_filter)
+
+    # Phân trang chuẩn 8 tài khoản / trang (Figma 218:9398)
+    paginator = Paginator(qs, 8)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    tiers = Tier.objects.all().order_by('min_points')
+
+    context = {
+        'customers': page_obj,
+        'page_obj': page_obj,
+        'total_count': total_count,
+        'active_count': active_count,
+        'inactive_count': inactive_count,
+        'current_status': status_filter,
+        'search_query': search_query,
+        'tiers': tiers,
+    }
+    return render(request, 'accounts/admin_customer_list.html', context)
+
+
+@login_required
+def admin_customer_detail_view(request, pk):
+    """
+    Giao diện Chi tiết Khách hàng 360 độ (Figma Node 221:481, 608:1773, 608:250)
+    Tích hợp 3 Tab chuẩn xác theo thiết kế Figma:
+      - Tab 1 (Node 221:481): Thông tin cá nhân & Liên hệ
+      - Tab 2 (Node 608:1773): Hồ sơ sức khỏe (Timeline, Vùng đau mỏi, Cường độ 0-10, Cảnh báo y tế)
+      - Tab 3 (Node 608:250): Thẻ hội viên & Tích điểm (Tiến trình nâng hạng, Biến động điểm thưởng)
+    """
+    if not (request.user.is_superuser or request.user.is_staff):
+        messages.error(request, "Bạn không có quyền truy cập hồ sơ khách hàng.")
+        return redirect('home')
+
+    customer = get_object_or_404(
+        User.objects.select_related('profile', 'membership__tier', 'health_profile'),
+        pk=pk,
+        is_staff=False,
+        is_superuser=False
+    )
+
+    profile, _ = UserProfile.objects.get_or_create(user=customer)
+    default_tier = Tier.objects.first()
+    membership, _ = Membership.objects.get_or_create(
+        user=customer,
+        defaults={'tier': default_tier, 'current_points': 0, 'total_spent': Decimal(0)}
+    )
+    health_profile, _ = UserHealthProfile.objects.get_or_create(
+        user=customer,
+        defaults={
+            'health_code': f"HS-{customer.id:04d}",
+            'focus_areas': ['Vai gáy'],
+            'massage_pressure': 'Lực vừa',
+            'pain_level': 5,
+            'special_requests': 'Ưu tiên không gian yên tĩnh, thư giãn nhẹ nhàng.'
+        }
+    )
+
+    # Xử lý cập nhật thông tin từ Modal trên trang Chi tiết
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'edit_customer_detail':
+            name = request.POST.get('name', '').strip()
+            phone = request.POST.get('phone', '').strip().replace(' ', '')
+            email = request.POST.get('email', '').strip().lower()
+            gender = request.POST.get('gender', 'Nữ')
+            bday_str = request.POST.get('birthday', '').strip()
+            care_note = request.POST.get('care_note', '').strip()
+            tier_name = request.POST.get('tier_name', '')
+
+            if name:
+                customer.name = name
+            if phone and not User.objects.exclude(id=customer.id).filter(phone=phone).exists():
+                customer.phone = phone
+            if email and not User.objects.exclude(id=customer.id).filter(email=email).exists():
+                customer.email = email
+            customer.save()
+
+            profile.gender = gender
+            if bday_str:
+                profile.birthday = datetime.strptime(bday_str, '%Y-%m-%d').date()
+            profile.save()
+
+            if care_note:
+                health_profile.special_requests = care_note
+                health_profile.save()
+
+            if tier_name:
+                t_obj = Tier.objects.filter(name=tier_name).first()
+                if t_obj:
+                    membership.tier = t_obj
+                    membership.save()
+
+            messages.success(request, f"Cập nhật hồ sơ khách hàng {customer.name} thành công!")
+            tab_param = request.GET.get('tab', 'info')
+            return redirect(f"{reverse('accounts:admin_customer_detail', kwargs={'pk': customer.id})}?tab={tab_param}")
+
+        elif action == 'toggle_status':
+            customer.is_active = not customer.is_active
+            customer.save()
+            st_text = "Mở khóa" if customer.is_active else "Khóa"
+            messages.success(request, f"Đã {st_text} tài khoản khách hàng {customer.name} thành công!")
+            tab_param = request.GET.get('tab', 'info')
+            return redirect(f"{reverse('accounts:admin_customer_detail', kwargs={'pk': customer.id})}?tab={tab_param}")
+
+    active_tab = request.GET.get('tab', 'info')
+    if active_tab not in ['info', 'health', 'membership']:
+        active_tab = 'info'
+
+    # 1. Thống kê lịch hẹn & chỉ số 360 độ (Node 221:481)
+    appointments = customer.appointments.all().order_by('-appointment_date', '-time_slot')
+    total_appointments = appointments.count()
+    completed_appointments = appointments.filter(status='Completed').count()
+    cancelled_appointments = appointments.filter(status='Cancelled').count()
+
+    total_spent = sum((a.total_price for a in appointments.filter(status__in=['Completed', 'Confirmed'])), Decimal(0))
+    formatted_total_spent = f"{int(total_spent):,}".replace(',', '.') + "đ"
+
+    # Chi tiêu 12 tháng gần nhất
+    one_year_ago = timezone.localdate() - timedelta(days=365)
+    recent_spent = sum((a.total_price for a in appointments.filter(status__in=['Completed', 'Confirmed'], appointment_date__gte=one_year_ago)), Decimal(0))
+    formatted_recent_spent = f"{int(recent_spent):,}".replace(',', '.') + "đ"
+
+    # Đánh giá dịch vụ
+    feedbacks = customer.feedbacks.all()
+    total_feedbacks = feedbacks.count()
+    avg_rating = feedbacks.aggregate(avg=Avg('rating'))['avg'] or 5.0
+    satisfaction_score = f"{avg_rating:.1f}".replace('.', ',')
+
+    # 2. Thể trạng & Hồ sơ sức khỏe (Node 608:1773)
+    bmi = 21.0
+    if health_profile.height_cm and health_profile.weight_kg:
+        try:
+            h_m = float(health_profile.height_cm) / 100.0
+            w_kg = float(health_profile.weight_kg)
+            bmi = round(w_kg / (h_m * h_m), 1)
+        except Exception:
+            bmi = 21.0
+
+    pain_level = health_profile.pain_level if health_profile.pain_level is not None else 6
+    pain_level = max(0, min(10, pain_level))
+    pain_scale = [{'level': i, 'is_active': (i <= pain_level)} for i in range(1, 11)]
+
+    # 3. Tiến trình nâng hạng & Biến động điểm (Node 608:250)
+    current_tier = membership.tier
+    next_tier = Tier.objects.filter(min_points__gt=(current_tier.min_points if current_tier else 0)).order_by('min_points').first()
+    next_tier_name = next_tier.name if next_tier else (current_tier.name if current_tier else 'Hạng Kim Cương')
+    next_tier_points = next_tier.min_points if next_tier else 2000
+    target_spent = Decimal(10000000)  # 10.000.000 VNĐ chuẩn Figma
+
+    remaining_points = max(0, next_tier_points - membership.current_points)
+    remaining_spent = max(Decimal(0), target_spent - membership.total_spent)
+
+    points_pct = min(100, int((membership.current_points / next_tier_points) * 100)) if next_tier_points else 100
+    spent_pct = min(100, int((membership.total_spent / target_spent) * 100)) if target_spent else 100
+
+    point_history = membership.point_history.all().order_by('-created_at')[:15]
+
+    # Danh sách tất cả hạng thẻ cho dropdown sửa
+    all_tiers = Tier.objects.all().order_by('min_points')
+
+    # Tạo mã khách hàng hiển thị: #CUS042
+    customer_code = f"CUS{customer.id:03d}"
+
+    # Lấy chữ viết tắt Avatar (VD: Phạm Bảo Ngọc -> BN)
+    parts = customer.name.strip().split()
+    if len(parts) >= 2:
+        initials = (parts[0][0] + parts[-1][0]).upper()
+    elif len(parts) == 1:
+        initials = parts[0][:2].upper()
+    else:
+        initials = "KH"
+
+    context = {
+        'customer': customer,
+        'profile': profile,
+        'membership': membership,
+        'health_profile': health_profile,
+        'active_tab': active_tab,
+        'customer_code': customer_code,
+        'initials': initials,
+        'all_tiers': all_tiers,
+        # Metric 360
+        'total_appointments': total_appointments,
+        'completed_appointments': completed_appointments,
+        'cancelled_appointments': cancelled_appointments,
+        'total_spent': total_spent,
+        'formatted_total_spent': formatted_total_spent,
+        'formatted_recent_spent': formatted_recent_spent,
+        'total_feedbacks': total_feedbacks,
+        'satisfaction_score': satisfaction_score,
+        # Sức khỏe
+        'bmi': bmi,
+        'pain_level': pain_level,
+        'pain_scale': pain_scale,
+        # Thẻ hội viên & Nâng hạng
+        'current_tier': current_tier,
+        'next_tier_name': next_tier_name,
+        'next_tier_points': next_tier_points,
+        'target_spent': target_spent,
+        'remaining_points': remaining_points,
+        'remaining_spent': remaining_spent,
+        'formatted_spent': f"{int(membership.total_spent):,}".replace(',', '.'),
+        'formatted_target_spent': f"{int(target_spent):,}".replace(',', '.'),
+        'formatted_remaining_spent': f"{int(remaining_spent):,}".replace(',', '.') + " VNĐ",
+        'points_pct': points_pct,
+        'spent_pct': spent_pct,
+        'point_history': point_history,
+    }
+    return render(request, 'accounts/admin_customer_detail.html', context)
+
 
 

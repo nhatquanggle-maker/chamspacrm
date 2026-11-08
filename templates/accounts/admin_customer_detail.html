@@ -370,6 +370,14 @@
         vertical-align: middle;
         border-top: 1px solid #F4EFE3;
     }
+
+    /* Fix Bootstrap Modal Stacking Context & Backdrop */
+    .modal {
+        z-index: 1060 !important;
+    }
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
 </style>
 {% endblock %}
 
@@ -779,7 +787,9 @@
         {% endif %}
     </div>
 </div>
+{% endblock admin_content %}
 
+{% block admin_modals %}
 <!-- =========================================================================
      MODAL: CHỈNH SỬA THÔNG TIN KHÁCH HÀNG (UC-5.9)
      ========================================================================= -->
@@ -893,4 +903,21 @@
         </div>
     </div>
 </div>
+{% endblock admin_modals %}
+
+{% block extra_js %}
+<script>
+    function ensureDetailModalsOnBody() {
+        ['editCustomerModal', 'toggleStatusModal'].forEach(function(id) {
+            const el = document.getElementById(id);
+            if (el && el.parentElement !== document.body) {
+                document.body.appendChild(el);
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        ensureDetailModalsOnBody();
+    });
+</script>
 {% endblock %}

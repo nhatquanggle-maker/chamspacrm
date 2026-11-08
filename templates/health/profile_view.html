@@ -278,11 +278,11 @@
 
         <!-- A. 4 CHỈ SỐ SINH TRẮC HỌC (ĐÃ SỬA LỖI ,00) -->
         <div class="row g-3 mb-4">
-            <!-- Chiều cao (Đã bỏ ,00) -->
+            <!-- Chiều cao -->
             <div class="col-sm-6 col-xl-3">
                 <div class="cham-metric-tile">
                     <div class="cham-metric-label">
-                        <i class="bi bi-rulers text-danger"></i> Chiều cao
+                        <i class="bi bi-rulers" style="color: #781A24;"></i> Chiều cao
                     </div>
                     <div class="cham-metric-val">
                         {{ height_display|default:profile.height_cm|default:"--" }} <span class="fs-6 fw-normal text-muted">cm</span>
@@ -290,11 +290,11 @@
                 </div>
             </div>
 
-            <!-- Cân nặng (Đã bỏ ,00) -->
+            <!-- Cân nặng -->
             <div class="col-sm-6 col-xl-3">
                 <div class="cham-metric-tile">
                     <div class="cham-metric-label">
-                        <i class="bi bi-speedometer2 text-danger"></i> Cân nặng
+                        <i class="bi bi-speedometer2" style="color: #781A24;"></i> Cân nặng
                     </div>
                     <div class="cham-metric-val">
                         {{ weight_display|default:profile.weight_kg|default:"--" }} <span class="fs-6 fw-normal text-muted">kg</span>
@@ -302,33 +302,33 @@
                 </div>
             </div>
 
-            <!-- Chỉ số BMI (Giữ nguyên y khoa) -->
+            <!-- Chỉ số BMI (Y khoa tinh gọn, màu chính) -->
             <div class="col-sm-6 col-xl-3">
-                <div class="cham-metric-tile" style="background-color: #F0FDF4; border-color: #BBF7D0;">
-                    <div class="cham-metric-label text-success">
-                        <i class="bi bi-heart-pulse-fill"></i> Chỉ số BMI
+                <div class="cham-metric-tile">
+                    <div class="cham-metric-label">
+                        <i class="bi bi-heart-pulse-fill" style="color: #781A24;"></i> Chỉ số BMI
                     </div>
                     <div class="d-flex align-items-baseline gap-2 mb-1">
-                        <div class="cham-metric-val text-success">
+                        <div class="cham-metric-val" style="color: #781A24;">
                             {{ profile_data.bmi|default:"--" }}
                         </div>
                     </div>
-                    <span class="badge {{ profile_data.bmi_badge_class|default:'bg-success' }} rounded-pill" style="font-size: 11px;">
-                        {{ profile_data.bmi_classification|default:"Thể trạng cân đối (Bình thường)" }}
+                    <span class="badge rounded-pill fw-semibold" style="background-color: #FFFFFF; border: 1px solid #D0B581; color: #781A24; font-size: 11px; padding: 4px 10px;">
+                        {{ profile_data.bmi_classification|default:"Thể trạng cân đối" }}
                     </span>
                 </div>
             </div>
 
-            <!-- Huyết áp -->
+            <!-- Huyết áp (Màu chính) -->
             <div class="col-sm-6 col-xl-3">
                 <div class="cham-metric-tile">
                     <div class="cham-metric-label">
-                        <i class="bi bi-activity text-danger"></i> Huyết áp
+                        <i class="bi bi-activity" style="color: #781A24;"></i> Huyết áp
                     </div>
                     <div class="cham-metric-val mb-1" style="font-size: 22px;">
                         {{ profile.blood_pressure|default:"Bình thường" }}
                     </div>
-                    <span class="badge {% if profile.blood_pressure == 'Cao' %}bg-danger{% elif profile.blood_pressure == 'Thấp' %}bg-warning text-dark{% else %}bg-success{% endif %} rounded-pill" style="font-size: 11px;">
+                    <span class="badge rounded-pill fw-semibold" style="background-color: #FFFFFF; border: 1px solid {% if profile.blood_pressure == 'Cao' %}#781A24; color: #781A24;{% elif profile.blood_pressure == 'Thấp' %}#D0B581; color: #781A24;{% else %}#D0B581; color: #171311;{% endif %} font-size: 11px; padding: 4px 10px;">
                         {% if profile.blood_pressure == 'Cao' %}Huyết áp cao{% elif profile.blood_pressure == 'Thấp' %}Huyết áp thấp{% else %}Ổn định{% endif %}
                     </span>
                 </div>
@@ -393,13 +393,13 @@
         <!-- C. MỤC TIÊU TRỊ LIỆU MONG MUỐN -->
         <div class="mb-4">
             <div class="cham-section-subtitle">
-                <i class="bi bi-bookmark-heart text-danger"></i> Mục tiêu trị liệu mong muốn
+                <i class="bi bi-bookmark-heart" style="color: #781A24;"></i> Mục tiêu trị liệu mong muốn
             </div>
             {% if profile.recovery_goals %}
             <div class="d-flex flex-wrap">
                 {% for goal in profile.recovery_goals %}
                 <span class="cham-goal-pill">
-                    <i class="bi bi-check-circle-fill text-success"></i> {{ goal }}
+                    <i class="bi bi-check-circle-fill" style="color: #781A24;"></i> {{ goal }}
                 </span>
                 {% endfor %}
             </div>
@@ -413,7 +413,7 @@
         <!-- D. YÊU CẦU RIÊNG CHO KỸ THUẬT VIÊN & PHÒNG -->
         <div class="mb-2">
             <div class="cham-section-subtitle">
-                <i class="bi bi-chat-left-text text-danger"></i> Yêu cầu riêng cho Kỹ thuật viên & Phòng
+                <i class="bi bi-chat-left-text" style="color: #781A24;"></i> Yêu cầu riêng cho Kỹ thuật viên & Phòng
             </div>
             {% if profile.special_requests %}
             <div class="cham-notes-card fst-italic">

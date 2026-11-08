@@ -265,6 +265,28 @@
                 this.classList.add('active');
             });
         });
+
+        // =========================================================================
+        // FIX BOOTSTRAP MODAL STACKING CONTEXT & NỀN MỜ BACKDROP (TOÀN HỆ THỐNG):
+        // Di chuyển tất cả Modal ra trực tiếp dưới thẻ <body> để thoát khỏi các container
+        // có 'overflow: hidden' hoặc 'z-index' gây cô lập context, giúp modal hiển thị
+        // rõ nét, sáng và tương tác bình thường phía trên lớp backdrop.
+        // =========================================================================
+        function reparentModalsToBody() {
+            document.querySelectorAll('.modal').forEach(function(modal) {
+                if (modal.parentElement !== document.body) {
+                    document.body.appendChild(modal);
+                }
+            });
+        }
+        reparentModalsToBody();
+
+        // Bắt thêm sự kiện show.bs.modal để đảm bảo an toàn tuyệt đối
+        document.addEventListener('show.bs.modal', function(e) {
+            if (e.target && e.target.parentElement !== document.body) {
+                document.body.appendChild(e.target);
+            }
+        });
     });
     </script>
 

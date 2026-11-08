@@ -177,10 +177,12 @@
 
     /* Nút Xem hồ sơ nằm ngang gọn gàng, thanh lịch */
     .btn-cham-view-link {
-        display: inline-flex;
-        align-items: center;
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
         gap: 6px;
-        padding: 7px 16px;
+        padding: 6px 14px;
         border-radius: 6px;
         font-size: 13px;
         font-weight: 600;
@@ -188,7 +190,7 @@
         border: 1px solid #D0B581;
         background-color: #FAF7EF;
         text-decoration: none;
-        white-space: nowrap;
+        white-space: nowrap !important;
         transition: all 0.15s ease;
     }
 
@@ -242,7 +244,7 @@
 
         <div class="d-flex align-items-center gap-2">
             <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small fw-normal">
-                <i class="bi bi-clock me-1 text-danger"></i> Ca trực: {{ now|date:"d/m/Y" }}
+                <i class="bi bi-clock me-1" style="color: #781A24;"></i> Ca trực: {{ now|date:"d/m/Y" }}
             </span>
         </div>
     </div>
@@ -358,7 +360,7 @@
                                 </div>
                                 <div>
                                     <div class="fw-bold text-dark" style="font-size: 13.5px;">{{ p.user.name|default:p.user.username }}</div>
-                                    <div class="text-muted" style="font-size: 12px;"><i class="bi bi-telephone me-1 text-danger"></i>{{ p.user.phone }}</div>
+                                    <div class="text-muted" style="font-size: 12px;"><i class="bi bi-telephone me-1" style="color: #781A24;"></i>{{ p.user.phone }}</div>
                                 </div>
                             </div>
                         </td>

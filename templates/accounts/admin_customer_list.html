@@ -227,6 +227,17 @@
         border-color: #781A24;
         color: #FFFFFF;
     }
+
+    /* =========================================================================
+       FIX BOOTSTRAP MODAL STACKING CONTEXT & BACKDROP OVERLAY
+       Ngăn chặn triệt để hiện tượng lớp nền mờ backdrop đè lên modal
+       ========================================================================= */
+    .modal {
+        z-index: 1060 !important;
+    }
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
 </style>
 {% endblock %}
 
@@ -353,14 +364,25 @@
                                 </a>
 
                                 <!-- Nút Chỉnh sửa Modal -->
-                                <button type="button" class="btn-action-icon" title="Chỉnh sửa thông tin"
-                                        onclick="openEditCustomerModal('{{ c.id }}', '{{ c.name|escapejs }}', '{{ c.phone|escapejs }}', '{{ c.email|escapejs }}', '{{ c.profile.gender|default:'Nữ'|escapejs }}', '{{ c.profile.birthday|date:'Y-m-d'|default:'' }}', '{{ c.membership.tier.name|default:'Thành viên'|escapejs }}', {{ c.is_active|yesno:'true,false' }})">
+                                <button type="button" class="btn-action-icon btn-edit-customer" title="Chỉnh sửa thông tin"
+                                        data-id="{{ c.id }}"
+                                        data-name="{{ c.name|default:c.username }}"
+                                        data-phone="{{ c.phone|default:'' }}"
+                                        data-email="{{ c.email|default:'' }}"
+                                        data-gender="{{ c.profile.gender|default:'Nữ' }}"
+                                        data-birthday="{{ c.profile.birthday|date:'Y-m-d'|default:'' }}"
+                                        data-tier="{{ c.membership.tier.name|default:'Thành viên' }}"
+                                        data-active="{{ c.is_active|yesno:'true,false' }}"
+                                        onclick="openEditCustomerModal('{{ c.id }}', '{{ c.name|default:c.username|escapejs }}', '{{ c.phone|default:''|escapejs }}', '{{ c.email|default:''|escapejs }}', '{{ c.profile.gender|default:'Nữ'|escapejs }}', '{{ c.profile.birthday|date:'Y-m-d'|default:'' }}', '{{ c.membership.tier.name|default:'Thành viên'|escapejs }}', {{ c.is_active|yesno:'true,false' }})">
                                     <i class="bi bi-pencil"></i>
                                 </button>
 
                                 <!-- Nút Khóa / Mở Khóa Tài Khoản (Soft Deactivation an toàn) -->
-                                <button type="button" class="btn-action-icon action-lock" title="{% if c.is_active %}Khóa tài khoản an toàn{% else %}Mở khóa tài khoản{% endif %}"
-                                        onclick="openToggleModal('{{ c.id }}', '{{ c.name|escapejs }}', {{ c.is_active|yesno:'true,false' }})">
+                                <button type="button" class="btn-action-icon action-lock btn-toggle-status" title="{% if c.is_active %}Khóa tài khoản an toàn{% else %}Mở khóa tài khoản{% endif %}"
+                                        data-id="{{ c.id }}"
+                                        data-name="{{ c.name|default:c.username }}"
+                                        data-active="{{ c.is_active|yesno:'true,false' }}"
+                                        onclick="openToggleModal('{{ c.id }}', '{{ c.name|default:c.username|escapejs }}', {{ c.is_active|yesno:'true,false' }})">
                                     {% if c.is_active %}
                                         <i class="bi bi-lock"></i>
                                     {% else %}
@@ -429,7 +451,9 @@
         {% endif %}
     </div>
 </div>
+{% endblock admin_content %}
 
+{% block admin_modals %}
 <!-- =========================================================================
      MODAL 1: THÊM TÀI KHOẢN KHÁCH HÀNG MỚI (UC-5.6)
      ========================================================================= -->
@@ -615,38 +639,92 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock admin_modals %}
 
 {% block extra_js %}
 <script>
-    // Xử lý Checkbox Chọn tất cả
-    document.getElementById('checkAllCustomers')?.addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('.cust-checkbox');
-        checkboxes.forEach(cb => cb.checked = this.checked);
+    // =========================================================================
+    // KHẮC PHỤC TRIỆT ĐỂ LỖI STACKING CONTEXT & LỚP NỀN MỜ BACKDROP (UC-5 FIGMA)
+    // Di chuyển trực tiếp modal ra <body> để modal luôn nằm trên lớp phủ z-index
+    // =========================================================================
+    function ensureCustomerModalsOnBody() {
+        ['addCustomerModal', 'editCustomerModal', 'toggleStatusModal'].forEach(function(id) {
+            const el = document.getElementById(id);
+            if (el && el.parentElement !== document.body) {
+                document.body.appendChild(el);
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        ensureCustomerModalsOnBody();
+
+        // Xử lý Checkbox Chọn tất cả
+        document.getElementById('checkAllCustomers')?.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.cust-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+        // Bắt sự kiện click chỉnh sửa qua class btn-edit-customer
+        document.querySelectorAll('.btn-edit-customer').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const phone = this.getAttribute('data-phone');
+                const email = this.getAttribute('data-email');
+                const gender = this.getAttribute('data-gender');
+                const birthday = this.getAttribute('data-birthday');
+                const tier = this.getAttribute('data-tier');
+                const isActive = this.getAttribute('data-active') === 'true';
+                openEditCustomerModal(id, name, phone, email, gender, birthday, tier, isActive);
+            });
+        });
+
+        // Bắt sự kiện click khóa / mở khóa qua class btn-toggle-status
+        document.querySelectorAll('.btn-toggle-status').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const isActive = this.getAttribute('data-active') === 'true';
+                openToggleModal(id, name, isActive);
+            });
+        });
     });
 
-    // Mở Modal Chỉnh sửa Khách hàng
+    // Mở Modal Chỉnh sửa Khách hàng (Sử dụng getOrCreateInstance & đảm bảo reparent ra body)
     function openEditCustomerModal(id, name, phone, email, gender, birthday, tier, isActive) {
-        document.getElementById('editCustomerId').value = id;
-        document.getElementById('editCustomerName').value = name;
-        document.getElementById('editCustomerPhone').value = phone;
-        document.getElementById('editCustomerEmail').value = email;
-        document.getElementById('editCustomerGender').value = gender;
-        document.getElementById('editCustomerBirthday').value = birthday;
-        document.getElementById('editCustomerTier').value = tier;
-        document.getElementById('editCustomerActive').value = isActive ? 'true' : 'false';
+        ensureCustomerModalsOnBody();
+        const modalEl = document.getElementById('editCustomerModal');
+        if (!modalEl) return;
 
-        new bootstrap.Modal(document.getElementById('editCustomerModal')).show();
+        document.getElementById('editCustomerId').value = id || '';
+        document.getElementById('editCustomerName').value = name || '';
+        document.getElementById('editCustomerPhone').value = phone || '';
+        document.getElementById('editCustomerEmail').value = email || '';
+        document.getElementById('editCustomerGender').value = gender || 'Nữ';
+        document.getElementById('editCustomerBirthday').value = birthday || '';
+        document.getElementById('editCustomerTier').value = tier || 'Thành viên';
+        document.getElementById('editCustomerActive').value = (isActive === true || isActive === 'true') ? 'true' : 'false';
+
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modalInstance.show();
     }
 
     // Mở Modal Khóa / Mở khóa Tài khoản an toàn
     function openToggleModal(id, name, isActive) {
+        ensureCustomerModalsOnBody();
+        const modalEl = document.getElementById('toggleStatusModal');
+        if (!modalEl) return;
+
         document.getElementById('toggleCustomerId').value = id;
         const titleEl = document.getElementById('toggleModalTitle');
         const msgEl = document.getElementById('toggleModalMsg');
         const submitBtn = document.getElementById('toggleModalSubmitBtn');
 
-        if (isActive) {
+        const isCurrentlyActive = (isActive === true || isActive === 'true');
+        if (isCurrentlyActive) {
             titleEl.innerText = `Khóa tài khoản khách hàng "${name}"?`;
             msgEl.innerText = `Tài khoản sẽ chuyển sang trạng thái "Đã khóa". Khách hàng sẽ không thể đăng nhập để đặt lịch. Toàn vẹn dữ liệu hồ sơ và điểm thưởng vẫn được lưu giữ an toàn.`;
             submitBtn.innerText = "Khóa tài khoản an toàn";
@@ -658,7 +736,8 @@
             submitBtn.style.backgroundColor = "#2F7D5B";
         }
 
-        new bootstrap.Modal(document.getElementById('toggleStatusModal')).show();
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modalInstance.show();
     }
 </script>
 {% endblock %}

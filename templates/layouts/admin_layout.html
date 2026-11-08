@@ -23,6 +23,9 @@
     </div>
 </div>
 
+<!-- Khối chứa Modal toàn cục cấp Root (Nằm ngoài overflow-hidden và stacking context) -->
+{% block admin_modals %}{% endblock %}
+
 <script>
     // Tự động nhận diện ?tab=chatbox để chuyển hướng sang màn hình Quản lý Boxchat của Admin
     (function() {

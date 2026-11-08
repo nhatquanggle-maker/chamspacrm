@@ -954,7 +954,7 @@ class AdminReassignStaffAPI(APIView):
         old_staff_name = conv.staff.name if conv.staff else 'Chưa có'
         conv.staff = new_staff
         conv.status = 'Đang xử lý'
-        conv.save(update_fields=['staff', 'status', 'updated_at'])
+        conv.save(update_fields=['staff', 'status'])
 
         # Ghi nhận log thông báo vào phiên chat
         admin_name = request.user.name or 'Quản trị viên'
@@ -990,7 +990,7 @@ class AdminTakeoverConversationAPI(APIView):
         admin_name = request.user.name or 'Quản trị viên'
         conv.staff = request.user
         conv.status = 'Đang xử lý'
-        conv.save(update_fields=['staff', 'status', 'updated_at'])
+        conv.save(update_fields=['staff', 'status'])
 
         ConversationMessage.objects.create(
             conversation=conv,

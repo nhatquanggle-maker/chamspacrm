@@ -190,7 +190,168 @@ def my_appointments_view(request):
 @login_required
 def staff_appointments_view(request):
     """
-    Màn hình Quản lý Lịch hẹn cho Nhân viên / Ca trực
+    Màn hình Quản lý Lịch hẹn cho Nhân viên Lễ tân / CSKH (UC-1.5)
+    Khớp 100% Figma Node 110:4969 (Staff Dashboard / Lịch hẹn hôm nay)
+    
+    Phân quyền:
+      - Chỉ Nhân viên (is_staff) hoặc Quản lý (is_superuser) mới được quyền truy cập.
+      - Khách hàng không có thẩm quyền sẽ được chuyển hướng an toàn về trang cá nhân.
+    
+    Tính năng:
+      - Bộ lọc: Tên khách/SĐT/Mã đơn, Ngày đặt lịch, Khung giờ, Trạng thái.
+      - Cập nhật trạng thái trực tiếp: Tiếp nhận, Hoàn thành, Hủy nhanh qua Fetch API.
+      - Modal Đặt lịch nhanh tại quầy (Quick-create) cho khách vãng lai.
+      - Modal Xem chi tiết lịch hẹn.
     """
-    appointments = Appointment.objects.all().select_related('voucher', 'user').prefetch_related('details__service').order_by('-appointment_date', '-time_slot')
-    return render(request, 'layouts/staff_layout.html', {'appointments': appointments})
+    from django.db.models import Q
+
+    # 1. Kiểm tra phân quyền truy cập
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Bạn không có quyền truy cập khu vực Quản lý Lịch hẹn của Nhân viên.')
+        return redirect('appointment:booking')
+
+    today = timezone.localdate()
+
+    # 2. Xử lý tham số bộ lọc từ query string
+    date_param = request.GET.get('date', '').strip()
+    slot_param = request.GET.get('time_slot', '').strip()
+    status_param = request.GET.get('status', '').strip()
+    search_param = request.GET.get('search', '').strip() or request.GET.get('q', '').strip()
+
+    selected_date = None
+    if date_param:
+        if date_param.lower() != 'all':
+            try:
+                selected_date = datetime.strptime(date_param, '%Y-%m-%d').date()
+            except ValueError:
+                selected_date = today
+    else:
+        # Mặc định lấy ngày hôm nay
+        selected_date = today
+
+    # 3. Lọc danh sách lịch hẹn
+    qs = Appointment.objects.select_related('voucher', 'user').prefetch_related('details__service')
+
+    if selected_date:
+        qs = qs.filter(appointment_date=selected_date)
+
+    if slot_param and slot_param != 'all' and slot_param != 'Tất cả khung giờ':
+        qs = qs.filter(time_slot=slot_param)
+
+    if status_param and status_param != 'all' and status_param != 'Tất cả trạng thái':
+        if status_param in ['Hold', 'Pending', 'Confirmed', 'In_Progress', 'Completed', 'Cancelled']:
+            qs = qs.filter(status=status_param)
+
+    if search_param:
+        qs = qs.filter(
+            Q(appointment_code__icontains=search_param) |
+            Q(customer_name__icontains=search_param) |
+            Q(customer_phone__icontains=search_param)
+        )
+
+    appointments = list(qs.order_by('time_slot', '-created_at'))
+
+    # 4. Thống kê theo ngày đã chọn
+    all_day_qs = Appointment.objects.filter(appointment_date=selected_date) if selected_date else Appointment.objects.all()
+    counts = {
+        'total_day': all_day_qs.count(),
+        'in_progress': all_day_qs.filter(status='In_Progress').count(),
+        'confirmed': all_day_qs.filter(status='Confirmed').count(),
+        'pending': all_day_qs.filter(status__in=['Hold', 'Pending']).count(),
+        'completed': all_day_qs.filter(status='Completed').count(),
+        'cancelled': all_day_qs.filter(status='Cancelled').count(),
+        'visible': len(appointments)
+    }
+
+    # 5. Cấu hình bảng màu nhãn trạng thái chuẩn Figma
+    status_config = {
+        'Confirmed': {
+            'label': 'Đã xác nhận',
+            'badge_bg': '#EAF5EF',
+            'badge_color': '#167455',
+            'dot_color': '#167455',
+            'class': 'status-confirmed'
+        },
+        'In_Progress': {
+            'label': 'Đang phục vụ',
+            'badge_bg': '#E8F4FD',
+            'badge_color': '#026AA2',
+            'dot_color': '#026AA2',
+            'class': 'status-in-progress'
+        },
+        'Hold': {
+            'label': 'Chờ xác nhận',
+            'badge_bg': '#FEF6E7',
+            'badge_color': '#B25E09',
+            'dot_color': '#B25E09',
+            'class': 'status-pending'
+        },
+        'Pending': {
+            'label': 'Chờ xác nhận',
+            'badge_bg': '#FEF6E7',
+            'badge_color': '#B25E09',
+            'dot_color': '#B25E09',
+            'class': 'status-pending'
+        },
+        'Completed': {
+            'label': 'Đã hoàn thành',
+            'badge_bg': '#F3EFFB',
+            'badge_color': '#5925DC',
+            'dot_color': '#5925DC',
+            'class': 'status-completed'
+        },
+        'Cancelled': {
+            'label': 'Đã hủy',
+            'badge_bg': '#FEE4E2',
+            'badge_color': '#B42318',
+            'dot_color': '#B42318',
+            'class': 'status-cancelled'
+        }
+    }
+
+    # 6. Format dữ liệu từng hàng khớp giao diện Figma
+    for appt in appointments:
+        first_detail = appt.details.first()
+        if first_detail and first_detail.service:
+            svc_name = first_detail.service.name
+            duration = first_detail.service.duration_minutes
+            extra_count = appt.details.count() - 1
+            if extra_count > 0:
+                appt.service_summary = f"{svc_name} · {duration} phút (+{extra_count})"
+            else:
+                appt.service_summary = f"{svc_name} · {duration} phút"
+        else:
+            appt.service_summary = f"{appt.total_guests} khách"
+
+        if appt.user:
+            tier = getattr(appt.user, 'membership_tier', '') or 'Gold'
+            appt.customer_cue = f"{tier} · Có hồ sơ sức khỏe"
+            appt.has_profile = True
+        else:
+            appt.customer_cue = "Khách vãng lai"
+            appt.has_profile = False
+
+        cfg = status_config.get(appt.status, status_config['Hold'])
+        appt.status_display = cfg['label']
+        appt.status_bg = cfg['badge_bg']
+        appt.status_color = cfg['badge_color']
+        appt.status_dot = cfg['dot_color']
+        appt.status_class = cfg['class']
+        appt.price_vnd_formatted = f"{int(appt.total_price):,}".replace(',', '.') + " VNĐ"
+
+    services = Service.objects.filter(status='Hoạt động').order_by('id')
+    time_slots = ['09:00', '10:00', '10:30', '11:30', '13:00', '14:00', '15:30', '16:00', '16:30', '17:00', '17:30', '19:00', '20:00']
+
+    context = {
+        'appointments': appointments,
+        'counts': counts,
+        'selected_date': selected_date.strftime('%Y-%m-%d') if selected_date else '',
+        'selected_date_display': selected_date.strftime('%d/%m/%Y') if selected_date else 'Tất cả các ngày',
+        'selected_slot': slot_param,
+        'selected_status': status_param,
+        'search_query': search_param,
+        'services': services,
+        'time_slots': time_slots,
+        'today_str': today.strftime('%Y-%m-%d'),
+    }
+    return render(request, 'appointment/staff_appointments.html', context)

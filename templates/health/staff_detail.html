@@ -323,7 +323,7 @@
                 </ol>
             </nav>
             <h2 class="font-serif fw-bold mb-0" style="color: #781A24; font-size: 26px;">
-                Chi tiết Hồ sơ Sức khỏe Khách hàng (Figma Node 279:1633)
+                Chi tiết Hồ sơ Sức khỏe Khách hàng
             </h2>
         </div>
 
@@ -337,7 +337,7 @@
         </div>
     </div>
 
-    <!-- 2. CARD HỒ SƠ SỨC KHỎE KHÁCH HÀNG (FIGMA NODE 279:1633) -->
+    <!-- 2. CARD HỒ SƠ SỨC KHỎE KHÁCH HÀNG -->
     <div class="staff-detail-card">
         {% if has_profile and profile %}
 
@@ -358,14 +358,14 @@
                     </div>
                     <div class="text-muted small d-flex flex-wrap align-items-center gap-3" style="font-size: 13px;">
                         <span>
-                            <i class="bi bi-telephone text-danger me-1"></i>
+                            <i class="bi bi-telephone me-1" style="color: #781A24;"></i>
                             <a href="tel:{{ customer.phone }}" style="color: #171311; text-decoration: none;" class="fw-semibold">{{ customer.phone }}</a>
                         </span>
                         {% if customer.email %}
                         <span><i class="bi bi-envelope text-muted me-1"></i>{{ customer.email }}</span>
                         {% endif %}
                         <span>
-                            <i class="bi bi-clock-history text-success me-1"></i>
+                            <i class="bi bi-clock-history me-1" style="color: #781A24;"></i>
                             Cập nhật: {{ profile_data.formatted_updated_at|default:"Gần đây" }}
                         </span>
                     </div>
@@ -374,45 +374,45 @@
 
             <div class="no-print">
                 <span class="badge bg-light text-muted border px-3 py-2 rounded-pill small">
-                    <i class="bi bi-shield-check text-success me-1"></i>Hồ sơ điện tử Cham Spa
+                    <i class="bi bi-shield-check me-1" style="color: #781A24;"></i>Hồ sơ điện tử Cham Spa
                 </span>
             </div>
         </div>
 
-        <!-- B. BODY CARD: CHỈ SỐ SINH TRẮC HỌC & ĐAU MỎI (CHUẨN ẢNH 2) -->
+        <!-- B. BODY CARD: CHỈ SỐ SINH TRẮC HỌC & ĐAU MỎI -->
         <div class="staff-detail-body">
 
-            <!-- LƯU Ý AN TOÀN Y TẾ CHO KTV (NẾU CÓ BỆNH LÝ HOẶC HUYẾT ÁP BẤT THƯỜNG) -->
+            <!-- LƯU Ý AN TOÀN Y TẾ CHO KTV (DÙNG MÀU CHÍNH CHAM SPA) -->
             {% if profile.blood_pressure == 'Cao' %}
-            <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3 border" style="background-color: #FEF2F2; border-color: #F87171 !important; color: #991B1B;">
-                <i class="bi bi-exclamation-octagon-fill fs-3 text-danger flex-shrink-0"></i>
+            <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3" style="background-color: #FAF7EF; border: 1px solid #781A24; color: #781A24;">
+                <i class="bi bi-exclamation-triangle-fill fs-3 flex-shrink-0" style="color: #781A24;"></i>
                 <div class="small">
                     <strong>Lưu ý an toàn trị liệu (Huyết áp cao):</strong> Khách có chỉ số huyết áp cao. Kỹ thuật viên tránh day bấm quá mạnh huyệt vùng đầu cổ, thái dương và điều chỉnh nhiệt độ phòng ấm thoáng vừa phải.
                 </div>
             </div>
             {% elif profile.blood_pressure == 'Thấp' %}
-            <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3 border" style="background-color: #FFFBEB; border-color: #FCD34D !important; color: #92400E;">
-                <i class="bi bi-info-circle-fill fs-3 text-warning flex-shrink-0"></i>
+            <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3" style="background-color: #FAF7EF; border: 1px solid #D0B581; color: #781A24;">
+                <i class="bi bi-info-circle-fill fs-3 flex-shrink-0" style="color: #781A24;"></i>
                 <div class="small">
                     <strong>Lưu ý an toàn trị liệu (Huyết áp thấp):</strong> Khách có huyết áp thấp. Giữ ấm cơ thể khách, chuyển tư thế nhẹ nhàng, tránh để khách nằm sấp hoặc xông hơi quá lâu.
                 </div>
             </div>
             {% else %}
-            <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3 border" style="background-color: #F0FDF4; border-color: #BBF7D0 !important; color: #166534;">
-                <i class="bi bi-check-circle-fill fs-4 text-success flex-shrink-0"></i>
+            <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3" style="background-color: #FAF7EF; border: 1px solid #D0B581; color: #171311;">
+                <i class="bi bi-shield-check fs-4 flex-shrink-0" style="color: #781A24;"></i>
                 <div class="small">
-                    <strong>Thể trạng an toàn:</strong> Huyết áp ổn định. Sẵn sàng cho liệu trình massage bấm huyệt toàn diện theo quy trình 5 sao của Cham Spa.
+                    <strong style="color: #781A24;">Thể trạng ổn định:</strong> Huyết áp và các chỉ số thể trạng bình thường. Sẵn sàng cho liệu trình massage bấm huyệt toàn diện theo quy trình 5 sao của Cham Spa.
                 </div>
             </div>
             {% endif %}
 
-            <!-- 4 Ô CHỈ SỐ SINH TRẮC HỌC (ĐÃ SỬA LỖI ,00) -->
+            <!-- 4 Ô CHỈ SỐ SINH TRẮC HỌC (GỌN GÀNG, ĐỒNG BỘ MÀU CHÍNH) -->
             <div class="row g-3 mb-4">
-                <!-- Chiều cao (Đã format đẹp) -->
+                <!-- Chiều cao -->
                 <div class="col-sm-6 col-xl-3">
                     <div class="metric-tile">
                         <div class="metric-tile-label">
-                            <i class="bi bi-rulers text-danger"></i> Chiều cao
+                            <i class="bi bi-rulers" style="color: #781A24;"></i> Chiều cao
                         </div>
                         <div class="metric-tile-val">
                             {{ height_display|default:profile.height_cm|default:"--" }} <span class="fs-6 fw-normal text-muted">cm</span>
@@ -420,11 +420,11 @@
                     </div>
                 </div>
 
-                <!-- Cân nặng (Đã format đẹp) -->
+                <!-- Cân nặng -->
                 <div class="col-sm-6 col-xl-3">
                     <div class="metric-tile">
                         <div class="metric-tile-label">
-                            <i class="bi bi-speedometer2 text-danger"></i> Cân nặng
+                            <i class="bi bi-speedometer2" style="color: #781A24;"></i> Cân nặng
                         </div>
                         <div class="metric-tile-val">
                             {{ weight_display|default:profile.weight_kg|default:"--" }} <span class="fs-6 fw-normal text-muted">kg</span>
@@ -432,33 +432,33 @@
                     </div>
                 </div>
 
-                <!-- Chỉ số BMI (Y khoa) -->
+                <!-- Chỉ số BMI (Y khoa tinh gọn, màu chính) -->
                 <div class="col-sm-6 col-xl-3">
-                    <div class="metric-tile" style="background-color: #F0FDF4; border-color: #BBF7D0;">
-                        <div class="metric-tile-label text-success">
-                            <i class="bi bi-heart-pulse-fill"></i> Chỉ số BMI
+                    <div class="metric-tile">
+                        <div class="metric-tile-label">
+                            <i class="bi bi-heart-pulse-fill" style="color: #781A24;"></i> Chỉ số BMI
                         </div>
                         <div class="d-flex align-items-baseline gap-2 mb-1">
-                            <div class="metric-tile-val text-success">
+                            <div class="metric-tile-val" style="color: #781A24;">
                                 {{ profile_data.bmi|default:"--" }}
                             </div>
                         </div>
-                        <span class="badge {{ profile_data.bmi_badge_class|default:'bg-success' }} rounded-pill" style="font-size: 11px;">
-                            {{ profile_data.bmi_classification|default:"Thể trạng cân đối (Bình thường)" }}
+                        <span class="badge rounded-pill fw-semibold" style="background-color: #FFFFFF; border: 1px solid #D0B581; color: #781A24; font-size: 11px; padding: 4px 10px;">
+                            {{ profile_data.bmi_classification|default:"Thể trạng cân đối" }}
                         </span>
                     </div>
                 </div>
 
-                <!-- Huyết áp -->
+                <!-- Huyết áp (Màu chính) -->
                 <div class="col-sm-6 col-xl-3">
                     <div class="metric-tile">
                         <div class="metric-tile-label">
-                            <i class="bi bi-activity text-danger"></i> Huyết áp
+                            <i class="bi bi-activity" style="color: #781A24;"></i> Huyết áp
                         </div>
                         <div class="metric-tile-val mb-1" style="font-size: 22px;">
                             {{ profile.blood_pressure|default:"Bình thường" }}
                         </div>
-                        <span class="badge {% if profile.blood_pressure == 'Cao' %}bg-danger{% elif profile.blood_pressure == 'Thấp' %}bg-warning text-dark{% else %}bg-success{% endif %} rounded-pill" style="font-size: 11px;">
+                        <span class="badge rounded-pill fw-semibold" style="background-color: #FFFFFF; border: 1px solid {% if profile.blood_pressure == 'Cao' %}#781A24; color: #781A24;{% elif profile.blood_pressure == 'Thấp' %}#D0B581; color: #781A24;{% else %}#D0B581; color: #171311;{% endif %} font-size: 11px; padding: 4px 10px;">
                             {% if profile.blood_pressure == 'Cao' %}Huyết áp cao{% elif profile.blood_pressure == 'Thấp' %}Huyết áp thấp{% else %}Ổn định{% endif %}
                         </span>
                     </div>
@@ -502,7 +502,7 @@
                 <div class="col-lg-5">
                     <div class="pressure-meter-box">
                         <div class="metric-tile-label mb-1">
-                            <i class="bi bi-hand-index-thumb text-danger"></i> Lực massage yêu thích
+                            <i class="bi bi-hand-index-thumb" style="color: #781A24;"></i> Lực massage yêu thích
                         </div>
                         <div class="d-flex align-items-center justify-content-between mt-2">
                             <span class="fw-bold font-serif fs-4" style="color: #781A24;">
@@ -522,13 +522,13 @@
             <!-- MỤC TIÊU TRỊ LIỆU MONG MUỐN -->
             <div class="mb-4">
                 <div class="section-subhead">
-                    <i class="bi bi-bookmark-heart text-danger"></i> Mục tiêu trị liệu mong muốn
+                    <i class="bi bi-bookmark-heart" style="color: #781A24;"></i> Mục tiêu trị liệu mong muốn
                 </div>
                 {% if profile.recovery_goals %}
                 <div class="d-flex flex-wrap">
                     {% for goal in profile.recovery_goals %}
                     <span class="goal-pill">
-                        <i class="bi bi-check-circle-fill text-success"></i> {{ goal }}
+                        <i class="bi bi-check-circle-fill" style="color: #781A24;"></i> {{ goal }}
                     </span>
                     {% endfor %}
                 </div>
@@ -542,7 +542,7 @@
             <!-- GHI CHÚ YÊU CẦU RIÊNG CHO KTV & PHÒNG -->
             <div class="mb-4">
                 <div class="section-subhead">
-                    <i class="bi bi-chat-left-text text-danger"></i> Yêu cầu riêng cho Kỹ thuật viên & Phòng
+                    <i class="bi bi-chat-left-text" style="color: #781A24;"></i> Yêu cầu riêng cho Kỹ thuật viên & Phòng
                 </div>
                 {% if profile.special_requests %}
                 <div class="ktv-notes-card fst-italic">
@@ -558,7 +558,7 @@
             <!-- LỊCH SỬ ĐẶT LỊCH GẦN ĐÂY CỦA KHÁCH -->
             <div>
                 <div class="section-subhead">
-                    <i class="bi bi-calendar-check text-danger"></i> Lịch sử đặt lịch gần đây của khách tại Cham Spa
+                    <i class="bi bi-calendar-check" style="color: #781A24;"></i> Lịch sử đặt lịch gần đây của khách tại Cham Spa
                 </div>
                 {% if recent_appointments %}
                 <div class="table-responsive">
@@ -586,7 +586,7 @@
                                     {% endfor %}
                                 </td>
                                 <td>
-                                    <span class="badge {% if appt.status == 'Confirmed' or appt.status == 'Completed' %}bg-success{% elif appt.status == 'Cancelled' %}bg-danger{% else %}bg-secondary{% endif %} rounded-pill">
+                                    <span class="badge rounded-pill fw-semibold" style="background-color: #FAF7EF; border: 1px solid {% if appt.status == 'Confirmed' or appt.status == 'Completed' %}#D0B581; color: #781A24;{% elif appt.status == 'Cancelled' %}#781A24; color: #781A24;{% else %}#DED2BA; color: #716761;{% endif %} font-size: 11.5px; padding: 4px 10px;">
                                         {{ appt.status }}
                                     </span>
                                 </td>

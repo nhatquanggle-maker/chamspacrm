@@ -112,7 +112,7 @@ def admin_livechat_monitor_view(request):
     processing_conversations = (
         Conversation.objects.filter(status='Đang xử lý')
         .select_related('customer', 'staff')
-        .order_by('-updated_at')
+        .order_by('-created_at')
     )
     closed_conversations = (
         Conversation.objects.filter(status='Kết thúc')

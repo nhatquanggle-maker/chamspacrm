@@ -352,3 +352,54 @@ class ChatboxModuleTests(TestCase):
         res_admin = self.client.get('/')
         self.assertEqual(res_admin.status_code, 200)
         self.assertNotContains(res_admin, 'chamChatbotFab')
+
+    # --------------------------------------------------------------------------
+    # 7. TEST CÁC TÍNH NĂNG & GIAO DIỆN ADMIN (FIGMA 502:2005, 211:3459, 212:4527)
+    # --------------------------------------------------------------------------
+    def test_admin_views_permission_and_rendering(self):
+        """Admin truy cập được 2 màn hình; Staff bị chặn"""
+        # Admin vào Giám sát Livechat thành công
+        self.client.force_login(self.admin_user)
+        res_mon = self.client.get('/chatbox/admin/monitor/')
+        self.assertEqual(res_mon.status_code, 200)
+        self.assertContains(res_mon, 'Quản lý Boxchat')
+        self.assertContains(res_mon, 'Giám sát Live chat')
+
+        # Admin vào Quản lý kịch bản FAQ thành công
+        res_faq = self.client.get('/chatbox/admin/faqs/')
+        self.assertEqual(res_faq.status_code, 200)
+        self.assertContains(res_faq, 'Thêm câu hỏi FAQ mới')
+
+        # Staff thường vào màn hình Giám sát của Admin -> Bị chặn chuyển hướng
+        self.client.force_login(self.staff_user_1)
+        res_staff_mon = self.client.get('/chatbox/admin/monitor/')
+        self.assertEqual(res_staff_mon.status_code, 302)
+
+    def test_admin_monitor_and_reassign_apis(self):
+        """Admin giám sát chi tiết và chuyển giao nhân viên tư vấn"""
+        conv = Conversation.objects.create(
+            customer=self.customer_user,
+            staff=self.staff_user_1,
+            status='Đang xử lý'
+        )
+
+        # 1. Admin gọi API Monitor
+        self.client.force_authenticate(user=self.admin_user)
+        res_mon = self.client.get(f'/chatbox/api/admin/conversations/{conv.id}/monitor/')
+        self.assertEqual(res_mon.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_mon.data['conversation']['customer']['name'], 'Nguyễn Khách Hàng')
+
+        # 2. Admin gọi Reassign đổi sang staff_user_2
+        res_reassign = self.client.post(f'/chatbox/api/admin/conversations/{conv.id}/reassign/', {
+            'staff_id': self.staff_user_2.id
+        }, format='json')
+        self.assertEqual(res_reassign.status_code, status.HTTP_200_OK)
+        conv.refresh_from_db()
+        self.assertEqual(conv.staff, self.staff_user_2)
+
+    def test_admin_export_faqs_csv(self):
+        """Admin xuất danh sách FAQ dạng CSV UTF-8 thành công"""
+        self.client.force_authenticate(user=self.admin_user)
+        res = self.client.get('/chatbox/api/admin/faqs/export/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res['Content-Type'], 'text/csv; charset=utf-8-sig')

@@ -21,7 +21,7 @@ django.setup()
 
 from django.utils import timezone
 from datetime import timedelta
-from core.models import FAQ, Conversation, ConversationMessage, User
+from core.models import FAQ, Conversation, ConversationMessage, User, Tier, Membership, UserHealthProfile
 
 
 def seed_chatbox_data():
@@ -170,14 +170,44 @@ def seed_chatbox_data():
         conv.customer_tag = cdata['tag']
         conv.save()
 
-        # Nếu là Thanh Thỏ -> Tạo chuỗi tin nhắn y hệt như trên Ảnh 1
+        # Nếu là Trần Trần Thảo Ngọc -> Tạo chuỗi tin nhắn y hệt như trên Ảnh 1 & Figma 502:2005
         if cdata['is_selected']:
+            conv.status = 'Đang xử lý'
+            conv.staff = staff_user
+            conv.save()
+
+            # Tạo Tier và Membership hạng Vàng
+            tier_gold, _ = Tier.objects.get_or_create(
+                name='Hạng VÀNG',
+                defaults={'min_points': 500, 'discount_percent': 10, 'description': 'Hội viên Vàng đặc quyền'}
+            )
+            Membership.objects.update_or_create(
+                user=user,
+                defaults={
+                    'tier': tier_gold,
+                    'total_spent': 18500000,
+                    'current_points': 850
+                }
+            )
+
+            # Tạo hồ sơ sức khỏe
+            UserHealthProfile.objects.update_or_create(
+                user=user,
+                defaults={
+                    'health_code': 'HP-THAO-NGOC',
+                    'special_requests': 'Da nhạy cảm',
+                    'massage_pressure': 'Lực nhẹ',
+                    'focus_areas': 'Vai gáy, Lưng trên',
+                    'health_conditions': 'Đau mỏi cơ vai phải'
+                }
+            )
+
             conv.messages.all().delete()
             # Tin nhắn 1 của khách
             ConversationMessage.objects.create(
                 conversation=conv,
                 sender_type='Customer',
-                content='Chào bạn, mình bị đau mỏi vai phải do ngồi làm việc lâu. Spa có liệu trình nào phù hợp không?',
+                content='Chào spa, mình bị đau mỏi vai phải do ngồi làm việc lâu. Có liệu trình nào phù hợp không?',
                 created_at=timezone.now() - timedelta(minutes=15)
             )
             # Tin nhắn 2 của nhân viên tư vấn
@@ -185,7 +215,7 @@ def seed_chatbox_data():
             ConversationMessage.objects.create(
                 conversation=conv,
                 sender_type='Staff',
-                content=f'Chào chị Thỏ, em là {staff_display_name}. Với tình trạng của chị, liệu trình Massage Body Trị Liệu Vai Gáy 60 phút sẽ phù hợp nhất ạ.',
+                content=f'Chào chị Thảo, em là {staff_display_name}. Liệu trình Massage Body Trị Liệu Vai Gáy 60 phút sẽ rất phù hợp với chị ạ.',
                 created_at=timezone.now() - timedelta(minutes=14)
             )
             # Tin nhắn 3 của khách
@@ -195,22 +225,44 @@ def seed_chatbox_data():
                 content='Mình muốn lực nhẹ và ưu tiên KTV nữ. Tối nay còn lịch không bạn?',
                 created_at=timezone.now() - timedelta(minutes=5)
             )
-            # Tin nhắn 4 của nhân viên có đính kèm dịch vụ
+            # Tin nhắn 4 của nhân viên
             ConversationMessage.objects.create(
                 conversation=conv,
                 sender_type='Staff',
-                content='Dạ còn lịch 18:30 với KTV Lan. Em có thể giữ chỗ trong 10 phút và gửi liên kết xác nhận trực tiếp cho chị',
-                attachment_name='Phac-do-vai-gay-60p.pdf',
-                attachment_size='1.5 MB',
+                content='Dạ còn lịch 18:30 với KTV Lan. Em gửi liên kết xác nhận lịch trực tiếp cho chị nhé.',
                 created_at=timezone.now() - timedelta(minutes=3)
             )
-            print(f"  + Đã tạo hội thoại mẫu chi tiết khớp Ảnh 1 cho: {cdata['name']}")
-        else:
+            print(f"  + Đã tạo hội thoại mẫu chi tiết khớp Figma 502:2005 cho: {cdata['name']}")
+        elif cdata['name'] == 'Hoàng Bảo Long':
+            staff_a, _ = User.objects.get_or_create(
+                phone='0905888777',
+                defaults={'username': '0905888777', 'name': 'Nguyễn Văn A', 'email': 'nguyenvana@chamspa.vn', 'is_staff': True}
+            )
+            conv.status = 'Đang xử lý'
+            conv.staff = staff_a
+            conv.save()
             if not conv.messages.exists():
                 ConversationMessage.objects.create(
                     conversation=conv,
                     sender_type='Customer',
-                    content=f"Dạ em cần tư vấn về nhu cầu: {cdata['tag']} ạ.",
+                    content="Chào Spa, mình muốn đặt phòng đôi tối nay cho 2 người lúc 19h.",
+                    created_at=timezone.now() - timedelta(minutes=8)
+                )
+                ConversationMessage.objects.create(
+                    conversation=conv,
+                    sender_type='Staff',
+                    content="Dạ em chào anh Long, bên em còn phòng VIP đôi 19:00 ạ. Anh muốn dùng gói nào ạ?",
+                    created_at=timezone.now() - timedelta(minutes=7)
+                )
+        else:
+            conv.status = 'Đang chờ'
+            conv.staff = None
+            conv.save()
+            if not conv.messages.exists():
+                ConversationMessage.objects.create(
+                    conversation=conv,
+                    sender_type='Customer',
+                    content=f"Chào bạn, mình muốn được tư vấn: {cdata['tag']}?",
                     created_at=timezone.now() - timedelta(minutes=cdata['minutes_ago'])
                 )
 

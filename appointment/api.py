@@ -759,8 +759,7 @@ class StaffQuickCreateAppointmentAPI(APIView):
                 guest_index=idx,
                 gender=gender,
                 service=service,
-                massage_pressure='Vừa',
-                special_notes='Tiếp nhận tại quầy'
+                massage_pressure='Vừa'
             )
 
         full_serializer = AppointmentFullSerializer(appointment)

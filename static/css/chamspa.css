@@ -101,6 +101,18 @@ a {
 }
 
 /* --------------------------------------------------------------------------
+   3.1 BOOTSTRAP MODAL STACKING CONTEXT & BACKDROP FIX
+   Đảm bảo modal luôn hiển thị nổi bật trên lớp nền mờ backdrop (z-index 1050)
+   -------------------------------------------------------------------------- */
+.modal-backdrop {
+    z-index: 1050 !important;
+}
+
+.modal {
+    z-index: 1060 !important;
+}
+
+/* --------------------------------------------------------------------------
    4. PUBLIC HEADER (FIGMA 614:375) WITH SMART AUTO-HIDE ON SCROLL
    -------------------------------------------------------------------------- */
 .cham-header-figma {

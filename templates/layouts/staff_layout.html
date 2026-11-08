@@ -32,6 +32,8 @@
             window.location.replace("{% url 'chatbox:inbox' %}");
         } else if (tab === 'customers' && !window.location.pathname.includes('/health/staff/')) {
             window.location.replace("{% url 'health:staff_lookup' %}");
+        } else if ((!tab || tab === 'appointments') && window.location.pathname === '/dashboard/staff/') {
+            window.location.replace("{% url 'appointment:staff_appointments' %}");
         }
     })();
 </script>

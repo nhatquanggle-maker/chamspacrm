@@ -1,0 +1,553 @@
+{% extends "layouts/public_layout.html" %}
+{% load static %}
+
+{% block title %}Trò chuyện trực tuyến & Tư vấn dịch vụ | Cham Spa & Massage Đà Nẵng{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ==========================================================================
+   CHAM SPA CRM - GIAO DIỆN CHAT DÀNH CHO KHÁCH HÀNG (UC-2.1 & UC-2.2)
+   Thành viên phụ trách: Thảo Ngọc
+   ========================================================================== */
+
+.customer-chat-wrapper {
+    max-width: 960px;
+    margin: 40px auto;
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    border: 1px solid var(--cham-border-subtle);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    display: flex;
+    height: 720px;
+}
+
+/* Sidebar giới thiệu */
+.customer-chat-intro {
+    width: 320px;
+    background: linear-gradient(180deg, var(--cham-header-bg) 0%, #1A0D08 100%);
+    color: #FFFFFF;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.intro-brand-logo {
+    height: 48px;
+    margin-bottom: 20px;
+}
+
+.intro-feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--cham-bg);
+}
+
+.intro-feature-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(208, 181, 129, 0.15);
+    color: var(--cham-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* Khung trò chuyện chính */
+.customer-chat-main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #FAF7F0;
+}
+
+.cust-chat-header {
+    height: 72px;
+    background-color: #FFFFFF;
+    border-bottom: 1px solid var(--cham-border-subtle);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cust-chat-stream {
+    flex-grow: 1;
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cust-bubble-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 80%;
+}
+
+.cust-bubble-wrapper.from-customer {
+    align-self: flex-end;
+}
+
+.cust-bubble-wrapper.from-bot,
+.cust-bubble-wrapper.from-staff {
+    align-self: flex-start;
+}
+
+.cust-bubble {
+    padding: 12px 18px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.55;
+    word-break: break-word;
+}
+
+.from-customer .cust-bubble {
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 12px rgba(120, 26, 36, 0.25);
+}
+
+.from-staff .cust-bubble {
+    background-color: #FFFFFF;
+    color: var(--cham-dark);
+    border: 1px solid var(--cham-border-subtle);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.from-bot .cust-bubble {
+    background-color: #FFFFFF;
+    color: var(--cham-dark);
+    border: 1px solid var(--cham-gold);
+    border-bottom-left-radius: 4px;
+}
+
+.cust-sender-name {
+    font-size: 11.5px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.from-customer .cust-sender-name {
+    color: var(--cham-muted);
+    text-align: right;
+}
+
+.from-staff .cust-sender-name {
+    color: var(--cham-red);
+}
+
+.from-bot .cust-sender-name {
+    color: #9E7430;
+}
+
+/* Quick prompt chips */
+.cust-quick-prompts {
+    display: flex;
+    gap: 8px;
+    padding: 10px 24px;
+    background-color: #FAF7F0;
+    overflow-x: auto;
+    border-top: 1px solid #EFEAE1;
+}
+
+.cust-prompt-chip {
+    background-color: #FFFFFF;
+    border: 1px solid #D5CBB9;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    color: var(--cham-dark);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.cust-prompt-chip:hover {
+    background-color: var(--cham-red-light);
+    border-color: var(--cham-red);
+    color: var(--cham-red);
+}
+
+/* Footer Input */
+.cust-chat-footer {
+    padding: 16px 24px;
+    background-color: #FFFFFF;
+    border-top: 1px solid var(--cham-border-subtle);
+}
+
+.cust-chat-form {
+    display: flex;
+    gap: 12px;
+}
+
+.cust-chat-input {
+    flex-grow: 1;
+    border: 1px solid #D5CBB9;
+    border-radius: 24px;
+    padding: 10px 20px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.cust-chat-input:focus {
+    border-color: var(--cham-red);
+}
+
+.btn-cust-send {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-cust-send:hover {
+    background-color: var(--cham-red-dark);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="customer-chat-wrapper">
+        
+        <!-- SIDEBAR THÔNG TIN CSKH -->
+        <div class="customer-chat-intro d-none d-md-flex">
+            <div>
+                <img src="{% static 'images/chamspa-logo.png' %}" alt="Cham Spa Logo" class="intro-brand-logo">
+                <h5 class="font-serif text-white fw-bold mb-2">Cham Spa & Massage</h5>
+                <p style="font-size: 13px; color: var(--cham-gold-light); line-height: 1.6;">
+                    Không gian thư giãn chuẩn Đông Y bên dòng sông Cẩm Lệ. Đội ngũ chuyên viên tư vấn luôn sẵn sàng lắng nghe và đồng hành cùng quý khách.
+                </p>
+
+                <div class="mt-4">
+                    <div class="intro-feature-item">
+                        <div class="intro-feature-icon"><i class="bi bi-clock-history"></i></div>
+                        <div>Mở cửa: 09:00 - 22:00 hàng ngày</div>
+                    </div>
+                    <div class="intro-feature-item">
+                        <div class="intro-feature-icon"><i class="bi bi-geo-alt"></i></div>
+                        <div>05 Lê Quang Hoà, Hoà Xuân, Đà Nẵng</div>
+                    </div>
+                    <div class="intro-feature-item">
+                        <div class="intro-feature-icon"><i class="bi bi-shield-check"></i></div>
+                        <div>Tư vấn an toàn phác đồ chuẩn 1-1</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-top border-secondary">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span style="font-size: 12px; color: var(--cham-gold-light);">Hotline khẩn cấp:</span>
+                    <strong class="text-white">0987 773 777</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CHAT CONSOLE -->
+        <div class="customer-chat-main">
+            <!-- Header -->
+            <div class="cust-chat-header">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-danger-subtle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="bi bi-stars fs-4" style="color: var(--cham-red);"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold font-serif text-dark" style="font-size: 15px;">
+                            Trung tâm Tư vấn Cham Spa
+                        </div>
+                        <div id="connectionStatus" style="font-size: 12px; color: #28A745;">
+                            <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Trợ lý ảo & Tư vấn viên đang trực tuyến
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <!-- Nút Gặp nhân viên tư vấn -->
+                    <button id="btnRequestStaff" type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold" onclick="handleRequestStaff()">
+                        <i class="bi bi-headset me-1"></i> Gặp nhân viên tư vấn
+                    </button>
+                </div>
+            </div>
+
+            <!-- Khung Stream tin nhắn -->
+            <div id="custChatStream" class="cust-chat-stream">
+                <!-- Tin nhắn chào mừng ban đầu -->
+                <div class="cust-bubble-wrapper from-bot">
+                    <div class="cust-sender-name">
+                        <i class="bi bi-stars"></i> Trợ lý ảo Cham Spa
+                    </div>
+                    <div class="cust-bubble">
+                        Dạ em chào quý khách! Em là trợ lý ảo của Cham Spa & Massage Đà Nẵng. Em có thể giải đáp nhanh thông tin về bảng giá, giờ mở cửa, các gói trị liệu cổ vai gáy hoặc hỗ trợ quý khách kết nối trực tiếp với chuyên viên tư vấn ạ!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thanh gợi ý câu hỏi nhanh (FAQ Chips) -->
+            <div id="custQuickPrompts" class="cust-quick-prompts">
+                <button type="button" class="cust-prompt-chip" onclick="sendQuickPrompt('Bảng giá dịch vụ tại Cham Spa?')">
+                    💰 Bảng giá dịch vụ
+                </button>
+                <button type="button" class="cust-prompt-chip" onclick="sendQuickPrompt('Giờ mở cửa đón khách?')">
+                    ⏰ Giờ mở cửa
+                </button>
+                <button type="button" class="cust-prompt-chip" onclick="sendQuickPrompt('Địa chỉ Cham Spa ở đâu?')">
+                    📍 Địa chỉ chi nhánh
+                </button>
+                <button type="button" class="cust-prompt-chip" onclick="sendQuickPrompt('Quy trình dời hoặc hủy lịch hẹn?')">
+                    🔄 Dời / Hủy lịch hẹn
+                </button>
+                <button type="button" class="cust-prompt-chip" onclick="handleRequestStaff()">
+                    👩‍💼 Gặp nhân viên tư vấn
+                </button>
+            </div>
+
+            <!-- Khung nhập tin nhắn -->
+            <div class="cust-chat-footer">
+                <form class="cust-chat-form" onsubmit="handleCustomerSendMessage(event)">
+                    <input type="text" id="custChatInput" class="cust-chat-input" 
+                           placeholder="Nhập câu hỏi của quý khách tại đây..." autocomplete="off">
+                    <button type="submit" class="btn-cust-send" title="Gửi tin nhắn">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/**
+ * JAVASCRIPT KHÁCH HÀNG CHAT (UC-2.1 & UC-2.2)
+ * Hỗ trợ lưu in-memory cho khách vãng lai và lưu DB cho khách đăng nhập.
+ */
+let conversationId = null;
+let isConnectedToStaff = false;
+let customerPollingTimer = null;
+const IS_AUTHENTICATED = {% if user.is_authenticated %}true{% else %}false{% endif %};
+const USER_NAME = "{{ user.name|default:user.username|escapejs }}";
+
+function sendQuickPrompt(text) {
+    document.getElementById('custChatInput').value = text;
+    handleCustomerSendMessage();
+}
+
+function handleCustomerSendMessage(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('custChatInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    // 1. Hiển thị tin nhắn của khách hàng lên màn hình
+    appendCustomerBubble(text);
+    input.value = '';
+
+    // 2. Nếu đã kết nối với nhân viên tư vấn trực tiếp (UC-2.2)
+    if (isConnectedToStaff && conversationId) {
+        fetch(`/chatbox/api/conversations/${conversationId}/messages/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ content: text, message_type: 'TEXT' })
+        })
+        .then(res => res.json())
+        .then(data => {
+            // Đã gửi tin nhắn cho nhân viên thành công
+        })
+        .catch(err => console.error('Lỗi gửi tin cho staff:', err));
+        return;
+    }
+
+    // 3. Nếu đang chat với Bot tự động (UC-2.1)
+    fetch('/chatbox/api/chat/bot-reply/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ message: text, conversation_id: conversationId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            if (data.conversation_id) {
+                conversationId = data.conversation_id;
+            }
+            setTimeout(() => {
+                appendBotBubble(data.reply);
+            }, 400);
+        }
+    })
+    .catch(err => {
+        console.error('Lỗi bot reply:', err);
+        appendBotBubble('Xin lỗi quý khách, hệ thống đang bận. Quý khách vui lòng thử lại sau giây lát hoặc liên hệ hotline 0987 773 777 ạ.');
+    });
+}
+
+function handleRequestStaff() {
+    if (!IS_AUTHENTICATED) {
+        if (confirm('Quý khách vui lòng đăng nhập tài khoản để được kết nối trò chuyện trực tiếp cùng nhân viên CSKH. Bạn có muốn chuyển đến trang Đăng nhập ngay bây giờ không?')) {
+            window.location.href = "{% url 'accounts:login' %}?next=" + encodeURIComponent(window.location.pathname);
+        }
+        return;
+    }
+
+    fetch('/chatbox/api/conversations/transfer/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ conversation_id: conversationId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            conversationId = data.conversation_id;
+            isConnectedToStaff = true;
+            document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-clock-history text-warning"></i> Đang chờ nhân viên tiếp nhận ca tư vấn...`;
+            document.getElementById('btnRequestStaff').style.display = 'none';
+
+            appendBotBubble('Yêu cầu của quý khách đã được gửi tới chuyên viên tư vấn Cham Spa. Chuyên viên sẽ phản hồi ngay sau khi tiếp nhận ca trực ạ!');
+
+            // Bắt đầu Polling định kỳ 3 giây để nhận tin nhắn của Staff
+            startCustomerPolling();
+        }
+    })
+    .catch(err => console.error(err));
+}
+
+function appendCustomerBubble(text) {
+    const stream = document.getElementById('custChatStream');
+    const bubble = document.createElement('div');
+    bubble.className = 'cust-bubble-wrapper from-customer';
+    bubble.innerHTML = `
+        <div class="cust-sender-name">${escapeHtml(USER_NAME || 'Quý khách')}</div>
+        <div class="cust-bubble">${escapeHtml(text)}</div>
+    `;
+    stream.appendChild(bubble);
+    stream.scrollTop = stream.scrollHeight;
+}
+
+function appendBotBubble(text) {
+    const stream = document.getElementById('custChatStream');
+    const bubble = document.createElement('div');
+    bubble.className = 'cust-bubble-wrapper from-bot';
+    bubble.innerHTML = `
+        <div class="cust-sender-name"><i class="bi bi-stars"></i> Trợ lý ảo Cham Spa</div>
+        <div class="cust-bubble">${escapeHtml(text)}</div>
+    `;
+    stream.appendChild(bubble);
+    stream.scrollTop = stream.scrollHeight;
+}
+
+function appendStaffBubble(text, staffName) {
+    const stream = document.getElementById('custChatStream');
+    const bubble = document.createElement('div');
+    bubble.className = 'cust-bubble-wrapper from-staff';
+    bubble.innerHTML = `
+        <div class="cust-sender-name"><i class="bi bi-headset"></i> ${escapeHtml(staffName || 'Chuyên viên tư vấn')}</div>
+        <div class="cust-bubble">${escapeHtml(text)}</div>
+    `;
+    stream.appendChild(bubble);
+    stream.scrollTop = stream.scrollHeight;
+}
+
+function startCustomerPolling() {
+    if (customerPollingTimer) clearInterval(customerPollingTimer);
+    customerPollingTimer = setInterval(() => {
+        if (conversationId) {
+            fetch(`/chatbox/api/conversations/${conversationId}/messages/`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.staff_info) {
+                    document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-circle-fill text-success"></i> Đang trò chuyện với chuyên viên: <strong>${data.staff_info.name}</strong>`;
+                }
+                if (data && data.messages) {
+                    renderFullCustomerStream(data.messages);
+                }
+            })
+            .catch(() => {});
+        }
+    }, 3500);
+}
+
+function renderFullCustomerStream(messages) {
+    const stream = document.getElementById('custChatStream');
+    let html = '';
+    messages.forEach(m => {
+        if (m.sender_type === 'Customer') {
+            html += `
+                <div class="cust-bubble-wrapper from-customer">
+                    <div class="cust-sender-name">${escapeHtml(USER_NAME || 'Quý khách')}</div>
+                    <div class="cust-bubble">${escapeHtml(m.content)}</div>
+                </div>
+            `;
+        } else if (m.sender_type === 'Staff') {
+            html += `
+                <div class="cust-bubble-wrapper from-staff">
+                    <div class="cust-sender-name"><i class="bi bi-headset"></i> ${escapeHtml(m.sender_name || 'Chuyên viên tư vấn')}</div>
+                    <div class="cust-bubble">${escapeHtml(m.content)}</div>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="cust-bubble-wrapper from-bot">
+                    <div class="cust-sender-name"><i class="bi bi-stars"></i> Trợ lý ảo Cham Spa</div>
+                    <div class="cust-bubble">${escapeHtml(m.content)}</div>
+                </div>
+            `;
+        }
+    });
+    stream.innerHTML = html;
+    stream.scrollTop = stream.scrollHeight;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

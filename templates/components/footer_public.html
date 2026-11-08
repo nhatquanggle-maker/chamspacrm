@@ -38,7 +38,7 @@
                 <ul class="footer-link-list">
                     <li><span class="link-marker-dot"></span><a href="{% url 'home' %}">Trang chủ</a></li>
                     <li><span class="link-marker-dot"></span><a href="#philosophy">Về Cham</a></li>
-                    <li><span class="link-marker-dot"></span><a href="#services">Dịch vụ</a></li>
+                    <li><span class="link-marker-dot"></span><a href="{% url 'services:service_list' %}">Dịch vụ</a></li>
                     <li><span class="link-marker-dot"></span><a href="#membership">Hội Viên</a></li>
                     <li><span class="link-marker-dot"></span><a href="#testimonials">Khách hàng</a></li>
                 </ul>
@@ -51,11 +51,11 @@
                     <div class="footer-accent-rule"></div>
                 </div>
                 <ul class="footer-link-list">
-                    <li><span class="link-marker-dot"></span><a href="#services">Massage Body</a></li>
-                    <li><span class="link-marker-dot"></span><a href="#services">Massage Foot</a></li>
-                    <li><span class="link-marker-dot"></span><a href="#services">Massage cổ vai gáy</a></li>
-                    <li><span class="link-marker-dot"></span><a href="#services">Massage đá nóng</a></li>
-                    <li><span class="link-marker-dot"></span><a href="#services">Massage bà bầu</a></li>
+                    <li><span class="link-marker-dot"></span><a href="{% url 'services:service_list' %}?category=massage-body">Massage Body</a></li>
+                    <li><span class="link-marker-dot"></span><a href="{% url 'services:service_list' %}?category=massage-foot">Massage Foot</a></li>
+                    <li><span class="link-marker-dot"></span><a href="{% url 'services:service_list' %}">Massage cổ vai gáy</a></li>
+                    <li><span class="link-marker-dot"></span><a href="{% url 'services:service_list' %}">Massage đá nóng</a></li>
+                    <li><span class="link-marker-dot"></span><a href="{% url 'services:service_list' %}">Massage bà bầu</a></li>
                 </ul>
             </div>
 

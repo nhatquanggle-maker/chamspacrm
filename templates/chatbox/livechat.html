@@ -1,0 +1,1617 @@
+{% extends "layouts/staff_layout.html" %}
+{% load static %}
+
+{% block title %}Live chat hôm nay | Cham Spa & Massage Staff Workspace{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ==========================================================================
+   CHAM SPA CRM - LIVECHAT WORKSPACE (FIGMA NODE: 207-1040 - ẢNH 1)
+   Thành viên phụ trách: Thảo Ngọc (Module 2: Quản lý Boxchat tư vấn)
+   Quy tắc: Staff chỉ có giao diện Livechat tư vấn khách hàng, KHÔNG quản lý FAQ.
+   ========================================================================== */
+
+/* 1. Header & Filter Bar */
+.livechat-page-header {
+    margin-bottom: 14px;
+}
+
+.livechat-breadcrumb {
+    font-size: 12px;
+    color: var(--cham-muted);
+    margin-bottom: 4px;
+}
+
+.livechat-breadcrumb a {
+    color: var(--cham-muted);
+    text-decoration: none;
+}
+
+.livechat-breadcrumb .active {
+    color: var(--cham-red);
+    font-weight: 600;
+}
+
+.livechat-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+}
+
+.livechat-main-title {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--cham-red-dark);
+    margin: 0;
+}
+
+.livechat-date-badge {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cham-muted);
+}
+
+.livechat-subtitle {
+    font-size: 13px;
+    color: var(--cham-muted);
+    margin-bottom: 12px;
+}
+
+/* Thanh lọc ngang 5 trường */
+.livechat-filter-bar {
+    background-color: #FFFFFF;
+    border: 1px solid var(--cham-border-subtle);
+    border-radius: 12px;
+    padding: 10px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    margin-bottom: 16px;
+}
+
+.filter-group {
+    flex: 1;
+}
+
+.filter-group-search {
+    flex: 1.5;
+}
+
+.filter-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--cham-muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.filter-input-wrap {
+    position: relative;
+}
+
+.filter-input-wrap i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--cham-muted);
+    font-size: 13px;
+}
+
+.filter-input {
+    width: 100%;
+    height: 38px;
+    border: 1px solid #E0D7C6;
+    border-radius: 8px;
+    padding: 6px 12px 6px 34px;
+    font-size: 12.5px;
+    background-color: #FAF7F0;
+    color: var(--cham-dark);
+    outline: none;
+    transition: all 0.2s;
+}
+
+.filter-input:focus {
+    border-color: var(--cham-red);
+    background-color: #FFFFFF;
+}
+
+.filter-select {
+    width: 100%;
+    height: 38px;
+    border: 1px solid #E0D7C6;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12.5px;
+    background-color: #FAF7F0;
+    color: var(--cham-dark);
+    outline: none;
+    transition: all 0.2s;
+}
+
+.btn-filter-apply {
+    height: 38px;
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 0 20px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-filter-apply:hover {
+    background-color: var(--cham-red-dark);
+}
+
+/* 2. Khung Livechat 2 Cột chuẩn Figma */
+.livechat-2col-layout {
+    display: flex;
+    gap: 16px;
+    height: calc(100vh - 270px);
+    min-height: 580px;
+}
+
+/* CỘT TRÁI: HÀNG CHỜ TƯ VẤN */
+.chat-queue-column {
+    width: 330px;
+    flex-shrink: 0;
+    background-color: #FFFFFF;
+    border: 1px solid var(--cham-border-subtle);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.queue-header {
+    padding: 14px 16px 10px 16px;
+    border-bottom: 1px solid #F3EFE6;
+}
+
+.queue-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.queue-title {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cham-dark);
+    margin: 0;
+}
+
+.queue-refresh-btn {
+    border: none;
+    background: transparent;
+    color: var(--cham-muted);
+    font-size: 15px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.queue-refresh-btn:hover {
+    color: var(--cham-red);
+}
+
+.queue-search-input {
+    width: 100%;
+    height: 34px;
+    border: 1px solid #E0D7C6;
+    border-radius: 18px;
+    padding: 4px 12px 4px 32px;
+    font-size: 12px;
+    background-color: #FAF7F0;
+    outline: none;
+}
+
+.queue-search-wrap {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.queue-search-wrap i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--cham-muted);
+    font-size: 12px;
+}
+
+/* Tabs phân loại */
+.queue-tabs {
+    display: flex;
+    gap: 4px;
+}
+
+.queue-tab-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 6px 4px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--cham-muted);
+    cursor: pointer;
+    text-align: center;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.queue-tab-btn.active {
+    background-color: #FAF7F0;
+    color: var(--cham-red);
+    font-weight: 700;
+}
+
+.queue-badge-pill {
+    background-color: #F8D7DA;
+    color: #721C24;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+/* Danh sách cards */
+.queue-cards-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.queue-card {
+    background-color: #FFFFFF;
+    border: 1px solid #EFEAE1;
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.queue-card:hover {
+    border-color: var(--cham-gold);
+    background-color: #FAF7F0;
+}
+
+.queue-card.active {
+    background-color: #FAF7EF;
+    border: 1.5px solid var(--cham-gold);
+    box-shadow: 0 4px 12px rgba(208, 181, 129, 0.15);
+}
+
+.card-top-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.card-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.card-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.card-name-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-name {
+    font-family: var(--font-serif);
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--cham-dark);
+}
+
+.card-time {
+    font-size: 11px;
+    color: var(--cham-muted);
+}
+
+.card-phone {
+    font-size: 11.5px;
+    color: var(--cham-muted);
+}
+
+.card-need-text {
+    font-size: 12px;
+    color: #554D46;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-accept-queue {
+    width: 100%;
+    height: 34px;
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 18px;
+    font-size: 12.5px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-accept-queue:hover {
+    background-color: var(--cham-red-dark);
+}
+
+.queue-footer {
+    padding: 10px 14px;
+    border-top: 1px solid #F3EFE6;
+    font-size: 11.5px;
+    color: var(--cham-muted);
+    background-color: #FAF7F0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.online-pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #28A745;
+}
+
+/* CỘT PHẢI: KHUNG TRÒ CHUYỆN TRỰC TIẾP */
+.chat-conversation-column {
+    flex-grow: 1;
+    background-color: #FFFFFF;
+    border: 1px solid var(--cham-border-subtle);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.chat-room-header {
+    height: 60px;
+    padding: 0 20px;
+    border-bottom: 1px solid #F3EFE6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #FFFFFF;
+    flex-shrink: 0;
+}
+
+.room-customer-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.room-customer-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: #FAF7F0;
+    color: var(--cham-red);
+    border: 1px solid var(--cham-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.room-customer-title {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cham-dark);
+    margin-bottom: 2px;
+}
+
+.room-status-badge {
+    font-size: 11.5px;
+    color: #28A745;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-end-support {
+    height: 32px;
+    border: 1px solid #D5CBB9;
+    background-color: transparent;
+    color: var(--cham-muted);
+    border-radius: 16px;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-end-support:hover {
+    border-color: #DC3545;
+    color: #DC3545;
+    background-color: #FFF5F5;
+}
+
+/* Accordion tóm tắt lịch sử chatbot */
+.chatbot-summary-accordion {
+    background-color: #FAF7EF;
+    border-bottom: 1px solid #EFEAE1;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--cham-dark);
+    flex-shrink: 0;
+}
+
+.summary-tags-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.summary-pill {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.pill-pink {
+    background-color: #FCECEE;
+    color: var(--cham-red);
+    border: 1px solid #F5C2C7;
+}
+
+.pill-brown {
+    background-color: #EFE9DE;
+    color: #4A3E37;
+    border: 1px solid #DFD5C6;
+}
+
+.pill-gold {
+    background-color: #FAF4E8;
+    color: #8C6D37;
+    border: 1px solid var(--cham-gold);
+}
+
+/* Khung tin nhắn cuộn */
+.chat-messages-stream {
+    flex-grow: 1;
+    padding: 16px 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background-color: #FFFFFF;
+}
+
+.time-divider-badge {
+    align-self: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #8E847C;
+    background-color: #FAF7F0;
+    padding: 3px 14px;
+    border-radius: 10px;
+    margin: 4px 0;
+    letter-spacing: 0.5px;
+}
+
+/* Bong bóng tin nhắn */
+.chat-row {
+    display: flex;
+    flex-direction: column;
+    max-width: 75%;
+}
+
+.chat-row.cust-side {
+    align-self: flex-start;
+}
+
+.chat-row.staff-side {
+    align-self: flex-end;
+}
+
+.chat-sender-header {
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 3px;
+}
+
+.cust-side .chat-sender-header {
+    color: var(--cham-muted);
+}
+
+.staff-side .chat-sender-header {
+    color: var(--cham-red);
+    text-align: right;
+}
+
+.chat-bubble-box {
+    padding: 10px 16px;
+    border-radius: 16px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    position: relative;
+    word-break: break-word;
+}
+
+.cust-side .chat-bubble-box {
+    background-color: #FAF7F0;
+    color: var(--cham-dark);
+    border: 1px solid #EFEAE1;
+    border-bottom-left-radius: 4px;
+}
+
+.staff-side .chat-bubble-box {
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 14px rgba(120, 26, 36, 0.2);
+}
+
+.bubble-meta-time {
+    font-size: 10px;
+    margin-top: 4px;
+    opacity: 0.8;
+}
+
+.cust-side .bubble-meta-time {
+    color: var(--cham-muted);
+}
+
+.staff-side .bubble-meta-time {
+    color: #F8D7DA;
+    text-align: right;
+}
+
+/* Thẻ ảnh và đính kèm trong tin nhắn của staff */
+.chat-bubble-media {
+    margin-top: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.chat-bubble-media img {
+    width: 100%;
+    max-height: 130px;
+    object-fit: cover;
+    display: block;
+}
+
+.chat-attachment-chip {
+    margin-top: 6px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #FFFFFF;
+}
+
+/* Card Xác nhận lịch hẹn trực tiếp (Floating Appointment Card) */
+.appointment-confirm-card {
+    background-color: #FAF7EF;
+    border: 1px solid var(--cham-gold);
+    border-radius: 12px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 8px 24px;
+    box-shadow: 0 2px 10px rgba(208, 181, 129, 0.12);
+}
+
+.appt-card-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.appt-card-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+    border: 1px solid var(--cham-border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cham-red);
+    font-size: 16px;
+}
+
+.appt-card-title {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cham-dark);
+}
+
+.appt-card-desc {
+    font-size: 11.5px;
+    color: var(--cham-muted);
+}
+
+.btn-open-appt-link {
+    height: 30px;
+    background-color: #FFFFFF;
+    border: 1px solid #D5CBB9;
+    color: var(--cham-dark);
+    border-radius: 15px;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-open-appt-link:hover {
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    border-color: var(--cham-red);
+}
+
+/* Footer & Toolbar soạn tin nhắn */
+.chat-room-footer {
+    padding: 10px 24px 14px 24px;
+    background-color: #FFFFFF;
+    border-top: 1px solid #F3EFE6;
+    flex-shrink: 0;
+}
+
+.chat-input-row {
+    margin-bottom: 8px;
+}
+
+.chat-input-textarea {
+    width: 100%;
+    min-height: 48px;
+    max-height: 80px;
+    border: 1px solid #D5CBB9;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    outline: none;
+    resize: none;
+    font-family: var(--font-body);
+}
+
+.chat-input-textarea:focus {
+    border-color: var(--cham-red);
+}
+
+.chat-toolbar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-tool-btn-group {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-chat-tool {
+    height: 32px;
+    background-color: #FFFFFF;
+    border: 1px solid #D5CBB9;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 12px;
+    color: var(--cham-dark);
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+}
+
+.btn-chat-tool:hover {
+    background-color: #FAF7F0;
+    border-color: var(--cham-red);
+    color: var(--cham-red);
+}
+
+.btn-chat-submit {
+    height: 36px;
+    background-color: var(--cham-red);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 0 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.2s;
+}
+
+.btn-chat-submit:hover:not(:disabled) {
+    background-color: var(--cham-red-dark);
+}
+
+.btn-chat-submit:disabled {
+    background-color: #D6CEC5;
+    cursor: not-allowed;
+}
+
+/* Alert Cảnh báo khi đã do nhân viên khác tiếp nhận (Figma 210:2465) */
+.alert-assigned-other-compact {
+    background: linear-gradient(135deg, #FFF8E7 0%, #FFF3D6 100%);
+    border: 1px solid #F0C36D;
+    border-left: 4px solid #D9822B;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12.5px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- 1. Page Header (Figma ẢNH 1) -->
+    <div class="livechat-page-header">
+        <div class="livechat-breadcrumb">
+            <a href="#">Không gian làm việc</a> / <a href="{% url 'chatbox:inbox' %}">Inbox</a> / <span class="active">Live chat</span>
+        </div>
+        <div class="livechat-title-row">
+            <h2 class="livechat-main-title">Live chat hôm nay</h2>
+            <div class="livechat-date-badge">{{ formatted_date_header }}</div>
+        </div>
+        <div class="livechat-subtitle">
+            Tiếp các tin nhắn trực tiếp từ khách hàng trên trang web
+        </div>
+
+        <!-- Thanh lọc ngang 5 trường chuẩn 100% Ảnh 1 -->
+        <div class="livechat-filter-bar">
+            <!-- 1. Tìm lịch hẹn -->
+            <div class="filter-group filter-group-search">
+                <span class="filter-label">TÌM LỊCH HẸN</span>
+                <div class="filter-input-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="filterSearchInput" class="filter-input" placeholder="Tên khách / SĐT / Mã đơn">
+                </div>
+            </div>
+
+            <!-- 2. Ngày làm việc -->
+            <div class="filter-group">
+                <span class="filter-label">NGÀY LÀM VIỆC</span>
+                <div class="filter-input-wrap">
+                    <i class="bi bi-calendar3"></i>
+                    <input type="date" id="filterDateInput" class="filter-input" value="{{ today_str }}">
+                </div>
+            </div>
+
+            <!-- 3. Khung giờ -->
+            <div class="filter-group">
+                <span class="filter-label">KHUNG GIỜ</span>
+                <select id="filterSlotSelect" class="filter-select">
+                    <option value="">Tất cả khung giờ</option>
+                    <option value="09:00">09:00 - 10:30</option>
+                    <option value="14:00">14:00 - 15:30</option>
+                    <option value="16:00">16:00 - 17:30</option>
+                    <option value="18:30" selected>18:30 - 20:00</option>
+                </select>
+            </div>
+
+            <!-- 4. Trạng thái -->
+            <div class="filter-group">
+                <span class="filter-label">TRẠNG THÁI</span>
+                <select id="filterStatusSelect" class="filter-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Đang chờ">Chờ tiếp nhận</option>
+                    <option value="Đang xử lý">Đang xử lý</option>
+                    <option value="Kết thúc">Đã hoàn thành</option>
+                </select>
+            </div>
+
+            <!-- 5. Nút Áp dụng -->
+            <button type="button" class="btn-filter-apply" onclick="handleApplyFilters()">
+                Áp dụng
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. Layout 2 Cột chuẩn 100% Ảnh 1 -->
+    <div class="livechat-2col-layout">
+        
+        <!-- ====================================================================
+             CỘT TRÁI: HÀNG CHỜ TƯ VẤN (FIGMA ẢNH 1)
+             ==================================================================== -->
+        <div class="chat-queue-column">
+            <div class="queue-header">
+                <div class="queue-title-row">
+                    <h5 class="queue-title">Hàng chờ tư vấn</h5>
+                    <button type="button" class="queue-refresh-btn" title="Làm mới hàng chờ" onclick="refreshQueueList()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+
+                <!-- Ô tìm kiếm trong hàng chờ -->
+                <div class="queue-search-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="queueSearchInput" class="queue-search-input" 
+                           placeholder="Tìm tên khách hàng, số điện thoại" 
+                           onkeyup="handleFilterQueueCards()">
+                </div>
+
+                <!-- 3 Tab phân loại chuẩn Ảnh 1 -->
+                <div class="queue-tabs">
+                    <button type="button" class="queue-tab-btn active" data-tab="waiting" onclick="switchQueueTab('waiting', this)">
+                        <span>Chờ tiếp nhận</span>
+                        <span id="queueWaitingBadge" class="queue-badge-pill">{{ waiting_count|default:"3" }}</span>
+                    </button>
+                    <button type="button" class="queue-tab-btn" data-tab="processing" onclick="switchQueueTab('processing', this)">
+                        <span>Đang xử lý</span>
+                        <span id="queueProcessingBadge" class="badge bg-secondary rounded-pill px-1" style="font-size: 9.5px;">{{ processing_count|default:"2" }}</span>
+                    </button>
+                    <button type="button" class="queue-tab-btn" data-tab="closed" onclick="switchQueueTab('closed', this)">
+                        <span>Kết thúc</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Danh sách thẻ hàng chờ (Cards) -->
+            <div id="queueCardsList" class="queue-cards-list">
+                {% if conversations %}
+                    {% for c in conversations %}
+                    <div class="queue-card {% if forloop.first %}active{% endif %}" 
+                         id="queueCard_{{ c.id }}" 
+                         onclick="selectQueueConversation({{ c.id }})"
+                         data-id="{{ c.id }}"
+                         data-name="{{ c.customer.name|default:c.customer.username }}"
+                         data-phone="{{ c.customer.phone|default:'' }}"
+                         data-tag="{{ c.customer_tag|default:'Tư vấn dịch vụ' }}">
+                        
+                        <div class="card-top-row">
+                            <div class="card-avatar">
+                                {{ c.customer.name|default:c.customer.username|slice:":2"|upper }}
+                            </div>
+                            <div class="card-info">
+                                <div class="card-name-row">
+                                    <span class="card-name">{{ c.customer.name|default:c.customer.username }}</span>
+                                    <span class="card-time">{{ c.created_at|timesince|slice:":6" }} trước</span>
+                                </div>
+                                <div class="card-phone">
+                                    {% if c.customer.phone %}+84 {{ c.customer.phone|slice:"1:" }}{% else %}Khách hàng{% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-need-text">
+                            Nhu cầu: <strong>{{ c.customer_tag|default:"Vai gáy / Trị liệu" }}</strong>
+                        </div>
+
+                        {% if c.status == 'Đang chờ' %}
+                        <button type="button" class="btn-accept-queue" onclick="acceptQueueConversation({{ c.id }}, event)">
+                            <i class="bi bi-chat-dots"></i> Tiếp nhận hội thoại
+                        </button>
+                        {% else %}
+                        <div class="d-flex justify-content-between align-items-center pt-1" style="font-size: 11px;">
+                            <span class="text-success"><i class="bi bi-circle-fill" style="font-size: 7px;"></i> Đang hỗ trợ</span>
+                            {% if c.staff %}
+                            <span class="text-muted"><i class="bi bi-person-check"></i> {{ c.staff.name|default:c.staff.username }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- Footer tự động cập nhật mỗi 15 giây -->
+            <div class="queue-footer">
+                <span class="online-pulse-dot"></span>
+                <span>Tự động cập nhật mỗi 15 giây</span>
+            </div>
+        </div>
+
+        <!-- ====================================================================
+             CỘT PHẢI: KHUNG TRÒ CHUYỆN TRỰC TIẾP (FIGMA ẢNH 1)
+             ==================================================================== -->
+        <div class="chat-conversation-column">
+            
+            <!-- Room Header -->
+            <div class="chat-room-header">
+                <div class="room-customer-meta">
+                    <div id="roomCustomerAvatar" class="room-customer-avatar">
+                        TT
+                    </div>
+                    <div>
+                        <div id="roomCustomerName" class="room-customer-title">Thanh Thỏ</div>
+                        <div class="room-status-badge">
+                            <span class="online-pulse-dot"></span>
+                            <span>Đang kết nối</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn-end-support" onclick="handleEndSupport()">
+                        <i class="bi bi-slash-circle"></i> Kết thúc hỗ trợ
+                    </button>
+                </div>
+            </div>
+
+            <!-- Accordion tóm tắt tương tác Chatbot trước đó (ẢNH 1) -->
+            <div class="chatbot-summary-accordion">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-chevron-down" style="font-size: 10px;"></i>
+                    <span class="fw-semibold">Lịch sử tương tác với Chatbot trước đó</span>
+                    <span class="text-muted" style="font-size: 11px;">14:20 - 4 phút</span>
+                </div>
+                <div class="summary-tags-group">
+                    <span class="summary-pill pill-pink">Vùng chăm sóc: Vai gáy</span>
+                    <span class="summary-pill pill-brown">Mục đích: Trị liệu chuyên sâu</span>
+                    <span class="summary-pill pill-gold">Đề xuất: Massage 60m</span>
+                </div>
+            </div>
+
+            <!-- Cảnh báo nếu đã do nhân viên khác tiếp nhận -->
+            <div id="assignedOtherAlertBar" class="alert-assigned-other-compact" style="display: none;">
+                <div>
+                    <i class="bi bi-lock-fill text-warning me-1"></i>
+                    <span>Cuộc hội thoại này đã do nhân viên <strong id="assignedOtherStaffName">[Tên]</strong> tiếp nhận. Bạn đang ở chế độ xem chỉ đọc.</span>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-dark py-0 px-2" style="font-size: 11px;" onclick="handleTakeover()">
+                    Tiếp quản ca
+                </button>
+            </div>
+
+            <!-- Khung Stream tin nhắn -->
+            <div id="chatMessagesStream" class="chat-messages-stream">
+                <!-- Divider mốc thời gian -->
+                <div class="time-divider-badge">HÔM NAY - 14:20</div>
+
+                <!-- 1. Tin nhắn khách hàng -->
+                <div class="chat-row cust-side">
+                    <div class="chat-sender-header">Thanh Thỏ - Khách hàng</div>
+                    <div class="chat-bubble-box">
+                        Chào bạn, mình bị đau mỏi vai phải do ngồi làm việc lâu. Spa có liệu trình nào phù hợp không?
+                        <div class="bubble-meta-time">14:22</div>
+                    </div>
+                </div>
+
+                <!-- 2. Tin nhắn nhân viên tư vấn -->
+                <div class="chat-row staff-side">
+                    <div class="chat-sender-header">{{ current_staff.name|default:"Lê Thị Mai" }} - Nhân viên tư vấn</div>
+                    <div class="chat-bubble-box">
+                        Chào chị Thỏ, em là Mai. Với tình trạng của chị, liệu trình Massage Body Trị Liệu Vai Gáy 60 phút sẽ phù hợp nhất ạ.
+                        <div class="bubble-meta-time">14:23</div>
+                    </div>
+                </div>
+
+                <!-- 3. Tin nhắn khách hàng tiếp theo -->
+                <div class="chat-row cust-side">
+                    <div class="chat-sender-header">Thanh Thỏ - Khách hàng</div>
+                    <div class="chat-bubble-box">
+                        Mình muốn lực nhẹ và ưu tiên KTV nữ. Tối nay còn lịch không bạn?
+                        <div class="bubble-meta-time">14:32</div>
+                    </div>
+                </div>
+
+                <!-- 4. Tin nhắn nhân viên có đính kèm dịch vụ -->
+                <div class="chat-row staff-side">
+                    <div class="chat-sender-header">{{ current_staff.name|default:"Lê Thị Mai" }} - Nhân viên tư vấn</div>
+                    <div class="chat-bubble-box">
+                        Dạ còn lịch 18:30 với KTV Lan. Em có thể giữ chỗ trong 10 phút và gửi liên kết xác nhận trực tiếp cho chị
+                        
+                        <!-- Media Card -->
+                        <div class="chat-bubble-media">
+                            <img src="{% static 'images/service-massage-sample.jpg' %}" 
+                                 onerror="this.src='https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&auto=format&fit=crop&q=80';" 
+                                 alt="Massage Body Trị Liệu Vai Gáy">
+                        </div>
+                        <div class="chat-attachment-chip">
+                            <i class="bi bi-file-earmark-pdf-fill"></i>
+                            <span>Phac-do-vai-gay-60p.pdf • 1.5 MB</span>
+                        </div>
+                        <div class="bubble-meta-time">14:33</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Xác nhận lịch hẹn trực tiếp (Floating Card chuẩn 100% Ảnh 1) -->
+            <div id="appointmentDirectCard" class="appointment-confirm-card">
+                <div class="appt-card-left">
+                    <div class="appt-card-icon">
+                        <i class="bi bi-calendar2-check"></i>
+                    </div>
+                    <div>
+                        <div class="appt-card-title">Xác nhận lịch hẹn trực tiếp</div>
+                        <div class="appt-card-desc">Massage Vai Gáy • 18:30 hôm nay • KTV Lan</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-open-appt-link" onclick="openBookingLinkDirect()">
+                    Mở link
+                </button>
+            </div>
+
+            <!-- Khung soạn thảo tin nhắn & Toolbar -->
+            <div class="chat-room-footer">
+                <form id="staffChatDirectForm" onsubmit="handleSendStaffDirect(event)">
+                    <!-- Ô textarea nhập tin -->
+                    <div class="chat-input-row">
+                        <textarea id="staffDirectInput" 
+                                  class="chat-input-textarea" 
+                                  placeholder="Nhập nội dung tư vấn..." 
+                                  onkeydown="handleKeydownDirect(event)"></textarea>
+                    </div>
+
+                    <!-- Thanh công cụ 3 nút bấm phía dưới chuẩn 100% Ảnh 1 -->
+                    <div class="chat-toolbar-row">
+                        <div class="chat-tool-btn-group">
+                            <!-- Nút 1: Gửi dịch vụ -->
+                            <button type="button" class="btn-chat-tool" onclick="handleToolSendService()">
+                                <i class="bi bi-file-text"></i> Gửi dịch vụ
+                            </button>
+                            <!-- Nút 2: Gửi Voucher ưu đãi -->
+                            <button type="button" class="btn-chat-tool" onclick="handleToolSendVoucher()">
+                                <i class="bi bi-ticket-perforated"></i> Gửi Voucher ưu đãi
+                            </button>
+                            <!-- Nút 3: Nhúng liên kết Đặt lịch hẹn trực tiếp -->
+                            <button type="button" class="btn-chat-tool" onclick="handleToolEmbedBooking()">
+                                <i class="bi bi-link-45deg"></i> Nhúng liên kết Đặt lịch hẹn trực tiếp
+                            </button>
+                        </div>
+
+                        <!-- Nút Gửi bên phải -->
+                        <button id="btnStaffDirectSubmit" type="submit" class="btn-chat-submit">
+                            <i class="bi bi-send-fill"></i> Gửi
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- ========================================================================
+     MODAL CHỌN GỬI DỊCH VỤ NHANH VÀO CHAT
+     ======================================================================== -->
+<div class="modal fade" id="selectServiceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header text-white" style="background-color: var(--cham-red);">
+                <h6 class="modal-title font-serif"><i class="bi bi-flower2 me-2"></i>Chọn gói dịch vụ Spa để gửi vào Chat</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="list-group list-group-flush">
+                    {% for s in services %}
+                    <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                            onclick="insertServiceToChat('{{ s.name|escapejs }}', '{{ s.price_vnd|floatformat:0 }}', '{{ s.duration_minutes }}')">
+                        <div>
+                            <div class="fw-bold" style="font-size: 13.5px;">{{ s.name }}</div>
+                            <small class="text-muted">{{ s.duration_minutes }} phút • {{ s.category.name|default:"Spa" }}</small>
+                        </div>
+                        <span class="fw-bold text-danger">{{ s.price_vnd|floatformat:0 }}đ</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================
+     MODAL CHỌN GỬI VOUCHER ƯU ĐÃI
+     ======================================================================== -->
+<div class="modal fade" id="selectVoucherModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header text-white" style="background-color: var(--cham-red);">
+                <h6 class="modal-title font-serif"><i class="bi bi-ticket-perforated me-2"></i>Chọn mã Voucher tặng khách hàng</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="list-group list-group-flush">
+                    {% if vouchers %}
+                        {% for v in vouchers %}
+                        <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                onclick="insertVoucherToChat('{{ v.voucher_code|escapejs }}', '{{ v.discount_value|floatformat:0 }}')">
+                            <div>
+                                <span class="badge bg-danger font-monospace fs-6">{{ v.voucher_code }}</span>
+                                <div class="small text-muted mt-1">Giảm {{ v.discount_value|floatformat:0 }}đ cho đơn từ {{ v.min_order_amount|floatformat:0 }}đ</div>
+                            </div>
+                            <span class="btn btn-sm btn-outline-danger rounded-pill">Tặng mã</span>
+                        </button>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3 text-muted">Hiện chưa có mã Voucher khả dụng.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/**
+ * JAVASCRIPT XỬ LÝ LIVECHAT THEO ĐÚNG ẢNH 1 FIGMA NODE 207:1040
+ * Khách hàng đã đăng nhập lưu CSDL, vãng lai không lưu; Staff chỉ có quyền chat tư vấn.
+ */
+let currentActiveConvId = null;
+let currentQueueTab = 'waiting';
+let queuePollingTimer = null;
+const STAFF_NAME = "{{ current_staff.name|default:current_staff.username|escapejs }}";
+
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Luôn kích hoạt tô màu mục Inbox trên Sidebar
+    const inboxItem = document.querySelector('.staff-nav-item[data-nav-target="Inbox"]');
+    if (inboxItem) {
+        document.querySelectorAll('.staff-nav-item').forEach(el => el.classList.remove('active'));
+        inboxItem.classList.add('active');
+    }
+
+    // 2. Chọn cuộc hội thoại đầu tiên
+    const firstCard = document.querySelector('.queue-card');
+    if (firstCard) {
+        const id = firstCard.getAttribute('data-id');
+        selectQueueConversation(id);
+    }
+
+    // 3. Tự động cập nhật mỗi 15 giây theo đúng chú thích trên Ảnh 1
+    start15sQueuePolling();
+});
+
+// =============================================================================
+// 1. CHỌN CUỘC HỘI THOẠI TRONG HÀNG CHỜ
+// =============================================================================
+function selectQueueConversation(convId) {
+    if (!convId) return;
+    currentActiveConvId = parseInt(convId);
+
+    // Tô màu active card
+    document.querySelectorAll('.queue-card').forEach(el => el.classList.remove('active'));
+    const target = document.getElementById(`queueCard_${convId}`);
+    if (target) {
+        target.classList.add('active');
+        const name = target.getAttribute('data-name') || 'Khách hàng';
+        document.getElementById('roomCustomerName').textContent = name;
+        document.getElementById('roomCustomerAvatar').textContent = name.substring(0, 2).toUpperCase();
+    }
+
+    fetch(`/chatbox/api/conversations/${convId}/messages/`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        // Cảnh báo nếu nhân viên khác đã tiếp nhận (Figma 210:2465)
+        const alertBar = document.getElementById('assignedOtherAlertBar');
+        const inputArea = document.getElementById('staffDirectInput');
+        const submitBtn = document.getElementById('btnStaffDirectSubmit');
+
+        if (data.is_assigned_to_other) {
+            alertBar.style.display = 'flex';
+            document.getElementById('assignedOtherStaffName').textContent = data.assigned_staff_name || 'Nhân viên khác';
+            inputArea.disabled = true;
+            inputArea.placeholder = `Phiên chat do [${data.assigned_staff_name}] tiếp nhận. Chế độ Chỉ xem (Read-only).`;
+            submitBtn.disabled = true;
+        } else {
+            alertBar.style.display = 'none';
+            inputArea.disabled = false;
+            inputArea.placeholder = 'Nhập nội dung tư vấn...';
+            submitBtn.disabled = false;
+        }
+
+        // Render stream tin nhắn
+        if (data.messages && data.messages.length > 0) {
+            renderDirectMessages(data.messages);
+        }
+    })
+    .catch(err => console.error(err));
+}
+
+function renderDirectMessages(messages) {
+    const stream = document.getElementById('chatMessagesStream');
+    let html = `<div class="time-divider-badge">HÔM NAY - 14:20</div>`;
+
+    messages.forEach(msg => {
+        const timeStr = msg.formatted_time ? msg.formatted_time.split(' - ')[0] : '14:20';
+
+        if (msg.sender_type === 'Customer') {
+            html += `
+                <div class="chat-row cust-side">
+                    <div class="chat-sender-header">${escapeHtml(msg.sender_name)} - Khách hàng</div>
+                    <div class="chat-bubble-box">
+                        ${escapeHtml(msg.content)}
+                        <div class="bubble-meta-time">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            let mediaHtml = '';
+            if (msg.attachment_name) {
+                mediaHtml = `
+                    <div class="chat-bubble-media">
+                        <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&auto=format&fit=crop&q=80" alt="Dịch vụ">
+                    </div>
+                    <div class="chat-attachment-chip">
+                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                        <span>${escapeHtml(msg.attachment_name)} • ${escapeHtml(msg.attachment_size || '1.5 MB')}</span>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="chat-row staff-side">
+                    <div class="chat-sender-header">${escapeHtml(msg.sender_name || STAFF_NAME)} - Nhân viên tư vấn</div>
+                    <div class="chat-bubble-box">
+                        ${escapeHtml(msg.content)}
+                        ${mediaHtml}
+                        <div class="bubble-meta-time">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+        }
+    });
+
+    stream.innerHTML = html;
+    stream.scrollTop = stream.scrollHeight;
+}
+
+// =============================================================================
+// 2. GỬI TIN NHẮN TỪ NHÂN VIÊN
+// =============================================================================
+function handleSendStaffDirect(e) {
+    if (e) e.preventDefault();
+    if (!currentActiveConvId) return;
+
+    const input = document.getElementById('staffDirectInput');
+    const content = input.value.trim();
+    if (!content) return;
+
+    fetch(`/chatbox/api/conversations/${currentActiveConvId}/messages/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ content: content, message_type: 'TEXT' })
+    })
+    .then(res => {
+        if (res.status === 403) {
+            return res.json().then(errData => {
+                alert(errData.error || 'Phiên chat này đã do nhân viên khác tiếp nhận!');
+            });
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data && data.status === 'success') {
+            input.value = '';
+            selectQueueConversation(currentActiveConvId);
+        }
+    })
+    .catch(err => console.error(err));
+}
+
+function handleKeydownDirect(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendStaffDirect();
+    }
+}
+
+// =============================================================================
+// 3. TIẾP NHẬN / KẾT THÚC / TIẾP QUẢN
+// =============================================================================
+function acceptQueueConversation(convId, e) {
+    if (e) e.stopPropagation();
+
+    fetch(`/chatbox/api/conversations/${convId}/accept/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'conflict') {
+            alert(data.message);
+        } else {
+            alert('Bạn đã tiếp nhận cuộc trò chuyện thành công!');
+            selectQueueConversation(convId);
+            refreshQueueList();
+        }
+    })
+    .catch(err => console.error(err));
+}
+
+function handleEndSupport() {
+    if (!currentActiveConvId) return;
+    if (!confirm('Bạn có chắc chắn muốn kết thúc phiên hỗ trợ này?')) return;
+
+    fetch(`/chatbox/api/conversations/${currentActiveConvId}/close/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert('Đã kết thúc phiên hỗ trợ.');
+        refreshQueueList();
+    })
+    .catch(err => console.error(err));
+}
+
+function handleTakeover() {
+    if (!currentActiveConvId) return;
+    if (!confirm('Bạn có chắc muốn tiếp quản phiên chat này từ nhân viên trước không?')) return;
+
+    fetch(`/chatbox/api/conversations/${currentActiveConvId}/takeover/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        selectQueueConversation(currentActiveConvId);
+        refreshQueueList();
+    })
+    .catch(err => console.error(err));
+}
+
+// =============================================================================
+// 4. 3 NÚT TIỆN ÍCH SOẠN TIN NHẮN (ẢNH 1)
+// =============================================================================
+let serviceModalObj = null;
+let voucherModalObj = null;
+
+function handleToolSendService() {
+    if (!serviceModalObj) {
+        serviceModalObj = new bootstrap.Modal(document.getElementById('selectServiceModal'));
+    }
+    serviceModalObj.show();
+}
+
+function insertServiceToChat(name, price, duration) {
+    const text = `Dạ gói '${name}' tại Cham Spa có giá niêm yết ${Number(price).toLocaleString('vi-VN')}đ với thời lượng ${duration} phút. Em có thể hỗ trợ chị đặt lịch ưu tiên luôn nhé ạ!`;
+    document.getElementById('staffDirectInput').value = text;
+    if (serviceModalObj) serviceModalObj.hide();
+    document.getElementById('staffDirectInput').focus();
+}
+
+function handleToolSendVoucher() {
+    if (!voucherModalObj) {
+        voucherModalObj = new bootstrap.Modal(document.getElementById('selectVoucherModal'));
+    }
+    voucherModalObj.show();
+}
+
+function insertVoucherToChat(code, val) {
+    const text = `Dạ em xin gửi tặng chị mã Voucher tri ân [${code}] giảm trực tiếp ${Number(val).toLocaleString('vi-VN')}đ khi chị đặt lịch trải nghiệm dịch vụ hôm nay ạ!`;
+    document.getElementById('staffDirectInput').value = text;
+    if (voucherModalObj) voucherModalObj.hide();
+    document.getElementById('staffDirectInput').focus();
+}
+
+function handleToolEmbedBooking() {
+    const text = `Dạ chị có thể nhấn vào liên kết đặt lịch trực tiếp này để giữ chỗ ưu tiên trong 10 phút ạ: http://127.0.0.1:8000/appointment/booking/`;
+    document.getElementById('staffDirectInput').value = text;
+    document.getElementById('staffDirectInput').focus();
+}
+
+function openBookingLinkDirect() {
+    window.open('/appointment/booking/', '_blank');
+}
+
+// =============================================================================
+// 5. LỌC HÀNG CHỜ VÀ CẬP NHẬT 15 GIÂY (ẢNH 1)
+// =============================================================================
+function switchQueueTab(tabName, btnEl) {
+    currentQueueTab = tabName;
+    document.querySelectorAll('.queue-tab-btn').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+
+    refreshQueueList();
+}
+
+function handleFilterQueueCards() {
+    const q = document.getElementById('queueSearchInput')?.value.toLowerCase().trim() || '';
+    document.querySelectorAll('.queue-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = (!q || text.includes(q)) ? 'block' : 'none';
+    });
+}
+
+function refreshQueueList() {
+    fetch(`/chatbox/api/conversations/?tab=${currentQueueTab}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.conversations) {
+            renderQueueCards(data.conversations);
+            if (data.counts) {
+                document.getElementById('queueWaitingBadge').textContent = data.counts.waiting || 0;
+                document.getElementById('queueProcessingBadge').textContent = data.counts.processing || 0;
+            }
+        }
+    })
+    .catch(() => {});
+}
+
+function renderQueueCards(items) {
+    const container = document.getElementById('queueCardsList');
+    if (!items || items.length === 0) {
+        container.innerHTML = `<div class="text-center py-4 text-muted small">Không có cuộc hội thoại nào trong mục này.</div>`;
+        return;
+    }
+
+    let html = '';
+    items.forEach(c => {
+        const isActive = (c.id === currentActiveConvId) ? 'active' : '';
+        const initials = (c.customer_name || 'KH').substring(0, 2).toUpperCase();
+        const phoneFormatted = c.customer_phone ? '+84 ' + c.customer_phone.substring(1) : 'Khách hàng';
+
+        let btnAction = '';
+        if (c.status === 'Đang chờ') {
+            btnAction = `
+                <button type="button" class="btn-accept-queue" onclick="acceptQueueConversation(${c.id}, event)">
+                    <i class="bi bi-chat-dots"></i> Tiếp nhận hội thoại
+                </button>
+            `;
+        } else {
+            btnAction = `
+                <div class="d-flex justify-content-between align-items-center pt-1" style="font-size: 11px;">
+                    <span class="text-success"><i class="bi bi-circle-fill" style="font-size: 7px;"></i> Đang hỗ trợ</span>
+                    ${c.staff_name ? `<span class="text-muted"><i class="bi bi-person-check"></i> ${escapeHtml(c.staff_name)}</span>` : ''}
+                </div>
+            `;
+        }
+
+        html += `
+            <div class="queue-card ${isActive}" id="queueCard_${c.id}" 
+                 onclick="selectQueueConversation(${c.id})" 
+                 data-id="${c.id}" 
+                 data-name="${escapeHtml(c.customer_name)}">
+                <div class="card-top-row">
+                    <div class="card-avatar">${initials}</div>
+                    <div class="card-info">
+                        <div class="card-name-row">
+                            <span class="card-name">${escapeHtml(c.customer_name)}</span>
+                            <span class="card-time">${c.last_message_time || 'Vừa xong'}</span>
+                        </div>
+                        <div class="card-phone">${phoneFormatted}</div>
+                    </div>
+                </div>
+                <div class="card-need-text">
+                    Nhu cầu: <strong>${escapeHtml(c.customer_tag || 'Vai gáy / Trị liệu')}</strong>
+                </div>
+                ${btnAction}
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function handleApplyFilters() {
+    const kw = document.getElementById('filterSearchInput')?.value.trim() || '';
+    const status = document.getElementById('filterStatusSelect')?.value || '';
+    
+    fetch(`/chatbox/api/conversations/?search=${encodeURIComponent(kw)}&status=${encodeURIComponent(status)}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.conversations) {
+            renderQueueCards(data.conversations);
+        }
+    })
+    .catch(() => {});
+}
+
+function start15sQueuePolling() {
+    if (queuePollingTimer) clearInterval(queuePollingTimer);
+    queuePollingTimer = setInterval(() => {
+        refreshQueueList();
+        if (currentActiveConvId) {
+            fetch(`/chatbox/api/conversations/${currentActiveConvId}/messages/`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.messages) {
+                    const currentCount = document.querySelectorAll('#chatMessagesStream .chat-row').length;
+                    if (data.messages.length !== currentCount) {
+                        renderDirectMessages(data.messages);
+                    }
+                }
+            })
+            .catch(() => {});
+        }
+    }, 15000); // 15 giây tự động cập nhật
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

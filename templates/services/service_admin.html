@@ -1,0 +1,1457 @@
+{% extends "layouts/admin_layout.html" %}
+{% load static %}
+
+{% block title %}Quản lý Danh mục Dịch vụ | Quản trị Cham Spa & Massage Đà Nẵng{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* =========================================================================
+       CSS TÙY BIẾN CHO GIAO DIỆN QUẢN TRỊ DỊCH VỤ (FIGMA HÌNH 23)
+       Tác giả: Minh Khánh (MOD-03)
+       ========================================================================= */
+
+    :root {
+        --cham-primary-red: #781A24;
+        --cham-red-hover: #5d131b;
+        --cham-bg-cream: #F4EFE3;
+        --cham-wood-dark: #3D271D;
+        --cham-gold-accent: #D0B581;
+        --cham-border-color: #E2D9CC;
+    }
+
+    .admin-service-page-wrapper {
+        padding: 10px 0 60px;
+    }
+
+    /* 1. Breadcrumb */
+    .admin-service-breadcrumb {
+        font-size: 13px;
+        color: #8C7B72;
+        margin-bottom: 8px;
+    }
+
+    .admin-service-breadcrumb a {
+        color: #8C7B72;
+        text-decoration: none;
+    }
+
+    .admin-service-breadcrumb a:hover {
+        color: var(--cham-primary-red);
+    }
+
+    .admin-service-breadcrumb-current {
+        color: var(--cham-primary-red);
+        font-weight: 600;
+    }
+
+    /* 2. Top Title Bar */
+    .admin-service-header-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .admin-service-page-title {
+        font-family: var(--font-serif, 'Lora', serif);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--cham-primary-red);
+        margin-bottom: 4px;
+    }
+
+    .admin-service-page-desc {
+        font-size: 14px;
+        color: #6C757D;
+        margin-bottom: 0;
+    }
+
+    .btn-add-new-service {
+        background-color: var(--cham-primary-red);
+        color: #FFFFFF;
+        border: 1px solid var(--cham-primary-red);
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-add-new-service:hover {
+        background-color: var(--cham-red-hover);
+        color: #FFFFFF;
+    }
+
+    /* 3. 4 KPI Summary Cards (Figma Hình 23) */
+    .admin-kpi-card {
+        background: #FFFFFF;
+        border-radius: 16px;
+        padding: 20px 24px;
+        border: 1px solid rgba(208, 181, 129, 0.3);
+        box-shadow: 0 4px 14px rgba(61, 39, 29, 0.04);
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        height: 100%;
+        transition: all 0.2s ease;
+    }
+
+    .admin-kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(120, 26, 36, 0.08);
+    }
+
+    .admin-kpi-icon-box {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .kpi-icon-brown { background-color: #F6EDE6; color: #8A4B2D; }
+    .kpi-icon-green { background-color: #E8F5E9; color: #2E7D32; }
+    .kpi-icon-gray  { background-color: #F1EFEA; color: #757575; }
+    .kpi-icon-gold  { background-color: #FFF8E1; color: #E68A00; }
+
+    .admin-kpi-number {
+        font-family: var(--font-serif, 'Lora', serif);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--cham-wood-dark);
+        line-height: 1.1;
+        margin-bottom: 4px;
+    }
+
+    .admin-kpi-label {
+        font-size: 13px;
+        color: #7A6B63;
+        font-weight: 600;
+    }
+
+    /* 4. Controls & Filter Bar */
+    .admin-controls-card {
+        background: #FFFFFF;
+        border-radius: 16px;
+        padding: 16px 20px;
+        border: 1px solid rgba(208, 181, 129, 0.3);
+        margin-top: 24px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .admin-search-input-box {
+        position: relative;
+        min-width: 280px;
+        flex-grow: 1;
+        max-width: 360px;
+    }
+
+    .admin-search-input-box i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9E8F85;
+    }
+
+    .admin-search-input {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid var(--cham-border-color);
+        padding: 8px 14px 8px 38px;
+        font-size: 13.5px;
+        outline: none;
+        background-color: #FAFAF8;
+    }
+
+    .admin-search-input:focus {
+        border-color: var(--cham-primary-red);
+        background-color: #FFFFFF;
+    }
+
+    .admin-filter-select {
+        border-radius: 10px;
+        border: 1px solid var(--cham-border-color);
+        padding: 8px 14px;
+        font-size: 13.5px;
+        color: var(--cham-wood-dark);
+        outline: none;
+        background-color: #FFFFFF;
+        cursor: pointer;
+    }
+
+    .btn-admin-export-excel {
+        background-color: #FFFFFF;
+        border: 1px solid var(--cham-border-color);
+        border-radius: 10px;
+        padding: 8px 16px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #4A3E38;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-admin-export-excel:hover {
+        border-color: #2E7D32;
+        color: #2E7D32;
+        background-color: #F1F8F2;
+    }
+
+    /* 5. Master Data Table (Figma Hình 23) */
+    .admin-table-container {
+        background: #FFFFFF;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(208, 181, 129, 0.35);
+        box-shadow: 0 4px 16px rgba(61, 39, 29, 0.04);
+    }
+
+    .table-service-custom {
+        margin-bottom: 0;
+        vertical-align: middle;
+    }
+
+    .table-service-custom thead th {
+        background-color: var(--cham-primary-red);
+        color: #FFFFFF;
+        font-family: var(--font-body, 'Cabin', sans-serif);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 14px 16px;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .table-service-custom tbody td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #F0EAE1;
+        font-size: 14px;
+        color: var(--cham-wood-dark);
+        background-color: #FFFFFF;
+    }
+
+    .table-service-custom tbody tr:hover td {
+        background-color: #FDFBF7;
+    }
+
+    .table-thumb-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        overflow: hidden;
+        background-color: #EFE9DE;
+        flex-shrink: 0;
+    }
+
+    .table-thumb-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .table-service-name {
+        font-weight: 700;
+        color: var(--cham-wood-dark);
+        font-size: 14.5px;
+        margin-bottom: 2px;
+    }
+
+    .table-service-subtext {
+        font-size: 11.5px;
+        color: #9E8F85;
+    }
+
+    .table-category-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--cham-border-color);
+        background-color: #FFFDF9;
+        font-size: 11px;
+        font-weight: 600;
+        color: #7A5B46;
+    }
+
+    /* Status dot */
+    .status-dot-active {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #2E7D32;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .status-dot-active::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #2E7D32;
+    }
+
+    .status-dot-inactive {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #757575;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .status-dot-inactive::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #BDBDBD;
+    }
+
+    /* Actions */
+    .btn-table-edit {
+        background-color: #FFF8E1;
+        border: 1px solid #FFE082;
+        color: #8D6E14;
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-size: 12.5px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-table-edit:hover {
+        background-color: #FFE082;
+        color: #5D400B;
+    }
+
+    .btn-table-delete {
+        background-color: #FFEBEE;
+        border: 1px solid #FFCDD2;
+        color: #C62828;
+        border-radius: 8px;
+        padding: 5px 8px;
+        font-size: 12.5px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-table-delete:hover {
+        background-color: #FFCDD2;
+        color: #B71C1C;
+    }
+
+    /* Table Footer & Pagination */
+    .admin-table-footer {
+        padding: 14px 20px;
+        background-color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid #F0EAE1;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .admin-table-selection-info {
+        font-size: 13px;
+        color: #7A6B63;
+    }
+
+    .admin-pagination-pill {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .admin-page-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid var(--cham-border-color);
+        background-color: #FFFFFF;
+        color: #4A3E38;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .admin-page-btn.active {
+        background-color: var(--cham-primary-red);
+        border-color: var(--cham-primary-red);
+        color: #FFFFFF;
+    }
+
+    /* Tabs Bar */
+    .admin-nav-tabs {
+        border-bottom: 2px solid #EFE9DE;
+        margin-top: 24px;
+        display: flex;
+        gap: 24px;
+    }
+
+    .admin-tab-item {
+        padding: 10px 4px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #8C7B72;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .admin-tab-item.active {
+        color: var(--cham-primary-red);
+        border-bottom-color: var(--cham-primary-red);
+    }
+
+    /* Hiệu ứng rung nhẹ khi bị lỗi trùng lặp (Figma Node 216-2853) */
+    @keyframes shakeInvalid {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-6px); }
+        40%, 80% { transform: translateX(6px); }
+    }
+    .animate-shake {
+        animation: shakeInvalid 0.4s ease-in-out;
+    }
+
+    /* Khung chọn nhanh ảnh mẫu Thumbnail chuẩn Figma */
+    .thumb-sample-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+    }
+    .thumb-sample-item {
+        height: 52px;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        background-color: #EFE9DE;
+        transition: all 0.2s ease;
+    }
+    .thumb-sample-item:hover, .thumb-sample-item.selected {
+        border-color: var(--cham-primary-red);
+        transform: scale(1.05);
+        box-shadow: 0 4px 10px rgba(120, 26, 36, 0.2);
+    }
+    .thumb-sample-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* =========================================================================
+       FIX LỖI NỀN XÁM BACKDROP BOOTSTRAP VÀ CHUẨN HÓA GIAO DIỆN MODAL FIGMA
+       ========================================================================= */
+    .modal {
+        z-index: 1060 !important;
+    }
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
+
+    /* Khung Modal chuẩn nhận diện thương hiệu Cham Spa */
+    .cham-modal-content {
+        background-color: #FFFFFF !important;
+        border-radius: 20px !important;
+        border: none !important;
+        box-shadow: 0 25px 70px rgba(61, 39, 29, 0.35) !important;
+        overflow: hidden !important;
+    }
+
+    .cham-modal-header {
+        background-color: var(--cham-primary-red) !important;
+        color: #FFFFFF !important;
+        padding: 16px 24px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        border-bottom: 2px solid var(--cham-gold-accent) !important;
+    }
+
+    .cham-modal-header-title {
+        font-family: var(--font-serif, 'Lora', serif) !important;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        color: #FFFFFF !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    .cham-modal-close-btn {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        color: #FFFFFF !important;
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 14px !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        padding: 0 !important;
+    }
+
+    .cham-modal-close-btn:hover {
+        background: rgba(255, 255, 255, 0.35) !important;
+        color: #FFFFFF !important;
+        transform: rotate(90deg) !important;
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="admin-service-page-wrapper">
+    <!-- 1. Breadcrumbs -->
+    <div class="admin-service-breadcrumb">
+        <a href="{% url 'dashboard:admin' %}">Hệ thống</a>
+        <span class="mx-1">/</span>
+        <span class="admin-service-breadcrumb-current">Quản lý Danh mục dịch vụ</span>
+    </div>
+
+    <!-- 2. Page Header Bar -->
+    <div class="admin-service-header-row">
+        <div>
+            <h1 class="admin-service-page-title">Quản lý Dịch vụ</h1>
+            <p class="admin-service-page-desc">
+                Cấu hình thêm mới, chỉnh sửa thông tin, bảng giá và bật/tắt hiển thị dịch vụ trên Website.
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn-add-new-service" onclick="openServiceCreateModal()">
+                <i class="bi bi-plus-lg"></i> Thêm dịch vụ mới
+            </button>
+        </div>
+    </div>
+
+    <!-- 3. KPI Summary Cards (Figma Hình 23) -->
+    <div class="row g-3">
+        <!-- KPI 1: Tổng số Dịch vụ -->
+        <div class="col-md-4">
+            <div class="admin-kpi-card">
+                <div class="admin-kpi-icon-box kpi-icon-brown">
+                    <i class="bi bi-layers"></i>
+                </div>
+                <div>
+                    <div class="admin-kpi-number" id="kpiTotalServices">{{ total_services }}</div>
+                    <div class="admin-kpi-label">Tổng số Dịch vụ</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 2: Đang hoạt động -->
+        <div class="col-md-4">
+            <div class="admin-kpi-card">
+                <div class="admin-kpi-icon-box kpi-icon-green">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div>
+                    <div class="admin-kpi-number text-success" id="kpiActiveServices">{{ active_services }}</div>
+                    <div class="admin-kpi-label">Đang hoạt động</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 3: Đang ẩn / Khóa -->
+        <div class="col-md-4">
+            <div class="admin-kpi-card">
+                <div class="admin-kpi-icon-box kpi-icon-gray">
+                    <i class="bi bi-eye-slash"></i>
+                </div>
+                <div>
+                    <div class="admin-kpi-number text-muted" id="kpiInactiveServices">{{ inactive_services }}</div>
+                    <div class="admin-kpi-label">Đang ẩn / Khóa</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         BẢNG DANH SÁCH DỊCH VỤ
+         ========================================================================= -->
+    <div id="tabServicesSection" class="mt-4">
+        <!-- Controls & Filter Bar -->
+        <div class="admin-controls-card">
+            <!-- Search -->
+            <div class="admin-search-input-box">
+                <i class="bi bi-search"></i>
+                <input type="text" class="admin-search-input" id="adminSearchInput"
+                       placeholder="Lọc nhanh theo tên hoặc mã dịch vụ..." oninput="filterAdminServicesTable()">
+            </div>
+
+            <!-- Category Filter & Status Filter -->
+            <div class="d-flex align-items-center gap-2">
+                <select class="admin-filter-select" id="adminCategorySelect" onchange="filterAdminServicesTable()">
+                    <option value="all">Tất cả phân loại</option>
+                    {% for c in categories %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <select class="admin-filter-select" id="adminStatusSelect" onchange="filterAdminServicesTable()">
+                    <option value="all">Mọi trạng thái</option>
+                    <option value="Hoạt động">Đang hoạt động</option>
+                    <option value="Ngừng hoạt động">Đang ẩn / Khóa</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Service Data Table -->
+        <div class="admin-table-container">
+            <div class="table-responsive">
+                <table class="table table-service-custom align-middle" id="adminServicesTable">
+                    <thead>
+                        <tr>
+                            <th width="40"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)"></th>
+                            <th width="90">Mã DV</th>
+                            <th width="80">Ảnh Thumbnail</th>
+                            <th>Tên Dịch vụ</th>
+                            <th>Danh mục</th>
+                            <th>Thời lượng</th>
+                            <th>Giá niêm yết</th>
+                            <th style="min-width: 180px;">Trạng thái & Hiển thị</th>
+                            <th width="110" class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminServicesTableBody">
+                        {% for svc in services %}
+                        <tr id="serviceRow_{{ svc.id }}" data-id="{{ svc.id }}" data-name="{{ svc.name }}" data-cat-id="{{ svc.category_id }}" data-status="{{ svc.status }}">
+                            <td><input type="checkbox" class="service-row-chk" value="{{ svc.id }}" onchange="updateSelectedCount()"></td>
+                            <td class="fw-bold text-muted">#DVO{{ svc.id|stringformat:"02d" }}</td>
+                            <td>
+                                <div class="table-thumb-box">
+                                    <img src="{{ svc.thumbnail_url|default:'/static/images/treatment_1.png' }}" alt="{{ svc.name }}">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="table-service-name">{{ svc.name }}</div>
+                                <div class="table-service-subtext">Cập nhật {{ svc.updated_at|date:"d/m/Y" }}</div>
+                            </td>
+                            <td>
+                                <span class="table-category-badge">{{ svc.category.name }}</span>
+                            </td>
+                            <td>
+                                <span>{{ svc.duration_minutes }} phút</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold" style="color: var(--cham-primary-red);">{{ svc.price_vnd|floatformat:0 }} VNĐ</span>
+                            </td>
+                            <td id="statusCell_{{ svc.id }}">
+                                <div class="d-flex align-items-center gap-2">
+                                    <!-- Nút gạt ẩn / hiện đặt ngay bên cạnh chữ -->
+                                    <div class="form-check form-switch m-0" title="Bật/Tắt hiển thị dịch vụ">
+                                        <input class="form-check-input" type="checkbox" id="toggleSwitch_{{ svc.id }}"
+                                               {% if svc.status == 'Hoạt động' %}checked{% endif %}
+                                               onchange="toggleServiceStatusAPI({{ svc.id }}, this)"
+                                               style="cursor: pointer; accent-color: var(--cham-primary-red); width: 2.2em; height: 1.15em;">
+                                    </div>
+                                    <span id="statusBadge_{{ svc.id }}">
+                                        {% if svc.status == 'Hoạt động' %}
+                                        <span class="status-dot-active">• Đang hoạt động</span>
+                                        {% else %}
+                                        <span class="status-dot-inactive">• Đang ẩn / Khóa</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                    <!-- Nút Sửa -->
+                                    <button type="button" class="btn-table-edit" onclick="openServiceEditModal({{ svc.id }})" title="Chỉnh sửa dịch vụ">
+                                        <i class="bi bi-pencil-fill"></i> Sửa
+                                    </button>
+
+                                    <!-- Nút Xóa (Mở Modal Xác nhận Xóa - Figma Node 216-2320) -->
+                                    <button type="button" class="btn-table-delete" onclick="openDeleteServiceModal({{ svc.id }}, '{{ svc.name|escapejs }}', '#DVO{{ svc.id|stringformat:'02d' }}')" title="Xóa dịch vụ">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Footer -->
+            <div class="admin-table-footer">
+                <div class="admin-table-selection-info">
+                    Đã chọn <strong id="selectedRowsCount">0</strong> • Hiển thị <strong id="visibleRowsCount">{{ services.count }}</strong>/{{ services.count }} dịch vụ
+                </div>
+                <div class="admin-pagination-pill">
+                    <span class="text-muted small me-2">Trang:</span>
+                    <button type="button" class="admin-page-btn active">1</button>
+                    <button type="button" class="admin-page-btn">2</button>
+                    <button type="button" class="admin-page-btn">3</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     MODAL: THÊM / CHỈNH SỬA DỊCH VỤ (UC-3.3)
+     ========================================================================== -->
+<div class="modal fade" id="serviceFormModal" tabindex="-1" aria-labelledby="serviceFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content cham-modal-content">
+            <div class="cham-modal-header">
+                <div class="cham-modal-header-title" id="serviceFormModalTitle">
+                    <i class="bi bi-flower2"></i> THÊM DỊCH VỤ SPA MỚI
+                </div>
+                <button type="button" class="cham-modal-close-btn" data-bs-dismiss="modal" aria-label="Đóng">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <form id="serviceFormSubmit" onsubmit="handleSaveService(event)">
+                <input type="hidden" id="formServiceId" value="">
+
+                <div class="modal-body p-4">
+                    <!-- KHUNG CẢNH BÁO TRÙNG LẶP DỊCH VỤ (FIGMA NODE 216-2853) -->
+                    <div class="alert alert-danger d-none align-items-start gap-3 rounded-3 p-3 mb-3 border-danger shadow-sm" id="duplicateAlertBox" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill fs-4 text-danger flex-shrink-0 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold fs-6 mb-1 text-danger">
+                                <i class="bi bi-copy me-1"></i> Cảnh báo: Tên dịch vụ đã tồn tại!
+                            </div>
+                            <div class="small text-danger-emphasis" id="duplicateAlertMsg">
+                                Tên dịch vụ này đã có trong cơ sở dữ liệu. Vui lòng chọn một tên khác để tránh trùng lặp thông tin với khách hàng.
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" onclick="hideDuplicateAlert()" aria-label="Đóng"></button>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Tên dịch vụ -->
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold small text-dark">Tên dịch vụ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="formServiceName" required
+                                   placeholder="Ví dụ: Massage Body Trị Liệu Vai Gáy" oninput="onServiceNameInput(this.value)">
+                            <div class="invalid-feedback d-none" id="formServiceNameFeedback">
+                                <i class="bi bi-exclamation-circle-fill me-1"></i> <span id="formServiceNameFeedbackText">Tên dịch vụ đã tồn tại trong hệ thống!</span>
+                            </div>
+                        </div>
+
+                        <!-- Danh mục -->
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-dark">Danh mục <span class="text-danger">*</span></label>
+                            <select class="form-select" id="formServiceCategory" required>
+                                {% for c in categories %}
+                                <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Slug -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-dark">Đường dẫn thân thiện (Slug)</label>
+                            <input type="text" class="form-control" id="formServiceSlug" placeholder="massage-body-tri-lieu">
+                        </div>
+
+                        <!-- Trạng thái -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-dark">Trạng thái hiển thị</label>
+                            <select class="form-select" id="formServiceStatus">
+                                <option value="Hoạt động">Hoạt động (Hiển thị trên website)</option>
+                                <option value="Ngừng hoạt động">Ngừng hoạt động (Tạm ẩn)</option>
+                            </select>
+                        </div>
+
+                        <!-- Giá tiền & Thời lượng -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label fw-bold small text-dark mb-0">Giá niêm yết (VNĐ) <span class="text-danger">*</span></label>
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-bold" id="formServicePricePreview">0 VNĐ</span>
+                            </div>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="formServicePrice" required min="1000" step="10000" placeholder="Ví dụ: 550000" oninput="onServicePriceInput(this.value)">
+                                <span class="input-group-text">VNĐ</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-dark">Thời lượng (Phút) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="formServiceDuration" required min="15" step="15" placeholder="Ví dụ: 60">
+                                <span class="input-group-text">phút</span>
+                            </div>
+                            <div class="d-flex gap-1 mt-1">
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="setFormDuration(30)" style="font-size: 11px;">30p</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="setFormDuration(45)" style="font-size: 11px;">45p</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="setFormDuration(60)" style="font-size: 11px;">60p</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="setFormDuration(75)" style="font-size: 11px;">75p</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="setFormDuration(90)" style="font-size: 11px;">90p</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="setFormDuration(120)" style="font-size: 11px;">120p</button>
+                            </div>
+                        </div>
+
+                        <!-- URL Ảnh Thumbnail & Chọn nhanh ảnh mẫu -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-dark d-flex justify-content-between align-items-center">
+                                <span>Ảnh đại diện (Thumbnail)</span>
+                                <span class="text-muted small">Click chọn ảnh mẫu bên dưới hoặc dán liên kết URL</span>
+                            </label>
+
+                            <!-- Khung chọn nhanh ảnh mẫu HD -->
+                            <div class="thumb-sample-grid mb-2">
+                                <div class="thumb-sample-item" onclick="selectSampleThumb('/media/services/service_1.jpg', this)" title="Mẫu 1: Massage Body">
+                                    <img src="/media/services/service_1.jpg?v=2" alt="Mẫu 1">
+                                </div>
+                                <div class="thumb-sample-item" onclick="selectSampleThumb('/media/services/service_2.jpg', this)" title="Mẫu 2: Massage Đá Nóng">
+                                    <img src="/media/services/service_2.jpg?v=2" alt="Mẫu 2">
+                                </div>
+                                <div class="thumb-sample-item" onclick="selectSampleThumb('/media/services/service_3.jpg', this)" title="Mẫu 3: Gội Đầu Dưỡng Sinh">
+                                    <img src="/media/services/service_3.jpg?v=2" alt="Mẫu 3">
+                                </div>
+                                <div class="thumb-sample-item" onclick="selectSampleThumb('/media/services/service_4_hd.png', this)" title="Mẫu 4: Chăm Sóc Da Sen Vàng">
+                                    <img src="/media/services/service_4_hd.png?v=2" alt="Mẫu 4">
+                                </div>
+                                <div class="thumb-sample-item" onclick="selectSampleThumb('/media/services/service_5_hd.png', this)" title="Mẫu 5: Massage Chân">
+                                    <img src="/media/services/service_5_hd.png?v=2" alt="Mẫu 5">
+                                </div>
+                                <div class="thumb-sample-item" onclick="selectSampleThumb('/media/services/service_6_hd.png', this)" title="Mẫu 6: Trị Liệu Cột Sống">
+                                    <img src="/media/services/service_6_hd.png?v=2" alt="Mẫu 6">
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="formServiceThumbnail"
+                                       placeholder="Chọn một trong các ảnh mẫu ở trên hoặc dán URL..." oninput="previewThumbnail()">
+                                <button type="button" class="btn btn-outline-secondary" onclick="previewThumbnail()">Xem thử</button>
+                            </div>
+                            <div class="mt-2 d-none" id="thumbPreviewBox">
+                                <img src="" id="thumbPreviewImg" style="height: 64px; border-radius: 8px; border: 1px solid #ddd;" alt="Preview">
+                            </div>
+                        </div>
+
+                        <!-- Mô tả chi tiết -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-dark">Mô tả chi tiết liệu trình & công dụng</label>
+                            <textarea class="form-control" id="formServiceDesc" rows="3"
+                                      placeholder="Mô tả các bước liệu pháp, thảo dược ứng dụng và lợi ích sức khỏe..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer px-4 py-3 bg-light">
+                    <button type="button" class="btn btn-outline-secondary rounded-3 px-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary rounded-3 px-4 fw-bold" style="background-color: var(--cham-primary-red); border-color: var(--cham-primary-red);" id="btnSubmitService">
+                        <i class="bi bi-check-lg me-1"></i> Lưu dịch vụ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     MODAL: XÁC NHẬN XÓA DỊCH VỤ (FIGMA NODE 216-2320)
+     ========================================================================== -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <input type="hidden" id="deleteTargetServiceId" value="">
+            <div class="modal-body p-4 text-center">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 72px; height: 72px; background-color: #FDEDEC; color: #E74C3C;">
+                    <i class="bi bi-trash3-fill fs-1"></i>
+                </div>
+                <h4 class="font-serif fw-bold text-dark mb-2" id="deleteConfirmModalLabel">Xác nhận xóa dịch vụ</h4>
+                <p class="text-muted small mb-3">
+                    Bạn có chắc chắn muốn xóa dịch vụ <strong id="deleteTargetServiceName" class="text-dark"></strong> (<span id="deleteTargetServiceCode" class="text-muted font-monospace"></span>)?
+                </p>
+                <div class="alert alert-warning text-start d-flex align-items-center gap-2 p-2 rounded-3 small mb-0 border-0" style="background-color: #FFF8E7; color: #8A6D3B;">
+                    <i class="bi bi-info-circle-fill flex-shrink-0 fs-5 text-warning"></i>
+                    <span>Hành động này sẽ gỡ dịch vụ khỏi danh sách trên hệ thống. Dữ liệu các lịch hẹn đã hoàn thành trước đó vẫn được bảo toàn an toàn trong lịch sử đối soát.</span>
+                </div>
+            </div>
+            <div class="modal-footer bg-light px-4 py-3 border-0 d-flex justify-content-center gap-2">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy bỏ</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" id="btnConfirmDeleteAction" onclick="executeDeleteService()" style="background-color: #DC3545; border-color: #DC3545;">
+                    <i class="bi bi-trash3 me-1"></i> Xác nhận xóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     MODAL: CẢNH BÁO DỊCH VỤ TRÙNG LẶP (FIGMA NODE 216-2853)
+     ========================================================================== -->
+<div class="modal fade" id="duplicateWarningModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <div class="modal-header border-0 bg-danger text-white py-3 px-4">
+                <h5 class="modal-title font-serif fw-bold d-flex align-items-center gap-2 m-0">
+                    <i class="bi bi-exclamation-diamond-fill"></i> Dịch vụ đã tồn tại
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 68px; height: 68px; background-color: #FDEDEC; color: #E74C3C;">
+                    <i class="bi bi-copy fs-1"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Trùng lặp tên liệu trình</h5>
+                <p class="text-muted small mb-0" id="duplicateModalText">
+                    Tên dịch vụ bạn vừa nhập đã có trong cơ sở dữ liệu của Cham Spa. Vui lòng đặt một tên khác độc bản để tránh xung đột dữ liệu.
+                </p>
+            </div>
+            <div class="modal-footer bg-light px-4 py-3 border-0 justify-content-center">
+                <button type="button" class="btn btn-dark rounded-pill px-4 fw-bold" data-bs-dismiss="modal" onclick="focusServiceNameInput()">
+                    <i class="bi bi-pencil me-1"></i> Thay đổi tên dịch vụ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast thông báo kết quả (Feedback Toast) -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+    <div id="adminToast" class="toast align-items-center text-white bg-dark border-0 rounded-3 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fs-6" id="adminToastBody">
+                Thao tác thành công!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Dữ liệu nguồn JSON từ Backend -->
+{{ services_admin_data|default:services_admin_json|json_script:"services-admin-data" }}
+{{ categories_data|default:categories_json|json_script:"categories-admin-data" }}
+
+<!-- ==========================================================================
+     LOGIC QUẢN TRỊ VIÊN: FETCH API, TOGGLE TRẠNG THÁI, XUẤT EXCEL (SHEETJS)
+     ========================================================================== -->
+<script>
+    let rawAdminSvc = JSON.parse(document.getElementById('services-admin-data').textContent || '[]');
+    let servicesAdminList = typeof rawAdminSvc === 'string' ? JSON.parse(rawAdminSvc) : rawAdminSvc;
+    if (!Array.isArray(servicesAdminList)) servicesAdminList = [];
+
+    let rawAdminCat = JSON.parse(document.getElementById('categories-admin-data').textContent || '[]');
+    let categoriesAdminList = typeof rawAdminCat === 'string' ? JSON.parse(rawAdminCat) : rawAdminCat;
+    if (!Array.isArray(categoriesAdminList)) categoriesAdminList = [];
+
+    let serviceModalObj = null;
+    let deleteModalObj = null;
+    let duplicateModalObj = null;
+    let toastObj = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // DI CHUYỂN TẤT CẢ MODAL RA TRỰC TIẾP DƯỚI THẺ <body>:
+        // Khắc phục triệt để lỗi "nền xám không chọn được" do layout admin_layout.html
+        // có chứa container overflow-hidden tạo stacking context khiến backdrop đè lên modal.
+        const modalIds = ['serviceFormModal', 'deleteConfirmModal', 'duplicateWarningModal'];
+        modalIds.forEach(function(id) {
+            const el = document.getElementById(id);
+            if (el && el.parentElement !== document.body) {
+                document.body.appendChild(el);
+            }
+        });
+
+        if (typeof bootstrap !== 'undefined') {
+            const smEl = document.getElementById('serviceFormModal');
+            if (smEl) serviceModalObj = bootstrap.Modal.getOrCreateInstance(smEl);
+
+            const dmEl = document.getElementById('deleteConfirmModal');
+            if (dmEl) deleteModalObj = bootstrap.Modal.getOrCreateInstance(dmEl);
+
+            const dupEl = document.getElementById('duplicateWarningModal');
+            if (dupEl) duplicateModalObj = bootstrap.Modal.getOrCreateInstance(dupEl);
+
+            const tEl = document.getElementById('adminToast');
+            if (tEl) toastObj = bootstrap.Toast.getOrCreateInstance(tEl);
+        }
+    });
+
+    function showToast(msg, isSuccess = true) {
+        const body = document.getElementById('adminToastBody');
+        const toastEl = document.getElementById('adminToast');
+        if (body) body.textContent = msg;
+        if (toastEl) {
+            toastEl.className = `toast align-items-center text-white border-0 rounded-3 shadow ${isSuccess ? 'bg-success' : 'bg-danger'}`;
+        }
+        if (toastObj) toastObj.show();
+    }
+
+    // Lọc nhanh bảng dữ liệu Admin theo Từ khóa, Danh mục, Trạng thái (Figma Node 216-931)
+    function filterAdminServicesTable() {
+        const query = document.getElementById('adminSearchInput').value.toLowerCase().trim();
+        const catFilter = document.getElementById('adminCategorySelect').value;
+        const statusFilter = document.getElementById('adminStatusSelect').value;
+
+        const rows = document.querySelectorAll('#adminServicesTableBody tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const name = (row.getAttribute('data-name') || '').toLowerCase();
+            const catId = row.getAttribute('data-cat-id');
+            const status = row.getAttribute('data-status');
+
+            let matchQuery = !query || name.includes(query);
+            let matchCat = (catFilter === 'all') || (catId === catFilter);
+            let matchStatus = (statusFilter === 'all') || (status === statusFilter);
+
+            if (matchQuery && matchCat && matchStatus) {
+                row.classList.remove('d-none');
+                visibleCount++;
+            } else {
+                row.classList.add('d-none');
+            }
+        });
+
+        document.getElementById('visibleRowsCount').textContent = visibleCount;
+    }
+
+    // Toggle switch đổi trạng thái trực tiếp bằng REST API không tải lại trang
+    function toggleServiceStatusAPI(serviceId, checkboxEl) {
+        fetch(`/services/api/admin/services/${serviceId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast(data.message);
+                const statusBadge = document.getElementById(`statusBadge_${serviceId}`);
+                const row = document.getElementById(`serviceRow_${serviceId}`);
+                if (data.is_active) {
+                    if (statusBadge) statusBadge.innerHTML = '<span class="status-dot-active">• Đang hoạt động</span>';
+                    if (row) row.setAttribute('data-status', 'Hoạt động');
+                    if (checkboxEl) checkboxEl.checked = true;
+                } else {
+                    if (statusBadge) statusBadge.innerHTML = '<span class="status-dot-inactive">• Đang ẩn / Khóa</span>';
+                    if (row) row.setAttribute('data-status', 'Ngừng hoạt động');
+                    if (checkboxEl) checkboxEl.checked = false;
+                }
+                updateKPICounters();
+            } else {
+                showToast(data.error || 'Lỗi cập nhật trạng thái', false);
+                checkboxEl.checked = !checkboxEl.checked;
+            }
+        })
+        .catch(err => {
+            showToast('Lỗi kết nối máy chủ', false);
+            checkboxEl.checked = !checkboxEl.checked;
+        });
+    }
+
+    // Cập nhật lại số lượng KPI trên thẻ
+    function updateKPICounters() {
+        const rows = document.querySelectorAll('#adminServicesTableBody tr');
+        let total = rows.length;
+        let active = 0;
+        let inactive = 0;
+
+        rows.forEach(r => {
+            const st = r.getAttribute('data-status');
+            if (st === 'Hoạt động') active++;
+            else inactive++;
+        });
+
+        document.getElementById('kpiTotalServices').textContent = total;
+        document.getElementById('kpiActiveServices').textContent = active;
+        document.getElementById('kpiInactiveServices').textContent = inactive;
+    }
+
+    // Mở Modal Thêm mới dịch vụ (Figma Node 216-1890)
+    function openServiceCreateModal() {
+        hideDuplicateAlert();
+
+        // 1. Reset form trắng hoàn toàn theo yêu cầu
+        const form = document.getElementById('serviceFormSubmit');
+        if (form) form.reset();
+
+        document.getElementById('serviceFormModalTitle').innerHTML = '<i class="bi bi-flower2"></i> THÊM DỊCH VỤ SPA MỚI';
+        document.getElementById('formServiceId').value = '';
+        document.getElementById('formServiceName').value = '';
+        document.getElementById('formServiceSlug').value = '';
+        document.getElementById('formServicePrice').value = '';
+        document.getElementById('formServicePricePreview').textContent = '0 VNĐ';
+        document.getElementById('formServiceDuration').value = '';
+        document.getElementById('formServiceStatus').value = 'Hoạt động';
+        document.getElementById('formServiceThumbnail').value = '';
+        document.getElementById('formServiceDesc').value = '';
+
+        // Chọn danh mục mặc định đầu tiên
+        const catSelect = document.getElementById('formServiceCategory');
+        if (catSelect && catSelect.options.length > 0) {
+            catSelect.selectedIndex = 0;
+        }
+
+        // Bỏ chọn tất cả ảnh mẫu & ẩn khung xem thử
+        highlightSampleThumb('');
+        previewThumbnail();
+
+        // Xóa trạng thái validation cũ
+        const nameInput = document.getElementById('formServiceName');
+        if (nameInput) nameInput.classList.remove('is-invalid');
+
+        // Reset nút submit
+        const saveBtn = document.getElementById('btnSubmitService');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Lưu dịch vụ';
+        }
+
+        if (serviceModalObj) serviceModalObj.show();
+    }
+
+    // Mở Modal Chỉnh sửa dịch vụ
+    function openServiceEditModal(serviceId) {
+        hideDuplicateAlert();
+        fetch(`/services/api/admin/services/${serviceId}/`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('serviceFormModalTitle').innerHTML = '<i class="bi bi-pencil-square"></i> CẬP NHẬT DỊCH VỤ SPA';
+                document.getElementById('formServiceId').value = data.id;
+                document.getElementById('formServiceName').value = data.name;
+                document.getElementById('formServiceCategory').value = data.category?.id || data.category_id;
+                document.getElementById('formServiceSlug').value = data.slug;
+                document.getElementById('formServicePrice').value = parseInt(data.price_vnd);
+                document.getElementById('formServicePricePreview').textContent = (data.formatted_price || parseInt(data.price_vnd).toLocaleString('vi-VN') + ' VNĐ');
+                document.getElementById('formServiceDuration').value = data.duration_minutes;
+                document.getElementById('formServiceStatus').value = data.status;
+                document.getElementById('formServiceThumbnail').value = data.thumbnail_url || '';
+                document.getElementById('formServiceDesc').value = data.description || '';
+
+                previewThumbnail();
+                highlightSampleThumb(data.thumbnail_url);
+
+                if (serviceModalObj) serviceModalObj.show();
+            })
+            .catch(err => {
+                showToast('Không tải được thông tin dịch vụ', false);
+            });
+    }
+
+    // Chọn nhanh ảnh mẫu trong Form thêm/sửa
+    function selectSampleThumb(url, itemEl) {
+        document.getElementById('formServiceThumbnail').value = url;
+        previewThumbnail();
+        highlightSampleThumb(url);
+    }
+
+    function highlightSampleThumb(url) {
+        document.querySelectorAll('.thumb-sample-item').forEach(el => {
+            const img = el.querySelector('img');
+            if (img && url && img.src.includes(url.split('?')[0])) {
+                el.classList.add('selected');
+            } else {
+                el.classList.remove('selected');
+            }
+        });
+    }
+
+    // Chọn nhanh thời lượng bằng chip
+    function setFormDuration(mins) {
+        const durInput = document.getElementById('formServiceDuration');
+        if (durInput) durInput.value = mins;
+    }
+
+    // Cập nhật xem trước định dạng giá tiền khi nhập
+    function onServicePriceInput(val) {
+        const preview = document.getElementById('formServicePricePreview');
+        const num = parseInt(val);
+        if (!isNaN(num) && num > 0) {
+            preview.textContent = num.toLocaleString('vi-VN') + ' VNĐ';
+        } else {
+            preview.textContent = '0 VNĐ';
+        }
+    }
+
+    // Lắng nghe khi gõ tên dịch vụ (hỗ trợ xóa lỗi trùng lặp & auto slug)
+    function onServiceNameInput(val) {
+        hideDuplicateAlert();
+        autoGenerateSlug(val);
+    }
+
+    // Xử lý Lưu dịch vụ (Thêm hoặc Sửa) qua API có kiểm tra Trùng lặp (Figma Node 216-2853)
+    function handleSaveService(event) {
+        event.preventDefault();
+        hideDuplicateAlert();
+
+        const sId = document.getElementById('formServiceId').value;
+        const nameVal = document.getElementById('formServiceName').value.trim();
+
+        // 1. Kiểm tra trùng tên sơ bộ ngay tại Client để phản hồi tức thì
+        if (!sId) {
+            const dup = servicesAdminList.find(s => s.name.toLowerCase() === nameVal.toLowerCase());
+            if (dup) {
+                showDuplicateWarning(nameVal, dup.category_name);
+                return;
+            }
+        } else {
+            const dup = servicesAdminList.find(s => s.id !== parseInt(sId) && s.name.toLowerCase() === nameVal.toLowerCase());
+            if (dup) {
+                showDuplicateWarning(nameVal, dup.category_name);
+                return;
+            }
+        }
+
+        const saveBtn = document.getElementById('btnSubmitService');
+        const origHtml = saveBtn.innerHTML;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang lưu...';
+
+        const payload = {
+            name: nameVal,
+            category_id: parseInt(document.getElementById('formServiceCategory').value),
+            slug: document.getElementById('formServiceSlug').value.trim(),
+            price_vnd: parseFloat(document.getElementById('formServicePrice').value),
+            duration_minutes: parseInt(document.getElementById('formServiceDuration').value),
+            status: document.getElementById('formServiceStatus').value,
+            thumbnail_url: document.getElementById('formServiceThumbnail').value.trim(),
+            description: document.getElementById('formServiceDesc').value.trim()
+        };
+
+        const isUpdate = Boolean(sId);
+        const url = isUpdate ? `/services/api/admin/services/${sId}/` : '/services/api/admin/services/';
+        const method = isUpdate ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json().then(data => ({ ok: res.ok, status: res.status, body: data })))
+        .then(result => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = origHtml;
+
+            const data = result.body;
+            if (result.ok && data.status === 'success') {
+                showToast(data.message, true);
+                if (serviceModalObj) serviceModalObj.hide();
+                setTimeout(() => window.location.reload(), 600);
+            } else if (data.code === 'DUPLICATE_SERVICE_NAME' || (data.errors && data.errors.name)) {
+                // Xử lý Giao diện khi Dịch vụ Trùng lặp (Figma Node 216-2853)
+                const catSelect = document.getElementById('formServiceCategory');
+                const catName = catSelect.options[catSelect.selectedIndex]?.text || 'danh mục';
+                showDuplicateWarning(nameVal, catName, data.message);
+            } else {
+                let errMsg = data.message || 'Lỗi lưu dịch vụ';
+                if (data.errors) errMsg += ': ' + JSON.stringify(data.errors);
+                showToast(errMsg, false);
+            }
+        })
+        .catch(err => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = origHtml;
+            showToast('Lỗi kết nối máy chủ', false);
+        });
+    }
+
+    // Hiển thị giao diện cảnh báo trùng lặp (Figma Node 216-2853)
+    function showDuplicateWarning(serviceName, categoryName, customMsg) {
+        const alertBox = document.getElementById('duplicateAlertBox');
+        const alertMsg = document.getElementById('duplicateAlertMsg');
+        const nameInput = document.getElementById('formServiceName');
+        const feedbackBox = document.getElementById('formServiceNameFeedback');
+        const feedbackText = document.getElementById('formServiceNameFeedbackText');
+
+        const message = customMsg || `Đã tồn tại dịch vụ có tên "${serviceName}" trong danh mục "${categoryName}". Vui lòng chọn một tên khác để tránh nhầm lẫn cho khách hàng khi đặt lịch.`;
+
+        if (alertMsg) alertMsg.textContent = message;
+        if (alertBox) {
+            alertBox.classList.remove('d-none');
+            alertBox.classList.add('d-flex');
+        }
+
+        if (nameInput) {
+            nameInput.classList.add('is-invalid', 'animate-shake');
+            nameInput.focus();
+            setTimeout(() => nameInput.classList.remove('animate-shake'), 450);
+        }
+
+        if (feedbackBox) {
+            feedbackBox.classList.remove('d-none');
+            if (feedbackText) feedbackText.textContent = `Tên "${serviceName}" đã tồn tại!`;
+        }
+
+        // Bật popup cảnh báo trùng lặp (Node 216-2853)
+        const dupModalText = document.getElementById('duplicateModalText');
+        if (dupModalText) dupModalText.textContent = message;
+        if (duplicateModalObj) duplicateModalObj.show();
+
+        showToast('Cảnh báo: Dịch vụ trùng lặp!', false);
+    }
+
+    // Ẩn giao diện cảnh báo trùng lặp khi người dùng sửa tên
+    function hideDuplicateAlert() {
+        const alertBox = document.getElementById('duplicateAlertBox');
+        const nameInput = document.getElementById('formServiceName');
+        const feedbackBox = document.getElementById('formServiceNameFeedback');
+
+        if (alertBox) {
+            alertBox.classList.add('d-none');
+            alertBox.classList.remove('d-flex');
+        }
+        if (nameInput) nameInput.classList.remove('is-invalid');
+        if (feedbackBox) feedbackBox.classList.add('d-none');
+    }
+
+    function focusServiceNameInput() {
+        const nameInput = document.getElementById('formServiceName');
+        if (nameInput) {
+            setTimeout(() => {
+                nameInput.focus();
+                nameInput.select();
+            }, 300);
+        }
+    }
+
+    // Mở Modal Xác nhận Xóa dịch vụ (Figma Node 216-2320)
+    function openDeleteServiceModal(serviceId, serviceName, serviceCode) {
+        document.getElementById('deleteTargetServiceId').value = serviceId;
+        document.getElementById('deleteTargetServiceName').textContent = serviceName;
+        document.getElementById('deleteTargetServiceCode').textContent = serviceCode;
+
+        if (deleteModalObj) deleteModalObj.show();
+    }
+
+    // Thực thi Xóa dịch vụ qua REST API (Figma Node 216-2320)
+    function executeDeleteService() {
+        const serviceId = document.getElementById('deleteTargetServiceId').value;
+        if (!serviceId) return;
+
+        const delBtn = document.getElementById('btnConfirmDeleteAction');
+        const origHtml = delBtn.innerHTML;
+        delBtn.disabled = true;
+        delBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xóa...';
+
+        fetch(`/services/api/admin/services/${serviceId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            delBtn.disabled = false;
+            delBtn.innerHTML = origHtml;
+            if (deleteModalObj) deleteModalObj.hide();
+
+            if (data.status === 'success') {
+                showToast(data.message, true);
+                const row = document.getElementById(`serviceRow_${serviceId}`);
+                if (data.action === 'deleted') {
+                    if (row) {
+                        row.style.transition = 'all 0.4s ease';
+                        row.style.opacity = '0';
+                        row.style.transform = 'scale(0.95)';
+                        setTimeout(() => row.remove(), 400);
+                    }
+                } else {
+                    const statusBadge = document.getElementById(`statusBadge_${serviceId}`);
+                    if (statusBadge) {
+                        statusBadge.innerHTML = '<span class="status-dot-inactive">• Đang ẩn / Khóa</span>';
+                    }
+                    if (row) row.setAttribute('data-status', 'Ngừng hoạt động');
+                    const sw = document.getElementById(`toggleSwitch_${serviceId}`);
+                    if (sw) sw.checked = false;
+                }
+                updateKPICounters();
+            } else {
+                showToast(data.error || 'Lỗi xóa dịch vụ', false);
+            }
+        })
+        .catch(err => {
+            delBtn.disabled = false;
+            delBtn.innerHTML = origHtml;
+            if (deleteModalObj) deleteModalObj.hide();
+            showToast('Lỗi kết nối khi xóa dịch vụ', false);
+        });
+    }
+
+    // Auto slugify helper
+    function autoGenerateSlug(text) {
+        const slugInput = document.getElementById('formServiceSlug');
+        if (!slugInput.value || slugInput.dataset.manual !== 'true') {
+            let s = text.toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[đĐ]/g, 'd')
+                .replace(/[^a-z0-9\s-]/g, '')
+                .trim().replace(/\s+/g, '-');
+            slugInput.value = s;
+        }
+    }
+
+    function previewThumbnail() {
+        const url = document.getElementById('formServiceThumbnail').value.trim();
+        const box = document.getElementById('thumbPreviewBox');
+        const img = document.getElementById('thumbPreviewImg');
+        if (url) {
+            img.src = url;
+            box.classList.remove('d-none');
+        } else {
+            box.classList.add('d-none');
+        }
+    }
+
+    function toggleSelectAll(master) {
+        document.querySelectorAll('.service-row-chk').forEach(c => c.checked = master.checked);
+        updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+        const cnt = document.querySelectorAll('.service-row-chk:checked').length;
+        document.getElementById('selectedRowsCount').textContent = cnt;
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

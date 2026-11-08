@@ -1,0 +1,542 @@
+{% extends "layouts/staff_layout.html" %}
+{% load static %}
+
+{% block title %}Quản lý kịch bản Chatbot (FAQ) | Cham Spa & Massage{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ==========================================================================
+   CHAM SPA CRM - QUẢN LÝ KỊCH BẢN CHATBOT FAQ (UC-2.3)
+   Thành viên phụ trách: Thảo Ngọc
+   ========================================================================== */
+
+.faq-card-container {
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid var(--cham-border-subtle);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    padding: 24px;
+    margin-top: 10px;
+}
+
+.faq-stats-card {
+    background-color: #FAF7F0;
+    border: 1px solid #EFEAE1;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.faq-stats-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+.faq-table th {
+    background-color: #FAF7F0;
+    color: var(--cham-dark);
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 13.5px;
+    border-bottom: 2px solid #E5DEC9;
+    padding: 12px 14px;
+}
+
+.faq-table td {
+    padding: 14px;
+    vertical-align: middle;
+    font-size: 13px;
+    border-bottom: 1px solid #F3EFE6;
+}
+
+.faq-keyword-tag {
+    background-color: #F4EFE3;
+    border: 1px solid #E5DEC9;
+    color: var(--cham-dark);
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: inline-block;
+    margin: 1px 2px;
+}
+
+.status-badge-active {
+    background-color: #D4EDDA;
+    color: #155724;
+    border: 1px solid #C3E6CB;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.status-badge-hidden {
+    background-color: #E2E3E5;
+    color: #383D41;
+    border: 1px solid #D6D8DB;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h4 class="font-serif fw-bold text-dark mb-1">
+                <i class="bi bi-robot text-danger me-2"></i>QUẢN LÝ KỊCH BẢN CHATBOT (FAQ)
+            </h4>
+            <div class="text-muted" style="font-size: 13px;">
+                Thiết lập ngân hàng câu hỏi thường gặp và câu trả lời tự động thuần văn bản (TEXT) cho Chatbot (UC-2.3)
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'chatbox:livechat' %}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                <i class="bi bi-headset me-1"></i> Quay lại Livechat
+            </a>
+            <button type="button" class="btn btn-sm text-white rounded-pill px-3 shadow-sm" 
+                    style="background-color: var(--cham-red);" 
+                    onclick="openCreateFaqModal()">
+                <i class="bi bi-plus-lg me-1"></i> Thêm câu hỏi mới
+            </button>
+        </div>
+    </div>
+
+    <!-- 3 Thẻ thống kê nhanh -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <div class="faq-stats-card">
+                <div class="faq-stats-icon bg-danger-subtle text-danger">
+                    <i class="bi bi-chat-quote-fill"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size: 12px; font-weight: 600;">TỔNG SỐ CÂU HỎI FAQ</div>
+                    <div id="statTotal" class="fw-bold font-serif fs-4 text-dark">{{ total_faqs }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="faq-stats-card">
+                <div class="faq-stats-icon bg-success-subtle text-success">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size: 12px; font-weight: 600;">ĐANG HOẠT ĐỘNG (ACTIVE)</div>
+                    <div id="statActive" class="fw-bold font-serif fs-4 text-success">{{ active_count }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="faq-stats-card">
+                <div class="faq-stats-icon bg-secondary-subtle text-secondary">
+                    <i class="bi bi-eye-slash-fill"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size: 12px; font-weight: 600;">ĐANG ẨN (HIDDEN)</div>
+                    <div id="statHidden" class="fw-bold font-serif fs-4 text-secondary">{{ hidden_count }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bảng danh sách FAQ -->
+    <div class="faq-card-container">
+        <!-- Bộ lọc và tìm kiếm -->
+        <div class="row g-2 mb-3">
+            <div class="col-md-5">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="faqSearchInput" class="form-control border-start-0" 
+                           placeholder="Tìm kiếm theo mã câu hỏi, câu hỏi, từ khóa..." 
+                           onkeyup="handleFilterFaqs()">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select id="faqCategoryFilter" class="form-select form-select-sm" onchange="handleFilterFaqs()">
+                    <option value="">-- Tất cả danh mục --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select id="faqStatusFilter" class="form-select form-select-sm" onchange="handleFilterFaqs()">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    <option value="Active">Active (Đang dùng)</option>
+                    <option value="Hidden">Hidden (Ẩn)</option>
+                </select>
+            </div>
+            <div class="col-md-2 text-end">
+                <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="resetFaqFilters()">
+                    <i class="bi bi-arrow-counterclockwise"></i> Đặt lại
+                </button>
+            </div>
+        </div>
+
+        <!-- Bảng hiển thị dữ liệu -->
+        <div class="table-responsive">
+            <table class="table faq-table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Mã FAQ</th>
+                        <th style="width: 140px;">Danh mục</th>
+                        <th>Nội dung câu hỏi & Từ khóa</th>
+                        <th style="width: 320px;">Câu trả lời tự động (TEXT)</th>
+                        <th style="width: 110px;" class="text-center">Trạng thái</th>
+                        <th style="width: 130px;" class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="faqTableBody">
+                    {% if faqs %}
+                        {% for f in faqs %}
+                        <tr id="faqRow_{{ f.id }}">
+                            <td>
+                                <strong class="text-danger font-monospace" style="font-size: 13px;">{{ f.faq_code }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-warning-subtle text-dark border px-2 py-1" style="font-size: 11.5px;">
+                                    {{ f.category }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark mb-1">{{ f.question }}</div>
+                                <div>
+                                    <i class="bi bi-tags text-muted" style="font-size: 11px;"></i>
+                                    {% if f.keywords %}
+                                        <small class="text-muted">{{ f.keywords }}</small>
+                                    {% else %}
+                                        <small class="text-muted italic">Chưa có từ khóa</small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-muted" style="line-height: 1.45; font-size: 12.5px;">
+                                    {{ f.answer|truncatechars:120 }}
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                {% if f.status == 'Active' %}
+                                    <span class="status-badge-active"><i class="bi bi-check2"></i> Đang dùng</span>
+                                {% else %}
+                                    <span class="status-badge-hidden"><i class="bi bi-eye-slash"></i> Ẩn</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <!-- Nút Ẩn/Hiện -->
+                                    <button type="button" class="btn btn-outline-secondary" 
+                                            title="Bật/Tắt trạng thái" 
+                                            onclick="toggleFaqStatus({{ f.id }})">
+                                        <i class="bi bi-toggle-on"></i>
+                                    </button>
+                                    <!-- Nút Sửa -->
+                                    <button type="button" class="btn btn-outline-dark" 
+                                            title="Chỉnh sửa câu hỏi" 
+                                            onclick="openEditFaqModal({{ f.id }})">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    <!-- Nút Xóa -->
+                                    <button type="button" class="btn btn-outline-danger" 
+                                            title="Xóa câu hỏi" 
+                                            onclick="deleteFaq({{ f.id }})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-2 text-secondary d-block mb-2"></i>
+                                Chưa có câu hỏi FAQ nào trong hệ thống. Bấm "Thêm câu hỏi mới" để tạo kịch bản.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================================
+     MODAL THÊM / CHỈNH SỬA CÂU HỎI FAQ (UC-2.3)
+     Quy tắc: BỎ chèn ảnh/nút bấm, câu trả lời thuần túy là văn bản (TEXT)
+     ============================================================================ -->
+<div class="modal fade" id="faqModal" tabindex="-1" aria-labelledby="faqModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header text-white" style="background-color: var(--cham-red);">
+                <h5 class="modal-title font-serif" id="faqModalLabel">
+                    <i class="bi bi-robot me-2"></i>Thêm câu hỏi FAQ mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="faqForm" onsubmit="handleSaveFaq(event)">
+                <input type="hidden" id="faqIdInput" value="">
+                
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">
+                                Mã câu hỏi FAQ <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="faqCodeInput" class="form-control font-monospace text-uppercase" 
+                                   placeholder="VD: FAQ-GIA-02, FAQ-GIO-01" required>
+                            <div class="form-text" style="font-size: 11px;">Mã định danh duy nhất trong CSDL bảng FAQ.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">
+                                Nhóm danh mục <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="faqCategoryInput" class="form-control" 
+                                   placeholder="VD: Bảng giá, Giờ mở cửa, Đặt lịch, Chính sách..." required list="categoryList">
+                            <datalist id="categoryList">
+                                <option value="Bảng giá">
+                                <option value="Giờ mở cửa">
+                                <option value="Chi nhánh & Địa chỉ">
+                                <option value="Đặt lịch hẹn">
+                                <option value="Chính sách">
+                                <option value="Thanh toán">
+                                <option value="Hồ sơ sức khỏe">
+                            </datalist>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold" style="font-size: 13px;">
+                                Nội dung câu hỏi thường gặp <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="faqQuestionInput" class="form-control" 
+                                   placeholder="VD: Khách hàng thường hỏi gì về giá hoặc quy trình dịch vụ?" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold" style="font-size: 13px;">
+                                Từ khóa nhận diện (Keywords)
+                            </label>
+                            <input type="text" id="faqKeywordsInput" class="form-control" 
+                                   placeholder="Các từ khóa ngăn cách bằng dấu phẩy. VD: giá, bao nhiêu tiền, chi phí, menu">
+                            <div class="form-text" style="font-size: 11px;">Chatbot sẽ dựa vào các từ khóa này để tìm kiếm câu trả lời tự động khớp nhất.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold" style="font-size: 13px;">
+                                Nội dung câu trả lời tự động (TEXT) <span class="text-danger">*</span>
+                            </label>
+                            <textarea id="faqAnswerInput" class="form-control" rows="4" 
+                                      placeholder="Nhập câu trả lời chi tiết và lịch sự. Quy tắc: Thuần văn bản (TEXT), không kèm ảnh hay nút bấm phức tạp." required></textarea>
+                            <div class="form-text" style="font-size: 11px;">Nếu có liên kết, quý khách có thể điền link URL dạng text (VD: https://chamspa.vn/dich-vu).</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px;">
+                                Trạng thái hoạt động
+                            </label>
+                            <select id="faqStatusInput" class="form-select">
+                                <option value="Active">Active (Đang sử dụng - Bot được phép dùng)</option>
+                                <option value="Hidden">Hidden (Ẩn tạm thời)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-sm text-white rounded-pill px-4 shadow-sm" style="background-color: var(--cham-red);">
+                        <i class="bi bi-save me-1"></i> Lưu câu hỏi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/**
+ * JAVASCRIPT XỬ LÝ CRUD QUẢN LÝ KỊCH BẢN CHATBOT FAQ (UC-2.3)
+ */
+let faqModalInstance = null;
+
+document.addEventListener('DOMContentLoaded', function () {
+    const modalEl = document.getElementById('faqModal');
+    if (modalEl) {
+        faqModalInstance = new bootstrap.Modal(modalEl);
+    }
+});
+
+function openCreateFaqModal() {
+    document.getElementById('faqModalLabel').innerHTML = '<i class="bi bi-robot me-2"></i>Thêm câu hỏi FAQ mới';
+    document.getElementById('faqIdInput').value = '';
+    document.getElementById('faqCodeInput').value = 'FAQ-' + Math.floor(1000 + Math.random() * 9000);
+    document.getElementById('faqCodeInput').readOnly = false;
+    document.getElementById('faqCategoryInput').value = '';
+    document.getElementById('faqQuestionInput').value = '';
+    document.getElementById('faqKeywordsInput').value = '';
+    document.getElementById('faqAnswerInput').value = '';
+    document.getElementById('faqStatusInput').value = 'Active';
+
+    if (faqModalInstance) faqModalInstance.show();
+}
+
+function openEditFaqModal(faqId) {
+    fetch(`/chatbox/api/admin/faqs/${faqId}/`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('faqModalLabel').innerHTML = `<i class="bi bi-pencil-square me-2"></i>Chỉnh sửa câu hỏi [${data.faq_code}]`;
+        document.getElementById('faqIdInput').value = data.id;
+        document.getElementById('faqCodeInput').value = data.faq_code;
+        document.getElementById('faqCodeInput').readOnly = true;
+        document.getElementById('faqCategoryInput').value = data.category;
+        document.getElementById('faqQuestionInput').value = data.question;
+        document.getElementById('faqKeywordsInput').value = data.keywords || '';
+        document.getElementById('faqAnswerInput').value = data.answer;
+        document.getElementById('faqStatusInput').value = data.status;
+
+        if (faqModalInstance) faqModalInstance.show();
+    })
+    .catch(err => alert('Không thể tải thông tin FAQ.'));
+}
+
+function handleSaveFaq(e) {
+    e.preventDefault();
+    const id = document.getElementById('faqIdInput').value;
+    const isEdit = !!id;
+
+    const payload = {
+        faq_code: document.getElementById('faqCodeInput').value.trim().toUpperCase(),
+        category: document.getElementById('faqCategoryInput').value.trim(),
+        question: document.getElementById('faqQuestionInput').value.trim(),
+        keywords: document.getElementById('faqKeywordsInput').value.trim(),
+        answer: document.getElementById('faqAnswerInput').value.trim(),
+        status: document.getElementById('faqStatusInput').value
+    };
+
+    const url = isEdit ? `/chatbox/api/admin/faqs/${id}/` : `/chatbox/api/admin/faqs/`;
+    const method = isEdit ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, body: data })))
+    .then(res => {
+        if (!res.ok) {
+            let errorMsg = 'Có lỗi xảy ra: ';
+            if (res.body.errors) {
+                errorMsg += JSON.stringify(res.body.errors);
+            } else if (res.body.error) {
+                errorMsg += res.body.error;
+            }
+            alert(errorMsg);
+            return;
+        }
+
+        alert(res.body.message || 'Lưu câu hỏi thành công!');
+        if (faqModalInstance) faqModalInstance.hide();
+        window.location.reload();
+    })
+    .catch(err => {
+        console.error('Lỗi lưu FAQ:', err);
+        alert('Lỗi kết nối máy chủ.');
+    });
+}
+
+function toggleFaqStatus(faqId) {
+    fetch(`/chatbox/api/admin/faqs/${faqId}/toggle-status/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.reload();
+        }
+    })
+    .catch(err => console.error(err));
+}
+
+function deleteFaq(faqId) {
+    if (!confirm('Bạn có chắc chắn muốn xóa câu hỏi FAQ này? Thao tác này không thể hoàn tác.')) return;
+
+    fetch(`/chatbox/api/admin/faqs/${faqId}/`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || 'Đã xóa câu hỏi thành công.');
+        window.location.reload();
+    })
+    .catch(err => console.error(err));
+}
+
+function handleFilterFaqs() {
+    const q = document.getElementById('faqSearchInput').value.toLowerCase().trim();
+    const cat = document.getElementById('faqCategoryFilter').value.toLowerCase();
+    const st = document.getElementById('faqStatusFilter').value.toLowerCase();
+
+    const rows = document.querySelectorAll('#faqTableBody tr');
+    rows.forEach(r => {
+        const text = r.textContent.toLowerCase();
+        const matchesQ = !q || text.includes(q);
+        const matchesCat = !cat || text.includes(cat);
+        const matchesSt = !st || text.includes(st);
+
+        if (matchesQ && matchesCat && matchesSt) {
+            r.style.display = '';
+        } else {
+            r.style.display = 'none';
+        }
+    });
+}
+
+function resetFaqFilters() {
+    document.getElementById('faqSearchInput').value = '';
+    document.getElementById('faqCategoryFilter').value = '';
+    document.getElementById('faqStatusFilter').value = '';
+    handleFilterFaqs();
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

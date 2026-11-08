@@ -1,0 +1,370 @@
+{% extends base_layout|default:"layouts/staff_layout.html" %}
+{% load static %}
+
+{% block title %}Tra cứu Hồ sơ sức khỏe Khách hàng | Staff Workspace{% endblock %}
+{% block page_title %}Tra cứu Hồ sơ sức khỏe{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================================
+       CHAM SPA & MASSAGE - MOD-08: TRA CỨU HỒ SƠ SỨC KHỎE (STAFF WORKSPACE)
+       Thành viên phụ trách: Thảo Ngọc (Meo)
+       ========================================================================== */
+
+    .staff-health-container {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding-bottom: 60px;
+    }
+
+    .kpi-mini-card {
+        background-color: #FFFFFF;
+        border: 1px solid #DED2BA;
+        border-radius: 10px;
+        padding: 10px 16px;
+        box-shadow: 0 2px 8px rgba(46, 29, 23, 0.04);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 100%;
+        transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .kpi-mini-card:hover {
+        transform: translateY(-1px);
+        border-color: #D0B581;
+    }
+
+    .kpi-icon-wrap {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .kpi-num {
+        font-family: var(--font-serif), Georgia, serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #171311;
+        line-height: 1.1;
+    }
+
+    .kpi-title {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #716761;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    /* Bảng dữ liệu chuẩn Cham Spa */
+    .table-container-card {
+        background-color: #FFFFFF;
+        border: 1px solid #D0B581;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(46, 29, 23, 0.06);
+        overflow: hidden;
+    }
+
+    .cham-table {
+        margin-bottom: 0;
+    }
+
+    .cham-table th {
+        background-color: #FAF7EF;
+        color: #781A24;
+        font-family: var(--font-body), sans-serif;
+        font-weight: 700;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 16px 20px;
+        border-bottom: 1px solid #DED2BA;
+        vertical-align: middle;
+    }
+
+    .cham-table td {
+        padding: 16px 20px;
+        vertical-align: middle;
+        font-size: 14px;
+        border-bottom: 1px solid #F0EAE1;
+    }
+
+    .cham-table tbody tr:hover {
+        background-color: #FAF7EF;
+    }
+
+    .search-input-wrap {
+        position: relative;
+        max-width: 420px;
+        width: 100%;
+    }
+
+    .search-input-box {
+        background-color: #FFFFFF;
+        border: 1px solid #DED2BA;
+        border-radius: 10px;
+        padding: 10px 16px 10px 42px;
+        font-size: 14px;
+        width: 100%;
+        transition: all 0.2s ease;
+    }
+
+    .search-input-box:focus {
+        border-color: #781A24;
+        box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.12);
+        outline: none;
+    }
+
+    .search-icon-pos {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #716761;
+        font-size: 16px;
+    }
+
+    .filter-btn {
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 600;
+        border: 1px solid #DED2BA;
+        background-color: #FFFFFF;
+        color: #4A3E39;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover {
+        border-color: #D0B581;
+        background-color: #FAF7EF;
+        color: #781A24;
+    }
+
+    .filter-btn.active {
+        background-color: #781A24 !important;
+        border-color: #781A24 !important;
+        color: #FFFFFF !important;
+    }
+</style>
+{% endblock %}
+
+{% block staff_topbar %}{% endblock %}
+{% block admin_topbar %}{% endblock %}
+
+{% block content %}
+<div class="staff-health-container">
+
+    <!-- 1. TIÊU ĐỀ TRANG -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <div class="small text-muted mb-1 text-uppercase fw-bold" style="letter-spacing: 0.5px;">
+                STAFF WORKSPACE · VẬN HÀNH TRỊ LIỆU AN TOÀN
+            </div>
+            <h2 class="font-serif fw-bold mb-0" style="color: #781A24; font-size: 28px;">
+                Tra cứu & Quản lý Hồ sơ Sức khỏe Khách hàng
+            </h2>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border p-2 px-3 rounded-pill">
+                <i class="bi bi-clock me-1 text-danger"></i> Ca trực: {{ now|date:"d/m/Y" }}
+            </span>
+        </div>
+    </div>
+
+    <!-- 2. KPI WIDGETS THỐNG KÊ NHANH (TINH GỌN, DỄ NHÌN) -->
+    <div class="row g-2 g-md-3 mb-3">
+        <!-- Tổng số hồ sơ -->
+        <div class="col-md-4">
+            <div class="kpi-mini-card">
+                <div class="kpi-icon-wrap" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #D0B581;">
+                    <i class="bi bi-folder-check"></i>
+                </div>
+                <div>
+                    <div class="kpi-num">{{ total_profiles }}</div>
+                    <div class="kpi-title">Tổng Hồ sơ đã lưu</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cảnh báo y tế đỏ -->
+        <div class="col-md-4">
+            <div class="kpi-mini-card">
+                <div class="kpi-icon-wrap" style="background-color: #FFF5F5; color: #DC2626; border: 1px solid #FECACA;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div>
+                    <div class="kpi-num" style="color: #DC2626;">{{ high_alert_count }}</div>
+                    <div class="kpi-title">Cảnh báo An toàn Y tế</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trạng thái chuẩn bị phòng -->
+        <div class="col-md-4">
+            <div class="kpi-mini-card">
+                <div class="kpi-icon-wrap" style="background-color: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0;">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div>
+                    <div class="kpi-num" style="color: #16A34A;">100%</div>
+                    <div class="kpi-title">Tuân thủ Khảo sát KTV</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. BẢNG DỮ LIỆU & BỘ LỌC TÌM KIẾM -->
+    <div class="table-container-card">
+
+        <!-- Header Bảng: Search & Filters -->
+        <div class="p-4 bg-white border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <!-- Form Tìm kiếm -->
+            <form method="GET" action="{% url 'health:staff_lookup' %}" class="search-input-wrap">
+                <i class="bi bi-search search-icon-pos"></i>
+                <input type="text" name="q" value="{{ query }}" class="search-input-box"
+                    placeholder="Tìm theo Tên, SĐT hoặc Mã hồ sơ (VD: HP-KH001)...">
+                {% if filter_alert %}
+                <input type="hidden" name="alert" value="{{ filter_alert }}">
+                {% endif %}
+            </form>
+
+            <!-- Bộ lọc Cảnh báo y tế -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="small fw-bold text-muted me-1">Lọc:</span>
+                <a href="{% url 'health:staff_lookup' %}{% if query %}?q={{ query }}{% endif %}"
+                    class="filter-btn {% if not filter_alert %}active{% endif %}">
+                    Tất cả ({{ total_profiles }})
+                </a>
+                <a href="{% url 'health:staff_lookup' %}?alert=alert{% if query %}&q={{ query }}{% endif %}"
+                    class="filter-btn {% if filter_alert == 'alert' %}active{% endif %}" style="color: #DC2626;">
+                    <i class="bi bi-exclamation-circle-fill me-1"></i> Có cảnh báo ({{ high_alert_count }})
+                </a>
+                <a href="{% url 'health:staff_lookup' %}?alert=normal{% if query %}&q={{ query }}{% endif %}"
+                    class="filter-btn {% if filter_alert == 'normal' %}active{% endif %}">
+                    An toàn
+                </a>
+            </div>
+        </div>
+
+        <!-- Bảng danh sách hồ sơ -->
+        <div class="table-responsive">
+            <table class="table cham-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Mã hồ sơ</th>
+                        <th>Khách hàng</th>
+                        <th>Chỉ số thể trạng</th>
+                        <th>Huyết áp</th>
+                        <th>Mức độ đau</th>
+                        <th>Lực massage</th>
+                        <th>Cảnh báo an toàn KTV</th>
+                        <th class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in profiles_list %}
+                    {% with p=item.obj data=item.data %}
+                    <tr>
+                        <!-- Mã hồ sơ -->
+                        <td>
+                            <a href="{% url 'health:staff_detail' p.user.id %}" class="fw-bold text-decoration-none" style="color: #781A24;">
+                                {{ p.health_code }}
+                            </a>
+                            <div class="text-muted" style="font-size: 11.5px;">{{ p.created_at|date:"d/m/Y H:i" }}</div>
+                        </td>
+
+                        <!-- Khách hàng -->
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                                    style="width: 38px; height: 38px; background-color: #781A24; font-size: 14px;">
+                                    {{ p.user.name|default:p.user.username|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ p.user.name|default:p.user.username }}</div>
+                                    <div class="text-muted small"><i class="bi bi-telephone me-1"></i>{{ p.user.phone }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Chỉ số thể trạng -->
+                        <td>
+                            <div class="small fw-semibold text-dark">
+                                <span>{{ data.formatted_height|default:p.height_cm|default:"--" }} cm</span> / <span>{{ data.formatted_weight|default:p.weight_kg|default:"--" }} kg</span>
+                            </div>
+                            <span class="badge {{ data.bmi_badge_class|default:'bg-secondary' }} rounded-pill" style="font-size: 11px;">
+                                BMI: {{ data.bmi|default:"--" }} ({{ data.bmi_classification }})
+                            </span>
+                        </td>
+
+                        <!-- Huyết áp -->
+                        <td>
+                            <span class="badge {% if p.blood_pressure == 'Cao' %}bg-danger{% elif p.blood_pressure == 'Thấp' %}bg-warning text-dark{% else %}bg-success{% endif %} rounded-pill">
+                                {{ p.blood_pressure|default:"Bình thường" }}
+                            </span>
+                        </td>
+
+                        <!-- Mức độ đau -->
+                        <td>
+                            <span class="badge rounded-pill fw-bold" style="background-color: {{ data.pain_color }}; color: #FFFFFF; font-size: 12px;">
+                                {{ p.pain_level|default:5 }}/10
+                            </span>
+                        </td>
+
+                        <!-- Lực massage -->
+                        <td>
+                            <span class="fw-semibold text-dark">
+                                {{ p.massage_pressure|default:"Lực vừa" }}
+                            </span>
+                        </td>
+
+                        <!-- Cảnh báo an toàn -->
+                        <td>
+                            {% if data.has_medical_alert %}
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for alert in data.alert_details %}
+                                <span class="badge bg-danger rounded-pill" style="font-size: 11px;" title="{{ alert.desc }}">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ alert.title }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 11px;">
+                                <i class="bi bi-check-circle me-1"></i> An toàn
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Thao tác -->
+                        <td class="text-end">
+                            <a href="{% url 'health:staff_detail' p.user.id %}" class="btn btn-sm btn-outline-danger px-3 py-1 rounded-2" style="border-color: #781A24; color: #781A24;">
+                                <i class="bi bi-eye"></i> Xem hồ sơ
+                            </a>
+                        </td>
+                    </tr>
+                    {% endwith %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-folder2-open fs-1 d-block mb-2 text-muted"></i>
+                            <div>Không tìm thấy hồ sơ sức khỏe nào khớp với điều kiện tra cứu.</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

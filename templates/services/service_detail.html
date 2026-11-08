@@ -1,0 +1,643 @@
+{% extends "layouts/public_layout.html" %}
+{% load static %}
+
+{% block title %}{{ service.name }} | Chi tiết Liệu trình Cham Spa & Massage Đà Nẵng{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* =========================================================================
+       CSS TÙY BIẾN CHO GIAO DIỆN CHI TIẾT DỊCH VỤ (FIGMA NODE 216-929)
+       Tác giả: Minh Khánh (MOD-03)
+       ========================================================================= */
+
+    :root {
+        --cham-primary-red: #781A24;
+        --cham-red-hover: #5d131b;
+        --cham-bg-cream: #F4EFE3;
+        --cham-wood-dark: #3D271D;
+        --cham-gold-accent: #D0B581;
+        --cham-gold-soft: #E8D8B5;
+        --cham-border-color: #E2D9CC;
+    }
+
+    body {
+        background-color: var(--cham-bg-cream);
+    }
+
+    /* 1. Breadcrumb navigation */
+    .detail-breadcrumb-bar {
+        background: #FFFFFF;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--cham-border-color);
+        font-size: 13.5px;
+    }
+
+    .detail-breadcrumb-link {
+        color: #7A5B46;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .detail-breadcrumb-link:hover {
+        color: var(--cham-primary-red);
+    }
+
+    .detail-breadcrumb-current {
+        color: var(--cham-wood-dark);
+        font-weight: 700;
+    }
+
+    /* 2. Main Detail Card Container (Figma Modal Frame as Full Card) */
+    .service-detail-container {
+        padding: 40px 0 80px;
+    }
+
+    .service-detail-master-card {
+        background: #FFFFFF;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(208, 181, 129, 0.35);
+        box-shadow: 0 10px 40px rgba(61, 39, 29, 0.08);
+    }
+
+    .detail-card-header-bar {
+        background-color: var(--cham-primary-red);
+        padding: 18px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .detail-card-header-title {
+        font-family: var(--font-body, 'Cabin', sans-serif);
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+    }
+
+    .detail-card-body-content {
+        padding: 36px 40px;
+    }
+
+    /* Gallery left */
+    .detail-main-photo-box {
+        width: 100%;
+        height: 380px;
+        border-radius: 20px;
+        overflow: hidden;
+        background-color: #EFE9DE;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+
+    .detail-main-photo-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all 0.3s ease;
+    }
+
+    .detail-gallery-thumbs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .detail-thumb-item {
+        height: 85px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background-color: #EFE9DE;
+    }
+
+    .detail-thumb-item:hover, .detail-thumb-item.active {
+        border-color: var(--cham-primary-red);
+        transform: scale(0.97);
+    }
+
+    .detail-thumb-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .detail-trust-box {
+        background-color: var(--cham-bg-cream);
+        border-radius: 14px;
+        padding: 14px 20px;
+        border: 1px solid rgba(208, 181, 129, 0.45);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 13.5px;
+        color: #55443B;
+        line-height: 1.5;
+    }
+
+    .detail-trust-box i {
+        font-size: 22px;
+        color: var(--cham-primary-red);
+        flex-shrink: 0;
+    }
+
+    /* Right column info */
+    .detail-cat-pill {
+        display: inline-block;
+        padding: 5px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--cham-border-color);
+        background-color: #FFFDF9;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #7A5B46;
+        margin-bottom: 12px;
+    }
+
+    .detail-service-title {
+        font-family: var(--font-serif, 'Lora', serif);
+        font-size: clamp(26px, 2.8vw, 36px);
+        font-weight: 700;
+        color: var(--cham-wood-dark);
+        line-height: 1.25;
+        margin-bottom: 12px;
+    }
+
+    .detail-specs-meta {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        font-size: 14px;
+        color: #6C757D;
+        margin-bottom: 16px;
+    }
+
+    .detail-price-tag {
+        font-family: var(--font-serif, 'Lora', serif);
+        font-size: 34px;
+        font-weight: 700;
+        color: var(--cham-primary-red);
+        margin-bottom: 18px;
+    }
+
+    .detail-desc-paragraph {
+        font-size: 15px;
+        color: #55443B;
+        line-height: 1.65;
+        margin-bottom: 28px;
+    }
+
+    .detail-section-title {
+        font-family: var(--font-body, 'Cabin', sans-serif);
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--cham-primary-red);
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Accordion */
+    .detail-step-item {
+        border-bottom: 1px solid #EFE9DE;
+        padding: 12px 0;
+    }
+
+    .detail-step-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .detail-step-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14.5px;
+        font-weight: 700;
+        color: var(--cham-wood-dark);
+        margin: 0;
+    }
+
+    .detail-step-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: rgba(120, 26, 36, 0.1);
+        color: var(--cham-primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+    }
+
+    .detail-step-chevron {
+        font-size: 13px;
+        color: #8C7B72;
+        transition: transform 0.2s ease;
+    }
+
+    .detail-step-item.expanded .detail-step-chevron {
+        transform: rotate(180deg);
+    }
+
+    .detail-step-body {
+        font-size: 13.5px;
+        color: #6C757D;
+        line-height: 1.55;
+        padding-top: 8px;
+        padding-left: 40px;
+        display: none;
+    }
+
+    .detail-step-item.expanded .detail-step-body {
+        display: block;
+    }
+
+    /* Action bar */
+    .detail-action-buttons-bar {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 16px;
+        margin-top: 32px;
+    }
+
+    .btn-detail-book {
+        background-color: var(--cham-primary-red);
+        color: #FFFFFF;
+        border: 1px solid var(--cham-primary-red);
+        border-radius: 12px;
+        padding: 14px 24px;
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-detail-book:hover {
+        background-color: var(--cham-red-hover);
+        border-color: var(--cham-red-hover);
+        color: #FFFFFF;
+    }
+
+    .btn-detail-chat {
+        background-color: #FFFFFF;
+        color: var(--cham-wood-dark);
+        border: 1px solid var(--cham-border-color);
+        border-radius: 12px;
+        padding: 14px 20px;
+        font-size: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-detail-chat:hover {
+        border-color: var(--cham-primary-red);
+        color: var(--cham-primary-red);
+        background-color: #FFF9F9;
+    }
+
+    /* Reviews section */
+    .detail-reviews-card {
+        background: #FFFFFF;
+        border-radius: 20px;
+        padding: 32px;
+        margin-top: 32px;
+        border: 1px solid rgba(208, 181, 129, 0.3);
+    }
+
+    .review-bubble-item {
+        background-color: #FAF7F2;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        border: 1px solid #EFE9DE;
+    }
+
+    /* Related treatments */
+    .related-card {
+        background: #FFFFFF;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--cham-border-color);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .related-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(120, 26, 36, 0.1);
+        border-color: var(--cham-primary-red);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 1. Breadcrumbs -->
+<div class="detail-breadcrumb-bar">
+    <div class="container">
+        <a href="{% url 'home' %}" class="detail-breadcrumb-link">Trang chủ</a>
+        <span class="mx-2 text-muted">/</span>
+        <a href="{% url 'services:service_list' %}" class="detail-breadcrumb-link">Gói dịch vụ</a>
+        <span class="mx-2 text-muted">/</span>
+        <a href="{% url 'services:service_list' %}?category={{ service.category.slug }}" class="detail-breadcrumb-link">{{ service.category.name }}</a>
+        <span class="mx-2 text-muted">/</span>
+        <span class="detail-breadcrumb-current">{{ service.name }}</span>
+    </div>
+</div>
+
+<!-- 2. Main Service Detail Card -->
+<section class="service-detail-container">
+    <div class="container">
+        <div class="service-detail-master-card">
+            <!-- Header Bar -->
+            <div class="detail-card-header-bar">
+                <div class="detail-card-header-title">
+                    <i class="bi bi-stars"></i> CHI TIẾT LIỆU TRÌNH TRỊ LIỆU & CHĂM SÓC
+                </div>
+                <a href="{% url 'services:service_list' %}" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Trở về danh sách
+                </a>
+            </div>
+
+            <!-- Body -->
+            <div class="detail-card-body-content">
+                <div class="row g-5">
+                    <!-- Cột Trái: Gallery đa góc chụp & Chứng nhận an toàn -->
+                    <div class="col-lg-6">
+                        <div class="detail-main-photo-box">
+                            <img src="{{ gallery_images.0|default:service.thumbnail_url|default:'/static/images/treatment_1.png' }}"
+                                 alt="{{ service.name }}" class="detail-main-photo-img" id="detailMainPhoto">
+                        </div>
+
+                        <!-- 4 Gallery Thumbs -->
+                        <div class="detail-gallery-thumbs">
+                            {% for img_url in gallery_images %}
+                            <div class="detail-thumb-item {% if forloop.first %}active{% endif %}" onclick="changeDetailPhoto('{{ img_url }}', this)">
+                                <img src="{{ img_url }}" alt="Gallery {{ forloop.counter }}">
+                            </div>
+                            {% empty %}
+                            <div class="detail-thumb-item active">
+                                <img src="{{ service.thumbnail_url|default:'/static/images/treatment_1.png' }}" alt="{{ service.name }}">
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Trust Badge Box (Figma Node 216-929) -->
+                        <div class="detail-trust-box">
+                            <i class="bi bi-shield-check"></i>
+                            <div>Kỹ thuật viên được đào tạo chuyên sâu • Không gian riêng tư chuẩn hoàng gia • Dầu thảo mộc tự nhiên an toàn</div>
+                        </div>
+                    </div>
+
+                    <!-- Cột Phải: Thông tin chi tiết, Giá, Quy trình trải nghiệm -->
+                    <div class="col-lg-6">
+                        <span class="detail-cat-pill">{{ service.category.name|upper }} • TRỊ LIỆU ĐÔNG Y</span>
+                        <h1 class="detail-service-title">{{ service.name }}</h1>
+
+                        <div class="detail-specs-meta">
+                            <span><i class="bi bi-star-fill text-warning me-1"></i><strong>{{ service.rating_avg }}/5</strong> ({{ service.review_count }} đánh giá)</span>
+                            <span><i class="bi bi-clock me-1"></i>{{ service.duration_minutes }} phút</span>
+                            <span class="text-muted">{{ service_code }}</span>
+                        </div>
+
+                        <div class="detail-price-tag">
+                            {{ formatted_price }}
+                        </div>
+
+                        <p class="detail-desc-paragraph">
+                            {{ service.description|default:'Liệu trình chuyên sâu kết hợp thảo mộc thiên nhiên và kỹ thuật ấn huyệt Champa chính xác, giúp giải phóng căng cứng toàn thân, phục hồi tuần hoàn và mang lại trạng thái thư giãn sâu lắng.' }}
+                        </p>
+
+                        <!-- Quy trình trải nghiệm (Accordion) -->
+                        <div class="detail-section-title">
+                            <i class="bi bi-journal-bookmark-fill"></i> Quy trình trải nghiệm (4 Bước chuẩn Champa)
+                        </div>
+                        <div class="detail-process-accordion">
+                            <div class="detail-step-item expanded">
+                                <div class="detail-step-header" onclick="toggleDetailStep(this)">
+                                    <div class="detail-step-title">
+                                        <div class="detail-step-icon"><i class="bi bi-chat-heart"></i></div>
+                                        <span>Bước 1: Thăm vấn thể trạng</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down detail-step-chevron"></i>
+                                </div>
+                                <div class="detail-step-body">
+                                    Chuyên viên lắng nghe tình trạng cơ thể, xác định điểm căng cơ và mức áp lực phù hợp theo thể trạng riêng của quý khách.
+                                </div>
+                            </div>
+
+                            <div class="detail-step-item">
+                                <div class="detail-step-header" onclick="toggleDetailStep(this)">
+                                    <div class="detail-step-title">
+                                        <div class="detail-step-icon"><i class="bi bi-flower1"></i></div>
+                                        <span>Bước 2: Khởi động & Thảo dược</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down detail-step-chevron"></i>
+                                </div>
+                                <div class="detail-step-body">
+                                    Thưởng trà thảo mộc ấm, ngâm chân muối khoáng cổ truyền bài thuốc người Dao Đỏ và làm ấm cơ thể.
+                                </div>
+                            </div>
+
+                            <div class="detail-step-item">
+                                <div class="detail-step-header" onclick="toggleDetailStep(this)">
+                                    <div class="detail-step-title">
+                                        <div class="detail-step-icon"><i class="bi bi-hand-index-thumb"></i></div>
+                                        <span>Bước 3: Ấn huyệt trị liệu chuyên sâu</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down detail-step-chevron"></i>
+                                </div>
+                                <div class="detail-step-body">
+                                    Kỹ thuật ấn huyệt Champa chuyên sâu giải phóng căng cứng huyệt đạo cổ vai gáy và cột sống toàn diện.
+                                </div>
+                            </div>
+
+                            <div class="detail-step-item">
+                                <div class="detail-step-header" onclick="toggleDetailStep(this)">
+                                    <div class="detail-step-title">
+                                        <div class="detail-step-icon"><i class="bi bi-gem"></i></div>
+                                        <span>Bước 4: Đá nóng Champa & Thư giãn sâu</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down detail-step-chevron"></i>
+                                </div>
+                                <div class="detail-step-body">
+                                    Đặt và trượt đá bazan núi lửa tự nhiên hấp nóng, kết hợp tinh dầu trị liệu thẩm thấu sâu nuôi dưỡng làn da.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2 Action Buttons -->
+                        <div class="detail-action-buttons-bar">
+                            <a href="{% url 'appointment:booking' %}?service={{ service.id }}" class="btn-detail-book">
+                                <i class="bi bi-calendar-check"></i> Đặt lịch trải nghiệm ngay
+                            </a>
+                            <button type="button" class="btn-detail-chat" onclick="openChatConsultation()">
+                                <i class="bi bi-chat-dots"></i> Tư vấn Chatbot
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Khách hàng đánh giá thực tế (Feedbacks) -->
+        <div class="detail-reviews-card">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h3 class="font-serif fw-bold text-dark mb-1" style="font-size: 22px;">Đánh giá từ khách hàng</h3>
+                    <p class="text-muted small mb-0">Cảm nhận chân thực của khách hàng sau khi trải nghiệm liệu trình tại Cham Spa.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fs-3 fw-bold font-serif text-dark">{{ service.rating_avg }}</span>
+                    <div class="text-warning fs-5">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                {% for fb in feedbacks %}
+                <div class="col-md-6">
+                    <div class="review-bubble-item">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-white d-flex align-items-center justify-content-center border" style="width: 36px; height: 36px; color: var(--cham-primary-red); font-weight: 700;">
+                                    {{ fb.customer.name|slice:":1"|default:"K" }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">{{ fb.customer.name|default:"Khách hàng" }}</div>
+                                    <div class="text-muted" style="font-size: 11px;">{{ fb.created_at|date:"d/m/Y" }}</div>
+                                </div>
+                            </div>
+                            <div class="text-warning small">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= fb.rating %}
+                                        <i class="bi bi-star-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {% if fb.tags %}
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                            {% for tag in fb.tags %}
+                            <span class="badge rounded-pill bg-white text-muted border" style="font-size: 11px;">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <p class="text-secondary small mb-2">{{ fb.comment }}</p>
+
+                        {% if fb.reply %}
+                        <div class="p-2 rounded-3 bg-white border small mt-2">
+                            <span class="fw-bold" style="color: var(--cham-primary-red); font-size: 11px;">Cham Spa phản hồi:</span>
+                            <div class="text-muted mt-1" style="font-size: 12px;">{{ fb.reply }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-4 text-muted">
+                    <i class="bi bi-chat-heart fs-2 d-block mb-2 text-secondary"></i>
+                    Liệu trình này nhận được tỷ lệ hài lòng 99% từ khách hàng tại cơ sở. Hãy là người đầu tiên gửi đánh giá trực tuyến nhé!
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 4. Gợi ý liệu trình liên quan (Related Services) -->
+        {% if related_services %}
+        <div class="mt-5">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <h3 class="font-serif fw-bold text-dark mb-0" style="font-size: 24px;">Liệu trình cùng danh mục</h3>
+                <a href="{% url 'services:service_list' %}?category={{ service.category.slug }}" class="fw-bold text-decoration-none small" style="color: var(--cham-primary-red);">
+                    Xem tất cả {{ service.category.name }} →
+                </a>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for r_svc in related_services %}
+                <div class="col">
+                    <div class="related-card">
+                        <div style="height: 180px; overflow: hidden;">
+                            <img src="{{ r_svc.thumbnail_url|default:'/static/images/treatment_1.png' }}" alt="{{ r_svc.name }}" class="w-100 h-100 object-fit-cover">
+                        </div>
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <h5 class="font-serif fw-bold text-dark mb-2" style="font-size: 17px;">{{ r_svc.name }}</h5>
+                            <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
+                                <span><i class="bi bi-clock me-1"></i>{{ r_svc.duration_minutes }}p</span>
+                                <span class="fw-bold" style="color: var(--cham-primary-red); font-size: 16px;">{{ r_svc.formatted_price|default:r_svc.price_vnd }}</span>
+                            </div>
+                            <div class="mt-auto d-grid">
+                                <a href="{% url 'services:service_detail_slug' slug=r_svc.slug %}" class="btn btn-sm btn-outline-dark rounded-3">
+                                    Chi tiết liệu trình
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<script>
+    function changeDetailPhoto(url, thumbElem) {
+        document.getElementById('detailMainPhoto').src = url;
+        document.querySelectorAll('.detail-thumb-item').forEach(el => el.classList.remove('active'));
+        if (thumbElem) thumbElem.classList.add('active');
+    }
+
+    function toggleDetailStep(headerElem) {
+        const item = headerElem.closest('.detail-step-item');
+        if (item) {
+            item.classList.toggle('expanded');
+        }
+    }
+
+    function openChatConsultation() {
+        const chatFab = document.querySelector('.cham-chatbot-fab') || document.getElementById('chamChatbotFab');
+        if (chatFab) {
+            chatFab.click();
+        } else {
+            alert('Trợ lý ảo Cham Spa sẵn sàng hỗ trợ tư vấn trực tuyến cho quý khách!');
+        }
+    }
+</script>
+{% endblock %}

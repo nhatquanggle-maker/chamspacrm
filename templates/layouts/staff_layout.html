@@ -22,4 +22,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Tự động chuyển hướng sang phân hệ tương ứng nếu URL có query ?tab=
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab === 'inbox' && !window.location.pathname.includes('/chatbox/')) {
+            window.location.replace("{% url 'chatbox:inbox' %}");
+        } else if (tab === 'customers' && !window.location.pathname.includes('/health/staff/')) {
+            window.location.replace("{% url 'health:staff_lookup' %}");
+        }
+    })();
+</script>
 {% endblock %}

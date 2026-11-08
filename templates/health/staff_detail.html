@@ -1,0 +1,647 @@
+{% extends base_layout|default:"layouts/staff_layout.html" %}
+{% load static %}
+
+{% block title %}Hồ sơ sức khỏe: {{ customer.name|default:customer.username }} | Staff Workspace{% endblock %}
+{% block page_title %}Hồ sơ sức khỏe khách hàng{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================================
+       CHAM SPA & MASSAGE - MOD-08: XEM HỒ SƠ SỨC KHỎE KHÁCH HÀNG (FIGMA NODE 279:1633)
+       Dành cho Kỹ thuật viên, Lễ tân & Nhân viên CSKH tại Staff Workspace.
+       Tông màu chủ đạo: Nền kem #FAF7EF, Trắng #FFFFFF, Viền #DED2BA, Đỏ #781A24.
+       Thanh đau mỏi chuẩn thiết kế Figma Node 273:2575.
+       ========================================================================== */
+
+    .staff-health-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-bottom: 50px;
+    }
+
+    .staff-detail-card {
+        background-color: #FFFFFF;
+        border: 1px solid #D0B581 !important;
+        border-radius: 18px !important;
+        box-shadow: 0 14px 36px rgba(46, 29, 23, 0.08);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+
+    .staff-detail-header {
+        background-color: #FAF7EF;
+        border-bottom: 1px solid #DED2BA;
+        padding: 26px 36px;
+    }
+
+    .staff-detail-body {
+        padding: 32px 36px 40px 36px;
+    }
+
+    /* Avatar khách hàng */
+    .staff-cust-avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background-color: #781A24;
+        color: #FFFFFF;
+        font-family: var(--font-serif), Georgia, serif;
+        font-size: 28px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid #D0B581;
+        box-shadow: 0 4px 12px rgba(120, 26, 36, 0.15);
+        flex-shrink: 0;
+    }
+
+    /* Huy hiệu mã hồ sơ */
+    .staff-code-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background-color: #EFE4CD;
+        color: #781A24;
+        font-family: var(--font-body), sans-serif;
+        font-weight: 700;
+        font-size: 12.5px;
+        padding: 4px 14px;
+        border-radius: 999px;
+        border: 1px solid #D0B581;
+    }
+
+    /* Các nút hành động */
+    .btn-cham-action {
+        background-color: #781A24;
+        color: #FFFFFF !important;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 20px;
+        font-family: var(--font-body), sans-serif;
+        font-weight: 700;
+        font-size: 13.5px;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(120, 26, 36, 0.2);
+    }
+
+    .btn-cham-action:hover {
+        background-color: #5C121B;
+        transform: translateY(-1px);
+    }
+
+    .btn-cham-outline {
+        background-color: transparent;
+        color: #781A24 !important;
+        border: 1px solid #D0B581;
+        border-radius: 8px;
+        padding: 9px 18px;
+        font-family: var(--font-body), sans-serif;
+        font-weight: 600;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .btn-cham-outline:hover {
+        background-color: #FAF7EF;
+        border-color: #781A24;
+    }
+
+    /* 4 Thẻ chỉ số sinh trắc học */
+    .metric-tile {
+        background-color: #FAF7EF;
+        border: 1px solid #EADEC7;
+        border-radius: 12px;
+        padding: 16px 20px;
+        height: 100%;
+        transition: all 0.2s ease;
+    }
+
+    .metric-tile:hover {
+        border-color: #D0B581;
+        background-color: #FFFFFF;
+        box-shadow: 0 4px 12px rgba(46, 29, 23, 0.05);
+    }
+
+    .metric-tile-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #716761;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .metric-tile-val {
+        font-family: var(--font-serif), Georgia, serif;
+        font-size: 26px;
+        font-weight: 700;
+        color: #171311;
+        line-height: 1.15;
+    }
+
+    /* ==========================================================================
+       THANH MỨC ĐỘ ĐAU MỎI CHUẨN FIGMA (GIỐNG ẢNH 2)
+       ========================================================================== */
+    .pain-meter-box {
+        background-color: #FAF7EF;
+        border: 1px solid #EADEC7;
+        border-radius: 12px;
+        padding: 18px 22px;
+        height: 100%;
+    }
+
+    .cham-pain-track {
+        position: relative;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        margin: 10px 0 6px 0;
+    }
+
+    .cham-pain-track-bg {
+        width: 100%;
+        height: 4px;
+        border-radius: 999px;
+        background-color: #EADEC7;
+        position: absolute;
+    }
+
+    .cham-pain-track-fill {
+        height: 4px;
+        border-radius: 999px;
+        background-color: #781A24;
+        position: absolute;
+        left: 0;
+    }
+
+    .cham-pain-thumb {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: #FFFFFF;
+        border: 3.5px solid #781A24;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        transform: translate(-50%, 0);
+        z-index: 2;
+    }
+
+    .cham-pain-ticks {
+        display: flex;
+        justify-content: space-between;
+        padding: 0 2px;
+    }
+
+    .pain-tick {
+        font-size: 12px;
+        color: #8C827A;
+        font-family: var(--font-body), sans-serif;
+    }
+
+    .pain-tick.active {
+        color: #781A24 !important;
+        font-weight: 700 !important;
+        transform: scale(1.15);
+    }
+
+    /* Thẻ Lực massage */
+    .pressure-meter-box {
+        background-color: #FAF7EF;
+        border: 1px solid #EADEC7;
+        border-radius: 12px;
+        padding: 18px 22px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    /* Mục tiêu & Ghi chú */
+    .section-subhead {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #716761;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .goal-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 16px;
+        border-radius: 999px;
+        background-color: #FAF7EF;
+        border: 1px solid #DED2BA;
+        color: #4A3E39;
+        font-size: 13px;
+        font-weight: 600;
+        margin: 4px;
+    }
+
+    .ktv-notes-card {
+        background-color: #FAF7EF;
+        border: 1px solid #EADEC7;
+        border-radius: 10px;
+        padding: 16px 20px;
+        font-size: 14px;
+        color: #171311;
+        line-height: 1.5;
+    }
+
+    /* Bảng lịch sử đặt lịch */
+    .history-table {
+        margin-bottom: 0;
+        border: 1px solid #EADEC7;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .history-table th {
+        background-color: #FAF7EF;
+        color: #781A24;
+        font-weight: 700;
+        font-size: 12.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 16px;
+        border-bottom: 1px solid #DED2BA;
+    }
+
+    .history-table td {
+        padding: 12px 16px;
+        font-size: 13.5px;
+        vertical-align: middle;
+        border-bottom: 1px solid #F0EAE1;
+    }
+
+    /* Print styles A4 cho Kỹ thuật viên */
+    @media print {
+        .staff-sidebar, .admin-sidebar, .customer-sidebar, .topbar-workspace, .no-print,
+        .btn-cham-action, .btn-cham-outline {
+            display: none !important;
+        }
+        .staff-health-container {
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+        .staff-detail-card {
+            border: 1px solid #000 !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="staff-health-container">
+
+    <!-- 1. BREADCRUMBS & THANH ĐIỀU HƯỚNG NO-PRINT -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 no-print">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb small mb-1" style="color: #716761;">
+                    <li class="breadcrumb-item"><a href="{% url 'health:staff_lookup' %}" style="color: #781A24; text-decoration: none;">Danh sách hồ sơ</a></li>
+                    <li class="breadcrumb-item active fw-semibold" aria-current="page" style="color: #781A24;">{{ customer.name|default:customer.username }}</li>
+                </ol>
+            </nav>
+            <h2 class="font-serif fw-bold mb-0" style="color: #781A24; font-size: 26px;">
+                Chi tiết Hồ sơ Sức khỏe Khách hàng (Figma Node 279:1633)
+            </h2>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn-cham-outline" onclick="window.print();" title="In phiếu thông tin cho KTV">
+                <i class="bi bi-printer"></i> In phiếu KTV
+            </button>
+            <a href="{% url 'health:staff_lookup' %}" class="btn-cham-outline">
+                <i class="bi bi-arrow-left"></i> Quay lại danh sách
+            </a>
+        </div>
+    </div>
+
+    <!-- 2. CARD HỒ SƠ SỨC KHỎE KHÁCH HÀNG (FIGMA NODE 279:1633) -->
+    <div class="staff-detail-card">
+        {% if has_profile and profile %}
+
+        <!-- A. HEADER CARD: THÔNG TIN KHÁCH HÀNG & MÃ HỒ SƠ -->
+        <div class="staff-detail-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="staff-cust-avatar">
+                    {{ customer.name|default:customer.username|default:"KH"|make_list|first|upper }}
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h3 class="font-serif fw-bold mb-0" style="color: #171311; font-size: 24px;">
+                            {{ customer.name|default:customer.username }}
+                        </h3>
+                        <span class="staff-code-pill">
+                            <i class="bi bi-upc-scan"></i> {{ profile.health_code }}
+                        </span>
+                    </div>
+                    <div class="text-muted small d-flex flex-wrap align-items-center gap-3" style="font-size: 13px;">
+                        <span>
+                            <i class="bi bi-telephone text-danger me-1"></i>
+                            <a href="tel:{{ customer.phone }}" style="color: #171311; text-decoration: none;" class="fw-semibold">{{ customer.phone }}</a>
+                        </span>
+                        {% if customer.email %}
+                        <span><i class="bi bi-envelope text-muted me-1"></i>{{ customer.email }}</span>
+                        {% endif %}
+                        <span>
+                            <i class="bi bi-clock-history text-success me-1"></i>
+                            Cập nhật: {{ profile_data.formatted_updated_at|default:"Gần đây" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="no-print">
+                <span class="badge bg-light text-muted border px-3 py-2 rounded-pill small">
+                    <i class="bi bi-shield-check text-success me-1"></i>Hồ sơ điện tử Cham Spa
+                </span>
+            </div>
+        </div>
+
+        <!-- B. BODY CARD: CHỈ SỐ SINH TRẮC HỌC & ĐAU MỎI (CHUẨN ẢNH 2) -->
+        <div class="staff-detail-body">
+
+            <!-- LƯU Ý AN TOÀN Y TẾ CHO KTV (NẾU CÓ BỆNH LÝ HOẶC HUYẾT ÁP BẤT THƯỜNG) -->
+            {% if profile.blood_pressure == 'Cao' %}
+            <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3 border" style="background-color: #FEF2F2; border-color: #F87171 !important; color: #991B1B;">
+                <i class="bi bi-exclamation-octagon-fill fs-3 text-danger flex-shrink-0"></i>
+                <div class="small">
+                    <strong>Lưu ý an toàn trị liệu (Huyết áp cao):</strong> Khách có chỉ số huyết áp cao. Kỹ thuật viên tránh day bấm quá mạnh huyệt vùng đầu cổ, thái dương và điều chỉnh nhiệt độ phòng ấm thoáng vừa phải.
+                </div>
+            </div>
+            {% elif profile.blood_pressure == 'Thấp' %}
+            <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3 border" style="background-color: #FFFBEB; border-color: #FCD34D !important; color: #92400E;">
+                <i class="bi bi-info-circle-fill fs-3 text-warning flex-shrink-0"></i>
+                <div class="small">
+                    <strong>Lưu ý an toàn trị liệu (Huyết áp thấp):</strong> Khách có huyết áp thấp. Giữ ấm cơ thể khách, chuyển tư thế nhẹ nhàng, tránh để khách nằm sấp hoặc xông hơi quá lâu.
+                </div>
+            </div>
+            {% else %}
+            <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3 border" style="background-color: #F0FDF4; border-color: #BBF7D0 !important; color: #166534;">
+                <i class="bi bi-check-circle-fill fs-4 text-success flex-shrink-0"></i>
+                <div class="small">
+                    <strong>Thể trạng an toàn:</strong> Huyết áp ổn định. Sẵn sàng cho liệu trình massage bấm huyệt toàn diện theo quy trình 5 sao của Cham Spa.
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 4 Ô CHỈ SỐ SINH TRẮC HỌC (ĐÃ SỬA LỖI ,00) -->
+            <div class="row g-3 mb-4">
+                <!-- Chiều cao (Đã format đẹp) -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="metric-tile">
+                        <div class="metric-tile-label">
+                            <i class="bi bi-rulers text-danger"></i> Chiều cao
+                        </div>
+                        <div class="metric-tile-val">
+                            {{ height_display|default:profile.height_cm|default:"--" }} <span class="fs-6 fw-normal text-muted">cm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cân nặng (Đã format đẹp) -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="metric-tile">
+                        <div class="metric-tile-label">
+                            <i class="bi bi-speedometer2 text-danger"></i> Cân nặng
+                        </div>
+                        <div class="metric-tile-val">
+                            {{ weight_display|default:profile.weight_kg|default:"--" }} <span class="fs-6 fw-normal text-muted">kg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chỉ số BMI (Y khoa) -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="metric-tile" style="background-color: #F0FDF4; border-color: #BBF7D0;">
+                        <div class="metric-tile-label text-success">
+                            <i class="bi bi-heart-pulse-fill"></i> Chỉ số BMI
+                        </div>
+                        <div class="d-flex align-items-baseline gap-2 mb-1">
+                            <div class="metric-tile-val text-success">
+                                {{ profile_data.bmi|default:"--" }}
+                            </div>
+                        </div>
+                        <span class="badge {{ profile_data.bmi_badge_class|default:'bg-success' }} rounded-pill" style="font-size: 11px;">
+                            {{ profile_data.bmi_classification|default:"Thể trạng cân đối (Bình thường)" }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Huyết áp -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="metric-tile">
+                        <div class="metric-tile-label">
+                            <i class="bi bi-activity text-danger"></i> Huyết áp
+                        </div>
+                        <div class="metric-tile-val mb-1" style="font-size: 22px;">
+                            {{ profile.blood_pressure|default:"Bình thường" }}
+                        </div>
+                        <span class="badge {% if profile.blood_pressure == 'Cao' %}bg-danger{% elif profile.blood_pressure == 'Thấp' %}bg-warning text-dark{% else %}bg-success{% endif %} rounded-pill" style="font-size: 11px;">
+                            {% if profile.blood_pressure == 'Cao' %}Huyết áp cao{% elif profile.blood_pressure == 'Thấp' %}Huyết áp thấp{% else %}Ổn định{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MỨC ĐỘ ĐAU MỎI & LỰC MASSAGE (CHUẨN ẢNH 2) -->
+            <div class="row g-3 mb-4">
+                <!-- Mức độ đau mỏi (Thanh mảnh chuẩn ảnh 2) -->
+                <div class="col-lg-7">
+                    <div class="pain-meter-box">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="fw-semibold text-dark" style="font-size: 14px;">Mức độ đau mỏi hiện tại</span>
+                            <span class="fw-bold font-serif fs-5" style="color: #781A24;">{{ profile.pain_level|default:5 }}/10</span>
+                        </div>
+
+                        <!-- Thanh mảnh 4px đỏ rượu vang -->
+                        <div class="cham-pain-track">
+                            <div class="cham-pain-track-bg"></div>
+                            <div class="cham-pain-track-fill" style="width: {% widthratio profile.pain_level|default:5|add:'-1' 9 100 %}%;"></div>
+                            <div class="cham-pain-thumb" style="left: {% widthratio profile.pain_level|default:5|add:'-1' 9 100 %}%;"></div>
+                        </div>
+
+                        <!-- Dãy số 1 đến 10 -->
+                        <div class="cham-pain-ticks">
+                            <span class="pain-tick {% if profile.pain_level == 1 %}active{% endif %}">1</span>
+                            <span class="pain-tick {% if profile.pain_level == 2 %}active{% endif %}">2</span>
+                            <span class="pain-tick {% if profile.pain_level == 3 %}active{% endif %}">3</span>
+                            <span class="pain-tick {% if profile.pain_level == 4 %}active{% endif %}">4</span>
+                            <span class="pain-tick {% if profile.pain_level == 5 or not profile.pain_level %}active{% endif %}">5</span>
+                            <span class="pain-tick {% if profile.pain_level == 6 %}active{% endif %}">6</span>
+                            <span class="pain-tick {% if profile.pain_level == 7 %}active{% endif %}">7</span>
+                            <span class="pain-tick {% if profile.pain_level == 8 %}active{% endif %}">8</span>
+                            <span class="pain-tick {% if profile.pain_level == 9 %}active{% endif %}">9</span>
+                            <span class="pain-tick {% if profile.pain_level == 10 %}active{% endif %}">10</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lực massage yêu thích -->
+                <div class="col-lg-5">
+                    <div class="pressure-meter-box">
+                        <div class="metric-tile-label mb-1">
+                            <i class="bi bi-hand-index-thumb text-danger"></i> Lực massage yêu thích
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mt-2">
+                            <span class="fw-bold font-serif fs-4" style="color: #781A24;">
+                                {{ profile.massage_pressure|default:"Lực vừa" }}
+                            </span>
+                            <span class="badge bg-light text-dark border rounded-pill px-3 py-2 small fw-normal">
+                                Tự động đồng bộ lịch hẹn
+                            </span>
+                        </div>
+                        <div class="text-muted mt-2" style="font-size: 12px;">
+                            KTV lưu ý thực hiện đúng lực bấm huyệt theo sở thích của khách.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MỤC TIÊU TRỊ LIỆU MONG MUỐN -->
+            <div class="mb-4">
+                <div class="section-subhead">
+                    <i class="bi bi-bookmark-heart text-danger"></i> Mục tiêu trị liệu mong muốn
+                </div>
+                {% if profile.recovery_goals %}
+                <div class="d-flex flex-wrap">
+                    {% for goal in profile.recovery_goals %}
+                    <span class="goal-pill">
+                        <i class="bi bi-check-circle-fill text-success"></i> {{ goal }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="small text-muted fst-italic">
+                    Thư giãn giải tỏa căng thẳng & cân bằng năng lượng cơ thể.
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- GHI CHÚ YÊU CẦU RIÊNG CHO KTV & PHÒNG -->
+            <div class="mb-4">
+                <div class="section-subhead">
+                    <i class="bi bi-chat-left-text text-danger"></i> Yêu cầu riêng cho Kỹ thuật viên & Phòng
+                </div>
+                {% if profile.special_requests %}
+                <div class="ktv-notes-card fst-italic">
+                    "{{ profile.special_requests }}"
+                </div>
+                {% else %}
+                <div class="ktv-notes-card text-muted fst-italic">
+                    Không có yêu cầu đặc biệt. Phục vụ theo quy chuẩn 5 sao của Cham Spa.
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- LỊCH SỬ ĐẶT LỊCH GẦN ĐÂY CỦA KHÁCH -->
+            <div>
+                <div class="section-subhead">
+                    <i class="bi bi-calendar-check text-danger"></i> Lịch sử đặt lịch gần đây của khách tại Cham Spa
+                </div>
+                {% if recent_appointments %}
+                <div class="table-responsive">
+                    <table class="table history-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Mã lịch</th>
+                                <th>Ngày hẹn</th>
+                                <th>Khung giờ</th>
+                                <th>Dịch vụ trị liệu</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appt in recent_appointments %}
+                            <tr>
+                                <td class="fw-bold" style="color: #781A24;">{{ appt.appointment_code }}</td>
+                                <td>{{ appt.appointment_date|date:"d/m/Y" }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ appt.time_slot }}</span></td>
+                                <td>
+                                    {% for detail in appt.details.all %}
+                                    <span class="badge bg-light text-dark border me-1">{{ detail.service.name }}</span>
+                                    {% empty %}
+                                    <span class="text-muted small">Massage Body Tiêu chuẩn</span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <span class="badge {% if appt.status == 'Confirmed' or appt.status == 'Completed' %}bg-success{% elif appt.status == 'Cancelled' %}bg-danger{% else %}bg-secondary{% endif %} rounded-pill">
+                                        {{ appt.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="small text-muted p-3 bg-light rounded-2 border">
+                    Chưa ghi nhận lịch hẹn nào trước đây của khách hàng này.
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {% else %}
+        <!-- KHÁCH HÀNG CHƯA CÓ HỒ SƠ SỨC KHỎE -->
+        <div class="text-center py-5 px-3">
+            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                style="width: 76px; height: 76px; background-color: #FAF7EF; border: 1.5px dashed #D0B581; color: #781A24; font-size: 34px;">
+                <i class="bi bi-clipboard2-x"></i>
+            </div>
+            <h4 class="font-serif fw-bold mb-2" style="color: #781A24; font-size: 22px;">
+                Khách hàng chưa có Hồ sơ Sức khỏe
+            </h4>
+            <p class="text-muted mx-auto mb-4 small" style="max-width: 500px; line-height: 1.6;">
+                Khách hàng {{ customer.name|default:customer.username }} chưa thực hiện khảo sát thể trạng trực tuyến.
+                Nhân viên lễ tân có thể hướng dẫn khách quét mã QR để khảo sát nhanh tại quầy đón tiếp.
+            </p>
+            <div class="d-flex justify-content-center">
+                <a href="{% url 'health:staff_lookup' %}" class="btn-cham-action">
+                    <i class="bi bi-arrow-left"></i> Quay lại danh sách hồ sơ
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Kích hoạt trạng thái ACTIVE cho menu Sidebar Staff
+    document.addEventListener('DOMContentLoaded', function () {
+        const staffNavItems = document.querySelectorAll('.staff-nav-item');
+        staffNavItems.forEach(function (item) {
+            const target = item.getAttribute('data-nav-target') || '';
+            const txt = item.textContent || '';
+            if (target.includes('Khách hàng') || txt.includes('Khách hàng')) {
+                item.classList.add('active');
+            }
+        });
+    });
+</script>
+{% endblock %}

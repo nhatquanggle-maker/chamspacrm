@@ -106,7 +106,7 @@
                                     <i class="bi bi-person-badge"></i>
                                     <span>Quản lý Nhân viên</span>
                                 </a>
-                                <a href="{% url 'dashboard:admin' %}?tab=services" class="dropdown-menu-item" data-nav-target="Quản lý Danh mục dịch vụ">
+                                <a href="{% url 'services:service_admin' %}" class="dropdown-menu-item" data-nav-target="Quản lý Danh mục dịch vụ">
                                     <i class="bi bi-flower2"></i>
                                     <span>Quản lý Danh mục dịch vụ</span>
                                 </a>
@@ -167,11 +167,11 @@
                                     <i class="bi bi-person"></i>
                                     <span>Thông tin cá nhân</span>
                                 </a>
-                                <a href="{% url 'accounts:profile' %}?tab=appointments" class="dropdown-menu-item" data-nav-target="Lịch hẹn của tôi">
+                                <a href="{% url 'appointment:my_appointments' %}" class="dropdown-menu-item" data-nav-target="Lịch hẹn của tôi">
                                     <i class="bi bi-calendar-check"></i>
                                     <span>Lịch hẹn của tôi</span>
                                 </a>
-                                <a href="{% url 'accounts:profile' %}?tab=health" class="dropdown-menu-item" data-nav-target="Hồ sơ sức khỏe">
+                                <a href="{% url 'health:profile' %}" class="dropdown-menu-item" data-nav-target="Hồ sơ sức khỏe">
                                     <i class="bi bi-heart-pulse"></i>
                                     <span>Hồ sơ sức khỏe</span>
                                 </a>
@@ -219,7 +219,7 @@
     <!-- Thanh Điều hướng (50px, gap 48px, căn giữa Figma) -->
     <nav class="header-nav-bar" aria-label="Điều hướng chính">
         <a href="{% url 'home' %}" class="header-nav-item {% if request.resolver_match.url_name == 'home' and request.path == '/' %}active{% endif %}">Trang chủ</a>
-        <a href="{% if request.path != '/' %}{% url 'home' %}{% endif %}#services" class="header-nav-item">Gói dịch vụ</a>
+        <a href="{% url 'services:service_list' %}" class="header-nav-item {% if request.resolver_match.app_name == 'services' %}active{% endif %}">Gói dịch vụ</a>
         <a href="{% url 'appointment:booking' %}" class="header-nav-item {% if request.resolver_match.app_name == 'appointment' %}active{% endif %}">Đặt lịch ngay</a>
     </nav>
 </header>

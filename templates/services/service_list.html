@@ -1,0 +1,1537 @@
+{% extends "layouts/public_layout.html" %}
+{% load static %}
+
+{% block title %}Danh mục Dịch vụ & Liệu trình Trị liệu | Cham Spa & Massage Đà Nẵng{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* =========================================================================
+       CSS TÙY BIẾN CHO GIAO DIỆN DANH SÁCH DỊCH VỤ (FIGMA NODE 216-928 & 216-929)
+       Tác giả: Minh Khánh (MOD-03)
+       ========================================================================= */
+
+    :root {
+        --cham-primary-red: #781A24;
+        --cham-red-hover: #5d131b;
+        --cham-bg-cream: #F4EFE3;
+        --cham-wood-dark: #3D271D;
+        --cham-gold-accent: #D0B581;
+        --cham-gold-soft: #E8D8B5;
+        --cham-border-color: #E2D9CC;
+        --cham-card-bg: #FFFFFF;
+    }
+
+    body {
+        background-color: var(--cham-bg-cream);
+    }
+
+    /* 1. Hero Header Section */
+    .services-hero-section {
+        background: #FFFFFF;
+        position: relative;
+        padding: 56px 0 48px;
+        border-bottom: 1px solid var(--cham-border-color);
+        overflow: hidden;
+    }
+
+    .services-hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 40%;
+        background-image: url("{% static 'images/champa_watermark.svg' %}");
+        background-repeat: no-repeat;
+        background-position: center right;
+        background-size: contain;
+        opacity: 0.04;
+        pointer-events: none;
+    }
+
+    .hero-pill-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 16px;
+        border-radius: 999px;
+        border: 1px solid var(--cham-border-color);
+        background-color: #FFFFFF;
+        font-family: var(--font-body, 'Cabin', sans-serif);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--cham-primary-red);
+        margin-bottom: 16px;
+    }
+
+    .hero-main-title {
+        font-family: var(--font-serif, 'Lora', serif);
+        font-size: clamp(28px, 3.4vw, 42px);
+        font-weight: 700;
+        color: var(--cham-primary-red);
+        line-height: 1.25;
+        margin-bottom: 14px;
+        max-width: 900px;
+    }
+
+    .hero-subtitle {
+        font-family: var(--font-body, 'Cabin', sans-serif);
+        font-size: 16px;
+        color: #6C757D;
+        max-width: 720px;
+        line-height: 1.6;
+        margin-bottom: 0;
+    }
+
+    /* 2. Main Content & Sidebar Layout */
+    .services-main-wrapper {
+        padding: 40px 0 80px;
+        background-color: var(--cham-bg-cream);
+    }
+
+    /* Sidebar Filter Card */
+    .filter-sidebar-card {
+        background: #FFFFFF;
+        border-radius: 20px;
+        padding: 24px;
+        border: 1px solid rgba(208, 181, 129, 0.25);
+        box-shadow: 0 4px 20px rgba(61, 39, 29, 0.04);
+        position: sticky;
+        top: 100px;
+    }
+
+    .filter-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #F0EAE1;
+        margin-bottom: 20px;
+    }
+
+    .filter-card-title {
+        font-family: var(--font-serif, 'Lora', serif);
+        font-size: 19px;
+        font-weight: 700;
+        color: var(--cham-wood-dark);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-section-title {
+        font-family: var(--font-body, 'Cabin', sans-serif);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #8C7B72;
+        margin-bottom: 12px;
+    }
+
+    /* Custom Checkbox Categories (Figma Style) */
+    .custom-filter-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 0;
+        cursor: pointer;
+        user-select: none;
+        font-size: 14.5px;
+        color: #3D271D;
+        transition: all 0.2s ease;
+    }
+
+    .custom-filter-checkbox:hover {
+        color: var(--cham-primary-red);
+    }
+
+    .custom-checkbox-box {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 1.5px solid #C7B8AA;
+        background-color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .custom-filter-checkbox.active .custom-checkbox-box {
+        background-color: var(--cham-primary-red);
+        border-color: var(--cham-primary-red);
+    }
+
+    .custom-filter-checkbox.active .custom-checkbox-box::after {
+        content: '✓';
+        color: #FFFFFF;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    /* Single Unified Price Range Slider (Figma 216-928) */
+    .cham-price-range-wrapper {
+        position: relative;
+        padding: 12px 0 8px;
+    }
+
+    .cham-price-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 999px;
+        background: linear-gradient(to right, var(--cham-primary-red) 0%, var(--cham-primary-red) 100%, #E2D9CC 100%, #E2D9CC 100%);
+        outline: none;
+        cursor: pointer;
+        margin: 0;
+        padding: 0;
+        border: none;
+        display: block;
+    }
+
+    /* WebKit (Chrome, Edge, Safari) */
+    .cham-price-slider::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        border-radius: 999px;
+        background: transparent;
+        border: none;
+    }
+
+    .cham-price-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background-color: var(--cham-primary-red);
+        border: 3px solid #FFFFFF;
+        box-shadow: 0 2px 8px rgba(120, 26, 36, 0.45);
+        cursor: pointer;
+        margin-top: -8px; /* Căn giữa hoàn hảo trên thanh 6px: (6 - 22) / 2 = -8px */
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .cham-price-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.15);
+        box-shadow: 0 3px 12px rgba(120, 26, 36, 0.6);
+    }
+
+    .cham-price-slider::-webkit-slider-thumb:active {
+        transform: scale(1.05);
+        background-color: var(--cham-red-hover);
+    }
+
+    /* Firefox */
+    .cham-price-slider::-moz-range-track {
+        width: 100%;
+        height: 6px;
+        border-radius: 999px;
+        background: #E2D9CC;
+        border: none;
+    }
+
+    .cham-price-slider::-moz-range-progress {
+        height: 6px;
+        border-radius: 999px;
+        background-color: var(--cham-primary-red);
+    }
+
+    .cham-price-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: var(--cham-primary-red);
+        border: 3px solid #FFFFFF;
+        box-shadow: 0 2px 8px rgba(120, 26, 36, 0.45);
+        cursor: pointer;
+        transition: transform 0.15s ease;
+    }
+
+    .price-display-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--cham-wood-dark);
+    }
+
+    /* Duration Chips */
+    .duration-chips-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .duration-chip-btn {
+        padding: 7px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--cham-border-color);
+        background-color: #FFFFFF;
+        color: #4A3E38;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .duration-chip-btn:hover {
+        border-color: var(--cham-primary-red);
+        color: var(--cham-primary-red);
+    }
+
+    .duration-chip-btn.active {
+        background-color: var(--cham-primary-red);
+        border-color: var(--cham-primary-red);
+        color: #FFFFFF;
+    }
+
+    /* Reset Filter Button */
+    .btn-reset-filter {
+        width: 100%;
+        padding: 10px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--cham-border-color);
+        background-color: #FFFFFF;
+        color: #6C757D;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 20px;
+    }
+
+    .btn-reset-filter:hover {
+        border-color: var(--cham-primary-red);
+        color: var(--cham-primary-red);
+        background-color: #FFF9F9;
+    }
+
+    /* 3. Top Sort & Quick Options Bar */
+    .services-top-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .services-count-text {
+        font-size: 15px;
+        color: #55443B;
+    }
+
+    .services-count-text strong {
+        color: var(--cham-primary-red);
+        font-weight: 700;
+    }
+
+    .sort-select-dropdown {
+        border-radius: 10px;
+        border: 1px solid var(--cham-border-color);
+        padding: 7px 32px 7px 14px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--cham-wood-dark);
+        background-color: #FFFFFF;
+        outline: none;
+        cursor: pointer;
+    }
+
+    /* Quick Options Pill Strip (Figma Style) */
+    .quick-options-strip {
+        background-color: rgba(208, 181, 129, 0.25);
+        border-radius: 10px;
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .quick-opt-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #7A5B46;
+    }
+
+    .quick-opt-item {
+        font-size: 13.5px;
+        color: #4A3E38;
+        cursor: pointer;
+        padding: 2px 8px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .quick-opt-item:hover, .quick-opt-item.active {
+        color: var(--cham-primary-red);
+        font-weight: 700;
+        background-color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* 4. Service Card Grid (Figma 216-928) */
+    .service-card {
+        background: #FFFFFF;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid rgba(208, 181, 129, 0.35);
+        box-shadow: 0 4px 16px rgba(61, 39, 29, 0.05);
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .service-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(120, 26, 36, 0.12);
+        border-color: var(--cham-primary-red);
+    }
+
+    .service-thumb-box {
+        position: relative;
+        height: 200px;
+        width: 100%;
+        overflow: hidden;
+        background-color: #EFE9DE;
+    }
+
+    .service-thumb-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .service-card:hover .service-thumb-img {
+        transform: scale(1.05);
+    }
+
+    .service-card-body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .service-meta-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .service-category-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--cham-border-color);
+        background-color: #FFFDF9;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #7A5B46;
+    }
+
+    .service-code-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #9E8F85;
+    }
+
+    .service-name-title {
+        font-family: var(--font-serif, 'Lora', serif);
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--cham-wood-dark);
+        line-height: 1.35;
+        margin-bottom: 10px;
+        min-height: 48px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .service-specs-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 13px;
+        color: #6C757D;
+        margin-bottom: 14px;
+    }
+
+    .service-spec-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .service-spec-item i {
+        color: #8C7B72;
+    }
+
+    .service-spec-item i.bi-star-fill {
+        color: #E5A93C;
+    }
+
+    .service-price-amount {
+        font-family: var(--font-serif, 'Lora', serif);
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--cham-primary-red);
+        margin-bottom: 18px;
+    }
+
+    .service-actions-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: auto;
+    }
+
+    .btn-card-book {
+        background-color: var(--cham-primary-red);
+        color: #FFFFFF;
+        border: 1px solid var(--cham-primary-red);
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: 13.5px;
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .btn-card-book:hover {
+        background-color: var(--cham-red-hover);
+        border-color: var(--cham-red-hover);
+        color: #FFFFFF;
+    }
+
+    .btn-card-detail {
+        background-color: #FFFFFF;
+        color: var(--cham-wood-dark);
+        border: 1px solid var(--cham-border-color);
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: 13.5px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-card-detail:hover {
+        border-color: var(--cham-primary-red);
+        color: var(--cham-primary-red);
+        background-color: #FFF9F9;
+    }
+
+    /* 5. Modal Popup Chi tiết Liệu trình (Figma Node 216-929) */
+    .cham-modal-dialog {
+        max-width: 980px;
+    }
+
+    .cham-modal-content {
+        border-radius: 24px;
+        border: none;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(61, 39, 29, 0.25);
+    }
+
+    .cham-modal-header {
+        background-color: var(--cham-primary-red);
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: none;
+    }
+
+    .cham-modal-header-title {
+        font-family: var(--font-body, 'Cabin', sans-serif);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+    }
+
+    .cham-modal-close-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.15);
+        border: none;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .cham-modal-close-btn:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+
+    .cham-modal-body {
+        padding: 32px;
+        background-color: #FFFFFF;
+    }
+
+    /* Modal Left: Gallery & Trust box */
+    .modal-main-photo-box {
+        width: 100%;
+        height: 280px;
+        border-radius: 16px;
+        overflow: hidden;
+        background-color: #EFE9DE;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .modal-main-photo-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all 0.3s ease;
+    }
+
+    .modal-gallery-thumbs-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .modal-thumb-item {
+        height: 70px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .modal-thumb-item:hover, .modal-thumb-item.active {
+        border-color: var(--cham-primary-red);
+        transform: scale(0.98);
+    }
+
+    .modal-thumb-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .modal-trust-box {
+        background-color: var(--cham-bg-cream);
+        border-radius: 12px;
+        padding: 12px 16px;
+        border: 1px solid rgba(208, 181, 129, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 12.5px;
+        color: #55443B;
+        line-height: 1.45;
+    }
+
+    .modal-trust-box i {
+        font-size: 18px;
+        color: var(--cham-primary-red);
+        flex-shrink: 0;
+    }
+
+    /* Modal Right: Specs & Accordion */
+    .modal-cat-pill {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--cham-border-color);
+        background-color: #FFFDF9;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #7A5B46;
+        margin-bottom: 10px;
+    }
+
+    .modal-service-title {
+        font-family: var(--font-serif, 'Lora', serif);
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--cham-wood-dark);
+        line-height: 1.25;
+        margin-bottom: 8px;
+    }
+
+    .modal-specs-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 13.5px;
+        color: #6C757D;
+        margin-bottom: 12px;
+    }
+
+    .modal-price-tag {
+        font-family: var(--font-serif, 'Lora', serif);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--cham-primary-red);
+        margin-bottom: 14px;
+    }
+
+    .modal-desc-paragraph {
+        font-size: 14px;
+        color: #55443B;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    .modal-section-heading {
+        font-family: var(--font-body, 'Cabin', sans-serif);
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--cham-primary-red);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Custom Accordion for Experience Process */
+    .process-step-item {
+        border-bottom: 1px solid #EFE9DE;
+        padding: 10px 0;
+    }
+
+    .process-step-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .process-step-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--cham-wood-dark);
+        margin: 0;
+    }
+
+    .process-step-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: rgba(120, 26, 36, 0.1);
+        color: var(--cham-primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+
+    .process-step-chevron {
+        font-size: 12px;
+        color: #8C7B72;
+        transition: transform 0.2s ease;
+    }
+
+    .process-step-item.expanded .process-step-chevron {
+        transform: rotate(180deg);
+    }
+
+    .process-step-body {
+        font-size: 13px;
+        color: #6C757D;
+        line-height: 1.5;
+        padding-top: 6px;
+        padding-left: 34px;
+        display: none;
+    }
+
+    .process-step-item.expanded .process-step-body {
+        display: block;
+    }
+
+    /* Modal Footer Buttons */
+    .cham-modal-footer {
+        padding: 16px 32px 24px;
+        background-color: #FFFFFF;
+        border-top: 1px solid #F0EAE1;
+        display: grid;
+        grid-template-columns: 2fr 1.3fr;
+        gap: 14px;
+    }
+
+    .btn-modal-booking {
+        background-color: var(--cham-primary-red);
+        color: #FFFFFF;
+        border: 1px solid var(--cham-primary-red);
+        border-radius: 12px;
+        padding: 12px 20px;
+        font-size: 15px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-modal-booking:hover {
+        background-color: var(--cham-red-hover);
+        border-color: var(--cham-red-hover);
+        color: #FFFFFF;
+    }
+
+    .btn-modal-chat {
+        background-color: #FFFFFF;
+        color: var(--cham-wood-dark);
+        border: 1px solid var(--cham-border-color);
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-size: 14.5px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-modal-chat:hover {
+        border-color: var(--cham-primary-red);
+        color: var(--cham-primary-red);
+        background-color: #FFF9F9;
+    }
+
+    /* Empty state */
+    .empty-services-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: #FFFFFF;
+        border-radius: 20px;
+        border: 1px dashed var(--cham-border-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ==========================================================================
+     HERO HEADER SECTION: CHĂM SÓC THÂN · TÂM · TRÍ (FIGMA NODE 216-928)
+     ========================================================================== -->
+<section class="services-hero-section">
+    <div class="container">
+        <div class="hero-pill-badge">
+            <i class="bi bi-stars"></i> CHĂM SÓC THÂN · TÂM · TRÍ
+        </div>
+        <h1 class="hero-main-title">
+            Danh mục Liệu trình Trị liệu & Chăm sóc Sức khỏe Cham Spa
+        </h1>
+        <p class="hero-subtitle">
+            Khám phá những liệu trình được thiết kế riêng, kết hợp tinh hoa Champa và kỹ thuật trị liệu chuyên sâu.
+        </p>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     MAIN CONTENT: SIDEBAR BỘ LỌC & LƯỚI THẺ DỊCH VỤ RESPONSIVE
+     ========================================================================== -->
+<section class="services-main-wrapper">
+    <div class="container">
+        <div class="row g-4">
+            <!-- 1. CỘT TRÁI: BỘ LỌC DỊCH VỤ (SIDEBAR) -->
+            <div class="col-lg-3">
+                <div class="filter-sidebar-card">
+                    <div class="filter-card-header">
+                        <h3 class="filter-card-title">
+                            Bộ lọc dịch vụ
+                        </h3>
+                        <i class="bi bi-sliders fs-5 text-muted"></i>
+                    </div>
+
+                    <!-- Filter 1: DANH MỤC -->
+                    <div class="mb-4">
+                        <div class="filter-section-title">DANH MỤC</div>
+                        <div id="categoryFilterContainer">
+                            <div class="custom-filter-checkbox active" data-slug="all">
+                                <div class="custom-checkbox-box"></div>
+                                <span>All Dịch vụ</span>
+                            </div>
+                            {% for cat in categories %}
+                            <div class="custom-filter-checkbox" data-slug="{{ cat.slug }}">
+                                <div class="custom-checkbox-box"></div>
+                                <span>{{ cat.name }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Filter 2: KHOẢNG GIÁ (Gộp duy nhất 1 thanh trượt chuẩn Figma) -->
+                    <div class="mb-4">
+                        <div class="filter-section-title">KHOẢNG GIÁ</div>
+                        <div class="cham-price-range-wrapper">
+                            <input type="range" class="cham-price-slider" id="priceRangeInput"
+                                   min="{{ min_price }}" max="{{ max_price }}" step="50000" value="{{ max_price }}"
+                                   aria-label="Lọc theo khoảng giá tối đa">
+                        </div>
+                        <div class="price-display-wrapper mt-2">
+                            <span>200.000 VNĐ</span>
+                            <span id="maxPriceLabel">2.000.000 VNĐ</span>
+                        </div>
+                    </div>
+
+                    <!-- Filter 3: THỜI LƯỢNG -->
+                    <div class="mb-4">
+                        <div class="filter-section-title">THỜI LƯỢNG</div>
+                        <div class="duration-chips-grid">
+                            <button type="button" class="duration-chip-btn active" data-duration="">Tất cả</button>
+                            <button type="button" class="duration-chip-btn" data-duration="30">30 phút</button>
+                            <button type="button" class="duration-chip-btn" data-duration="60">60 phút</button>
+                            <button type="button" class="duration-chip-btn" data-duration="90">90 phút</button>
+                            <button type="button" class="duration-chip-btn" data-duration="120">120 phút</button>
+                        </div>
+                    </div>
+
+                    <!-- Nút Đặt lại bộ lọc -->
+                    <button type="button" class="btn-reset-filter" id="btnResetFilters">
+                        <i class="bi bi-arrow-clockwise"></i> Đặt lại bộ lọc
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. CỘT PHẢI: TOP BAR & LƯỚI DỊCH VỤ -->
+            <div class="col-lg-9">
+                <!-- Top Count & Sort Dropdown -->
+                <div class="services-top-bar">
+                    <div class="services-count-text">
+                        Hiển thị <strong id="currentDisplayedCount">{{ total_services }}</strong>/{{ total_services }} dịch vụ
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small fw-semibold">Sắp xếp:</span>
+                        <select class="sort-select-dropdown" id="sortSelect">
+                            <option value="default" selected>Mặc định</option>
+                            <option value="price_asc">Giá tăng dần</option>
+                            <option value="price_desc">Giá giảm dần</option>
+                            <option value="rating">Đánh giá cao nhất</option>
+                            <option value="popular">Phổ biến nhất</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Quick Options Strip (Figma Style) -->
+                <div class="quick-options-strip">
+                    <span class="quick-opt-label">Tùy chọn:</span>
+                    <a href="javascript:void(0)" class="quick-opt-item active" data-sort="default">Mặc định</a>
+                    <a href="javascript:void(0)" class="quick-opt-item" data-sort="price_asc">Giá tăng dần</a>
+                    <a href="javascript:void(0)" class="quick-opt-item" data-sort="price_desc">Giá giảm dần</a>
+                    <a href="javascript:void(0)" class="quick-opt-item" data-sort="popular">Phổ biến nhất</a>
+                </div>
+
+                <!-- Lưới Thẻ Dịch Vụ (#servicesGridContainer) -->
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" id="servicesGrid">
+                    {% for svc in services %}
+                    <div class="col service-item-col" data-id="{{ svc.id }}" data-category="{{ svc.category.slug }}" data-price="{{ svc.price_vnd }}" data-duration="{{ svc.duration_minutes }}">
+                        <div class="service-card">
+                            <div class="service-thumb-box" style="cursor: pointer;" onclick="openServiceDetailModal('{{ svc.slug }}')">
+                                <img src="{{ svc.thumbnail_url|default:'/static/images/treatment_1.png' }}?v=2"
+                                     alt="{{ svc.name }}" class="service-thumb-img" loading="lazy">
+                            </div>
+                            <div class="service-card-body">
+                                <div class="service-meta-top">
+                                    <span class="service-category-badge">{{ svc.category.name }}</span>
+                                    <span class="service-code-label">#DVO{{ svc.id|stringformat:"02d" }}</span>
+                                </div>
+                                <h3 class="service-name-title" title="{{ svc.name }}" style="cursor: pointer;" onclick="openServiceDetailModal('{{ svc.slug }}')">{{ svc.name }}</h3>
+                                <div class="service-specs-row">
+                                    <div class="service-spec-item">
+                                        <i class="bi bi-clock"></i>
+                                        <span>{{ svc.duration_minutes }} phút</span>
+                                    </div>
+                                    <div class="service-spec-item">
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                        <span>{{ svc.rating_avg }} ({{ svc.review_count }})</span>
+                                    </div>
+                                </div>
+                                <div class="service-price-amount">
+                                    {{ svc.formatted_price|default:svc.price_vnd }}
+                                </div>
+                                <div class="service-actions-row">
+                                    <a href="{% url 'appointment:booking' %}?service={{ svc.id }}" class="btn-card-book">
+                                        Đặt lịch ngay
+                                    </a>
+                                    <button type="button" class="btn-card-detail" data-bs-toggle="modal" data-bs-target="#serviceDetailModal" onclick="openServiceDetailModal('{{ svc.slug }}')">
+                                        Xem chi tiết
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Khung thông báo khi không có kết quả phù hợp -->
+                <div class="empty-services-state mt-4 d-none" id="emptyServicesBox">
+                    <i class="bi bi-search fs-1 text-muted d-block mb-3"></i>
+                    <h5 class="fw-bold text-dark font-serif">Không tìm thấy dịch vụ phù hợp</h5>
+                    <p class="text-muted small mb-3">Vui lòng điều chỉnh lại khoảng giá, thời lượng hoặc chọn danh mục khác.</p>
+                    <button type="button" class="btn btn-sm btn-outline-dark px-3 py-2 rounded-pill" onclick="resetAllFilters()">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Khôi phục bộ lọc mặc định
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     MODAL POPUP: CHI TIẾT LIỆU TRÌNH (FIGMA NODE 216-929)
+     ========================================================================== -->
+<div class="modal fade" id="serviceDetailModal" tabindex="-1" aria-labelledby="serviceDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered cham-modal-dialog">
+        <div class="modal-content cham-modal-content">
+            <!-- Modal Header -->
+            <div class="cham-modal-header">
+                <div class="cham-modal-header-title">
+                    <i class="bi bi-stars"></i> CHI TIẾT LIỆU TRÌNH
+                </div>
+                <button type="button" class="cham-modal-close-btn" data-bs-dismiss="modal" aria-label="Đóng">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (2 Columns) -->
+            <div class="cham-modal-body">
+                <div class="row g-4">
+                    <!-- Cột Trái: Ảnh lớn + 3 Thumbs + Trust badge -->
+                    <div class="col-lg-6">
+                        <div class="modal-main-photo-box">
+                            <img src="" alt="Main photo" class="modal-main-photo-img" id="modalMainImage">
+                        </div>
+                        <div class="modal-gallery-thumbs-row" id="modalGalleryThumbs">
+                            <!-- JS render 3 thumbs -->
+                        </div>
+                        <div class="modal-trust-box">
+                            <i class="bi bi-shield-check"></i>
+                            <div>Kỹ thuật viên được đào tạo chuyên sâu • Không gian riêng tư • Dầu thảo mộc an toàn</div>
+                        </div>
+                    </div>
+
+                    <!-- Cột Phải: Thông tin chi tiết, Giá, Accordion quy trình -->
+                    <div class="col-lg-6">
+                        <span class="modal-cat-pill" id="modalCategoryBadge">MASSAGE BODY • TRỊ LIỆU</span>
+                        <h2 class="modal-service-title" id="modalServiceTitle">Massage Body Trị Liệu Vai Gáy</h2>
+                        
+                        <div class="modal-specs-meta">
+                            <span><i class="bi bi-star-fill text-warning me-1"></i><strong id="modalRatingText">4.9/5</strong></span>
+                            <span><i class="bi bi-clock me-1"></i><span id="modalDurationText">60 phút</span></span>
+                            <span class="text-muted" id="modalCodeText">#DVO01</span>
+                        </div>
+
+                        <div class="modal-price-tag" id="modalPriceTag">
+                            550.000 VNĐ
+                        </div>
+
+                        <p class="modal-desc-paragraph" id="modalDescParagraph">
+                            Liệu trình chuyên sâu sử dụng đá nóng giữ nhiệt, dầu thảo mộc thiên nhiên và kỹ thuật ấn huyệt chính xác giúp giải phóng căng cứng vùng vai gáy, phục hồi tuần hoàn và mang lại trạng thái thư giãn sâu.
+                        </p>
+
+                        <!-- Quy trình trải nghiệm (Accordion) -->
+                        <div class="modal-section-heading">
+                            <i class="bi bi-journal-bookmark-fill"></i> Quy trình trải nghiệm
+                        </div>
+                        <div class="process-accordion" id="modalProcessList">
+                            <!-- Bước 1 -->
+                            <div class="process-step-item expanded">
+                                <div class="process-step-header" onclick="toggleProcessStep(this)">
+                                    <div class="process-step-title">
+                                        <div class="process-step-icon"><i class="bi bi-chat-heart"></i></div>
+                                        <span>Thăm vấn</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down process-step-chevron"></i>
+                                </div>
+                                <div class="process-step-body">
+                                    Chuyên viên lắng nghe tình trạng cơ thể, xác định điểm căng cơ và mức áp lực phù hợp.
+                                </div>
+                            </div>
+                            <!-- Bước 2 -->
+                            <div class="process-step-item">
+                                <div class="process-step-header" onclick="toggleProcessStep(this)">
+                                    <div class="process-step-title">
+                                        <div class="process-step-icon"><i class="bi bi-flower1"></i></div>
+                                        <span>Khởi động</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down process-step-chevron"></i>
+                                </div>
+                                <div class="process-step-body">
+                                    Xông hơi đá muối Himalaya, thưởng trà thảo mộc ấm và ngâm chân thảo mộc bài thuốc Dao Đỏ.
+                                </div>
+                            </div>
+                            <!-- Bước 3 -->
+                            <div class="process-step-item">
+                                <div class="process-step-header" onclick="toggleProcessStep(this)">
+                                    <div class="process-step-title">
+                                        <div class="process-step-icon"><i class="bi bi-hand-index-thumb"></i></div>
+                                        <span>Ấn huyệt trị liệu</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down process-step-chevron"></i>
+                                </div>
+                                <div class="process-step-body">
+                                    Kỹ thuật ấn huyệt Champa chuyên sâu giải phóng căng cứng huyệt đạo cổ vai gáy và cột sống.
+                                </div>
+                            </div>
+                            <!-- Bước 4 -->
+                            <div class="process-step-item">
+                                <div class="process-step-header" onclick="toggleProcessStep(this)">
+                                    <div class="process-step-title">
+                                        <div class="process-step-icon"><i class="bi bi-gem"></i></div>
+                                        <span>Đá nóng Champa</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down process-step-chevron"></i>
+                                </div>
+                                <div class="process-step-body">
+                                    Đặt và trượt đá bazan núi lửa tự nhiên hấp nóng, kết hợp tinh dầu trị liệu thư giãn sâu.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer (2 Action Buttons) -->
+            <div class="cham-modal-footer">
+                <a href="#" class="btn-modal-booking" id="modalBookingButton">
+                    <i class="bi bi-calendar-check"></i> Đặt lịch trải nghiệm ngay
+                </a>
+                <button type="button" class="btn-modal-chat" onclick="openChatConsultation()">
+                    <i class="bi bi-chat-dots"></i> Tư vấn qua Chatbot
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Nạp dữ liệu JSON Dịch vụ từ Backend Context phục vụ lọc và tìm kiếm tức thì -->
+{{ services_data|default:services_json|json_script:"services-initial-json" }}
+
+<!-- ==========================================================================
+     LOGIC XỬ LÝ ĐỘNG BẰNG VANILLA JAVASCRIPT (FETCH API, KHÔNG LOAD LẠI TRANG)
+     ========================================================================== -->
+<script>
+    // Dữ liệu dịch vụ ban đầu nạp từ Backend (đảm bảo giải mã mảng đối tượng dù truyền thô hay qua chuỗi)
+    let rawServices = JSON.parse(document.getElementById('services-initial-json').textContent || '[]');
+    let allServices = typeof rawServices === 'string' ? JSON.parse(rawServices) : rawServices;
+    if (!Array.isArray(allServices)) allServices = [];
+
+    let currentFilterCategory = 'all';
+    let currentMaxPrice = {{ max_price }};
+    let currentDuration = '';
+    let currentSort = 'default';
+    let detailModalInstance = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Khởi tạo Bootstrap Modal
+        const modalEl = document.getElementById('serviceDetailModal');
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            detailModalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+        }
+
+        // 1. Lắng nghe thao tác chọn Danh mục
+        const catItems = document.querySelectorAll('#categoryFilterContainer .custom-filter-checkbox');
+        catItems.forEach(item => {
+            item.addEventListener('click', function () {
+                catItems.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                currentFilterCategory = this.getAttribute('data-slug');
+                applyFiltersAndRender();
+            });
+        });
+
+        // 2. Lắng nghe thanh trượt Giá tiền (Slider gộp duy nhất 1 thanh chuẩn Figma)
+        const priceInput = document.getElementById('priceRangeInput');
+        const maxPriceLabel = document.getElementById('maxPriceLabel');
+
+        function updateSliderProgress(val) {
+            const min = 200000;
+            const max = 2000000;
+            const pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+            if (priceInput) {
+                priceInput.style.background = `linear-gradient(to right, #781A24 0%, #781A24 ${pct}%, #E2D9CC ${pct}%, #E2D9CC 100%)`;
+            }
+        }
+
+        if (priceInput) {
+            priceInput.addEventListener('input', function () {
+                currentMaxPrice = parseInt(this.value);
+                maxPriceLabel.textContent = currentMaxPrice.toLocaleString('vi-VN') + ' VNĐ';
+                updateSliderProgress(currentMaxPrice);
+                applyFiltersAndRender();
+            });
+            updateSliderProgress(currentMaxPrice);
+        }
+
+        // 3. Lắng nghe chọn Thời lượng Chips
+        const durationBtns = document.querySelectorAll('.duration-chip-btn');
+        durationBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                durationBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentDuration = this.getAttribute('data-duration');
+                applyFiltersAndRender();
+            });
+        });
+
+        // 4. Lắng nghe chọn Sắp xếp Dropdown & Quick Options
+        const sortSelect = document.getElementById('sortSelect');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function () {
+                currentSort = this.value;
+                syncQuickOptionActive(currentSort);
+                applyFiltersAndRender();
+            });
+        }
+
+        const quickOptItems = document.querySelectorAll('.quick-opt-item');
+        quickOptItems.forEach(item => {
+            item.addEventListener('click', function () {
+                currentSort = this.getAttribute('data-sort');
+                if (sortSelect) sortSelect.value = currentSort;
+                syncQuickOptionActive(currentSort);
+                applyFiltersAndRender();
+            });
+        });
+
+        // 5. Nút Đặt lại bộ lọc
+        const btnReset = document.getElementById('btnResetFilters');
+        if (btnReset) {
+            btnReset.addEventListener('click', resetAllFilters);
+        }
+
+        // Kiểm tra URL params nếu người dùng truy cập ?category=...
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramCat = urlParams.get('category');
+        if (paramCat) {
+            const targetCat = document.querySelector(`#categoryFilterContainer .custom-filter-checkbox[data-slug="${paramCat}"]`);
+            if (targetCat) {
+                targetCat.click();
+            }
+        }
+    });
+
+    function syncQuickOptionActive(sortVal) {
+        document.querySelectorAll('.quick-opt-item').forEach(el => {
+            if (el.getAttribute('data-sort') === sortVal) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
+        });
+    }
+
+    // Hàm áp dụng các tiêu chí lọc và sắp xếp không tải lại trang
+    function applyFiltersAndRender() {
+        if (!Array.isArray(allServices)) return;
+
+        let filtered = allServices.filter(svc => {
+            // Lọc danh mục
+            if (currentFilterCategory !== 'all' && svc.category_slug !== currentFilterCategory) {
+                return false;
+            }
+            // Lọc giá tiền
+            if (svc.price_vnd > currentMaxPrice) {
+                return false;
+            }
+            // Lọc thời lượng
+            if (currentDuration && String(svc.duration_minutes) !== String(currentDuration)) {
+                return false;
+            }
+            return true;
+        });
+
+        // Sắp xếp
+        if (currentSort === 'price_asc') {
+            filtered.sort((a, b) => a.price_vnd - b.price_vnd);
+        } else if (currentSort === 'price_desc') {
+            filtered.sort((a, b) => b.price_vnd - a.price_vnd);
+        } else if (currentSort === 'rating') {
+            filtered.sort((a, b) => (b.rating_avg - a.rating_avg) || (b.review_count - a.review_count));
+        } else if (currentSort === 'popular') {
+            filtered.sort((a, b) => (b.review_count - a.review_count) || (b.rating_avg - a.rating_avg));
+        } else {
+            filtered.sort((a, b) => a.id - b.id);
+        }
+
+        renderServicesGrid(filtered);
+    }
+
+    // Hàm kết xuất HTML danh sách dịch vụ vào Grid
+    function renderServicesGrid(list) {
+        const grid = document.getElementById('servicesGrid');
+        const emptyBox = document.getElementById('emptyServicesBox');
+        const countText = document.getElementById('currentDisplayedCount');
+
+        if (countText) countText.textContent = list.length;
+
+        if (list.length === 0) {
+            grid.innerHTML = '';
+            emptyBox.classList.remove('d-none');
+            return;
+        }
+
+        emptyBox.classList.add('d-none');
+
+        let html = '';
+        list.forEach(svc => {
+            const formattedPrice = svc.formatted_price || (Math.round(svc.price_vnd).toLocaleString('vi-VN') + ' VNĐ');
+            html += `
+            <div class="col service-item-col" data-id="${svc.id}">
+                <div class="service-card">
+                    <div class="service-thumb-box" style="cursor: pointer;" onclick="openServiceDetailModal('${svc.slug}')">
+                        <img src="${svc.thumbnail_url || '/static/images/treatment_1.png'}?v=2"
+                             alt="${svc.name}" class="service-thumb-img" loading="lazy">
+                    </div>
+                    <div class="service-card-body">
+                        <div class="service-meta-top">
+                            <span class="service-category-badge">${svc.category_name}</span>
+                            <span class="service-code-label">${svc.code || ('#DVO' + String(svc.id).padStart(2, '0'))}</span>
+                        </div>
+                        <h3 class="service-name-title" title="${svc.name}" style="cursor: pointer;" onclick="openServiceDetailModal('${svc.slug}')">${svc.name}</h3>
+                        <div class="service-specs-row">
+                            <div class="service-spec-item">
+                                <i class="bi bi-clock"></i>
+                                <span>${svc.duration_minutes} phút</span>
+                            </div>
+                            <div class="service-spec-item">
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <span>${svc.rating_avg} (${svc.review_count})</span>
+                            </div>
+                        </div>
+                        <div class="service-price-amount">
+                            ${formattedPrice}
+                        </div>
+                        <div class="service-actions-row">
+                            <a href="/appointment/?service=${svc.id}" class="btn-card-book">
+                                Đặt lịch ngay
+                            </a>
+                            <button type="button" class="btn-card-detail" data-bs-toggle="modal" data-bs-target="#serviceDetailModal" onclick="openServiceDetailModal('${svc.slug}')">
+                                Xem chi tiết
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+        });
+
+        grid.innerHTML = html;
+    }
+
+    // Hàm Đặt lại toàn bộ bộ lọc
+    function resetAllFilters() {
+        currentFilterCategory = 'all';
+        currentMaxPrice = {{ max_price }};
+        currentDuration = '';
+        currentSort = 'default';
+
+        // Reset Category
+        document.querySelectorAll('#categoryFilterContainer .custom-filter-checkbox').forEach(el => {
+            if (el.getAttribute('data-slug') === 'all') el.classList.add('active');
+            else el.classList.remove('active');
+        });
+
+        // Reset Slider
+        const priceInput = document.getElementById('priceRangeInput');
+        if (priceInput) {
+            priceInput.value = currentMaxPrice;
+            document.getElementById('maxPriceLabel').textContent = currentMaxPrice.toLocaleString('vi-VN') + ' VNĐ';
+            updateSliderProgress(currentMaxPrice);
+        }
+
+        // Reset Duration Chips
+        document.querySelectorAll('.duration-chip-btn').forEach(btn => {
+            if (btn.getAttribute('data-duration') === '') btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+
+        // Reset Sort
+        const sortSelect = document.getElementById('sortSelect');
+        if (sortSelect) sortSelect.value = 'default';
+        syncQuickOptionActive('default');
+
+        applyFiltersAndRender();
+    }
+
+    // Hàm mở Modal Chi tiết Dịch vụ (UC-3.2 - Gọi REST API /services/api/detail/<slug>/)
+    function openServiceDetailModal(slug) {
+        if (typeof allServices === 'string') {
+            try { allServices = JSON.parse(allServices); } catch (e) {}
+        }
+
+        // Tìm nhanh trong cache dữ liệu ban đầu để hiển thị ngay lập tức không có độ trễ
+        const cached = Array.isArray(allServices) ? allServices.find(s => s.slug === slug) : null;
+        if (cached) {
+            populateModalData(cached);
+        }
+
+        // Hiển thị modal qua Bootstrap Modal Instance
+        const modalEl = document.getElementById('serviceDetailModal');
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            if (!detailModalInstance) {
+                detailModalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+            }
+            detailModalInstance.show();
+        }
+
+        // Gọi REST API ngầm để lấy đầy đủ Gallery ảnh đa góc chụp và Quy trình 4 bước chuẩn Figma 216-929
+        fetch(`/services/api/detail/${slug}/`)
+            .then(res => {
+                if (!res.ok) throw new Error('Không tải được thông tin chi tiết');
+                return res.json();
+            })
+            .then(data => {
+                populateModalData(data);
+            })
+            .catch(err => {
+                console.warn('Lỗi tải chi tiết dịch vụ:', err);
+            });
+    }
+
+    // Điền dữ liệu vào Modal theo chuẩn Figma Node 216-929
+    function populateModalData(data) {
+        document.getElementById('modalServiceTitle').textContent = data.name;
+        document.getElementById('modalCategoryBadge').textContent = (data.category?.name || data.category_name || 'DỊCH VỤ SPA').toUpperCase();
+        document.getElementById('modalRatingText').textContent = (data.rating_avg || 5.0) + '/5';
+        document.getElementById('modalDurationText').textContent = (data.duration_minutes || 60) + ' phút';
+        document.getElementById('modalCodeText').textContent = data.code || ('#DVO' + String(data.id).padStart(2, '0'));
+        document.getElementById('modalPriceTag').textContent = data.formatted_price || (Math.round(data.price_vnd).toLocaleString('vi-VN') + ' VNĐ');
+        document.getElementById('modalDescParagraph').textContent = data.description || 'Liệu trình chăm sóc và trị liệu chuyên sâu mang lại sự thư thái tuyệt đối.';
+
+        // Cập nhật Ảnh chính & Gallery
+        const mainImg = document.getElementById('modalMainImage');
+        const defaultImg = data.thumbnail_url || '/static/images/treatment_1.png';
+        const hasImages = Array.isArray(data.images) && data.images.length > 0;
+        const mainSrc = (hasImages ? data.images[0] : defaultImg) + '?v=2';
+        mainImg.src = mainSrc;
+
+        // Render Gallery Thumbs (Tối đa 3 thumbnails chuẩn Figma)
+        const thumbsContainer = document.getElementById('modalGalleryThumbs');
+        if (thumbsContainer) {
+            let images = hasImages ? data.images : [defaultImg];
+            let thumbsHtml = '';
+            images.slice(0, 3).forEach((imgUrl, idx) => {
+                thumbsHtml += `
+                    <div class="modal-thumb-item ${idx === 0 ? 'active' : ''}" onclick="switchModalMainImage('${imgUrl}?v=2', this)">
+                        <img src="${imgUrl}?v=2" alt="Gallery ${idx + 1}">
+                    </div>
+                `;
+            });
+            thumbsContainer.innerHTML = thumbsHtml;
+        }
+
+        // Render Quy trình trải nghiệm 4 bước từ API (UC-3.2)
+        if (Array.isArray(data.process_steps) && data.process_steps.length > 0) {
+            const processContainer = document.getElementById('modalProcessList');
+            if (processContainer) {
+                let procHtml = '';
+                data.process_steps.forEach((step, idx) => {
+                    procHtml += `
+                        <div class="process-step-item ${idx === 0 ? 'expanded' : ''}">
+                            <div class="process-step-header" onclick="toggleProcessStep(this)">
+                                <div class="process-step-title">
+                                    <div class="process-step-icon"><i class="bi ${step.icon || 'bi-flower1'}"></i></div>
+                                    <span>${step.title}</span>
+                                </div>
+                                <i class="bi bi-chevron-down process-step-chevron"></i>
+                            </div>
+                            <div class="process-step-body">
+                                ${step.description}
+                            </div>
+                        </div>
+                    `;
+                });
+                processContainer.innerHTML = procHtml;
+            }
+        }
+
+        // Cập nhật link nút Đặt lịch ngay
+        const bookBtn = document.getElementById('modalBookingButton');
+        if (bookBtn) {
+            bookBtn.href = `/appointment/?service=${data.id}`;
+        }
+    }
+
+    // Chuyển ảnh chính khi click vào thumbnail
+    function switchModalMainImage(url, elem) {
+        document.getElementById('modalMainImage').src = url;
+        document.querySelectorAll('.modal-thumb-item').forEach(el => el.classList.remove('active'));
+        if (elem) elem.classList.add('active');
+    }
+
+    // Đóng/mở bước trong Accordion quy trình
+    function toggleProcessStep(headerElem) {
+        const item = headerElem.closest('.process-step-item');
+        if (item) {
+            item.classList.toggle('expanded');
+        }
+    }
+
+    // Kích hoạt mở Chatbot tư vấn dịch vụ (UC-2.1)
+    function openChatConsultation() {
+        if (detailModalInstance) {
+            detailModalInstance.hide();
+        }
+        // Kích hoạt nút chat nổi góc phải màn hình
+        const chatFab = document.querySelector('.cham-chatbot-fab') || document.getElementById('chamChatbotFab');
+        if (chatFab) {
+            chatFab.click();
+        } else {
+            alert('Trợ lý ảo Cham Spa sẵn sàng hỗ trợ tư vấn trực tuyến cho quý khách!');
+        }
+    }
+</script>
+{% endblock %}

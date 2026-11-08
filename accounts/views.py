@@ -33,7 +33,7 @@ def login_view(request):
             if not form.cleaned_data.get('remember_me'):
                 request.session.set_expiry(0)  # Phiên hết hạn khi đóng trình duyệt
 
-            messages.success(request, f"Chào mừng {user.name or user.username} đã quay trở lại Cham Spa!")
+            # Đã bỏ thông báo chào mừng quay trở lại theo yêu cầu UX
 
             # Nếu có URL đích trước đó (next)
             if next_url and next_url.startswith('/'):

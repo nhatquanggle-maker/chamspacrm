@@ -94,7 +94,7 @@
                             <i class="bi bi-person-badge"></i>
                             <span>Quản lý Nhân viên</span>
                         </a>
-                        <a href="{% url 'dashboard:admin' %}?tab=services" class="dropdown-menu-item" data-nav-target="Quản lý Danh mục dịch vụ">
+                        <a href="{% url 'services:service_admin' %}" class="dropdown-menu-item" data-nav-target="Quản lý Danh mục dịch vụ">
                             <i class="bi bi-flower2"></i>
                             <span>Quản lý Danh mục dịch vụ</span>
                         </a>
@@ -118,7 +118,7 @@
                             <i class="bi bi-calendar-check"></i>
                             <span>Lịch hẹn</span>
                         </a>
-                        <a href="{% url 'dashboard:staff' %}?tab=inbox" class="dropdown-menu-item justify-content-between" data-nav-target="Inbox">
+                        <a href="{% url 'chatbox:inbox' %}" class="dropdown-menu-item justify-content-between" data-nav-target="Inbox">
                             <div class="d-flex align-items-center gap-3">
                                 <i class="bi bi-inbox"></i>
                                 <span>Inbox</span>

@@ -1,0 +1,766 @@
+{% extends base_layout|default:"layouts/customer_layout.html" %}
+{% load static %}
+
+{% block title %}Khảo sát thể trạng & Cập nhật hồ sơ sức khỏe | Cham Spa & Massage Đà Nẵng{% endblock %}
+{% block page_title %}Cập nhật hồ sơ sức khỏe{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================================
+       CHAM SPA & MASSAGE - MOD-08: FORM KHẢO SÁT SỨC KHỎE (FIGMA NODE 273:2839)
+       Bố cục & màu sắc chuẩn hoàng gia Cham Spa, thanh lịch, đơn giản, dễ nhìn.
+       Điền sẵn 100% dữ liệu cũ cho khách hàng cập nhật.
+       ========================================================================== */
+
+    .cham-form-card {
+        background-color: #FFFFFF;
+        border: 1px solid #D0B581 !important;
+        border-radius: 18px !important;
+        box-shadow: 0 14px 36px rgba(46, 29, 23, 0.08);
+        overflow: hidden;
+        margin-bottom: 40px;
+    }
+
+    .cham-form-header {
+        background-color: #FAF7EF;
+        border-bottom: 1px solid #DED2BA;
+        padding: 24px 32px;
+    }
+
+    .cham-form-section-title {
+        font-family: var(--font-serif), Georgia, serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: #781A24;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #DED2BA;
+    }
+
+    .cham-form-step-num {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: #781A24;
+        color: #FFFFFF;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: var(--font-body), sans-serif;
+    }
+
+    /* Input điều khiển */
+    .cham-field-label {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #171311;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .cham-input-wrap {
+        position: relative;
+    }
+
+    .cham-input-control {
+        width: 100%;
+        background-color: #FFFFFF;
+        border: 1px solid #DED2BA;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 14.5px;
+        color: #171311;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .cham-input-control:focus {
+        border-color: #781A24 !important;
+        box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.12);
+        outline: none;
+    }
+
+    .cham-input-unit {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #716761;
+        font-size: 13.5px;
+        font-weight: 600;
+        pointer-events: none;
+    }
+
+    /* Thẻ Radio huyết áp */
+    .cham-choice-card {
+        border: 1.5px solid #DED2BA;
+        border-radius: 12px;
+        padding: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background-color: #FAF7EF;
+        text-align: center;
+        height: 100%;
+    }
+
+    .cham-choice-card:hover {
+        border-color: #D0B581;
+        background-color: #FFFFFF;
+    }
+
+    .cham-choice-card.active {
+        border-color: #781A24 !important;
+        background-color: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(120, 26, 36, 0.12);
+    }
+
+    /* ==========================================================================
+       THANH TRƯỢT MỨC ĐỘ ĐAU MỎI CHUẨN FIGMA (GIỐNG ẢNH 2 - FIGMA NODE 273:2575)
+       ========================================================================== */
+    .cham-pain-track-container {
+        position: relative;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+        margin: 12px 0 6px 0;
+    }
+
+    .cham-pain-track-bg {
+        width: 100%;
+        height: 4px;
+        border-radius: 999px;
+        background-color: #EADEC7;
+        position: absolute;
+    }
+
+    .cham-pain-track-fill {
+        height: 4px;
+        border-radius: 999px;
+        background-color: #781A24;
+        position: absolute;
+        left: 0;
+        transition: width 0.15s ease;
+    }
+
+    .cham-pain-thumb {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: #FFFFFF;
+        border: 3.5px solid #781A24;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        transform: translate(-50%, 0);
+        cursor: grab;
+        transition: left 0.15s ease, transform 0.15s ease;
+        z-index: 2;
+    }
+
+    .cham-pain-thumb:hover {
+        transform: translate(-50%, 0) scale(1.15);
+    }
+
+    .cham-pain-hidden-slider {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 3;
+        margin: 0;
+    }
+
+    .cham-pain-ticks {
+        display: flex;
+        justify-content: space-between;
+        padding: 0 2px;
+        user-select: none;
+    }
+
+    .pain-tick {
+        font-size: 12.5px;
+        color: #8C827A;
+        font-family: var(--font-body), sans-serif;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        padding: 4px 6px;
+    }
+
+    .pain-tick:hover {
+        color: #781A24;
+        font-weight: 700;
+    }
+
+    .pain-tick.active {
+        color: #781A24 !important;
+        font-weight: 700 !important;
+        transform: scale(1.15);
+    }
+
+    /* Thẻ chọn Lực massage */
+    .cham-pressure-card {
+        border: 1.5px solid #DED2BA;
+        border-radius: 12px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background-color: #FFFFFF;
+        text-align: center;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .cham-pressure-card:hover {
+        border-color: #D0B581;
+        background-color: #FAF7EF;
+    }
+
+    .cham-pressure-card.active {
+        border-color: #781A24 !important;
+        background-color: #FAF7EF !important;
+        box-shadow: 0 4px 14px rgba(120, 26, 36, 0.12);
+    }
+
+    .cham-dot-indicator {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid #8C827A;
+        margin: 0 auto 8px auto;
+        transition: all 0.2s ease;
+    }
+
+    .cham-pressure-card.active .cham-dot-indicator {
+        background-color: #781A24;
+        border-color: #781A24;
+    }
+
+    /* Checkbox Mục tiêu trị liệu */
+    .cham-goal-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 15px;
+        border-radius: 999px;
+        border: 1.5px solid #DED2BA;
+        background-color: #FFFFFF;
+        font-size: 13px;
+        font-weight: 600;
+        color: #4A3E39;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        margin: 4px;
+    }
+
+    .cham-goal-chip:hover {
+        border-color: #D0B581;
+        background-color: #FAF7EF;
+    }
+
+    .cham-goal-input:checked + .cham-goal-chip {
+        background-color: #781A24;
+        border-color: #781A24;
+        color: #FFFFFF;
+        box-shadow: 0 2px 8px rgba(120, 26, 36, 0.2);
+    }
+
+    .cham-goal-input {
+        display: none;
+    }
+
+    /* Nút lưu & hủy */
+    .cham-btn-primary {
+        background-color: #781A24;
+        color: #FFFFFF !important;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 30px;
+        font-family: var(--font-body), sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 14px rgba(120, 26, 36, 0.2);
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .cham-btn-primary:hover {
+        background-color: #5C121B;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(120, 26, 36, 0.3);
+    }
+
+    .cham-btn-secondary {
+        background-color: transparent;
+        color: #716761 !important;
+        border: 1.5px solid #DED2BA;
+        border-radius: 8px;
+        padding: 11px 22px;
+        font-family: var(--font-body), sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .cham-btn-secondary:hover {
+        background-color: #FAF7EF;
+        color: #171311 !important;
+        border-color: #B89A64;
+    }
+</style>
+{% endblock %}
+
+{% block admin_topbar %}{% endblock %}
+{% block staff_topbar %}{% endblock %}
+
+{% block content %}
+<!-- Thông báo hệ thống (nếu có) -->
+{% if messages %}
+<div class="mb-4">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3 small py-2 mb-2" role="alert">
+        <i class="bi bi-info-circle-fill me-1"></i> {{ message }}
+        <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Form Card Khảo sát sức khỏe -->
+<div class="cham-form-card">
+    <div class="cham-form-header">
+        <h3 class="font-serif fw-bold mb-1" style="color: #781A24; font-size: 22px;">
+            Khảo sát Thể trạng & Cập nhật Hồ sơ Sức khỏe
+        </h3>
+        <p class="text-muted small mb-0" style="font-size: 13.5px;">
+            Thông tin cũ đã được điền sẵn dưới đây. Quý khách có thể tự do điều chỉnh để phù hợp với thể trạng hiện tại.
+        </p>
+    </div>
+
+    <form id="healthProfileForm" method="POST" action="{% url 'health:update' %}" class="p-4 p-md-5">
+        {% csrf_token %}
+
+        <!-- ============================================================ -->
+        <!-- MỤC 1: CHỈ SỐ THỂ TRẠNG & TÍNH TOÁN BMI REALTIME             -->
+        <!-- ============================================================ -->
+        <div class="mb-5">
+            <div class="cham-form-section-title">
+                <span class="cham-form-step-num">1</span>
+                <span>Chỉ số Thể trạng & Sinh trắc học Cơ bản</span>
+            </div>
+
+            <div class="row g-3">
+                <!-- Chiều cao (cm) - Điền sẵn thông tin cũ dạng số đẹp -->
+                <div class="col-md-4">
+                    <label class="cham-field-label" for="inputHeight">
+                        Chiều cao (cm) <span class="text-muted fw-normal">(Tùy chọn)</span>
+                    </label>
+                    <div class="cham-input-wrap">
+                        <input type="number" step="0.5" min="50" max="250" class="cham-input-control" id="inputHeight" name="height_cm"
+                            placeholder="Ví dụ: 165" value="{{ height_display }}">
+                        <span class="cham-input-unit">cm</span>
+                    </div>
+                    <div class="text-muted mt-1" style="font-size: 11.5px;">Thang đo: 50 – 250 cm</div>
+                </div>
+
+                <!-- Cân nặng (kg) - Điền sẵn thông tin cũ dạng số đẹp -->
+                <div class="col-md-4">
+                    <label class="cham-field-label" for="inputWeight">
+                        Cân nặng (kg) <span class="text-muted fw-normal">(Tùy chọn)</span>
+                    </label>
+                    <div class="cham-input-wrap">
+                        <input type="number" step="0.5" min="20" max="250" class="cham-input-control" id="inputWeight" name="weight_kg"
+                            placeholder="Ví dụ: 52" value="{{ weight_display }}">
+                        <span class="cham-input-unit">kg</span>
+                    </div>
+                    <div class="text-muted mt-1" style="font-size: 11.5px;">Thang đo: 20 – 250 kg</div>
+                </div>
+
+                <!-- Chỉ số BMI Realtime Tự động tính -->
+                <div class="col-md-4">
+                    <label class="cham-field-label">
+                        Chỉ số BMI & Thể trạng <span class="badge bg-light text-muted border">Tự tính</span>
+                    </label>
+                    <div class="p-2 px-3 rounded-2 d-flex align-items-center justify-content-between" style="background-color: #FAF7EF; border: 1px solid #DED2BA; min-height: 42px;">
+                        <span class="fw-bold font-serif fs-5" id="bmiRealtimeVal" style="color: #781A24;">
+                            {{ profile_data.bmi|default:"--" }}
+                        </span>
+                        <span class="badge {{ profile_data.bmi_badge_class|default:'bg-secondary' }} rounded-pill" id="bmiRealtimeBadge">
+                            {{ profile_data.bmi_classification|default:"Nhập số để tính" }}
+                        </span>
+                    </div>
+                    <div class="text-muted mt-1" style="font-size: 11.5px;">Công thức: kg / m² (Chuẩn WHO Châu Á)</div>
+                </div>
+
+                <!-- Huyết áp - Điền sẵn thông tin cũ -->
+                <div class="col-12 mt-3">
+                    <label class="cham-field-label mb-2">
+                        Tình trạng Huyết áp thông thường <span class="text-danger">*</span>
+                    </label>
+                    <input type="hidden" name="blood_pressure" id="selectedBloodPressure" value="{{ current_bp }}">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="cham-choice-card {% if current_bp == 'Bình thường' %}active{% endif %}" onclick="selectBloodPressure('Bình thường', this)">
+                                <i class="bi bi-heart-pulse text-success fs-5 d-block mb-1"></i>
+                                <div class="fw-bold text-dark small">Huyết áp Bình thường</div>
+                                <div class="text-muted" style="font-size: 11.5px;">~120/80 mmHg - Ổn định</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="cham-choice-card {% if current_bp == 'Thấp' %}active{% endif %}" onclick="selectBloodPressure('Thấp', this)">
+                                <i class="bi bi-arrow-down-circle text-warning fs-5 d-block mb-1"></i>
+                                <div class="fw-bold text-dark small">Huyết áp Thấp</div>
+                                <div class="text-muted" style="font-size: 11.5px;">&lt; 90/60 mmHg - Tránh xông hơi lâu</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="cham-choice-card {% if current_bp == 'Cao' %}active{% endif %}" onclick="selectBloodPressure('Cao', this)">
+                                <i class="bi bi-exclamation-triangle text-danger fs-5 d-block mb-1"></i>
+                                <div class="fw-bold text-dark small">Huyết áp Cao</div>
+                                <div class="text-muted" style="font-size: 11.5px;">&gt; 140/90 mmHg - Tránh ấn gáy mạnh</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MỤC 2: MỨC ĐỘ ĐAU MỎI HIỆN TẠI (CHUẨN FIGMA GIỐNG ẢNH 2)     -->
+        <!-- ============================================================ -->
+        <div class="mb-5">
+            <div class="cham-form-section-title">
+                <span class="cham-form-step-num">2</span>
+                <span>Mức độ Đau mỏi Thể trạng Hiện tại</span>
+            </div>
+
+            <!-- Thanh mức độ đau mỏi chuẩn thiết kế ảnh 2 -->
+            <div class="p-4 rounded-3" style="background-color: #FAF7EF; border: 1px solid #DED2BA;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="fw-semibold text-dark" style="font-size: 14px;">Mức độ đau mỏi hiện tại</span>
+                    <span class="fw-bold font-serif fs-5" id="painLevelText" style="color: #781A24;">{{ current_pain }}/10</span>
+                </div>
+
+                <!-- Thanh Slider chuẩn ảnh 2 -->
+                <div class="cham-pain-track-container" id="painTrackWrap">
+                    <div class="cham-pain-track-bg"></div>
+                    <div class="cham-pain-track-fill" id="painTrackFill" style="width: 50%;"></div>
+                    <div class="cham-pain-thumb" id="painTrackThumb" style="left: 50%;"></div>
+                    <input type="range" class="cham-pain-hidden-slider" min="1" max="10" step="1" id="painRangeInput" name="pain_level"
+                        value="{{ current_pain }}" oninput="setPainLevel(this.value)">
+                </div>
+
+                <!-- Dãy số mốc 1 đến 10 -->
+                <div class="cham-pain-ticks">
+                    <span class="pain-tick" data-val="1" onclick="setPainLevel(1)">1</span>
+                    <span class="pain-tick" data-val="2" onclick="setPainLevel(2)">2</span>
+                    <span class="pain-tick" data-val="3" onclick="setPainLevel(3)">3</span>
+                    <span class="pain-tick" data-val="4" onclick="setPainLevel(4)">4</span>
+                    <span class="pain-tick" data-val="5" onclick="setPainLevel(5)">5</span>
+                    <span class="pain-tick" data-val="6" onclick="setPainLevel(6)">6</span>
+                    <span class="pain-tick" data-val="7" onclick="setPainLevel(7)">7</span>
+                    <span class="pain-tick" data-val="8" onclick="setPainLevel(8)">8</span>
+                    <span class="pain-tick" data-val="9" onclick="setPainLevel(9)">9</span>
+                    <span class="pain-tick" data-val="10" onclick="setPainLevel(10)">10</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MỤC 3: LỰC MASSAGE BẤM HUYỆT ƯA CHUỘNG                       -->
+        <!-- ============================================================ -->
+        <div class="mb-5">
+            <div class="cham-form-section-title">
+                <span class="cham-form-step-num">3</span>
+                <span>Lực Massage Bấm huyệt Ưa chuộng</span>
+            </div>
+            <p class="text-muted small mb-3" style="font-size: 13px;">
+                Lực massage sẽ tự động đồng bộ khi bạn đặt lịch dịch vụ tại Cham Spa:
+            </p>
+
+            <input type="hidden" name="massage_pressure" id="selectedMassagePressure" value="{{ current_pressure }}">
+
+            <div class="row g-3">
+                <!-- Nhẹ nhàng -->
+                <div class="col-md-4">
+                    <div class="cham-pressure-card {% if current_pressure == 'Nhẹ nhàng' %}active{% endif %}" onclick="selectPressure('Nhẹ nhàng', this)">
+                        <div>
+                            <div class="cham-dot-indicator"></div>
+                            <h6 class="font-serif fw-bold mb-1" style="color: #781A24;">Nhẹ nhàng</h6>
+                            <div class="badge bg-light text-muted border mb-2" style="font-size: 10.5px;">Thư giãn êm dịu</div>
+                            <p class="text-muted mb-0" style="font-size: 12px;">Xoa bóp êm ái, vuốt dầu thư thái, giải tỏa áp lực và dễ ngủ.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lực vừa (Khuyên dùng) -->
+                <div class="col-md-4">
+                    <div class="cham-pressure-card {% if current_pressure == 'Lực vừa' %}active{% endif %}" onclick="selectPressure('Lực vừa', this)">
+                        <div>
+                            <div class="cham-dot-indicator"></div>
+                            <h6 class="font-serif fw-bold mb-1" style="color: #781A24;">Lực vừa</h6>
+                            <div class="badge bg-success-subtle text-success border border-success-subtle mb-2" style="font-size: 10.5px;">Phổ biến nhất</div>
+                            <p class="text-muted mb-0" style="font-size: 12px;">Lực miết tiêu chuẩn, ấn huyệt giải tỏa căng mỏi cơ bắp.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lực mạnh -->
+                <div class="col-md-4">
+                    <div class="cham-pressure-card {% if current_pressure == 'Lực mạnh' %}active{% endif %}" onclick="selectPressure('Lực mạnh', this)">
+                        <div>
+                            <div class="cham-dot-indicator"></div>
+                            <h6 class="font-serif fw-bold mb-1" style="color: #781A24;">Lực mạnh</h6>
+                            <div class="badge bg-danger-subtle text-danger border border-danger-subtle mb-2" style="font-size: 10.5px;">Trị liệu sâu</div>
+                            <p class="text-muted mb-0" style="font-size: 12px;">Day ấn mạc cơ sâu, bấm huyệt mạnh giải trừ bó tắc cơ lâu năm.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MỤC 4: MỤC TIÊU TRỊ LIỆU & GHI CHÚ RIÊNG                      -->
+        <!-- ============================================================ -->
+        <div class="mb-5">
+            <div class="cham-form-section-title">
+                <span class="cham-form-step-num">4</span>
+                <span>Mục tiêu Trị liệu & Ghi chú Riêng</span>
+            </div>
+
+            <!-- Mục tiêu - Điền sẵn các mục tiêu cũ của khách -->
+            <div class="mb-3">
+                <label class="cham-field-label mb-2">Mục tiêu mong muốn sau buổi trị liệu:</label>
+                <div class="d-flex flex-wrap">
+                    {% for goal in standard_recovery_goals %}
+                    <div>
+                        <input type="checkbox" id="goal_{{ forloop.counter }}" name="recovery_goals" value="{{ goal }}"
+                            class="cham-goal-input" {% if goal in profile.recovery_goals %}checked{% endif %}>
+                        <label for="goal_{{ forloop.counter }}" class="cham-goal-chip">
+                            <i class="bi bi-check2"></i> {{ goal }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Yêu cầu riêng - Điền sẵn yêu cầu cũ của khách -->
+            <div>
+                <label class="cham-field-label" for="inputRequests">
+                    Yêu cầu riêng dành cho Kỹ thuật viên & Phòng:
+                </label>
+                <textarea class="cham-input-control" id="inputRequests" name="special_requests" rows="3"
+                    placeholder="Ví dụ: Thích ngâm chân thảo mộc ấm và chườm đá muối...">{{ profile.special_requests|default:'' }}</textarea>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- NÚT LƯU & QUAY LẠI                                           -->
+        <!-- ============================================================ -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-3 border-top">
+            <a href="{% url 'health:profile' %}" class="cham-btn-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lại
+            </a>
+
+            <button type="submit" class="cham-btn-primary" id="btnSubmitHealthForm">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Lưu hồ sơ sức khỏe</span>
+            </button>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /**
+     * =========================================================================
+     * JAVASCRIPT XỬ LÝ KHẢO SÁT SỨC KHỎE
+     * =========================================================================
+     */
+
+    // 1. Tự động tính toán Chỉ số BMI Realtime (Công thức y khoa)
+    const inputHeight = document.getElementById('inputHeight');
+    const inputWeight = document.getElementById('inputWeight');
+    const bmiValEl = document.getElementById('bmiRealtimeVal');
+    const bmiBadgeEl = document.getElementById('bmiRealtimeBadge');
+
+    function calculateRealtimeBMI() {
+        const h = parseFloat(inputHeight.value);
+        const w = parseFloat(inputWeight.value);
+
+        if (h && w && h > 0 && w > 0) {
+            const hMeter = h / 100.0;
+            const bmi = (w / (hMeter * hMeter)).toFixed(1);
+            bmiValEl.innerText = bmi;
+
+            if (bmi < 18.5) {
+                bmiBadgeEl.className = 'badge bg-info text-dark rounded-pill';
+                bmiBadgeEl.innerText = 'Nhẹ cân / Thể trạng gầy';
+            } else if (bmi < 23.0) {
+                bmiBadgeEl.className = 'badge bg-success rounded-pill';
+                bmiBadgeEl.innerText = 'Cân đối / Bình thường';
+            } else if (bmi < 25.0) {
+                bmiBadgeEl.className = 'badge bg-warning text-dark rounded-pill';
+                bmiBadgeEl.innerText = 'Tiền béo phì (Thừa cân)';
+            } else {
+                bmiBadgeEl.className = 'badge bg-danger rounded-pill';
+                bmiBadgeEl.innerText = 'Béo phì (Cần lưu ý)';
+            }
+        } else {
+            bmiValEl.innerText = '--';
+            bmiBadgeEl.className = 'badge bg-secondary rounded-pill';
+            bmiBadgeEl.innerText = 'Nhập số để tính';
+        }
+    }
+
+    if (inputHeight && inputWeight) {
+        inputHeight.addEventListener('input', calculateRealtimeBMI);
+        inputWeight.addEventListener('input', calculateRealtimeBMI);
+    }
+
+    // 2. Chọn Huyết áp (Radio Card)
+    function selectBloodPressure(val, element) {
+        document.getElementById('selectedBloodPressure').value = val;
+        document.querySelectorAll('.cham-choice-card').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    // 3. Xử lý Thanh trượt mức độ đau mỏi (Chuẩn thiết kế ảnh 2)
+    function setPainLevel(val) {
+        val = parseInt(val, 10);
+        if (isNaN(val) || val < 1) val = 1;
+        if (val > 10) val = 10;
+
+        // Cập nhật input range
+        const rangeEl = document.getElementById('painRangeInput');
+        if (rangeEl) rangeEl.value = val;
+
+        // Cập nhật chữ điểm 6/10
+        const textEl = document.getElementById('painLevelText');
+        if (textEl) textEl.innerText = val + '/10';
+
+        // Cập nhật độ dài thanh fill và vị trí thumb
+        // Thang điểm từ 1 đến 10 (9 khoảng chia)
+        const percentage = ((val - 1) / 9.0) * 100.0;
+        const fillEl = document.getElementById('painTrackFill');
+        const thumbEl = document.getElementById('painTrackThumb');
+        if (fillEl) fillEl.style.width = percentage + '%';
+        if (thumbEl) thumbEl.style.left = percentage + '%';
+
+        // Cập nhật màu đỏ nổi bật cho tick được chọn
+        document.querySelectorAll('.pain-tick').forEach(tick => {
+            const tickVal = parseInt(tick.getAttribute('data-val'), 10);
+            if (tickVal === val) {
+                tick.classList.add('active');
+            } else {
+                tick.classList.remove('active');
+            }
+        });
+    }
+
+    // 4. Chọn Lực massage (Pressure Card)
+    function selectPressure(val, element) {
+        document.getElementById('selectedMassagePressure').value = val;
+        document.querySelectorAll('.cham-pressure-card').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    // 5. Gửi dữ liệu qua Vanilla JS Fetch API (Chuẩn Hợp đồng API /api/health-profile/)
+    const form = document.getElementById('healthProfileForm');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const btnSubmit = document.getElementById('btnSubmitHealthForm');
+            const originalBtnHtml = btnSubmit.innerHTML;
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang lưu hồ sơ...';
+
+            const recoveryGoals = [];
+            document.querySelectorAll('input[name="recovery_goals"]:checked').forEach(cb => {
+                recoveryGoals.push(cb.value);
+            });
+
+            const payload = {
+                height_cm: inputHeight.value ? parseFloat(inputHeight.value) : null,
+                weight_kg: inputWeight.value ? parseFloat(inputWeight.value) : null,
+                blood_pressure: document.getElementById('selectedBloodPressure').value,
+                massage_pressure: document.getElementById('selectedMassagePressure').value,
+                pain_level: parseInt(document.getElementById('painRangeInput').value, 10),
+                focus_areas: [],
+                health_conditions: [],
+                allergy_notes: "",
+                special_requests: document.getElementById('inputRequests').value.trim(),
+                recovery_goals: recoveryGoals,
+            };
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch("{% url 'health:api_update' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken,
+                },
+                body: JSON.stringify(payload),
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("Cập nhật hồ sơ sức khỏe thành công! Dữ liệu đã được lưu an toàn.");
+                    window.location.href = "{% url 'health:profile' %}";
+                } else {
+                    alert("Có lỗi xảy ra: " + (data.message || JSON.stringify(data.errors || data)));
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = originalBtnHtml;
+                }
+            })
+            .catch(err => {
+                console.error("Lỗi gửi dữ liệu hồ sơ sức khỏe:", err);
+                form.submit();
+            });
+        });
+    }
+
+    // Tự động kích hoạt dữ liệu cũ và trạng thái active khi trang tải xong
+    document.addEventListener('DOMContentLoaded', function () {
+        // Tự động tính lại BMI từ số đo cũ đã nạp sẵn
+        calculateRealtimeBMI();
+
+        // Tự động cập nhật thanh mức độ đau mỏi theo điểm cũ
+        const initialPain = parseInt("{{ current_pain|default:5 }}", 10);
+        setPainLevel(initialPain);
+
+        // Sidebar active
+        const sidebarItems = document.querySelectorAll('.customer-nav-item, .sidebar-nav-item');
+        sidebarItems.forEach(function (item) {
+            item.classList.remove('active');
+            const target = item.getAttribute('data-nav-target') || '';
+            const txt = item.textContent || '';
+            if (target.includes('sức khỏe') || txt.includes('Hồ sơ sức khỏe')) {
+                item.classList.add('active');
+            }
+        });
+    });
+</script>
+{% endblock %}

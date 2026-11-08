@@ -26,7 +26,7 @@
                 <!-- CTA buttons -->
                 <div class="d-flex flex-wrap gap-3 mb-5">
                     <a href="{% url 'appointment:booking' %}" class="btn-figma-gold">ĐẶT LỊCH</a>
-                    <a href="#services" class="btn-figma-outline-white">KHÁM PHÁ LIỆU TRÌNH</a>
+                    <a href="{% url 'services:service_list' %}" class="btn-figma-outline-white">KHÁM PHÁ LIỆU TRÌNH</a>
                 </div>
                 <!-- Badges / Credentials -->
                 <div class="d-flex flex-wrap gap-4 pt-2" style="font-size: 13.5px; color: var(--cham-gold);">
@@ -158,7 +158,7 @@
                     Ba nghi thức phục hồi đặc trưng, được thiết kế để giải phóng căng thẳng và đánh thức nguồn năng lượng tươi mới.
                 </p>
             </div>
-            <a href="#services" class="btn-figma-outline-dark">XEM TẤT CẢ DỊCH VỤ</a>
+            <a href="{% url 'services:service_list' %}" class="btn-figma-outline-dark">XEM TẤT CẢ DỊCH VỤ</a>
         </div>
 
         <!-- 3 Cards -->

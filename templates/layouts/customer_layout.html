@@ -38,4 +38,17 @@
 
     {% include "components/chat_widget.html" %}
     {% include "components/footer_public.html" %}
+
+    <script>
+        // Tự động chuyển hướng sang trang tương ứng nếu URL có query ?tab=
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            if (tab === 'appointments' && !window.location.pathname.includes('/appointment/')) {
+                window.location.replace("{% url 'appointment:my_appointments' %}");
+            } else if (tab === 'health' && !window.location.pathname.includes('/health/')) {
+                window.location.replace("{% url 'health:profile' %}");
+            }
+        })();
+    </script>
 {% endblock %}

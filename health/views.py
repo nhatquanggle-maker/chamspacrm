@@ -272,22 +272,24 @@ def staff_health_lookup_view(request):
                     is_active=True
                 )
                 bday = datetime.strptime(bday_str, '%Y-%m-%d').date() if bday_str else None
-                UserProfile.objects.create(
-                    user=new_user,
-                    gender=gender,
-                    birthday=bday
-                )
+                profile, _ = UserProfile.objects.get_or_create(user=new_user)
+                profile.gender = gender
+                if bday:
+                    profile.birthday = bday
+                profile.save()
                 tier_obj = Tier.objects.filter(name=tier_name).first() or Tier.objects.first()
-                Membership.objects.create(
+                mem, _ = Membership.objects.get_or_create(user=new_user)
+                mem.tier = tier_obj
+                mem.current_points = tier_obj.min_points if tier_obj else 0
+                mem.save()
+
+                hp, _ = UserHealthProfile.objects.get_or_create(
                     user=new_user,
-                    tier=tier_obj,
-                    current_points=tier_obj.min_points if tier_obj else 0
+                    defaults={'health_code': f"HS-{new_user.id:04d}"}
                 )
-                UserHealthProfile.objects.create(
-                    user=new_user,
-                    health_code=f"HS-{new_user.id:04d}",
-                    special_requests=care_note
-                )
+                if care_note:
+                    hp.special_requests = care_note
+                    hp.save()
                 messages.success(request, f"Đã thêm thành công tài khoản khách hàng {new_user.name} (#{new_user.id:03d})!")
             return redirect('health:staff_lookup')
 
@@ -350,10 +352,45 @@ def staff_customer_health_detail_view(request, user_id):
       - Tab 1 (Figma Node 221:481): Thông tin cá nhân & Liên hệ
       - Tab 2 (Figma Node 608:1773): Hồ sơ sức khỏe
       - Tab 3 (Figma Node 608:250): Thẻ hội viên & Tích điểm
+    Đồng thời hỗ trợ hiển thị giao diện chuyên biệt cho KTV in phiếu khi có tham số ?view=ktv hoặc ?standalone=1.
     """
     if not is_staff_or_superuser(request.user):
         messages.error(request, "Bạn không có quyền truy cập hồ sơ sức khỏe khách hàng này.")
         return redirect('home')
+
+    # Nếu KTV yêu cầu xem bản in phiếu hồ sơ y tế chuyên sâu (Figma Node 279:1633)
+    if request.GET.get('view') in ['ktv', 'standalone', 'print']:
+        base_layout = 'layouts/admin_layout.html' if request.user.is_superuser else 'layouts/staff_layout.html'
+        customer = get_object_or_404(User, id=user_id)
+        profile = UserHealthProfile.objects.filter(user=customer).first()
+
+        profile_data = None
+        height_display = ""
+        weight_display = ""
+        if profile:
+            serializer = UserHealthProfileSerializer(profile)
+            profile_data = serializer.data
+            height_display = format_metric_value(profile.height_cm)
+            weight_display = format_metric_value(profile.weight_kg)
+
+        recent_appointments = (
+            Appointment.objects.filter(user=customer)
+            .prefetch_related('details__service')
+            .order_by('-appointment_date', '-time_slot')[:5]
+        )
+
+        context = {
+            'page_title': f'Hồ sơ sức khỏe: {customer.name or customer.username}',
+            'base_layout': base_layout,
+            'customer': customer,
+            'profile': profile,
+            'profile_data': profile_data,
+            'has_profile': bool(profile),
+            'height_display': height_display,
+            'weight_display': weight_display,
+            'recent_appointments': recent_appointments,
+        }
+        return render(request, 'health/staff_detail.html', context)
 
     active_tab = request.GET.get('tab', 'health')
     return redirect(f"{reverse('accounts:admin_customer_detail', kwargs={'pk': user_id})}?tab={active_tab}")

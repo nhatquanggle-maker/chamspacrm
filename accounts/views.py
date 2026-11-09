@@ -174,6 +174,12 @@ def profile_view(request):
     Hỗ trợ đầy đủ: Đổi thông tin cá nhân, Tải ảnh đại diện Avatar, Đổi mật khẩu tài khoản.
     """
     user = request.user
+    if request.GET.get('tab') == 'feedbacks':
+        appointment_id = request.GET.get('appointment')
+        if appointment_id:
+            return redirect(f"/feedbacks/?appointment={appointment_id}")
+        return redirect('feedbacks:my_feedbacks')
+
     profile, _ = UserProfile.objects.get_or_create(user=user)
 
     membership = Membership.objects.filter(user=user).select_related('tier').first()
@@ -340,23 +346,31 @@ def admin_customer_list_view(request):
                     is_active=True
                 )
                 bday = datetime.strptime(bday_str, '%Y-%m-%d').date() if bday_str else None
-                UserProfile.objects.create(
-                    user=new_user,
-                    gender=gender,
-                    birthday=bday
-                )
+                profile, _ = UserProfile.objects.get_or_create(user=new_user)
+                profile.gender = gender
+                if bday:
+                    profile.birthday = bday
+                profile.save()
+
                 tier_obj = Tier.objects.filter(name=tier_name).first() or Tier.objects.first()
-                Membership.objects.create(
+                mem, _ = Membership.objects.get_or_create(user=new_user)
+                mem.tier = tier_obj
+                mem.current_points = tier_obj.min_points if tier_obj else 0
+                mem.save()
+
+                care_note = request.POST.get('care_note', '').strip()
+                hp, _ = UserHealthProfile.objects.get_or_create(
                     user=new_user,
-                    tier=tier_obj,
-                    current_points=tier_obj.min_points if tier_obj else 0
+                    defaults={
+                        'health_code': f"HS-{new_user.id:04d}",
+                        'focus_areas': ['Vai gáy'],
+                        'massage_pressure': 'Lực vừa',
+                        'pain_level': 5,
+                    }
                 )
                 if care_note:
-                    UserHealthProfile.objects.create(
-                        user=new_user,
-                        health_code=f"HS-{new_user.id:04d}",
-                        special_requests=care_note
-                    )
+                    hp.special_requests = care_note
+                    hp.save()
                 messages.success(request, f"Đã thêm thành công tài khoản khách hàng {new_user.name} (#{new_user.id:03d})!")
             redirect_to = request.POST.get('redirect_to')
             if redirect_to:
@@ -554,6 +568,9 @@ def admin_customer_detail_view(request, pk):
         active_tab = 'info'
 
     # 1. Thống kê lịch hẹn & chỉ số 360 độ (Node 221:481)
+    if customer.phone:
+        clean_phone = customer.phone.replace(' ', '').replace('.', '').strip()
+        Appointment.objects.filter(user__isnull=True, customer_phone=clean_phone).update(user=customer)
     appointments = customer.appointments.all().order_by('-appointment_date', '-time_slot')
     total_appointments = appointments.count()
     completed_appointments = appointments.filter(status='Completed').count()
@@ -897,9 +914,9 @@ def admin_staff_detail_view(request, pk):
     staff.position = 'Staff'
     staff.work_status = 'Tạm khóa' if not staff.is_active else (staff.last_name or 'Hoạt động')
 
-    # Thống kê lịch hẹn phụ trách nếu có
-    assigned_appointments = Appointment.objects.filter(assigned_staff=staff).order_by('-appointment_date')[:10]
-    total_assigned = Appointment.objects.filter(assigned_staff=staff).count()
+    # Thống kê lịch hẹn phụ trách chung theo ca
+    assigned_appointments = Appointment.objects.all().order_by('-appointment_date', '-time_slot')[:10]
+    total_assigned = Appointment.objects.count()
 
     context = {
         'staff': staff,

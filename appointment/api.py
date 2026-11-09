@@ -14,6 +14,7 @@ from datetime import datetime, time, timedelta
 from django.db import transaction
 from django.db.models import Sum, Q
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -359,6 +360,24 @@ class ConfirmPaymentAPI(APIView):
         appointment.status = 'Confirmed'
         appointment.save()
 
+        # Cập nhật hóa đơn thanh toán chuyển khoản
+        from core.models import Invoice
+        invoice, _ = Invoice.objects.get_or_create(
+            appointment=appointment,
+            defaults={
+                'amount': appointment.total_price,
+                'discount_applied': 0,
+                'status': 'Đã thanh toán',
+                'paid_at': timezone.now(),
+                'reason_refuse': 'Chuyển khoản VietQR'
+            }
+        )
+        invoice.status = 'Đã thanh toán'
+        invoice.paid_at = timezone.now()
+        invoice.reason_refuse = 'Chuyển khoản VietQR'
+        invoice.amount = appointment.total_price
+        invoice.save()
+
         # Tạo thông báo xác nhận nếu có liên kết tài khoản User
         if appointment.user:
             Notification.objects.create(
@@ -377,6 +396,52 @@ class ConfirmPaymentAPI(APIView):
             'appointment_code': appointment.appointment_code,
             'appointment_status': 'Confirmed',
             'redirect_url': f"/appointment/success/{clean_code_redirect}/"
+        }, status=status.HTTP_200_OK)
+
+
+class UpdateAppointmentPaymentAPI(APIView):
+    """
+    API cập nhật phương thức thanh toán (Chuyển khoản VietQR / Tới quầy trả tiền)
+    hoặc cập nhật trạng thái thu tiền (Đã thanh toán / Chưa thanh toán)
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, pk):
+        from core.models import Invoice
+        appointment = get_object_or_404(Appointment, pk=pk)
+        method = request.data.get('payment_method')  # 'transfer' hoặc 'counter'
+        is_paid = request.data.get('is_paid')        # True hoặc False
+
+        invoice, _ = Invoice.objects.get_or_create(
+            appointment=appointment,
+            defaults={
+                'amount': appointment.total_price,
+                'discount_applied': 0,
+                'status': 'Chờ xác nhận'
+            }
+        )
+
+        if method == 'counter':
+            invoice.reason_refuse = 'Tại quầy (Tiền mặt/POS)'
+        elif method == 'transfer':
+            invoice.reason_refuse = 'Chuyển khoản VietQR'
+
+        if is_paid is True:
+            invoice.status = 'Đã thanh toán'
+            if not invoice.paid_at:
+                invoice.paid_at = timezone.now()
+        elif is_paid is False:
+            invoice.status = 'Chờ xác nhận'
+            invoice.paid_at = None
+
+        invoice.amount = appointment.total_price
+        invoice.save()
+
+        serializer = AppointmentFullSerializer(appointment)
+        return Response({
+            'status': 'success',
+            'message': 'Đã cập nhật thông tin thanh toán thành công!',
+            'appointment': serializer.data
         }, status=status.HTTP_200_OK)
 
 
@@ -598,14 +663,30 @@ class AdminAppointmentListAPI(APIView):
 
         qs = Appointment.objects.all().select_related('voucher', 'user').prefetch_related('details__service')
 
-        # 1. Lọc theo ngày
+        # 1. Lọc theo ngày hoặc khoảng ngày (Date Range)
         date_filter = request.query_params.get('date')
-        if date_filter:
+        date_from = request.query_params.get('date_from') or request.query_params.get('start_date')
+        date_to = request.query_params.get('date_to') or request.query_params.get('end_date')
+
+        if date_filter and date_filter != 'all':
             try:
                 d = datetime.strptime(date_filter, '%Y-%m-%d').date()
                 qs = qs.filter(appointment_date=d)
             except ValueError:
                 pass
+        else:
+            if date_from:
+                try:
+                    df = datetime.strptime(date_from, '%Y-%m-%d').date()
+                    qs = qs.filter(appointment_date__gte=df)
+                except ValueError:
+                    pass
+            if date_to:
+                try:
+                    dt = datetime.strptime(date_to, '%Y-%m-%d').date()
+                    qs = qs.filter(appointment_date__lte=dt)
+                except ValueError:
+                    pass
 
         # 2. Lọc theo khung giờ
         time_slot = request.query_params.get('time_slot')
@@ -617,7 +698,8 @@ class AdminAppointmentListAPI(APIView):
         if status_filter and status_filter != 'all' and status_filter != 'Tất cả trạng thái':
             if status_filter in ['Hold', 'Pending', 'Confirmed', 'In_Progress', 'Completed', 'Cancelled']:
                 qs = qs.filter(status=status_filter)
-            elif status_filter == 'upcoming':
+            elif status_filter in ['waiting', 'upcoming', 'pending_all', 'Đang chờ']:
+                qs = qs.filter(status__in=['Hold', 'Pending', 'Confirmed', 'In_Progress'])
                 qs = qs.filter(status__in=['Hold', 'Pending', 'Confirmed'])
 
         # 4. Tìm kiếm từ khóa (Mã đơn, Tên khách, SĐT)
@@ -673,12 +755,33 @@ class AdminAppointmentListAPI(APIView):
         appointment.status = new_status
         appointment.save()
 
-        # Tạo thông báo thông báo cho khách hàng nếu có tài khoản User
+        # Tự động cộng điểm thưởng thành viên khi hoàn thành lịch hẹn (Figma Node 110:4519 & UC-1.5)
+        earned_points = 0
+        if new_status == 'Completed' and old_status != 'Completed' and appointment.user:
+            try:
+                membership = getattr(appointment.user, 'membership', None)
+                if membership:
+                    earned_points = max(10, int(appointment.total_price) // 10000)
+                    from core.models import MembershipPoint
+                    if not MembershipPoint.objects.filter(membership=membership, appointment_id=appointment.id).exists():
+                        MembershipPoint.objects.create(
+                            membership=membership,
+                            appointment_id=appointment.id,
+                            points_amount=earned_points,
+                            reason_description=f"Tích điểm từ hoàn thành lịch hẹn {appointment.appointment_code}"
+                        )
+                        membership.current_points += earned_points
+                        membership.total_spent += appointment.total_price
+                        membership.save()
+            except Exception:
+                pass
+
+        # Tạo thông báo cho khách hàng nếu có tài khoản User
         if appointment.user and old_status != new_status:
             status_labels = {
                 'Confirmed': 'đã được xác nhận',
                 'In_Progress': 'đang được phục vụ',
-                'Completed': 'đã hoàn thành',
+                'Completed': f'đã hoàn thành' + (f' (+{earned_points} điểm thưởng)' if earned_points > 0 else ''),
                 'Cancelled': 'đã bị hủy'
             }
             label_txt = status_labels.get(new_status, new_status)
@@ -687,12 +790,16 @@ class AdminAppointmentListAPI(APIView):
                     notification_code=f"TB{int(timezone.now().timestamp())}",
                     user=appointment.user,
                     title=f"Lịch hẹn {appointment.appointment_code} {label_txt}",
-                    content=f"Lịch hẹn {appointment.appointment_code} ({appointment.time_slot} ngày {appointment.appointment_date}) hiện {label_txt}.",
+                    content=f"Lịch hẹn {appointment.appointment_code} ({appointment.time_slot} ngày {appointment.appointment_date}) {label_txt}.",
                     delivery_channels="Web",
                     status="Đã gửi"
                 )
             except Exception:
                 pass
+
+        resp_msg = f"Đã cập nhật trạng thái lịch hẹn {appointment.appointment_code} thành '{new_status}'."
+        if earned_points > 0:
+            resp_msg += f" Đã tự động tích lũy +{earned_points} điểm thưởng cho thành viên!"
 
         return Response({
             'status': 'success',
@@ -701,7 +808,8 @@ class AdminAppointmentListAPI(APIView):
             'appointment_code': appointment.appointment_code,
             'old_status': old_status,
             'updated_status': new_status,
-            'message': f"Đã cập nhật trạng thái lịch hẹn {appointment.appointment_code} thành '{new_status}'."
+            'earned_points': earned_points,
+            'message': resp_msg
         }, status=status.HTTP_200_OK)
 
 
@@ -734,9 +842,13 @@ class StaffQuickCreateAppointmentAPI(APIView):
         if not code:
             code = f"#LH{int(timezone.now().timestamp()) % 100000:05d}"
 
+        # Tự động liên kết với tài khoản khách hàng nếu số điện thoại đã tồn tại
+        clean_phone = data['customer_phone'].replace(' ', '').replace('.', '').strip()
+        matched_user = User.objects.filter(phone=clean_phone, is_staff=False, is_superuser=False).first()
+
         appointment = Appointment.objects.create(
             appointment_code=code,
-            user=None, # Đặt tại quầy
+            user=matched_user,
             customer_name=data['customer_name'],
             customer_phone=data['customer_phone'],
             customer_email=data.get('customer_email', ''),
@@ -749,6 +861,18 @@ class StaffQuickCreateAppointmentAPI(APIView):
             note=data.get('note', 'Đặt trực tiếp tại quầy'),
             total_price=total_price,
             status=data.get('status', 'Confirmed')
+        )
+
+        # Tự động lập Hóa đơn thanh toán (MOD-09)
+        from core.models import Invoice
+        Invoice.objects.get_or_create(
+            appointment=appointment,
+            defaults={
+                'amount': total_price,
+                'discount_applied': 0,
+                'status': 'Đã thanh toán' if data.get('status') == 'Completed' else 'Chờ xác nhận',
+                'reason_refuse': 'Tại quầy (Tiền mặt/POS)'
+            }
         )
 
         # Tạo chi tiết dịch vụ

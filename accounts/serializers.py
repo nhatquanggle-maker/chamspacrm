@@ -46,7 +46,7 @@ class UserSerializer(serializers.ModelSerializer):
                 return membership.tier.name
         except Exception:
             pass
-        return 'Member Gold'
+        return 'Thành viên'
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -345,22 +345,17 @@ class CustomerCreateAdminSerializer(serializers.Serializer):
             }
         )
         tier_obj = Tier.objects.filter(name=validated_data.get('tier_name')).first() or Tier.objects.first()
-        Membership.objects.get_or_create(
-            user=user,
-            defaults={
-                'tier': tier_obj,
-                'current_points': tier_obj.min_points if tier_obj else 0
-            }
-        )
+        mem, _ = Membership.objects.get_or_create(user=user)
+        if tier_obj:
+            mem.tier = tier_obj
+            mem.current_points = tier_obj.min_points
+            mem.save()
+
         care_note = validated_data.get('care_note', '').strip()
         if care_note:
-            UserHealthProfile.objects.update_or_create(
-                user=user,
-                defaults={
-                    'health_code': f"HS-{user.id:04d}",
-                    'special_requests': care_note
-                }
-            )
+            hp, _ = UserHealthProfile.objects.get_or_create(user=user, defaults={'health_code': f"HS-{user.id:04d}"})
+            hp.special_requests = care_note
+            hp.save()
         return user
 
 

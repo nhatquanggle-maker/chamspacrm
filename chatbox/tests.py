@@ -498,3 +498,85 @@ class ChatboxModuleTests(TestCase):
         self.assertNotContains(res_inbox, 'appointmentDirectCard')
         self.assertNotContains(res_inbox, 'Xác nhận lịch hẹn trực tiếp')
         self.assertNotContains(res_inbox, 'staff-unread-badge')
+
+    def test_staff_inbox_filters_zero_counts_and_guest_safe(self):
+        """Kiểm tra Staff Inbox khi rỗng, khách vãng lai (customer=None), chọn tab mặc định và API lọc"""
+        from django.utils import timezone
+
+        Conversation.objects.all().delete()
+        self.client.force_login(self.staff_user_1)
+
+        # 1. Trạng thái rỗng: hiển thị 0, không chứa dữ liệu mẫu cứng
+        res_empty = self.client.get(reverse('chatbox:inbox'))
+        self.assertEqual(res_empty.status_code, 200)
+        self.assertEqual(res_empty.context['waiting_count'], 0)
+        self.assertEqual(res_empty.context['processing_count'], 0)
+        self.assertEqual(res_empty.context['closed_count'], 0)
+        self.assertNotContains(res_empty, 'Thanh Thỏ')
+        self.assertNotContains(res_empty, '127.0.0.1:8000')
+
+        # 2. Chỉ có hội thoại Đang xử lý -> initial_tab='processing'
+        proc_conv = Conversation.objects.create(
+            customer=None,
+            staff=self.staff_user_1,
+            status='Đang xử lý',
+            customer_tag='VIP Spa',
+        )
+        ConversationMessage.objects.create(
+            conversation=proc_conv,
+            sender_type='Customer',
+            message_type='TEXT',
+            content='Cho mình hỏi liệu trình trị liệu cổ vai gáy',
+        )
+
+        res_proc = self.client.get(reverse('chatbox:inbox'))
+        self.assertEqual(res_proc.status_code, 200)
+        self.assertEqual(res_proc.context['initial_tab'], 'processing')
+        self.assertEqual(res_proc.context['processing_count'], 1)
+
+        # 3. Thêm hội thoại khách vãng lai (customer=None, Đang chờ) và hội thoại Kết thúc
+        wait_conv = Conversation.objects.create(
+            customer=None,
+            status='Đang chờ',
+            customer_tag='Khách vãng lai',
+        )
+        closed_conv = Conversation.objects.create(
+            customer=self.customer_user,
+            staff=self.staff_user_1,
+            status='Kết thúc',
+            closed_at=timezone.now(),
+        )
+
+        res_inbox = self.client.get(reverse('chatbox:inbox'))
+        res_livechat = self.client.get(reverse('chatbox:livechat'))
+        self.assertEqual(res_inbox.status_code, 200)
+        self.assertEqual(res_livechat.status_code, 200)
+        self.assertEqual(res_inbox.context['initial_tab'], 'waiting')
+
+        # 4. API lọc theo status, date và search trên tab=all
+        api_url = reverse('chatbox:api_staff_conversations_list')
+
+        res_api_proc = self.client.get(api_url, {'tab': 'all', 'status': 'Đang xử lý'})
+        self.assertEqual(res_api_proc.status_code, 200)
+        data_proc = res_api_proc.json()
+        self.assertEqual([c['id'] for c in data_proc['conversations']], [proc_conv.id])
+
+        res_api_closed = self.client.get(api_url, {'tab': 'all', 'status': 'Kết thúc'})
+        self.assertEqual(res_api_closed.status_code, 200)
+        data_closed = res_api_closed.json()
+        self.assertEqual([c['id'] for c in data_closed['conversations']], [closed_conv.id])
+
+        today_iso = timezone.localdate().isoformat()
+        res_api_today = self.client.get(api_url, {'tab': 'all', 'date': today_iso})
+        self.assertEqual(res_api_today.status_code, 200)
+        self.assertEqual(len(res_api_today.json()['conversations']), 3)
+
+        res_api_old_date = self.client.get(api_url, {'tab': 'all', 'date': '2000-01-01'})
+        self.assertEqual(res_api_old_date.status_code, 200)
+        self.assertEqual(res_api_old_date.json()['conversations'], [])
+
+        res_api_search = self.client.get(api_url, {'tab': 'all', 'search': 'Khách Hàng'})
+        self.assertEqual(res_api_search.status_code, 200)
+        self.assertEqual([c['id'] for c in res_api_search.json()['conversations']], [closed_conv.id])
+        self.assertEqual(wait_conv.status, 'Đang chờ')
+

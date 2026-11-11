@@ -35,7 +35,7 @@
                 <span class="filter-label">NGÀY LÀM VIỆC</span>
                 <div class="filter-input-wrap">
                     <i class="bi bi-calendar3"></i>
-                    <input type="date" id="filterDateInput" class="filter-input" value="{{ today_str }}">
+                    <input type="date" id="filterDateInput" class="filter-input" value="">
                 </div>
             </div>
 
@@ -43,11 +43,11 @@
             <div class="filter-group">
                 <span class="filter-label">KHUNG GIỜ</span>
                 <select id="filterSlotSelect" class="filter-select">
-                    <option value="">Tất cả khung giờ</option>
+                    <option value="" selected>Tất cả khung giờ</option>
                     <option value="09:00">09:00 - 10:30</option>
                     <option value="14:00">14:00 - 15:30</option>
                     <option value="16:00">16:00 - 17:30</option>
-                    <option value="18:30" selected>18:30 - 20:00</option>
+                    <option value="18:30">18:30 - 20:00</option>
                 </select>
             </div>
 
@@ -94,19 +94,15 @@
 
                 <!-- 3 Tab phân loại chuẩn Ảnh 1 -->
                 <div class="queue-tabs">
-                    <button type="button" class="queue-tab-btn active" data-tab="waiting"
-                        onclick="switchQueueTab('waiting', this)">
+                    <button type="button" class="queue-tab-btn {% if initial_tab == 'waiting' %}active{% endif %}" data-tab="waiting" onclick="switchQueueTab('waiting', this)">
                         <span>Chờ tiếp nhận</span>
-                        <span id="queueWaitingBadge" class="queue-badge-pill">{{ waiting_count|default:"3" }}</span>
+                        <span id="queueWaitingBadge" class="queue-badge-pill">{{ waiting_count|default_if_none:0 }}</span>
                     </button>
-                    <button type="button" class="queue-tab-btn" data-tab="processing"
-                        onclick="switchQueueTab('processing', this)">
+                    <button type="button" class="queue-tab-btn {% if initial_tab == 'processing' %}active{% endif %}" data-tab="processing" onclick="switchQueueTab('processing', this)">
                         <span>Đang xử lý</span>
-                        <span id="queueProcessingBadge" class="badge bg-secondary rounded-pill px-1"
-                            style="font-size: 9.5px;">{{ processing_count|default:"2" }}</span>
+                        <span id="queueProcessingBadge" class="badge bg-secondary rounded-pill px-1" style="font-size: 9.5px;">{{ processing_count|default_if_none:0 }}</span>
                     </button>
-                    <button type="button" class="queue-tab-btn" data-tab="closed"
-                        onclick="switchQueueTab('closed', this)">
+                    <button type="button" class="queue-tab-btn {% if initial_tab == 'closed' %}active{% endif %}" data-tab="closed" onclick="switchQueueTab('closed', this)">
                         <span>Kết thúc</span>
                     </button>
                 </div>
@@ -118,43 +114,52 @@
                 {% for c in conversations %}
                 <div class="queue-card {% if forloop.first %}active{% endif %}" id="queueCard_{{ c.id }}"
                     onclick="selectQueueConversation({{ c.id }})" data-id="{{ c.id }}"
-                    data-name="{{ c.customer.name|default:c.customer.username }}"
-                    data-phone="{{ c.customer.phone|default:'' }}"
+                    data-name="{% if c.customer %}{{ c.customer.name|default:c.customer.username }}{% else %}Khách vãng lai{% endif %}"
+                    data-phone="{% if c.customer %}{{ c.customer.phone|default:'' }}{% endif %}"
                     data-tag="{{ c.customer_tag|default:'Tư vấn dịch vụ' }}">
 
                     <div class="card-top-row">
                         <div class="card-avatar">
-                            {{ c.customer.name|default:c.customer.username|slice:":2"|upper }}
+                            {% if c.customer %}{{ c.customer.name|default:c.customer.username|slice:":2"|upper }}{% else %}KH{% endif %}
                         </div>
                         <div class="card-info">
                             <div class="card-name-row">
-                                <span class="card-name">{{ c.customer.name|default:c.customer.username }}</span>
-                                <span class="card-time">{{ c.created_at|timesince|slice:":6" }} trước</span>
+                                <span class="card-name">{% if c.customer %}{{ c.customer.name|default:c.customer.username }}{% else %}Khách vãng lai{% endif %}</span>
+                                <span class="card-time">{{ c.created_at|date:"H:i" }}</span>
                             </div>
                             <div class="card-phone">
-                                {% if c.customer.phone %}+84 {{ c.customer.phone|slice:"1:" }}{% else %}Khách hàng{% endif %}
+                                {% if c.customer and c.customer.phone %}+84 {{ c.customer.phone|slice:"1:" }}{% else %}Khách hàng{% endif %}
                             </div>
                         </div>
                     </div>
 
                     <div class="card-need-text">
-                        Nhu cầu: <strong>{{ c.customer_tag|default:"Vai gáy / Trị liệu" }}</strong>
+                        Nhu cầu: <strong>{{ c.customer_tag|default:"Tư vấn dịch vụ" }}</strong>
                     </div>
 
                     {% if c.status == 'Đang chờ' %}
                     <button type="button" class="btn-accept-queue" onclick="acceptQueueConversation({{ c.id }}, event)">
                         <i class="bi bi-chat-dots"></i> Tiếp nhận hội thoại
                     </button>
-                    {% else %}
+                    {% elif c.status == 'Đang xử lý' %}
                     <div class="d-flex justify-content-between align-items-center pt-1" style="font-size: 11px;">
                         <span class="text-success"><i class="bi bi-circle-fill" style="font-size: 7px;"></i> Đang hỗ trợ</span>
-                        {% if c.staff %}
-                        <span class="text-muted"><i class="bi bi-person-check"></i> {{ c.staff.name|default:c.staff.username }}</span>
-                        {% endif %}
+                        {% if c.staff %}<span class="text-muted"><i class="bi bi-person-check"></i> {{ c.staff.name|default:c.staff.username }}</span>{% endif %}
+                    </div>
+                    {% elif c.status == 'Kết thúc' %}
+                    <div class="d-flex justify-content-between align-items-center pt-1" style="font-size: 11px;">
+                        <span class="text-secondary"><i class="bi bi-check-circle-fill" style="font-size: 9px;"></i> Đã kết thúc</span>
+                        {% if c.staff %}<span class="text-muted"><i class="bi bi-person-check"></i> {{ c.staff.name|default:c.staff.username }}</span>{% endif %}
+                    </div>
+                    {% else %}
+                    <div class="d-flex justify-content-between align-items-center pt-1" style="font-size: 11px;">
+                        <span class="text-muted"><i class="bi bi-robot" style="font-size: 10px;"></i> Bot xử lý</span>
                     </div>
                     {% endif %}
                 </div>
                 {% endfor %}
+                {% else %}
+                <div class="text-center py-4 text-muted small">Không có cuộc hội thoại nào trong mục này.</div>
                 {% endif %}
             </div>
 
@@ -174,30 +179,32 @@
             <div class="chat-room-header">
                 <div class="room-customer-meta">
                     <div id="roomCustomerAvatar" class="room-customer-avatar">
-                        TT
+                        {% if conversations and conversations.first.customer %}{{ conversations.first.customer.name|default:conversations.first.customer.username|slice:":2"|upper }}{% else %}KH{% endif %}
                     </div>
                     <div>
                         <div class="d-flex align-items-center gap-2">
-                            <div id="roomCustomerName" class="room-customer-title">Thanh Thỏ</div>
+                            <div id="roomCustomerName" class="room-customer-title">
+                                {% if conversations %}{% if conversations.first.customer %}{{ conversations.first.customer.name|default:conversations.first.customer.username }}{% else %}Khách vãng lai{% endif %}{% else %}Chưa chọn cuộc hội thoại{% endif %}
+                            </div>
                             <!-- Nút nhỏ xem chi tiết khách hàng trong Staff Workspace (/health/staff/id/) -->
-                            <a id="roomCustomerDetailLink" 
-                               href="{% if conversations %}{% url 'health:staff_detail' conversations.first.customer.id %}{% else %}#{% endif %}" 
-                               target="_blank" 
-                               class="btn btn-sm py-0 px-2 rounded-pill d-inline-flex align-items-center gap-1 shadow-2xs" 
+                            <a id="roomCustomerDetailLink"
+                               href="{% if conversations and conversations.first.customer %}{% url 'health:staff_detail' conversations.first.customer.id %}{% else %}#{% endif %}"
+                               target="_blank"
+                               class="btn btn-sm py-0 px-2 rounded-pill d-inline-flex align-items-center gap-1 shadow-2xs {% if not conversations or not conversations.first.customer %}d-none{% endif %}"
                                style="font-size: 11px; background-color: #FAF4E6; border: 1px solid #D0B581; color: var(--cham-red); font-weight: 600; text-decoration: none;"
                                title="Xem chi tiết khách hàng">
                                 <i class="bi bi-person-lines-fill"></i> Chi tiết khách hàng
                             </a>
                         </div>
-                        <div class="room-status-badge">
-                            <span class="online-pulse-dot"></span>
-                            <span>Đang kết nối</span>
+                        <div id="roomStatusBadge" class="room-status-badge">
+                            <span id="roomStatusDot" class="online-pulse-dot"></span>
+                            <span id="roomStatusText">{% if conversations %}Đang tải...{% else %}Chờ chọn hội thoại{% endif %}</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn-end-support" onclick="handleEndSupport()">
+                    <button id="btnEndSupport" type="button" class="btn-end-support" onclick="handleEndSupport()" {% if not conversations %}disabled{% endif %}>
                         <i class="bi bi-slash-circle"></i> Kết thúc hỗ trợ
                     </button>
                 </div>
@@ -207,13 +214,11 @@
             <div class="chatbot-summary-accordion">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-chevron-down" style="font-size: 10px;"></i>
-                    <span class="fw-semibold">Lịch sử tương tác với Chatbot trước đó</span>
-                    <span class="text-muted" style="font-size: 11px;">14:20 - 4 phút</span>
+                    <span class="fw-semibold">Tóm tắt nhu cầu &amp; Hồ sơ khách hàng</span>
+                    <span id="roomSummaryMeta" class="text-muted" style="font-size: 11px;"></span>
                 </div>
-                <div class="summary-tags-group">
-                    <span class="summary-pill pill-pink">Vùng chăm sóc: Vai gáy</span>
-                    <span class="summary-pill pill-brown">Mục đích: Trị liệu chuyên sâu</span>
-                    <span class="summary-pill pill-gold">Đề xuất: Massage 60m</span>
+                <div id="roomSummaryTags" class="summary-tags-group">
+                    <span class="summary-pill pill-pink">Chủ đề: Tư vấn dịch vụ</span>
                 </div>
             </div>
 
@@ -232,57 +237,9 @@
 
             <!-- Khung Stream tin nhắn -->
             <div id="chatMessagesStream" class="chat-messages-stream">
-                <!-- Divider mốc thời gian -->
-                <div class="time-divider-badge">HÔM NAY - 14:20</div>
-
-                <!-- 1. Tin nhắn khách hàng -->
-                <div class="chat-row cust-side">
-                    <div class="chat-sender-header">Thanh Thỏ - Khách hàng</div>
-                    <div class="chat-bubble-box">
-                        Chào bạn, mình bị đau mỏi vai phải do ngồi làm việc lâu. Spa có liệu trình nào phù hợp không?
-                        <div class="bubble-meta-time">14:22</div>
-                    </div>
-                </div>
-
-                <!-- 2. Tin nhắn nhân viên tư vấn -->
-                <div class="chat-row staff-side">
-                    <div class="chat-sender-header">{{ current_staff.name|default:"Lê Thị Mai" }} - Nhân viên tư vấn
-                    </div>
-                    <div class="chat-bubble-box">
-                        Chào chị Thỏ, em là Mai. Với tình trạng của chị, liệu trình Massage Body Trị Liệu Vai Gáy 60
-                        phút sẽ phù hợp nhất ạ.
-                        <div class="bubble-meta-time">14:23</div>
-                    </div>
-                </div>
-
-                <!-- 3. Tin nhắn khách hàng tiếp theo -->
-                <div class="chat-row cust-side">
-                    <div class="chat-sender-header">Thanh Thỏ - Khách hàng</div>
-                    <div class="chat-bubble-box">
-                        Mình muốn lực nhẹ và ưu tiên KTV nữ. Tối nay còn lịch không bạn?
-                        <div class="bubble-meta-time">14:32</div>
-                    </div>
-                </div>
-
-                <!-- 4. Tin nhắn nhân viên có đính kèm dịch vụ -->
-                <div class="chat-row staff-side">
-                    <div class="chat-sender-header">{{ current_staff.name|default:"Lê Thị Mai" }} - Nhân viên tư vấn
-                    </div>
-                    <div class="chat-bubble-box">
-                        Dạ còn lịch 18:30 với KTV Lan. Em có thể giữ chỗ trong 10 phút và gửi liên kết xác nhận trực
-                        tiếp cho chị
-
-                        <!-- Media Card -->
-                        <div class="chat-bubble-media">
-                            <img src="{% static 'images/treatment_1.png' %}"
-                                alt="Massage Body Trị Liệu Vai Gáy">
-                        </div>
-                        <div class="chat-attachment-chip">
-                            <i class="bi bi-file-earmark-pdf-fill"></i>
-                            <span>Phac-do-vai-gay-60p.pdf • 1.5 MB</span>
-                        </div>
-                        <div class="bubble-meta-time">14:33</div>
-                    </div>
+                <div class="text-center text-muted my-auto py-5 small">
+                    <i class="bi bi-chat-square-text fs-2 d-block mb-2 opacity-50"></i>
+                    <span>Chọn một cuộc hội thoại ở hàng chờ bên trái để bắt đầu tư vấn</span>
                 </div>
             </div>
 
@@ -397,9 +354,15 @@
      * Khách hàng đã đăng nhập lưu CSDL, vãng lai không lưu; Staff chỉ có quyền chat tư vấn.
      */
     let currentActiveConvId = null;
-    let currentQueueTab = 'waiting';
+    let currentQueueTab = "{{ initial_tab|default:'waiting'|escapejs }}";
+    let isCustomFilterActive = false;
     let queuePollingTimer = null;
     const STAFF_NAME = "{{ current_staff.name|default:current_staff.username|escapejs }}";
+    const CSRF_TOKEN = "{{ csrf_token|escapejs }}";
+
+    function getCsrfToken() {
+        return getCookie('csrftoken') || CSRF_TOKEN;
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
         // 1. Luôn kích hoạt tô màu mục Inbox trên Sidebar
@@ -409,27 +372,96 @@
             inboxItem.classList.add('active');
         }
 
-        // 2. Chọn cuộc hội thoại đầu tiên
+        // 2. Chọn cuộc hội thoại đầu tiên nếu có
         const firstCard = document.querySelector('.queue-card');
         if (firstCard) {
             const id = firstCard.getAttribute('data-id');
             selectQueueConversation(id);
+        } else {
+            setComposerEnabled(false, 'Chưa có cuộc hội thoại nào được chọn.');
         }
 
-        // 3. Tự động cập nhật mỗi 15 giây theo đúng chú thích trên Ảnh 1
+        // 3. Tự động cập nhật mỗi 15 giây
         start15sQueuePolling();
     });
+
+    function setComposerEnabled(enabled, placeholderText, canEndSupport = enabled) {
+        const inputArea = document.getElementById('staffDirectInput');
+        const submitBtn = document.getElementById('btnStaffDirectSubmit');
+        const endBtn = document.getElementById('btnEndSupport');
+        document.querySelectorAll('.btn-chat-tool').forEach(btn => {
+            btn.disabled = !enabled;
+        });
+        if (inputArea) {
+            inputArea.disabled = !enabled;
+            inputArea.placeholder = placeholderText || 'Nhập nội dung tư vấn...';
+        }
+        if (submitBtn) submitBtn.disabled = !enabled;
+        if (endBtn) endBtn.disabled = !canEndSupport;
+    }
+
+    function updateRoomStatusBadge(status) {
+        const dot = document.getElementById('roomStatusDot');
+        const textEl = document.getElementById('roomStatusText');
+        const badgeEl = document.getElementById('roomStatusBadge');
+        if (!dot || !textEl || !badgeEl) return;
+
+        const map = {
+            'Đang chờ': { color: '#D9822B', text: 'Chờ tiếp nhận' },
+            'Đang xử lý': { color: '#28A745', text: 'Đang kết nối' },
+            'Kết thúc': { color: '#6C757D', text: 'Đã kết thúc' },
+            'Bot xử lý': { color: '#0D6EFD', text: 'Bot đang hỗ trợ' }
+        };
+        const cfg = map[status] || { color: '#6C757D', text: status || 'Chưa xác định' };
+        dot.style.backgroundColor = cfg.color;
+        badgeEl.style.color = cfg.color;
+        textEl.textContent = cfg.text;
+    }
+
+    function updateSummaryAccordion(data) {
+        const metaEl = document.getElementById('roomSummaryMeta');
+        const tagsEl = document.getElementById('roomSummaryTags');
+        if (metaEl) {
+            if (data.created_at) {
+                const dt = new Date(data.created_at);
+                metaEl.textContent = !isNaN(dt.getTime())
+                    ? dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' · ' + dt.toLocaleDateString('vi-VN')
+                    : '';
+            } else {
+                metaEl.textContent = '';
+            }
+        }
+        if (!tagsEl) return;
+
+        const pills = [];
+        pills.push(`<span class="summary-pill pill-pink">Chủ đề: ${escapeHtml(data.customer_tag || 'Tư vấn dịch vụ')}</span>`);
+
+        const hp = data.health_profile;
+        if (hp && hp.focus_areas && hp.focus_areas.length > 0) {
+            pills.push(`<span class="summary-pill pill-brown">Vùng chăm sóc: ${escapeHtml(hp.focus_areas.join(', '))}</span>`);
+        } else if (data.customer_info && data.customer_info.tier) {
+            pills.push(`<span class="summary-pill pill-brown">Hạng: ${escapeHtml(data.customer_info.tier)}</span>`);
+        }
+
+        if (hp && hp.massage_pressure) {
+            pills.push(`<span class="summary-pill pill-gold">Lực massage: ${escapeHtml(hp.massage_pressure)}</span>`);
+        } else if (data.customer_info && data.customer_info.phone) {
+            pills.push(`<span class="summary-pill pill-gold">SĐT: ${escapeHtml(data.customer_info.phone)}</span>`);
+        }
+
+        tagsEl.innerHTML = pills.join('');
+    }
 
     // =============================================================================
     // 1. CHỌN CUỘC HỘI THOẠI TRONG HÀNG CHỜ
     // =============================================================================
     function selectQueueConversation(convId) {
         if (!convId) return;
-        currentActiveConvId = parseInt(convId);
+        currentActiveConvId = parseInt(convId, 10);
 
         // Tô màu active card
         document.querySelectorAll('.queue-card').forEach(el => el.classList.remove('active'));
-        const target = document.getElementById(`queueCard_${convId}`);
+        const target = document.getElementById(`queueCard_${currentActiveConvId}`);
         if (target) {
             target.classList.add('active');
             const name = target.getAttribute('data-name') || 'Khách hàng';
@@ -437,83 +469,119 @@
             document.getElementById('roomCustomerAvatar').textContent = name.substring(0, 2).toUpperCase();
         }
 
-        fetch(`/chatbox/api/conversations/${convId}/messages/`, {
+        fetch(`/chatbox/api/conversations/${currentActiveConvId}/messages/`, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
             .then(res => res.json())
             .then(data => {
-                // Cảnh báo nếu nhân viên khác đã tiếp nhận (Figma 210:2465)
-                const alertBar = document.getElementById('assignedOtherAlertBar');
-                const inputArea = document.getElementById('staffDirectInput');
-                const submitBtn = document.getElementById('btnStaffDirectSubmit');
+                if (data.customer_info) {
+                    const custName = data.customer_info.name || 'Khách vãng lai';
+                    document.getElementById('roomCustomerName').textContent = custName;
+                    document.getElementById('roomCustomerAvatar').textContent = custName.substring(0, 2).toUpperCase();
+                }
 
+                updateRoomStatusBadge(data.status);
+                updateSummaryAccordion(data);
+
+                const alertBar = document.getElementById('assignedOtherAlertBar');
                 if (data.is_assigned_to_other) {
                     alertBar.style.display = 'flex';
                     document.getElementById('assignedOtherStaffName').textContent = data.assigned_staff_name || 'Nhân viên khác';
-                    inputArea.disabled = true;
-                    inputArea.placeholder = `Phiên chat do [${data.assigned_staff_name}] tiếp nhận. Chế độ Chỉ xem (Read-only).`;
-                    submitBtn.disabled = true;
+                    setComposerEnabled(false, `Phiên chat do [${data.assigned_staff_name}] tiếp nhận. Chế độ Chỉ xem (Read-only).`, false);
+                } else if (data.status === 'Kết thúc') {
+                    alertBar.style.display = 'none';
+                    setComposerEnabled(false, 'Phiên tư vấn này đã kết thúc.', false);
                 } else {
                     alertBar.style.display = 'none';
-                    inputArea.disabled = false;
-                    inputArea.placeholder = 'Nhập nội dung tư vấn...';
-                    submitBtn.disabled = false;
+                    setComposerEnabled(true, 'Nhập nội dung tư vấn...', true);
                 }
 
                 // Cập nhật link xem chi tiết khách hàng trong Staff Workspace (/health/staff/id/)
-                if (data.customer_info && data.customer_info.id) {
-                    const detailBtn = document.getElementById('roomCustomerDetailLink');
-                    if (detailBtn) {
+                const detailBtn = document.getElementById('roomCustomerDetailLink');
+                if (detailBtn) {
+                    if (data.customer_info && data.customer_info.id) {
                         detailBtn.href = `/health/staff/${data.customer_info.id}/`;
+                        detailBtn.classList.remove('d-none');
+                    } else {
+                        detailBtn.href = '#';
+                        detailBtn.classList.add('d-none');
                     }
                 }
 
-                // Render stream tin nhắn
-                if (data.messages && data.messages.length > 0) {
-                    renderDirectMessages(data.messages);
-                }
+                // Luôn render lại stream tin nhắn để không bị dính lịch sử phiên trước
+                renderDirectMessages(data.messages || [], data.created_at);
             })
             .catch(err => console.error(err));
     }
 
-    function renderDirectMessages(messages) {
+    function formatTimeDivider(createdAt, messages) {
+        const raw = (messages && messages.length > 0 && messages[0].created_at) ? messages[0].created_at : createdAt;
+        if (!raw) return 'PHIÊN TƯ VẤN TRỰC TUYẾN';
+        const dt = new Date(raw);
+        if (isNaN(dt.getTime())) return 'PHIÊN TƯ VẤN TRỰC TUYẾN';
+        const today = new Date();
+        const isSameDay = dt.toDateString() === today.toDateString();
+        const timePart = dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        const datePart = isSameDay ? 'HÔM NAY' : dt.toLocaleDateString('vi-VN');
+        return `${datePart} - ${timePart}`;
+    }
+
+    function renderDirectMessages(messages, createdAt) {
         const stream = document.getElementById('chatMessagesStream');
-        let html = `<div class="time-divider-badge">HÔM NAY - 14:20</div>`;
+        if (!messages || messages.length === 0) {
+            stream.innerHTML = `
+                <div class="time-divider-badge">${formatTimeDivider(createdAt, [])}</div>
+                <div class="text-center text-muted my-auto py-4 small">
+                    <i class="bi bi-chat-dots fs-3 d-block mb-2 opacity-50"></i>
+                    <span>Chưa có tin nhắn trong phiên hội thoại này.</span>
+                </div>
+            `;
+            return;
+        }
+
+        let html = `<div class="time-divider-badge">${formatTimeDivider(createdAt, messages)}</div>`;
 
         messages.forEach(msg => {
-            const timeStr = msg.formatted_time ? msg.formatted_time.split(' - ')[0] : '14:20';
+            const timeStr = msg.formatted_time ? msg.formatted_time.split(' - ')[0] : '';
 
             if (msg.sender_type === 'Customer') {
                 html += `
                 <div class="chat-row cust-side">
-                    <div class="chat-sender-header">${escapeHtml(msg.sender_name)} - Khách hàng</div>
+                    <div class="chat-sender-header">${escapeHtml(msg.sender_name || 'Khách hàng')} - Khách hàng</div>
                     <div class="chat-bubble-box">
                         ${escapeHtml(msg.content)}
-                        <div class="bubble-meta-time">${timeStr}</div>
+                        <div class="bubble-meta-time">${escapeHtml(timeStr)}</div>
                     </div>
                 </div>
             `;
             } else {
+                const isBot = msg.sender_type === 'Bot';
+                const senderLabel = isBot
+                    ? escapeHtml(msg.sender_name || 'Trợ lý ảo Cham Spa')
+                    : `${escapeHtml(msg.sender_name || STAFF_NAME)} - Nhân viên tư vấn`;
+
                 let mediaHtml = '';
-                if (msg.attachment_name) {
-                    mediaHtml = `
+                if (msg.attachment_url) {
+                    mediaHtml += `
                     <div class="chat-bubble-media">
-                        <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&auto=format&fit=crop&q=80" alt="Dịch vụ">
-                    </div>
+                        <img src="${escapeHtml(msg.attachment_url)}" alt="${escapeHtml(msg.attachment_name || 'Đính kèm')}">
+                    </div>`;
+                }
+                if (msg.attachment_name) {
+                    mediaHtml += `
                     <div class="chat-attachment-chip">
-                        <i class="bi bi-file-earmark-pdf-fill"></i>
-                        <span>${escapeHtml(msg.attachment_name)} • ${escapeHtml(msg.attachment_size || '1.5 MB')}</span>
-                    </div>
-                `;
+                        <i class="bi bi-file-earmark-text-fill"></i>
+                        <span>${escapeHtml(msg.attachment_name)}${msg.attachment_size ? ' • ' + escapeHtml(msg.attachment_size) : ''}</span>
+                    </div>`;
                 }
 
                 html += `
                 <div class="chat-row staff-side">
-                    <div class="chat-sender-header">${escapeHtml(msg.sender_name || STAFF_NAME)} - Nhân viên tư vấn</div>
+                    <div class="chat-sender-header">${senderLabel}</div>
                     <div class="chat-bubble-box">
                         ${escapeHtml(msg.content)}
                         ${mediaHtml}
-                        <div class="bubble-meta-time">${timeStr}</div>
+                        <div class="bubble-meta-time">${escapeHtml(timeStr)}</div>
                     </div>
                 </div>
             `;
@@ -532,6 +600,7 @@
         if (!currentActiveConvId) return;
 
         const input = document.getElementById('staffDirectInput');
+        if (input.disabled) return;
         const content = input.value.trim();
         if (!content) return;
 
@@ -539,7 +608,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken'),
+                'X-CSRFToken': getCsrfToken(),
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({ content: content, message_type: 'TEXT' })
@@ -556,6 +625,10 @@
                 if (data && data.status === 'success') {
                     input.value = '';
                     selectQueueConversation(currentActiveConvId);
+                    refreshQueueList();
+                } else if (data && data.errors) {
+                    const firstErr = Object.values(data.errors).flat()[0];
+                    if (firstErr) alert(firstErr);
                 }
             })
             .catch(err => console.error(err));
@@ -571,6 +644,14 @@
     // =============================================================================
     // 3. TIẾP NHẬN / KẾT THÚC / TIẾP QUẢN
     // =============================================================================
+    function activateQueueTabButton(tabName) {
+        currentQueueTab = tabName;
+        isCustomFilterActive = false;
+        document.querySelectorAll('.queue-tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
+        });
+    }
+
     function acceptQueueConversation(convId, e) {
         if (e) e.stopPropagation();
 
@@ -578,17 +659,21 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
+                'X-CSRFToken': getCsrfToken()
             }
         })
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'conflict') {
                     alert(data.message);
-                } else {
+                } else if (data.status === 'success') {
                     alert('Bạn đã tiếp nhận cuộc trò chuyện thành công!');
+                    currentActiveConvId = parseInt(convId, 10);
+                    activateQueueTabButton('processing');
                     selectQueueConversation(convId);
                     refreshQueueList();
+                } else {
+                    alert(data.error || data.message || 'Không thể tiếp nhận hội thoại.');
                 }
             })
             .catch(err => console.error(err));
@@ -602,13 +687,18 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
+                'X-CSRFToken': getCsrfToken()
             }
         })
             .then(res => res.json())
             .then(data => {
-                alert('Đã kết thúc phiên hỗ trợ.');
-                refreshQueueList();
+                if (data.status === 'success') {
+                    alert('Đã kết thúc phiên hỗ trợ.');
+                    selectQueueConversation(currentActiveConvId);
+                    refreshQueueList();
+                } else {
+                    alert(data.error || data.message || 'Không thể kết thúc phiên hỗ trợ.');
+                }
             })
             .catch(err => console.error(err));
     }
@@ -621,14 +711,18 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
+                'X-CSRFToken': getCsrfToken()
             }
         })
             .then(res => res.json())
             .then(data => {
-                alert(data.message);
-                selectQueueConversation(currentActiveConvId);
-                refreshQueueList();
+                if (data.status === 'success') {
+                    alert(data.message);
+                    selectQueueConversation(currentActiveConvId);
+                    refreshQueueList();
+                } else {
+                    alert(data.error || data.message || 'Không thể tiếp quản phiên chat.');
+                }
             })
             .catch(err => console.error(err));
     }
@@ -640,6 +734,8 @@
     let voucherModalObj = null;
 
     function handleToolSendService() {
+        const input = document.getElementById('staffDirectInput');
+        if (!currentActiveConvId || input.disabled) return;
         if (!serviceModalObj) {
             serviceModalObj = new bootstrap.Modal(document.getElementById('selectServiceModal'));
         }
@@ -647,13 +743,18 @@
     }
 
     function insertServiceToChat(name, price, duration) {
-        const text = `Dạ gói '${name}' tại Cham Spa có giá niêm yết ${Number(price).toLocaleString('vi-VN')}đ với thời lượng ${duration} phút. Em có thể hỗ trợ chị đặt lịch ưu tiên luôn nhé ạ!`;
-        document.getElementById('staffDirectInput').value = text;
+        const text = `Dạ gói '${name}' tại Cham Spa có giá niêm yết ${Number(price).toLocaleString('vi-VN')}đ với thời lượng ${duration} phút. Em có thể hỗ trợ anh/chị đặt lịch ưu tiên luôn nhé ạ!`;
+        const input = document.getElementById('staffDirectInput');
+        if (!input.disabled) {
+            input.value = text;
+            input.focus();
+        }
         if (serviceModalObj) serviceModalObj.hide();
-        document.getElementById('staffDirectInput').focus();
     }
 
     function handleToolSendVoucher() {
+        const input = document.getElementById('staffDirectInput');
+        if (!currentActiveConvId || input.disabled) return;
         if (!voucherModalObj) {
             voucherModalObj = new bootstrap.Modal(document.getElementById('selectVoucherModal'));
         }
@@ -661,26 +762,32 @@
     }
 
     function insertVoucherToChat(code, val) {
-        const text = `Dạ em xin gửi tặng chị mã Voucher tri ân [${code}] giảm trực tiếp ${Number(val).toLocaleString('vi-VN')}đ khi chị đặt lịch trải nghiệm dịch vụ hôm nay ạ!`;
-        document.getElementById('staffDirectInput').value = text;
+        const text = `Dạ em xin gửi tặng anh/chị mã Voucher tri ân [${code}] giảm trực tiếp ${Number(val).toLocaleString('vi-VN')}đ khi đặt lịch trải nghiệm dịch vụ hôm nay ạ!`;
+        const input = document.getElementById('staffDirectInput');
+        if (!input.disabled) {
+            input.value = text;
+            input.focus();
+        }
         if (voucherModalObj) voucherModalObj.hide();
-        document.getElementById('staffDirectInput').focus();
     }
 
     function handleToolEmbedBooking() {
-        const text = `Dạ chị có thể nhấn vào liên kết đặt lịch trực tiếp này để giữ chỗ ưu tiên trong 10 phút ạ: http://127.0.0.1:8000/appointment/booking/`;
-        document.getElementById('staffDirectInput').value = text;
-        document.getElementById('staffDirectInput').focus();
+        const input = document.getElementById('staffDirectInput');
+        if (!currentActiveConvId || input.disabled) return;
+        const bookingUrl = `${window.location.origin}/appointment/booking/`;
+        const text = `Dạ anh/chị có thể nhấn vào liên kết đặt lịch trực tiếp này để giữ chỗ ưu tiên trong 10 phút ạ: ${bookingUrl}`;
+        input.value = text;
+        input.focus();
     }
 
     // =============================================================================
     // 5. LỌC HÀNG CHỜ VÀ CẬP NHẬT 15 GIÂY (ẢNH 1)
     // =============================================================================
     function switchQueueTab(tabName, btnEl) {
-        currentQueueTab = tabName;
-        document.querySelectorAll('.queue-tab-btn').forEach(b => b.classList.remove('active'));
+        activateQueueTabButton(tabName);
         if (btnEl) btnEl.classList.add('active');
-
+        const statusSel = document.getElementById('filterStatusSelect');
+        if (statusSel) statusSel.value = '';
         refreshQueueList();
     }
 
@@ -692,8 +799,23 @@
         });
     }
 
+    function buildFilterQueryUrl() {
+        const kw = document.getElementById('filterSearchInput')?.value.trim() || '';
+        const dateVal = document.getElementById('filterDateInput')?.value || '';
+        const statusVal = document.getElementById('filterStatusSelect')?.value || '';
+        const params = new URLSearchParams({ tab: 'all' });
+        if (kw) params.set('search', kw);
+        if (dateVal) params.set('date', dateVal);
+        if (statusVal) params.set('status', statusVal);
+        return `/chatbox/api/conversations/?${params.toString()}`;
+    }
+
     function refreshQueueList() {
-        fetch(`/chatbox/api/conversations/?tab=${currentQueueTab}`)
+        const url = isCustomFilterActive
+            ? buildFilterQueryUrl()
+            : `/chatbox/api/conversations/?tab=${encodeURIComponent(currentQueueTab)}`;
+
+        fetch(url)
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success' && data.conversations) {
@@ -717,7 +839,8 @@
         let html = '';
         items.forEach(c => {
             const isActive = (c.id === currentActiveConvId) ? 'active' : '';
-            const initials = (c.customer_name || 'KH').substring(0, 2).toUpperCase();
+            const custName = c.customer_name || 'Khách hàng';
+            const initials = custName.substring(0, 2).toUpperCase();
             const phoneFormatted = c.customer_phone ? '+84 ' + c.customer_phone.substring(1) : 'Khách hàng';
 
             let btnAction = '';
@@ -725,51 +848,73 @@
                 btnAction = `
                 <button type="button" class="btn-accept-queue" onclick="acceptQueueConversation(${c.id}, event)">
                     <i class="bi bi-chat-dots"></i> Tiếp nhận hội thoại
-                </button>
-            `;
-            } else {
+                </button>`;
+            } else if (c.status === 'Đang xử lý') {
                 btnAction = `
                 <div class="d-flex justify-content-between align-items-center pt-1" style="font-size: 11px;">
                     <span class="text-success"><i class="bi bi-circle-fill" style="font-size: 7px;"></i> Đang hỗ trợ</span>
                     ${c.staff_name ? `<span class="text-muted"><i class="bi bi-person-check"></i> ${escapeHtml(c.staff_name)}</span>` : ''}
-                </div>
-            `;
+                </div>`;
+            } else if (c.status === 'Kết thúc') {
+                btnAction = `
+                <div class="d-flex justify-content-between align-items-center pt-1" style="font-size: 11px;">
+                    <span class="text-secondary"><i class="bi bi-check-circle-fill" style="font-size: 9px;"></i> Đã kết thúc</span>
+                    ${c.staff_name ? `<span class="text-muted"><i class="bi bi-person-check"></i> ${escapeHtml(c.staff_name)}</span>` : ''}
+                </div>`;
+            } else {
+                btnAction = `
+                <div class="d-flex justify-content-between align-items-center pt-1" style="font-size: 11px;">
+                    <span class="text-muted"><i class="bi bi-robot" style="font-size: 10px;"></i> Bot xử lý</span>
+                </div>`;
             }
 
             html += `
-            <div class="queue-card ${isActive}" id="queueCard_${c.id}" 
-                 onclick="selectQueueConversation(${c.id})" 
-                 data-id="${c.id}" 
-                 data-name="${escapeHtml(c.customer_name)}">
+            <div class="queue-card ${isActive}" id="queueCard_${c.id}"
+                 onclick="selectQueueConversation(${c.id})"
+                 data-id="${c.id}"
+                 data-name="${escapeHtml(custName)}">
                 <div class="card-top-row">
-                    <div class="card-avatar">${initials}</div>
+                    <div class="card-avatar">${escapeHtml(initials)}</div>
                     <div class="card-info">
                         <div class="card-name-row">
-                            <span class="card-name">${escapeHtml(c.customer_name)}</span>
-                            <span class="card-time">${c.last_message_time || 'Vừa xong'}</span>
+                            <span class="card-name">${escapeHtml(custName)}</span>
+                            <span class="card-time">${escapeHtml(c.last_message_time || 'Vừa xong')}</span>
                         </div>
-                        <div class="card-phone">${phoneFormatted}</div>
+                        <div class="card-phone">${escapeHtml(phoneFormatted)}</div>
                     </div>
                 </div>
                 <div class="card-need-text">
-                    Nhu cầu: <strong>${escapeHtml(c.customer_tag || 'Vai gáy / Trị liệu')}</strong>
+                    Nhu cầu: <strong>${escapeHtml(c.customer_tag || 'Tư vấn dịch vụ')}</strong>
                 </div>
                 ${btnAction}
-            </div>
-        `;
+            </div>`;
         });
         container.innerHTML = html;
+        handleFilterQueueCards();
     }
 
     function handleApplyFilters() {
         const kw = document.getElementById('filterSearchInput')?.value.trim() || '';
-        const status = document.getElementById('filterStatusSelect')?.value || '';
+        const dateVal = document.getElementById('filterDateInput')?.value || '';
+        const statusVal = document.getElementById('filterStatusSelect')?.value || '';
 
-        fetch(`/chatbox/api/conversations/?search=${encodeURIComponent(kw)}&status=${encodeURIComponent(status)}`)
+        isCustomFilterActive = Boolean(kw || dateVal || statusVal);
+
+        const statusToTab = { 'Đang chờ': 'waiting', 'Đang xử lý': 'processing', 'Kết thúc': 'closed' };
+        document.querySelectorAll('.queue-tab-btn').forEach(btn => {
+            const targetTab = statusToTab[statusVal];
+            btn.classList.toggle('active', Boolean(targetTab && btn.getAttribute('data-tab') === targetTab));
+        });
+
+        fetch(buildFilterQueryUrl())
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success' && data.conversations) {
                     renderQueueCards(data.conversations);
+                    if (data.counts) {
+                        document.getElementById('queueWaitingBadge').textContent = data.counts.waiting || 0;
+                        document.getElementById('queueProcessingBadge').textContent = data.counts.processing || 0;
+                    }
                 }
             })
             .catch(() => { });
@@ -786,7 +931,7 @@
                         if (data && data.messages) {
                             const currentCount = document.querySelectorAll('#chatMessagesStream .chat-row').length;
                             if (data.messages.length !== currentCount) {
-                                renderDirectMessages(data.messages);
+                                renderDirectMessages(data.messages, data.created_at);
                             }
                         }
                     })
@@ -796,9 +941,9 @@
     }
 
     function escapeHtml(text) {
-        if (!text) return '';
+        if (text === null || text === undefined) return '';
         const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-        return text.replace(/[&<>"']/g, m => map[m]);
+        return String(text).replace(/[&<>"']/g, m => map[m]);
     }
 
     function getCookie(name) {

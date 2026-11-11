@@ -3,6 +3,7 @@ API Endpoints (Pure Django JsonResponse) cho Phân hệ Quản lý Boxchat Tư v
 """
 
 import csv
+from datetime import date
 from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
@@ -91,7 +92,7 @@ def serialize_conversation_list_item(conv, request):
         last_message_time = _format_local_dt(last_msg.created_at, '%H:%M')
     else:
         last_message = "Chưa có tin nhắn"
-        last_message_time = ""
+        last_message_time = _format_local_dt(conv.created_at, '%H:%M')
 
     is_auth_staff = request and request.user.is_authenticated and conv.staff
     return {
@@ -594,7 +595,9 @@ def conversation_takeover_api(request, pk):
 @require_GET
 def staff_conversations_list_api(request):
     """Lấy danh sách cuộc hội thoại cho Livechat Console của Nhân viên."""
-    tab = request.GET.get('tab', 'waiting')
+    tab = (request.GET.get('tab') or 'waiting').strip()
+    status_filter = (request.GET.get('status') or '').strip()
+    date_filter = (request.GET.get('date') or '').strip()
     search_kw = (request.GET.get('search') or '').strip()
 
     queryset = Conversation.objects.select_related('customer', 'staff').prefetch_related('messages')
@@ -607,7 +610,9 @@ def staff_conversations_list_api(request):
         'all': Conversation.objects.count(),
     }
 
-    if tab == 'waiting':
+    if status_filter:
+        queryset = queryset.filter(status=status_filter)
+    elif tab == 'waiting':
         queryset = queryset.filter(status='Đang chờ')
     elif tab == 'processing':
         queryset = queryset.filter(status='Đang xử lý')
@@ -617,6 +622,14 @@ def staff_conversations_list_api(request):
         queryset = queryset.filter(status='Bot xử lý')
     elif tab == 'mine':
         queryset = queryset.filter(staff=request.user, status='Đang xử lý')
+    elif tab == 'all':
+        pass
+
+    if date_filter:
+        try:
+            queryset = queryset.filter(created_at__date=date.fromisoformat(date_filter))
+        except ValueError:
+            pass
 
     if search_kw:
         queryset = queryset.filter(

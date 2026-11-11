@@ -75,9 +75,24 @@ def livechat_staff_view(request):
     closed_count = Conversation.objects.filter(status='Kết thúc').count()
     total_count = Conversation.objects.count()
 
-    # Lấy danh sách hội thoại
+    # Chọn tab mặc định khớp với dữ liệu thực tế hiện có
+    if waiting_count > 0:
+        initial_tab = 'waiting'
+    elif processing_count > 0:
+        initial_tab = 'processing'
+    else:
+        initial_tab = 'closed'
+
+    tab_status_map = {
+        'waiting': 'Đang chờ',
+        'processing': 'Đang xử lý',
+        'closed': 'Kết thúc',
+    }
+
+    # Lấy danh sách hội thoại theo tab đang mở mặc định để đồng bộ SSR và API polling
     conversations = (
-        Conversation.objects.select_related('customer', 'staff')
+        Conversation.objects.filter(status=tab_status_map[initial_tab])
+        .select_related('customer', 'staff')
         .prefetch_related('messages')
         .order_by('-created_at')
     )
@@ -93,6 +108,7 @@ def livechat_staff_view(request):
         'today_str': today.strftime('%Y-%m-%d'),
         'today_display': today.strftime('%d/%m/%Y'),
         'formatted_date_header': formatted_date_header,
+        'initial_tab': initial_tab,
         'waiting_count': waiting_count,
         'processing_count': processing_count,
         'closed_count': closed_count,

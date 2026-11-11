@@ -9,10 +9,6 @@
 
 ---
 
-> **Tài liệu mô tả kiến trúc hệ thống, cơ chế phân quyền, chức năng chi tiết 10 phân hệ nghiệp vụ (`MOD-01` đến `MOD-10`), các tuyến đường dẫn / JSON API, cấu trúc 20 bảng CSDL và hướng dẫn cài đặt chạy demo của hệ thống ChamSPA CRM.**
-
----
-
 ## 📌 I. THÔNG TIN CHUNG DỰ ÁN
 
 * **Tên đề tài:** Hệ thống Quản lý Quan hệ Khách hàng & Đặt lịch dịch vụ Spa (**ChamSPA CRM**)
@@ -121,8 +117,8 @@ Hệ thống sử dụng Custom User Model `core.User` (kế thừa `AbstractUse
 
 | Đối tượng | Điều kiện phân quyền | Phạm vi chức năng thực tế trong hệ thống |
 | :--- | :--- | :--- |
-| **Khách vãng lai** | Chưa đăng nhập | Xem Trang chủ, Danh sách & Chi tiết Dịch vụ (`/services/`), Trang Ưu đãi (`/marketing/`), trò chuyện Chatbot FAQ trên Widget / `/chatbox/customer/` (chạy stateless, **không lưu vào CSDL**, muốn gặp nhân viên cần đăng nhập). |
-| **Khách hàng (`Customer`)** | `is_authenticated=True`<br>`is_staff=False`<br>`is_superuser=False` | **Đối tượng duy nhất được đặt lịch trực tuyến** (`/appointment/booking/` & `/appointment/api/create/`). Xem Vé trải nghiệm Digital Pass, Lịch hẹn của tôi (dời/hủy lịch), bấm xác nhận thủ công đã chuyển khoản hoặc chọn trả tại quầy, cập nhật Hồ sơ Sức khỏe 1-1, xem Thẻ VIP & Ví Voucher, theo dõi Thông báo, gửi Đánh giá & Khiếu nại (cho lịch `Completed`), trò chuyện Livechat có lưu lịch sử CSDL. |
+| **Khách vãng lai** | Chưa đăng nhập | Xem Trang chủ (`/`), Danh sách & Chi tiết Dịch vụ (`/services/`), trò chuyện Chatbot FAQ trên Widget nổi / `/chatbox/customer/` (chạy stateless, **không lưu vào CSDL**; đặt lịch trực tuyến hoặc gặp nhân viên đều yêu cầu đăng nhập). |
+| **Khách hàng (`Customer`)** | `is_authenticated=True`<br>`is_staff=False`<br>`is_superuser=False` | **Đối tượng duy nhất được đặt lịch trực tuyến** (`/appointment/booking/` & `/appointment/api/create/`). Xem Vé trải nghiệm Digital Pass, Lịch hẹn của tôi (dời/hủy lịch), bấm xác nhận thủ công đã chuyển khoản hoặc chọn trả tại quầy, cập nhật Hồ sơ Sức khỏe 1-1, xem Thẻ VIP & Ví Voucher, theo dõi Thông báo & Ưu đãi (`/marketing/`), gửi Đánh giá & Khiếu nại (cho lịch `Completed`), trò chuyện Livechat có lưu lịch sử CSDL. |
 | **Nhân viên (`Staff`)** | `is_staff=True`<br>`is_superuser=False` | Làm việc trên **Staff Workspace** (`/dashboard/staff/`): tạo nhanh lịch tại quầy (`staff_quick_create_api`), cập nhật thủ công phương thức thanh toán & xác nhận thu tiền hóa đơn, trực **Livechat Console** & quản trị FAQ, tra cứu/tạo khách hàng từ **Hồ sơ Sức khỏe** + in **Phiếu KTV**, tra cứu & điều chỉnh điểm/hạng **Hội viên**, quản lý Danh mục Dịch vụ, duyệt/ẩn/trả lời Đánh giá, tiếp nhận & giải quyết Khiếu nại (trừ Phân công/Từ chối), xem Thông báo nội bộ & Khách hàng 360. *(Không hiển thị Widget Chat ở giao diện công khai).* |
 | **Quản trị viên (`Admin`)** | `is_superuser=True` | Toàn quyền trên **Admin Workspace** (`/dashboard/admin/`): toàn bộ quyền vận hành của Staff cộng thêm các quyền độc quyền: xem **Admin Dashboard 6 biểu đồ & xuất Excel/PDF**, phát hành/xóa **Thông báo hàng loạt** (`marketing:admin_notifications`), CRUD **Khuyến mãi & Mã Voucher** (`marketing:admin_promotions`), **Phân công** & **Từ chối khiếu nại** (`MOD-04`), và truy cập `/admin/` (Django Admin). |
 
@@ -136,23 +132,53 @@ Hệ thống sử dụng Custom User Model `core.User` (kế thừa `AbstractUse
 
 ## 📋 V. CHỨC NĂNG CHI TIẾT CÁC MODULE (MOD-01 ĐẾN MOD-10)
 
-### 1. Kiến trúc luồng tích hợp liên Module
+### 1. Lộ trình triển khai & Tích hợp liên Module (Phase 1 – Phase 4)
 
 ```mermaid
-flowchart LR
-    MOD05["MOD-05: accounts<br/>(Auth, Khach hang 360, Nhan su)"] -->|post_save User| MOD06["MOD-06: membership<br/>(The VIP 4 hang & Tich diem)"]
-    MOD05 -->|post_save User| MOD08["MOD-08: health<br/>(Ho so Suc khoe 1-1 & Phieu KTV)"]
-    MOD03["MOD-03: services<br/>(Dich vu & Gallery)"] --> MOD01["MOD-01: appointment<br/>(Dat lich, Dieu phoi & VietQR MOD-09)"]
-    MOD07["MOD-07: marketing<br/>(Khuyen mai, Voucher & Thong bao)"] -->|Ap ma & Gui tin| MOD01
-    MOD01 -->|"Invoice 'Da thanh toan' Signal"| MOD06
-    MOD06 -->|Thang hang & Cong diem| MOD07
-    MOD01 -->|Lich 'Completed'| MOD04["MOD-04: feedbacks<br/>(Danh gia & Khieu nai)"]
-    MOD04 -->|Cap Voucher 'DENBU-...'| MOD07
-    MOD02["MOD-02: chatbox<br/>(Chatbot FAQ & Livechat Console)"] -.->|Hien thi hang VIP & Suc khoe| MOD06
-    MOD02 -.-> MOD08
-    MOD01 --> MOD10["MOD-10: dashboard<br/>(KPI, 6 Bieu do Chart.js & Excel/PDF)"]
-    MOD06 --> MOD10
-    MOD08 --> MOD10
+flowchart TD
+    subgraph P1["PHASE 1: NỀN TẢNG FRAMEWORK, TÀI KHOẢN & DỮ LIỆU GỐC"]
+        CORE["Setup Core Framework (Quang)"]
+        M05["MOD-05: Quản lý Tài khoản & Phân quyền (Quang - 14 UCs)"]
+        M03["MOD-03: Danh mục & Gói Dịch vụ Spa (Khánh - 3 UCs)"]
+    end
+
+    subgraph P2["PHASE 2: VẬN HÀNH DỊCH VỤ CỐT LÕI: SỨC KHỎE, ĐẶT LỊCH & BOXCHAT"]
+        M08["MOD-08: Khảo sát Hồ sơ Sức khỏe 1-1 & Phiếu KTV (Ngọc - 2 UCs)"]
+        M01["MOD-01: Đặt lịch hẹn & Điều phối lịch (Quang - 5 UCs)"]
+        M02["MOD-02: Boxchat FAQ & Livechat Console (Ngọc - 3 UCs)"]
+    end
+
+    subgraph P3["PHASE 3: THANH TOÁN VIETQR, TÍCH ĐIỂM & CHĂM SÓC KHÁCH HÀNG"]
+        M09["MOD-09: Thanh toán VietQR & Hóa đơn thủ công (Tích hợp - Thảo)"]
+        M06["MOD-06: Hội viên VIP & Tích điểm tự động (Khánh - 3 UCs)"]
+        M04["MOD-04: Đánh giá 5 sao & Xử lý Khiếu nại (Thảo - 5 UCs)"]
+        M07["MOD-07: Khuyến mãi & Kho Voucher linh hoạt (Kha - 5 UCs)"]
+    end
+
+    subgraph P4["PHASE 4: DASHBOARD DOANH THU, XUẤT BÁO CÁO & KIỂM THỬ E2E"]
+        M10["MOD-10: Dashboard KPI Chart.js & SheetJS Export (Kha - 2 UCs)"]
+        E2E["Kiểm thử khép kín toàn hệ thống End-to-End (Cả nhóm)"]
+        ACCEPT["Nghiệm thu Đồ án & Đóng gói sản phẩm (Leader Quang)"]
+    end
+
+    CORE --> M05 --> M01
+    CORE --> M03 --> M01
+    M05 --> M08
+    M08 --> M10
+    M01 --> M09
+    M01 --> M04
+    M07 -->|Áp voucher & Thông báo| M01
+    M09 -. Invoice Đã thanh toán Signal .-> M06
+    M04 -. Cấp voucher đền bù .-> M07
+    M09 --> M10
+    M01 --> M10
+    M06 --> M10
+    M10 --> E2E --> ACCEPT
+
+    style P1 fill:#FAF7F0,stroke:#C5A059,stroke-width:2px
+    style P2 fill:#FFFDF9,stroke:#781A24,stroke-width:2px
+    style P3 fill:#FAF7F0,stroke:#C5A059,stroke-width:2px
+    style P4 fill:#FFFDF9,stroke:#10B981,stroke-width:2px
 ```
 
 ---
@@ -198,7 +224,7 @@ flowchart LR
 * **Signal tự động (`membership/signals.py`):** Khi `Invoice` chuyển sang `Đã thanh toán`, hệ thống tự động tính điểm (**10.000 VNĐ = 1 điểm**), chống cộng trùng theo mã hóa đơn, cập nhật `current_points` & `total_spent`, nâng hạng thẻ tự động khi đủ điểm và gửi thông báo chúc mừng.
 
 #### ✅ MOD-07: Quản lý Thông báo & Khuyến mãi (`marketing`)
-* **Trang Ưu đãi (`/marketing/`):** 2 tab hiển thị **Chương trình Khuyến mãi** (thẻ card gradient tự tính trạng thái theo `valid_from` / `valid_until`) và **Ví Voucher** (hỗ trợ sao chép mã và chuyển sang đặt lịch kèm `?voucher=CODE`).
+* **Trang Ưu đãi & Ví Voucher (`/marketing/`):** Giao diện 2 tab hiển thị **Chương trình Khuyến mãi** (thẻ card gradient tự tính trạng thái theo `valid_from` / `valid_until`) và **Ví Voucher** (truy cập từ Thông báo khách hàng, hỗ trợ kiểm tra/sao chép mã và chuyển sang đặt lịch kèm `?voucher=CODE`).
 * **Chuông Thông báo & Bảng tin (`/marketing/notifications/` & `/marketing/staff/`):** Dropdown tại biểu tượng chuông (`GET /marketing/api/notifications/dropdown/`) hiển thị tối đa 8 thông báo mới nhất được lọc đúng theo vai trò (`marketing/utils.py`), trang bảng tin timeline phân nhóm danh mục & tìm kiếm (10 tin/trang), cùng 4 tab thông báo nghiệp vụ cho Staff (`Tất cả`, `Khiếu nại`, `Tư vấn`, `Nội bộ`).
 * **Quản trị Thông báo & Khuyến mãi (Admin-only):**
   * `/marketing/admin/notifications/`: Soạn & gửi thông báo đơn lẻ hoặc phát hàng loạt (`all_customers`, `all_staff`, `all_users`) bằng `bulk_create`, xóa chiến dịch thông báo.

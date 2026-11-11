@@ -35,7 +35,7 @@ def _serialize_point(pt):
 def _serialize_lookup(obj):
     profile = getattr(obj.user, 'profile', None)
     spent = int(obj.total_spent or 0)
-    recent = obj.point_history.all().order_by('-created_at')[:5]
+    recent = obj.point_history.filter(points_amount__gt=0).order_by('-created_at')[:5]
     return {
         'id': obj.id,
         'customer_id': obj.user_id,

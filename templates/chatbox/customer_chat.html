@@ -153,8 +153,10 @@ let isConnectedToStaff = false;
 let customerPollingTimer = null;
 const IS_AUTHENTICATED = {% if user.is_authenticated %}true{% else %}false{% endif %};
 const USER_NAME = "{{ user.name|default:user.username|escapejs }}";
+const CUST_CSRF_TOKEN = "{{ csrf_token|escapejs }}";
 
 let pendingCustFaqId = null;
+let custStreamEpoch = 0;
 
 function toggleCustFaqPanel() {
     const bodyEl = document.getElementById('custFaqBody');
@@ -208,6 +210,39 @@ document.addEventListener('DOMContentLoaded', function () {
             pendingCustFaqId = null;
         });
     }
+
+    if (IS_AUTHENTICATED) {
+        fetch('/chatbox/api/conversations/my-active/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.is_authenticated && data.conversation) {
+                if (data.conversation.status !== 'Kết thúc') {
+                    conversationId = data.conversation.id;
+                }
+                if (data.conversation.status === 'Đang xử lý' && data.conversation.staff_name) {
+                    isConnectedToStaff = true;
+                    document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-circle-fill text-success"></i> Đang trò chuyện với chuyên viên: <strong>${escapeHtml(data.conversation.staff_name)}</strong>`;
+                    document.getElementById('btnRequestStaff').style.display = 'none';
+                    startCustomerPolling();
+                } else if (data.conversation.status === 'Đang chờ') {
+                    isConnectedToStaff = true;
+                    document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-clock-history text-warning"></i> Đang chờ nhân viên tiếp nhận ca tư vấn...`;
+                    document.getElementById('btnRequestStaff').style.display = 'none';
+                    startCustomerPolling();
+                }
+                if (data.conversation.status !== 'Kết thúc' && data.messages && data.messages.length > 0) {
+                    renderFullCustomerStream(data.messages);
+                }
+            }
+        })
+        .catch(() => {});
+    }
 });
 
 function handleCustomerSendMessage(e) {
@@ -216,22 +251,30 @@ function handleCustomerSendMessage(e) {
     const text = input.value.trim();
     if (!text) return;
 
+    const reqFaqId = pendingCustFaqId;
+    pendingCustFaqId = null;
+
     // 1. Hiển thị tin nhắn của khách hàng lên màn hình
     appendCustomerBubble(text);
     input.value = '';
 
-    // 2. Nếu đã kết nối với nhân viên tư vấn trực tiếp (UC-2.2)
-    if (isConnectedToStaff && conversationId) {
+    const csrfToken = getCookie('csrftoken') || CUST_CSRF_TOKEN;
+
+    // 2. Nếu đã kết nối với nhân viên tư vấn trực tiếp (UC-2.2) và không phải bấm block FAQ
+    if (isConnectedToStaff && conversationId && !reqFaqId) {
         fetch(`/chatbox/api/conversations/${conversationId}/messages/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken'),
+                'X-CSRFToken': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({ content: text, message_type: 'TEXT' })
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        })
         .then(data => {
             // Đã gửi tin nhắn cho nhân viên thành công
         })
@@ -239,27 +282,33 @@ function handleCustomerSendMessage(e) {
         return;
     }
 
-    // 3. Nếu đang chat với Bot tự động (UC-2.1)
-    const reqFaqId = pendingCustFaqId;
-    pendingCustFaqId = null;
+    // 3. Nếu đang chat với Bot tự động hoặc bấm câu hỏi kịch bản FAQ (UC-2.1)
+    const epochBeforeReply = custStreamEpoch;
     fetch('/chatbox/api/chat/bot-reply/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
+            'X-CSRFToken': csrfToken,
             'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify({ message: text, faq_id: reqFaqId, conversation_id: conversationId })
     })
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+    })
     .then(data => {
-        if (data.status === 'success') {
+        if (data.status === 'success' && data.reply) {
             if (data.conversation_id) {
                 conversationId = data.conversation_id;
             }
             setTimeout(() => {
-                appendBotBubble(data.reply);
-            }, 400);
+                if (epochBeforeReply === custStreamEpoch) {
+                    appendBotBubble(data.reply);
+                }
+            }, 350);
+        } else {
+            appendBotBubble(data.message || 'Xin lỗi quý khách, hiện chưa tìm thấy câu trả lời phù hợp.');
         }
     })
     .catch(err => {
@@ -280,7 +329,8 @@ function handleRequestStaff() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
+            'X-CSRFToken': getCookie('csrftoken') || CUST_CSRF_TOKEN,
+            'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify({ conversation_id: conversationId })
     })
@@ -345,10 +395,13 @@ function startCustomerPolling() {
             .then(res => res.json())
             .then(data => {
                 if (data && data.staff_info) {
-                    document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-circle-fill text-success"></i> Đang trò chuyện với chuyên viên: <strong>${data.staff_info.name}</strong>`;
+                    document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-circle-fill text-success"></i> Đang trò chuyện với chuyên viên: <strong>${escapeHtml(data.staff_info.name)}</strong>`;
                 }
                 if (data && data.messages) {
-                    renderFullCustomerStream(data.messages);
+                    const renderedCount = document.querySelectorAll('#custChatStream .cust-bubble-wrapper').length;
+                    if (data.messages.length !== renderedCount) {
+                        renderFullCustomerStream(data.messages);
+                    }
                 }
             })
             .catch(() => {});
@@ -357,6 +410,7 @@ function startCustomerPolling() {
 }
 
 function renderFullCustomerStream(messages) {
+    custStreamEpoch += 1;
     const stream = document.getElementById('custChatStream');
     let html = '';
     messages.forEach(m => {
@@ -388,9 +442,9 @@ function renderFullCustomerStream(messages) {
 }
 
 function escapeHtml(text) {
-    if (!text) return '';
+    if (text === null || text === undefined) return '';
     const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return text.replace(/[&<>"']/g, m => map[m]);
+    return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
 function getCookie(name) {

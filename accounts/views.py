@@ -501,7 +501,7 @@ def admin_customer_detail_view(request, pk):
     Giao diện Chi tiết Khách hàng 360 độ (Figma Node 221:481, 608:1773, 608:250)
     Tích hợp 3 Tab chuẩn xác theo thiết kế Figma:
       - Tab 1 (Node 221:481): Thông tin cá nhân & Liên hệ
-      - Tab 2 (Node 608:1773): Hồ sơ sức khỏe (Timeline, Vùng đau mỏi, Cường độ 0-10, Cảnh báo y tế)
+      - Tab 2 (Node 608:1773): Hồ sơ sức khỏe (Timeline, Thể trạng & Huyết áp, Vùng đau mỏi, Cường độ 0-10)
       - Tab 3 (Node 608:250): Thẻ hội viên & Tích điểm (Tiến trình nâng hạng, Biến động điểm thưởng)
     """
     if not (request.user.is_superuser or request.user.is_staff):
@@ -641,7 +641,7 @@ def admin_customer_detail_view(request, pk):
     points_pct = min(100, int((membership.current_points / next_tier_points) * 100)) if next_tier_points else 100
     spent_pct = min(100, int((membership.total_spent / target_spent) * 100)) if target_spent else 100
 
-    point_history = membership.point_history.all().order_by('-created_at')[:15]
+    point_history = membership.point_history.filter(points_amount__gt=0).order_by('-created_at')[:15]
 
     # Danh sách tất cả hạng thẻ cho dropdown sửa
     all_tiers = Tier.objects.all().order_by('min_points')

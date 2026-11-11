@@ -70,19 +70,19 @@
         <!-- B. BODY CARD: CHỈ SỐ SINH TRẮC HỌC & ĐAU MỎI -->
         <div class="staff-detail-body">
 
-            <!-- LƯU Ý AN TOÀN Y TẾ CHO KTV (DÙNG MÀU CHÍNH CHAM SPA) -->
+            <!-- THÔNG TIN HUYẾT ÁP CHO KTV (DÙNG MÀU CHÍNH CHAM SPA) -->
             {% if profile.blood_pressure == 'Cao' %}
             <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3" style="background-color: #FAF7EF; border: 1px solid #781A24; color: #781A24;">
                 <i class="bi bi-exclamation-triangle-fill fs-3 flex-shrink-0" style="color: #781A24;"></i>
                 <div class="small">
-                    <strong>Lưu ý an toàn trị liệu (Huyết áp cao):</strong> Khách có chỉ số huyết áp cao. Kỹ thuật viên tránh day bấm quá mạnh huyệt vùng đầu cổ, thái dương và điều chỉnh nhiệt độ phòng ấm thoáng vừa phải.
+                    <strong>Lưu ý huyết áp (Huyết áp cao):</strong> Khách có chỉ số huyết áp cao. Kỹ thuật viên tránh day bấm quá mạnh huyệt vùng đầu cổ, thái dương và điều chỉnh nhiệt độ phòng ấm thoáng vừa phải.
                 </div>
             </div>
             {% elif profile.blood_pressure == 'Thấp' %}
             <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3" style="background-color: #FAF7EF; border: 1px solid #D0B581; color: #781A24;">
                 <i class="bi bi-info-circle-fill fs-3 flex-shrink-0" style="color: #781A24;"></i>
                 <div class="small">
-                    <strong>Lưu ý an toàn trị liệu (Huyết áp thấp):</strong> Khách có huyết áp thấp. Giữ ấm cơ thể khách, chuyển tư thế nhẹ nhàng, tránh để khách nằm sấp hoặc xông hơi quá lâu.
+                    <strong>Lưu ý huyết áp (Huyết áp thấp):</strong> Khách có huyết áp thấp. Giữ ấm cơ thể khách, chuyển tư thế nhẹ nhàng, tránh để khách nằm sấp hoặc xông hơi quá lâu.
                 </div>
             </div>
             {% else %}

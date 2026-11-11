@@ -277,25 +277,6 @@
                             <span>10 · Đau nhiều</span>
                         </div>
                     </div>
-
-                    <!-- Section 3: Cảnh báo y tế & Dị ứng -->
-                    <div>
-                        <h6 class="fw-bold mb-2" style="font-size: 14px; color: #781A24;">
-                            <i class="bi bi-shield-exclamation me-1"></i> Cảnh báo y tế & Dị ứng
-                        </h6>
-                        <div class="p-3" style="background-color: #F7E9EB; border-radius: 8px; border: 1px solid #F1D4D7;">
-                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <i class="bi bi-exclamation-triangle-fill text-danger"></i>
-                                <span class="badge" style="background-color: #781A24; color: #FFFFFF; font-size: 12px; font-weight: 700; padding: 5px 10px;">
-                                    Dị ứng {{ health_profile.allergy_notes|default:"tinh dầu sả chanh" }}
-                                </span>
-                                <span class="mx-1" style="color: #D0B581;">|</span>
-                                <span class="fw-bold" style="color: #781A24; font-size: 13px;">
-                                    {{ health_profile.health_conditions|join:", "|default:"Da nhạy cảm" }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

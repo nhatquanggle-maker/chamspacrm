@@ -265,17 +265,61 @@ class MembershipModuleTests(TestCase):
         # Kiểm tra thăng hạng thẻ tự động (600 điểm >= 500 điểm -> Hạng Bạc)
         self.assertEqual(self.membership.tier.name, "Hạng Bạc")
 
-        # Kiểm tra bản ghi MembershipPoint
+        # Kiểm tra bản ghi MembershipPoint (chỉ tạo bản ghi cộng điểm > 0, không tạo bản ghi đối soát 0 điểm)
         point_record = MembershipPoint.objects.filter(
             membership=self.membership,
             appointment_id="AP-TEST-001"
         ).first()
         self.assertIsNotNone(point_record)
         self.assertEqual(point_record.points_amount, 500)
+        self.assertFalse(
+            MembershipPoint.objects.filter(membership=self.membership, points_amount=0).exists()
+        )
 
         # Kiểm tra thông báo Notification được tạo
         notifs = Notification.objects.filter(user=self.customer)
         self.assertTrue(notifs.exists())
+
+    def test_point_history_views_only_show_positive_points(self):
+        """Tab Thẻ hội viên (Admin/Staff & Customer) và API lookup chỉ hiển thị lịch sử cộng điểm (> 0), ẩn đối soát 0 điểm hoặc trừ điểm."""
+        MembershipPoint.objects.create(
+            membership=self.membership,
+            appointment_id="#LH88001",
+            points_amount=85,
+            reason_description="Tích điểm tự động từ hóa đơn #LH88001 (10.000đ = 1 điểm thưởng)",
+        )
+        MembershipPoint.objects.create(
+            membership=self.membership,
+            appointment_id="106",
+            points_amount=0,
+            reason_description="Đối soát định danh lịch hẹn #LH88001",
+        )
+        MembershipPoint.objects.create(
+            membership=self.membership,
+            appointment_id=None,
+            points_amount=-20,
+            reason_description="Điều chỉnh trừ điểm test",
+        )
+
+        # 1. Trang Admin/Staff Chi tiết khách hàng (Tab 3: membership)
+        self.client.login(username="0905999888", password="Password123!")
+        detail_res = self.client.get(
+            reverse('accounts:admin_customer_detail', kwargs={'pk': self.customer.id}) + '?tab=membership'
+        )
+        self.assertEqual(detail_res.status_code, 200)
+        detail_html = detail_res.content.decode('utf-8')
+        self.assertEqual([pt.points_amount for pt in detail_res.context['point_history']], [85])
+        self.assertIn('+85 điểm', detail_html)
+        self.assertNotIn('Đối soát định danh lịch hẹn', detail_html)
+        self.assertNotIn('>0 điểm<', detail_html)
+        self.assertNotIn('-20 điểm', detail_html)
+
+        # 2. API lookup tại quầy
+        api_res = self.client.get(reverse('membership:api_lookup') + '?q=0905123456')
+        self.assertEqual(api_res.status_code, 200)
+        recent_history = api_res.json()['results'][0]['recent_history']
+        self.assertTrue(all(item['points_amount'] > 0 for item in recent_history))
+        self.assertFalse(any('Đối soát định danh' in item['reason_description'] for item in recent_history))
 
     def test_uc63_idempotency_prevents_duplicate_points(self):
         """Lưu Invoice nhiều lần ở trạng thái 'Đã thanh toán' không được cộng điểm trùng lặp"""

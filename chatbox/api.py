@@ -149,8 +149,6 @@ def serialize_conversation_detail(conv):
             'focus_areas': hp.focus_areas or [],
             'massage_pressure': hp.massage_pressure,
             'pain_level': hp.pain_level,
-            'health_conditions': hp.health_conditions or [],
-            'allergy_notes': hp.allergy_notes,
             'recovery_goals': hp.recovery_goals or [],
         } if hp else None
 
@@ -291,10 +289,14 @@ def bot_reply_api(request):
                 conversation = Conversation.objects.filter(id=conv_id, customer=user).first()
 
             if not conversation or conversation.status == 'Kết thúc':
-                conversation = Conversation.objects.filter(
-                    customer=user,
-                    status__in=['Bot xử lý', 'Đang chờ', 'Đang xử lý'],
-                ).first()
+                conversation = (
+                    Conversation.objects.filter(
+                        customer=user,
+                        status__in=['Bot xử lý', 'Đang chờ', 'Đang xử lý'],
+                    )
+                    .order_by('-created_at')
+                    .first()
+                )
 
             if not conversation:
                 conversation = Conversation.objects.create(
@@ -380,10 +382,14 @@ def conversation_transfer_staff_api(request):
             conversation = Conversation.objects.filter(id=conv_id, customer=user).first()
 
         if not conversation or conversation.status == 'Kết thúc':
-            conversation = Conversation.objects.filter(
-                customer=user,
-                status__in=['Bot xử lý', 'Đang chờ', 'Đang xử lý'],
-            ).first()
+            conversation = (
+                Conversation.objects.filter(
+                    customer=user,
+                    status__in=['Bot xử lý', 'Đang chờ', 'Đang xử lý'],
+                )
+                .order_by('-created_at')
+                .first()
+            )
 
         if not conversation:
             conversation = Conversation.objects.create(
@@ -859,16 +865,10 @@ def admin_conversation_monitor_api(request, pk):
     total_spent = membership.total_spent if membership else 18500000
     formatted_spent = f"{int(total_spent):,} VNĐ".replace(',', '.')
 
+    from health.helpers import build_health_summary
+
     health = UserHealthProfile.objects.filter(user=customer).first() if customer else None
-    health_notes = []
-    if health:
-        if health.special_requests:
-            health_notes.append(health.special_requests)
-        if health.massage_pressure:
-            health_notes.append(f"ưu tiên lực {health.massage_pressure.lower()}")
-        if health.allergy_notes:
-            health_notes.append(f"dị ứng: {health.allergy_notes}")
-    health_summary = ", ".join(health_notes) if health_notes else "Da nhạy cảm, ưu tiên lực nhẹ."
+    health_summary = build_health_summary(health)
 
     duration_seconds = int((timezone.now() - conv.created_at).total_seconds())
     duration_display = f"{duration_seconds // 60:02d}:{duration_seconds % 60:02d}"

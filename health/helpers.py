@@ -83,35 +83,20 @@ def get_health_alerts(obj):
         alerts.append({"type": "danger", "title": "Huyết áp cao", "desc": "Tránh ấn mạnh huyệt vùng đầu cổ, tránh tắm nước quá nóng."})
     elif obj.blood_pressure == 'Thấp':
         alerts.append({"type": "warning", "title": "Huyết áp thấp", "desc": "Giữ ấm cơ thể, chuyển tư thế nhẹ nhàng, tránh xông hơi lâu."})
-
-    for cond_str in parse_conditions_list(obj.health_conditions):
-        cond_lower = cond_str.lower()
-        if 'thai' in cond_lower:
-            alerts.append({"type": "danger", "title": "Đang mang thai", "desc": "TUYỆT ĐỐI KHÔNG ấn huyệt Hợp Cốc, Tam Âm Giao, Vai gáy mạnh."})
-        elif 'tim' in cond_lower:
-            alerts.append({"type": "danger", "title": "Bệnh tim mạch", "desc": "Massage nhẹ nhàng, không xoa bóp vùng ngực, phòng ấm thoáng."})
-        elif 'nhạy cảm' in cond_lower or 'kích ứng' in cond_lower:
-            alerts.append({"type": "warning", "title": "Da nhạy cảm", "desc": "Dùng dầu nền tự nhiên tinh khiết, tránh chà xát mạnh gây kích ứng."})
-        elif 'cột sống' in cond_lower or 'thoát vị' in cond_lower:
-            alerts.append({"type": "danger", "title": "Bệnh lý cột sống", "desc": "Không bẻ khớp, không giẫm lưng, chỉ xoa bóp cơ mềm xung quanh."})
-        elif 'giãn tĩnh mạch' in cond_lower or 'tĩnh mạch' in cond_lower:
-            alerts.append({"type": "warning", "title": "Suy giãn tĩnh mạch", "desc": "Tránh massage sâu vuốt ngược chiều tĩnh mạch ở bắp chân."})
-        elif 'phẫu thuật' in cond_lower:
-            alerts.append({"type": "danger", "title": "Phẫu thuật gần đây", "desc": "Tránh tác động mạnh vào khu vực có vết thương/mổ."})
-        elif any(k in cond_lower for k in ['tiểu đường', 'ung thư', 'tai biến', 'gãy xương']):
-            alerts.append({"type": "danger", "title": cond_str, "desc": "Lưu ý thể trạng đặc biệt của khách trước khi trị liệu."})
-
-    if obj.allergy_notes and str(obj.allergy_notes).strip():
-        notes_str = str(obj.allergy_notes).strip()
-        notes_lower = notes_str.lower()
-        negative_phrases = ['không có', 'không', 'ko có', 'ko', 'none', 'không có dị ứng', 'bình thường', 'không dị ứng']
-        if not any(neg in notes_lower and len(notes_lower) < 40 for neg in negative_phrases):
-            alerts.append({
-                "type": "danger",
-                "title": "Dị ứng nguyên liệu",
-                "desc": f"Dị ứng ghi nhận: {notes_str} - Tuyệt đối không sử dụng tinh dầu này!",
-            })
     return alerts
+
+
+def build_health_summary(health):
+    """Tạo chuỗi tóm tắt thể trạng ngắn gọn cho livechat/monitor (chỉ gồm huyết áp, lực, yêu cầu riêng)."""
+    health_notes = []
+    if health:
+        if health.blood_pressure:
+            health_notes.append(f"huyết áp {health.blood_pressure.lower()}")
+        if health.massage_pressure:
+            health_notes.append(f"ưu tiên lực {health.massage_pressure.lower()}")
+        if health.special_requests:
+            health_notes.append(health.special_requests)
+    return ", ".join(health_notes) if health_notes else "Thể trạng bình thường, ưu tiên lực vừa."
 
 
 def serialize_health_profile(obj):
@@ -135,8 +120,7 @@ def serialize_health_profile(obj):
         'focus_areas': obj.focus_areas or [],
         'massage_pressure': obj.massage_pressure,
         'pain_level': obj.pain_level,
-        'health_conditions': obj.health_conditions or [],
-        'allergy_notes': obj.allergy_notes or '',
+        # Clear legacy condition/allergy fields so removed categories cannot be queried or stored.
         'special_requests': obj.special_requests or '',
         'recovery_goals': obj.recovery_goals or [],
         'created_at': obj.created_at.isoformat() if obj.created_at else None,
@@ -224,8 +208,8 @@ def validate_health_payload(data):
         'focus_areas': _clean_list('focus_areas'),
         'massage_pressure': massage_pressure,
         'pain_level': pain_level,
-        'health_conditions': _clean_list('health_conditions'),
-        'allergy_notes': (data.get('allergy_notes') or '').strip(),
+        'health_conditions': [],
+        'allergy_notes': '',
         'special_requests': (data.get('special_requests') or '').strip(),
         'recovery_goals': _clean_list('recovery_goals'),
     }, None

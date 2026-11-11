@@ -185,7 +185,7 @@ def reset_and_seed_demo():
                 'health': {
                     'height': Decimal('162'), 'weight': Decimal('52'), 'bp': 'Bình thường',
                     'focus': ['Vai gáy', 'Thắt lưng'], 'pressure': 'Lực vừa', 'pain': 6,
-                    'cond': ['Da nhạy cảm'], 'allergy': 'Dị ứng tinh dầu bạc hà',
+                    'cond': [], 'allergy': '',
                     'req': 'Ưu tiên phòng yên tĩnh, trà gừng ấm sau liệu trình.',
                     'goals': ['Giảm đau vai gáy', 'Thư giãn ngủ ngon'],
                 },
@@ -197,8 +197,8 @@ def reset_and_seed_demo():
                 'health': {
                     'height': Decimal('158'), 'weight': Decimal('54'), 'bp': 'Thấp',
                     'focus': ['Thắt lưng', 'Bàn chân'], 'pressure': 'Nhẹ nhàng', 'pain': 4,
-                    'cond': ['Đang mang thai'], 'allergy': 'Tránh tinh dầu quế và sả nồng',
-                    'req': 'Chú ý tư thế nằm nghiêng an toàn cho mẹ bầu.',
+                    'cond': [], 'allergy': '',
+                    'req': 'Ưu tiên lực nhẹ nhàng, giữ ấm phòng trị liệu.',
                     'goals': ['Cải thiện tuần hoàn', 'Thư giãn ngủ ngon'],
                 },
             },
@@ -209,7 +209,7 @@ def reset_and_seed_demo():
                 'health': {
                     'height': Decimal('174'), 'weight': Decimal('75'), 'bp': 'Cao',
                     'focus': ['Vai gáy', 'Lưng trên'], 'pressure': 'Lực mạnh', 'pain': 8,
-                    'cond': ['Huyết áp cao'], 'allergy': 'Không có',
+                    'cond': [], 'allergy': '',
                     'req': 'Không xông hơi quá nóng, tập trung ấn huyệt cổ vai.',
                     'goals': ['Giảm đau vai gáy', 'Phục hồi cơ bắp & Thải độc'],
                 },
@@ -221,7 +221,7 @@ def reset_and_seed_demo():
                 'health': {
                     'height': Decimal('160'), 'weight': Decimal('49'), 'bp': 'Bình thường',
                     'focus': ['Da mặt', 'Cổ'], 'pressure': 'Nhẹ nhàng', 'pain': 3,
-                    'cond': [], 'allergy': 'Không dùng mỹ phẩm có hương liệu mạnh',
+                    'cond': [], 'allergy': '',
                     'req': 'Thích gội đầu nước bồ kết ấm.',
                     'goals': ['Giải tỏa căng thẳng', 'Thư giãn ngủ ngon'],
                 },
@@ -233,7 +233,7 @@ def reset_and_seed_demo():
                 'health': {
                     'height': Decimal('171'), 'weight': Decimal('66'), 'bp': 'Bình thường',
                     'focus': ['Bàn chân', 'Bắp chân'], 'pressure': 'Lực vừa', 'pain': 5,
-                    'cond': [], 'allergy': 'Không',
+                    'cond': [], 'allergy': '',
                     'req': 'Ngâm chân thảo dược 15 phút đầu.',
                     'goals': ['Phục hồi cơ bắp & Thải độc'],
                 },
@@ -245,7 +245,7 @@ def reset_and_seed_demo():
                 'health': {
                     'height': Decimal('163'), 'weight': Decimal('51'), 'bp': 'Bình thường',
                     'focus': ['Vai gáy'], 'pressure': 'Lực vừa', 'pain': 5,
-                    'cond': [], 'allergy': 'Không',
+                    'cond': [], 'allergy': '',
                     'req': 'Tài khoản tạm khóa demo.',
                     'goals': ['Giải tỏa căng thẳng'],
                 },

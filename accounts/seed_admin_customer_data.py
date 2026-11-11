@@ -121,9 +121,9 @@ def seed_data():
             'focus_areas': ['Vai gáy', 'Thắt lưng'],
             'massage_pressure': 'Lực vừa',
             'pain_level': 6,
-            'health_conditions': ['Da nhạy cảm'],
-            'allergy_notes': 'Dị ứng tinh dầu sả chanh; dị ứng tinh dầu bạc hà',
-            'special_requests': 'Ưu tiên phòng yên tĩnh; dị ứng tinh dầu bạc hà. KTV yêu thích: Trâm Anh.',
+            'health_conditions': [],
+            'allergy_notes': '',
+            'special_requests': 'Ưu tiên phòng yên tĩnh. KTV yêu thích: Trâm Anh.',
             'recovery_goals': ['Giảm đau mỏi vai gáy', 'Thư giãn cơ thắt lưng'],
         }
     )

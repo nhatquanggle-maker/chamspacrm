@@ -134,11 +134,12 @@ class DashboardModuleTests(TestCase):
             user=self.customer_user,
             defaults={
                 'health_code': 'HP-TEST-001',
-                'blood_pressure': 'Bình thường',
+                'blood_pressure': 'Cao',
                 'focus_areas': ['Vai gáy', 'Thắt lưng'],
                 'massage_pressure': 'Lực vừa',
                 'pain_level': 6,
-                'health_conditions': ['Da nhạy cảm']
+                'health_conditions': [],
+                'allergy_notes': '',
             }
         )
 
@@ -199,6 +200,7 @@ class DashboardModuleTests(TestCase):
         self.assertGreaterEqual(data['health_analytics']['total_profiles'], 1)
         self.assertGreaterEqual(data['health_analytics']['avg_pain_level'], 0.0)
         self.assertGreaterEqual(data['health_analytics']['special_alert_count'], 1)
+        self.assertEqual(data['health_analytics']['top_conditions'], [])
         self.assertIn('Vai gáy', data['health_analytics']['focus_chart']['labels'])
 
     def test_period_filters(self):
@@ -253,6 +255,8 @@ class DashboardModuleTests(TestCase):
         self.assertContains(response, 'Khách hàng Test')
         self.assertNotContains(response, '0909999003')
         self.assertNotContains(response, '<th class="text-center">Trạng thái</th>')
+        self.assertNotContains(response, 'cảnh báo an toàn')
+        self.assertContains(response, 'Huyết áp Cao/Thấp')
 
     def test_staff_dashboard_template_view(self):
         """Kiểm tra trang HTML Dashboard của Kỹ thuật viên render thành công."""

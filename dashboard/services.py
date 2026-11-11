@@ -801,7 +801,7 @@ def get_health_profile_analytics():
     trong AppointmentDetail để phục vụ biểu đồ Phân tích Hồ sơ Sức khỏe trên Dashboard:
       1. Phân bổ vùng đau mỏi khách hàng cần tập trung (Focus Areas Bar Chart).
       2. Phân bổ lực massage mong muốn (Pressure Doughnut Chart).
-      3. Các chỉ số cảnh báo: Tổng hồ sơ, Điểm đau trung bình, Số hồ sơ có lưu ý bệnh lý/dị ứng.
+      3. Các chỉ số tóm tắt: Tổng hồ sơ, Điểm đau trung bình, Số hồ sơ có huyết áp Cao/Thấp.
     """
     profiles = UserHealthProfile.objects.all()
     total_profiles = profiles.count()
@@ -810,7 +810,6 @@ def get_health_profile_analytics():
     pressure_counts = {'Nhẹ nhàng': 0, 'Lực vừa': 0, 'Mạnh': 0}
     pain_levels = []
     special_alert_count = 0
-    condition_counts = {}
 
     for hp in profiles:
         # 1. Thống kê điểm mức độ đau (1-10)
@@ -827,14 +826,8 @@ def get_health_profile_analytics():
         if norm_p:
             pressure_counts[norm_p] = pressure_counts.get(norm_p, 0) + 1
 
-        # 4. Đếm các hồ sơ có lưu ý bệnh lý / dị ứng / huyết áp bất thường cần KTV chú ý
-        conds = _parse_json_or_csv_list(hp.health_conditions)
-        for c in conds:
-            condition_counts[c] = condition_counts.get(c, 0) + 1
-
-        has_bp_alert = hp.blood_pressure and hp.blood_pressure.strip().lower() not in ('bình thường', '')
-        has_allergy = bool(hp.allergy_notes and hp.allergy_notes.strip())
-        if conds or has_bp_alert or has_allergy:
+        # 4. Đếm các hồ sơ có chỉ số huyết áp Cao/Thấp cần KTV chú ý
+        if hp.blood_pressure and hp.blood_pressure.strip().lower() in ('cao', 'thấp'):
             special_alert_count += 1
 
     # Bổ sung thêm dữ liệu lực massage thực tế từ AppointmentDetail nếu có để bức tranh toàn diện
@@ -874,9 +867,7 @@ def get_health_profile_analytics():
 
     avg_pain = round(sum(pain_levels) / len(pain_levels), 1) if pain_levels else 0.0
 
-    # Top lưu ý bệnh lý phổ biến
-    sorted_conds = sorted(condition_counts.items(), key=lambda x: x[1], reverse=True)[:4]
-    top_conditions = [{'name': k, 'count': v} for k, v in sorted_conds]
+    top_conditions = []
 
     return {
         'total_profiles': total_profiles,

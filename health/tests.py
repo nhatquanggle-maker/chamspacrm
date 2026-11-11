@@ -105,7 +105,7 @@ class HealthProfileModelAndAPITest(TestCase):
             "special_requests": "Phòng ấm 26 độ",
         }
 
-        # Lần 1: Tạo mới hồ sơ qua Form POST
+        # Lần 1: Tạo mới hồ sơ qua Form POST (bỏ qua các trường bệnh lý/dị ứng cũ)
         response1 = self.client_customer.post(url, payload1)
         self.assertEqual(response1.status_code, 302)
         self.assertEqual(response1.url, reverse('health:profile'))
@@ -117,6 +117,8 @@ class HealthProfileModelAndAPITest(TestCase):
         self.assertEqual(hp.pain_level, 6)
         self.assertEqual(hp.massage_pressure, 'Lực vừa')
         self.assertIn('Vai gáy', hp.focus_areas)
+        self.assertEqual(hp.health_conditions, [])
+        self.assertEqual(hp.allergy_notes, '')
 
         # Lần 2: Cập nhật lại (Ghi đè bản ghi cũ)
         payload2 = {
@@ -142,7 +144,8 @@ class HealthProfileModelAndAPITest(TestCase):
         self.assertEqual(hp.blood_pressure, 'Thấp')
         self.assertEqual(hp.massage_pressure, 'Nhẹ nhàng')
         self.assertIn('Thắt lưng', hp.focus_areas)
-        self.assertIn('Đang mang thai', hp.health_conditions)
+        self.assertEqual(hp.health_conditions, [])
+        self.assertEqual(hp.allergy_notes, '')
 
     def test_bmi_calculation_and_classification(self):
         """Kiểm tra công thức tính BMI và hiển thị trên giao diện."""
@@ -167,7 +170,7 @@ class HealthProfileModelAndAPITest(TestCase):
         self.assertContains(res, '19.5')
 
     def test_medical_safety_alert_flags(self):
-        """Kiểm tra hệ thống cờ cảnh báo y tế đỏ."""
+        """Chỉ giữ lại cảnh báo huyết áp; không sinh cảnh báo bệnh lý hoặc dị ứng."""
         hp, _ = UserHealthProfile.objects.update_or_create(
             user=self.customer,
             defaults={
@@ -184,10 +187,13 @@ class HealthProfileModelAndAPITest(TestCase):
 
         data = serialize_health_profile(hp)
         self.assertTrue(data['has_medical_alert'])
+        self.assertNotIn('health_conditions', data)
+        self.assertNotIn('allergy_notes', data)
         alerts = data['alert_details']
-        self.assertTrue(any(a['title'] == 'Huyết áp cao' for a in alerts))
-        self.assertTrue(any('mang thai' in a['title'].lower() for a in alerts))
-        self.assertTrue(any('dị ứng' in a['title'].lower() for a in alerts))
+        self.assertEqual(len(alerts), 1)
+        self.assertEqual(alerts[0]['title'], 'Huyết áp cao')
+        self.assertFalse(any('mang thai' in a['title'].lower() for a in alerts))
+        self.assertFalse(any('dị ứng' in a['title'].lower() for a in alerts))
 
     def test_invalid_input_validation(self):
         """Kiểm tra bắt lỗi chiều cao/cân nặng/mức đau phi lý trên form POST."""
@@ -352,4 +358,67 @@ class HealthProfileModelAndAPITest(TestCase):
         )
         self.assertEqual(res_detail_info.status_code, 200)
         self.assertNotIn('GHI CHÚ CHĂM SÓC', res_detail_info.content.decode('utf-8'))
+
+        # Kiểm tra lọc theo Huyết áp (?bp=Cao) giữ tham số filter
+        UserHealthProfile.objects.filter(user=self.customer).update(blood_pressure='Cao')
+        res_bp_high = web_client_staff.get(reverse('health:staff_lookup'), {'bp': 'Cao'})
+        self.assertEqual(res_bp_high.status_code, 200)
+        self.assertEqual(res_bp_high.context['page_obj'].paginator.count, 1)
+
+    def test_removed_conditions_allergies_and_staff_admin_medical_warnings(self):
+        """Xác nhận chỉ giữ lại Huyết áp ở hồ sơ sức khỏe và bỏ hẳn Cảnh báo y tế / Dị ứng trên Staff & Admin."""
+        UserHealthProfile.objects.update_or_create(
+            user=self.customer,
+            defaults={
+                'health_code': 'HP-KH8888',
+                'height_cm': 162.0,
+                'weight_kg': 52.0,
+                'blood_pressure': 'Bình thường',
+                'massage_pressure': 'Lực vừa',
+                'pain_level': 6,
+            }
+        )
+
+        removed_terms = [
+            'Thai kỳ', 'Tim mạch', 'Giãn tĩnh mạch', 'Da nhạy cảm',
+            'Phẫu thuật', 'Bệnh nền', 'Cảnh báo y tế', 'Cảnh báo An toàn Y tế',
+            'Dị ứng', 'dị ứng', 'allergy_notes', 'health_conditions',
+        ]
+
+        # 1. Giao diện Khách hàng: xem & cập nhật hồ sơ
+        for url in [reverse('health:profile'), reverse('health:update')]:
+            res = self.client_customer.get(url)
+            self.assertEqual(res.status_code, 200)
+            html = res.content.decode('utf-8')
+            self.assertIn('Huyết áp', html)
+            for term in removed_terms:
+                self.assertNotIn(term, html, f"Không được hiển thị '{term}' tại {url}")
+
+        # 2. Giao diện Staff tra cứu & in phiếu KTV & chi tiết 360 độ
+        staff_urls = [
+            reverse('health:staff_lookup'),
+            reverse('health:staff_detail', kwargs={'user_id': self.customer.id}) + '?view=ktv',
+            reverse('accounts:admin_customer_detail', kwargs={'pk': self.customer.id}) + '?tab=health',
+            reverse('accounts:admin_customer_list'),
+        ]
+        for url in staff_urls:
+            res = self.client_staff.get(url)
+            self.assertEqual(res.status_code, 200)
+            html = res.content.decode('utf-8')
+            for term in removed_terms:
+                self.assertNotIn(term, html, f"Không được hiển thị '{term}' cho Staff tại {url}")
+
+        # 3. Giao diện Admin: chi tiết khách hàng tab health & dashboard admin
+        client_admin = Client()
+        client_admin.force_login(self.admin_user)
+        for url in [
+            reverse('accounts:admin_customer_detail', kwargs={'pk': self.customer.id}) + '?tab=health',
+            reverse('dashboard:admin'),
+        ]:
+            res = client_admin.get(url)
+            self.assertEqual(res.status_code, 200)
+            html = res.content.decode('utf-8')
+            self.assertNotIn('cảnh báo an toàn', html.lower())
+            for term in removed_terms:
+                self.assertNotIn(term, html, f"Không được hiển thị '{term}' cho Admin tại {url}")
 

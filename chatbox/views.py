@@ -21,6 +21,7 @@ from core.models import (
     FAQ, Conversation, ConversationMessage, User, Service, Voucher,
     Membership, UserHealthProfile
 )
+from health.helpers import build_health_summary
 
 
 def is_staff_or_superuser(user):
@@ -181,15 +182,7 @@ def admin_livechat_monitor_view(request):
         formatted_spent = f"{int(total_spent):,} VNĐ".replace(',', '.')
 
         health = UserHealthProfile.objects.filter(user=customer).first()
-        health_notes = []
-        if health:
-            if health.special_requests:
-                health_notes.append(health.special_requests)
-            if health.massage_pressure:
-                health_notes.append(f"ưu tiên lực {health.massage_pressure.lower()}")
-            if health.allergy_notes:
-                health_notes.append(f"dị ứng: {health.allergy_notes}")
-        health_summary = ", ".join(health_notes) if health_notes else "Da nhạy cảm, ưu tiên lực nhẹ."
+        health_summary = build_health_summary(health)
 
         # Tính thời lượng
         duration_seconds = int((timezone.now() - active_conv.created_at).total_seconds())

@@ -41,7 +41,6 @@ class UserHealthProfileAdmin(admin.ModelAdmin):
         'user__name',
         'user__phone',
         'user__email',
-        'allergy_notes',
     )
     readonly_fields = ('created_at',)
     ordering = ('-created_at',)

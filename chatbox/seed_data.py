@@ -195,10 +195,12 @@ def seed_chatbox_data():
                 user=user,
                 defaults={
                     'health_code': 'HP-THAO-NGOC',
-                    'special_requests': 'Da nhạy cảm',
+                    'blood_pressure': 'Bình thường',
+                    'special_requests': 'Ưu tiên phòng yên tĩnh, trà ấm sau liệu trình',
                     'massage_pressure': 'Lực nhẹ',
                     'focus_areas': 'Vai gáy, Lưng trên',
-                    'health_conditions': 'Đau mỏi cơ vai phải'
+                    'health_conditions': [],
+                    'allergy_notes': '',
                 }
             )
 

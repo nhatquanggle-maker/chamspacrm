@@ -118,10 +118,10 @@ def health_profile_update_view(request):
             'blood_pressure': request.POST.get('blood_pressure', 'Bình thường'),
             'massage_pressure': request.POST.get('massage_pressure', 'Lực vừa'),
             'pain_level': request.POST.get('pain_level', '5'),
-            'allergy_notes': request.POST.get('allergy_notes', ''),
+            'allergy_notes': '',
             'special_requests': request.POST.get('special_requests', ''),
             'focus_areas': request.POST.getlist('focus_areas'),
-            'health_conditions': request.POST.getlist('health_conditions'),
+            'health_conditions': [],
             'recovery_goals': request.POST.getlist('recovery_goals'),
         }
         cleaned, errors = validate_health_payload(payload)
@@ -209,7 +209,7 @@ def staff_health_lookup_view(request):
     Tư vấn viên CSKH và Kỹ thuật viên (KTV).
     Cho phép:
       - Tìm kiếm theo SĐT, Tên khách hàng, Mã hồ sơ sức khỏe.
-      - Phân loại nhanh các hồ sơ có Cảnh báo y tế đỏ (Bệnh tim mạch, Đang mang thai...).
+      - Phân loại nhanh các hồ sơ theo tình trạng Huyết áp (Bình thường, Thấp, Cao).
       - Xem nhanh thể trạng khách trước ca trực để bảo đảm an toàn trị liệu.
     """
     if not is_staff_or_superuser(request.user):
@@ -271,7 +271,7 @@ def staff_health_lookup_view(request):
 
     # Tìm kiếm
     query = request.GET.get('q', '').strip()
-    filter_alert = request.GET.get('alert', '').strip()  # all, danger, normal
+    filter_bp = request.GET.get('bp', '').strip()
 
     profiles_qs = UserHealthProfile.objects.select_related('user').order_by('-created_at')
 
@@ -285,18 +285,13 @@ def staff_health_lookup_view(request):
 
     # Thống kê nhanh
     total_profiles = UserHealthProfile.objects.count()
-    high_alert_count = 0
     all_profiles_list = []
 
     for p in profiles_qs:
         p_data = serialize_health_profile(p)
-        if p_data.get('has_medical_alert'):
-            high_alert_count += 1
+        normalized_bp = p.blood_pressure if p.blood_pressure in ('Cao', 'Thấp') else 'Bình thường'
 
-        # Lọc theo alert filter nếu có
-        if filter_alert == 'alert' and not p_data.get('has_medical_alert'):
-            continue
-        elif filter_alert == 'normal' and p_data.get('has_medical_alert'):
+        if filter_bp in ('Bình thường', 'Thấp', 'Cao') and normalized_bp != filter_bp:
             continue
 
         all_profiles_list.append({
@@ -313,8 +308,8 @@ def staff_health_lookup_view(request):
     params = {}
     if query:
         params['q'] = query
-    if filter_alert:
-        params['alert'] = filter_alert
+    if filter_bp:
+        params['bp'] = filter_bp
     pagination_prefix = f"?{urlencode(params, quote_via=quote)}&" if params else "?"
 
     tiers = Tier.objects.all().order_by('min_points')
@@ -323,9 +318,8 @@ def staff_health_lookup_view(request):
         'page_title': 'Quản lý & Tra cứu Hồ sơ sức khỏe khách hàng (Staff Workspace)',
         'base_layout': base_layout,
         'query': query,
-        'filter_alert': filter_alert,
+        'filter_bp': filter_bp,
         'total_profiles': total_profiles,
-        'high_alert_count': high_alert_count,
         'profiles_list': page_obj,
         'page_obj': page_obj,
         'page_range': page_range,

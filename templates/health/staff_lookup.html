@@ -35,7 +35,7 @@
     <!-- 2. KPI WIDGETS THỐNG KÊ (GỌN GÀNG, MÀU CHÍNH) -->
     <div class="row g-2 g-md-3 mb-3">
         <!-- Tổng số hồ sơ -->
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="kpi-mini-card">
                 <div class="kpi-icon-wrap">
                     <i class="bi bi-folder2-open"></i>
@@ -47,21 +47,8 @@
             </div>
         </div>
 
-        <!-- Cảnh báo an toàn -->
-        <div class="col-md-4">
-            <div class="kpi-mini-card">
-                <div class="kpi-icon-wrap" style="color: #781A24;">
-                    <i class="bi bi-shield-exclamation"></i>
-                </div>
-                <div>
-                    <div class="kpi-num">{{ high_alert_count }}</div>
-                    <div class="kpi-title">Cảnh báo An toàn Y tế</div>
-                </div>
-            </div>
-        </div>
-
         <!-- Tuân thủ KTV -->
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="kpi-mini-card">
                 <div class="kpi-icon-wrap">
                     <i class="bi bi-shield-check"></i>
@@ -84,25 +71,29 @@
                 <i class="bi bi-search search-icon-pos"></i>
                 <input type="text" name="q" value="{{ query }}" class="search-input-box"
                     placeholder="Tìm theo Tên, SĐT hoặc Mã hồ sơ...">
-                {% if filter_alert %}
-                <input type="hidden" name="alert" value="{{ filter_alert }}">
+                {% if filter_bp %}
+                <input type="hidden" name="bp" value="{{ filter_bp }}">
                 {% endif %}
             </form>
 
-            <!-- Bộ lọc màu chính -->
-            <div class="d-flex align-items-center gap-2">
-                <span class="small fw-bold text-muted me-1">Lọc:</span>
-                <a href="{% url 'health:staff_lookup' %}{% if query %}?q={{ query }}{% endif %}"
-                    class="filter-btn {% if not filter_alert %}active{% endif %}">
+            <!-- Bộ lọc huyết áp -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="small fw-bold text-muted me-1">Huyết áp:</span>
+                <a href="{% url 'health:staff_lookup' %}{% if query %}?q={{ query|urlencode }}{% endif %}"
+                    class="filter-btn {% if not filter_bp %}active{% endif %}">
                     Tất cả ({{ total_profiles }})
                 </a>
-                <a href="{% url 'health:staff_lookup' %}?alert=alert{% if query %}&q={{ query }}{% endif %}"
-                    class="filter-btn {% if filter_alert == 'alert' %}active{% endif %}">
-                    Có cảnh báo ({{ high_alert_count }})
+                <a href="{% url 'health:staff_lookup' %}?bp=B%C3%ACnh+th%C6%B0%E1%BB%9Dng{% if query %}&q={{ query|urlencode }}{% endif %}"
+                    class="filter-btn {% if filter_bp == 'Bình thường' %}active{% endif %}">
+                    Bình thường
                 </a>
-                <a href="{% url 'health:staff_lookup' %}?alert=normal{% if query %}&q={{ query }}{% endif %}"
-                    class="filter-btn {% if filter_alert == 'normal' %}active{% endif %}">
-                    An toàn
+                <a href="{% url 'health:staff_lookup' %}?bp=Th%E1%BA%A5p{% if query %}&q={{ query|urlencode }}{% endif %}"
+                    class="filter-btn {% if filter_bp == 'Thấp' %}active{% endif %}">
+                    Thấp
+                </a>
+                <a href="{% url 'health:staff_lookup' %}?bp=Cao{% if query %}&q={{ query|urlencode }}{% endif %}"
+                    class="filter-btn {% if filter_bp == 'Cao' %}active{% endif %}">
+                    Cao
                 </a>
             </div>
         </div>
@@ -341,7 +332,7 @@
                         <label class="form-label fw-bold" style="font-size: 13px;">Ghi chú chăm sóc / Thể trạng sức
                             khỏe</label>
                         <textarea name="care_note" class="form-control" rows="2"
-                            placeholder="Ví dụ: Ưu tiên phòng yên tĩnh, da nhạy cảm, vùng cổ vai gáy đau mỏi..."></textarea>
+                            placeholder="Ví dụ: Ưu tiên phòng yên tĩnh, vùng cổ vai gáy đau mỏi..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light px-4 py-3">

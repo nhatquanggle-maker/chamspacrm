@@ -177,17 +177,6 @@ def process_invoice_membership_points(invoice):
             reason_description=f"Tích điểm tự động từ hóa đơn #{clean_code} (10.000đ = 1 điểm thưởng)"
         )
 
-        # Lưu bản ghi đối soát appointment.id (0 điểm) để thỏa mãn kiểm tra chống lặp tại appointment/api.py
-        if appointment and str(appointment.id) != appt_code:
-            MembershipPoint.objects.get_or_create(
-                membership=membership,
-                appointment_id=appt_id_str,
-                defaults={
-                    'points_amount': 0,
-                    'reason_description': f"Đối soát định danh lịch hẹn #{clean_code}"
-                }
-            )
-
         # Cập nhật số dư điểm hiện tại và tổng chi tiêu tích lũy
         membership.current_points += points_to_add
         membership.total_spent = (membership.total_spent or Decimal(0)) + Decimal(str(invoice.amount or 0))

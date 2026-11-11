@@ -580,3 +580,46 @@ class ChatboxModuleTests(TestCase):
         self.assertEqual([c['id'] for c in res_api_search.json()['conversations']], [closed_conv.id])
         self.assertEqual(wait_conv.status, 'Đang chờ')
 
+    def test_logged_in_customer_faq_blocks_while_waiting_or_processing_and_csrf(self):
+        """Khách đã đăng nhập có hội thoại Đang chờ/Đang xử lý bấm câu hỏi FAQ vẫn nhận câu trả lời và có CSRF"""
+        waiting_conv = Conversation.objects.create(
+            customer=self.customer_user,
+            status='Đang chờ',
+            customer_tag='Tư vấn dịch vụ',
+        )
+
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.customer_user)
+
+        # 1. GET / và /chatbox/customer/ phải cấp csrftoken cookie và giữ nhánh !reqFaqId
+        res_home = csrf_client.get('/')
+        self.assertEqual(res_home.status_code, 200)
+        self.assertIn('csrftoken', res_home.cookies)
+        self.assertContains(res_home, 'isConnectedToStaff && activeConvId && !reqFaqId')
+
+        res_cust = csrf_client.get('/chatbox/customer/')
+        self.assertEqual(res_cust.status_code, 200)
+        self.assertIn('csrftoken', res_cust.cookies)
+        self.assertContains(res_cust, 'isConnectedToStaff && conversationId && !reqFaqId')
+
+        # 2. Gọi bot-reply với faq_id và conversation Đang chờ kèm CSRF token phải trả lời 200 và giữ nguyên status Đang chờ
+        token = res_home.cookies['csrftoken'].value
+        res_bot = csrf_client.post(
+            '/chatbox/api/chat/bot-reply/',
+            {'message': self.faq_price.question, 'faq_id': self.faq_price.id, 'conversation_id': waiting_conv.id},
+            content_type='application/json',
+            HTTP_X_CSRFTOKEN=token,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+        )
+        self.assertEqual(res_bot.status_code, 200)
+        data = res_bot.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(data['reply'], self.faq_price.answer)
+        self.assertEqual(data['conversation_id'], waiting_conv.id)
+
+        waiting_conv.refresh_from_db()
+        self.assertEqual(waiting_conv.status, 'Đang chờ')
+        self.assertEqual(
+            list(waiting_conv.messages.order_by('id').values_list('sender_type', 'content')),
+            [('Customer', self.faq_price.question), ('Bot', self.faq_price.answer)],
+        )

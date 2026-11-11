@@ -9,14 +9,17 @@ Giao diện tuân thủ chuẩn kế thừa Django Template ({% extends %}), tí
 """
 
 import json
-from decimal import Decimal
+import random
+from decimal import Decimal, InvalidOperation
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Min, Max, Count
+from django.utils.text import slugify
 
 from core.models import Category, Service, ServiceImage, Feedback
-from .serializers import ServiceListSerializer, ServiceDetailSerializer
 
 
 def service_list_view(request):
@@ -28,8 +31,8 @@ def service_list_view(request):
       - Lưới thẻ dịch vụ responsive (Ảnh thumbnail, Tên, Giá VNĐ, Thời lượng, Đánh giá sao, Nút Đặt ngay & Xem chi tiết)
       - Tích hợp Modal Popup Chi tiết dịch vụ (Figma Node 216-929) xem ngay không cần chuyển trang.
     """
-    # 1. Lấy danh sách danh mục đang hoạt động
-    categories = Category.objects.filter(status='Active').order_by('id')
+    # 1. Lấy danh sách danh mục đang hoạt động (đồng bộ cả mã 'Active' và 'Hoạt động')
+    categories = Category.objects.filter(status__in=['Active', 'Hoạt động']).order_by('id')
 
     # 2. Lấy toàn bộ dịch vụ đang hoạt động
     services_qs = Service.objects.filter(status='Hoạt động').select_related('category').prefetch_related('images').order_by('id')
@@ -48,7 +51,6 @@ def service_list_view(request):
         s.formatted_price = formatted_price
         services_list.append({
             'id': s.id,
-            'code': f"#DVO{s.id:02d}",
             'name': s.name,
             'slug': s.slug,
             'category_id': s.category_id,
@@ -125,23 +127,161 @@ def service_detail_view(request, slug):
     return render(request, 'services/service_detail.html', context)
 
 
+def _validate_and_prepare_service(data, instance=None):
+    """Kiểm tra và chuẩn hóa dữ liệu dịch vụ từ form POST quản trị."""
+    name = str(data.get('name') or '').strip()
+    if not name:
+        return None, "Vui lòng nhập tên dịch vụ."
+    if len(name) > 200:
+        return None, "Tên dịch vụ không được vượt quá 200 ký tự."
+
+    dup_qs = Service.objects.filter(name__iexact=name)
+    if instance:
+        dup_qs = dup_qs.exclude(id=instance.id)
+    if dup_qs.exists():
+        existing = dup_qs.first()
+        cat_name = existing.category.name if existing.category else 'Chung'
+        return None, f"Tên dịch vụ '{name}' đã tồn tại trong danh mục '{cat_name}'. Vui lòng chọn tên khác."
+
+    category_raw = str(data.get('category_id') or '').strip()
+    category = Category.objects.filter(id=int(category_raw)).first() if category_raw.isdigit() else None
+    if not category:
+        return None, "Danh mục dịch vụ không hợp lệ."
+
+    price_raw = str(data.get('price_vnd') or '').strip().replace(',', '')
+    try:
+        price_vnd = Decimal(price_raw)
+    except (InvalidOperation, ValueError):
+        return None, "Giá niêm yết phải là số hợp lệ."
+    if price_vnd <= 0:
+        return None, "Giá niêm yết dịch vụ phải là số lớn hơn 0."
+
+    duration_raw = str(data.get('duration_minutes') or '').strip()
+    try:
+        duration_minutes = int(duration_raw)
+    except (TypeError, ValueError):
+        return None, "Thời lượng phải là số nguyên dương (phút)."
+    if duration_minutes <= 0:
+        return None, "Thời lượng dịch vụ phải lớn hơn 0 phút."
+
+    status = str(data.get('status') or 'Hoạt động').strip()
+    if status not in ('Hoạt động', 'Ngừng hoạt động'):
+        status = 'Hoạt động'
+
+    thumbnail_url = str(data.get('thumbnail_url') or '').strip()
+    if not thumbnail_url:
+        thumbnail_url = (instance.thumbnail_url if instance and instance.thumbnail_url else '/static/images/treatment_1.png')
+
+    description = str(data.get('description') or '').strip()
+
+    raw_slug = str(data.get('slug') or '').strip()
+    slug_source = raw_slug or name
+    normalized = slug_source.replace('đ', 'd').replace('Đ', 'D')
+    slug = slugify(normalized) or f"service-{int(price_vnd)}"
+
+    qs = Service.objects.filter(slug=slug)
+    if instance:
+        qs = qs.exclude(id=instance.id)
+    if qs.exists():
+        slug = f"{slug}-{random.randint(10, 99)}"
+        while Service.objects.filter(slug=slug).exclude(id=instance.id if instance else None).exists():
+            slug = f"{slug}-{random.randint(10, 99)}"
+
+    return {
+        'name': name,
+        'category': category,
+        'price_vnd': price_vnd,
+        'duration_minutes': duration_minutes,
+        'status': status,
+        'thumbnail_url': thumbnail_url,
+        'description': description,
+        'slug': slug,
+    }, None
+
+
+def _handle_service_admin_post(request):
+    """Xử lý các thao tác POST form quản lý dịch vụ: thêm/sửa, bật/tắt, xóa."""
+    action = (request.POST.get('action') or '').strip()
+    service_id = (request.POST.get('service_id') or '').strip()
+
+    if action == 'toggle_service':
+        svc = Service.objects.filter(id=int(service_id)).first() if service_id.isdigit() else None
+        if not svc:
+            messages.error(request, "Không tìm thấy dịch vụ cần cập nhật trạng thái.")
+            return redirect('services:service_admin')
+        svc.status = 'Ngừng hoạt động' if svc.status == 'Hoạt động' else 'Hoạt động'
+        svc.save(update_fields=['status', 'updated_at'])
+        messages.success(request, f'Đã chuyển trạng thái dịch vụ "{svc.name}" sang {svc.status}.')
+        return redirect('services:service_admin')
+
+    if action == 'delete_service':
+        svc = Service.objects.filter(id=int(service_id)).first() if service_id.isdigit() else None
+        if not svc:
+            messages.error(request, "Không tìm thấy dịch vụ cần xóa.")
+            return redirect('services:service_admin')
+        if svc.appointment_details.exists():
+            svc.status = 'Ngừng hoạt động'
+            svc.save(update_fields=['status', 'updated_at'])
+            messages.warning(
+                request,
+                f'Dịch vụ "{svc.name}" đã phát sinh lịch hẹn nên được chuyển sang Ngừng hoạt động để bảo toàn dữ liệu.'
+            )
+        else:
+            svc_name = svc.name
+            svc.delete()
+            messages.success(request, f'Đã xóa vĩnh viễn dịch vụ "{svc_name}".')
+        return redirect('services:service_admin')
+
+    if action == 'save_service':
+        instance = None
+        if service_id:
+            if not service_id.isdigit():
+                messages.error(request, "Mã định danh dịch vụ không hợp lệ.")
+                return redirect('services:service_admin')
+            instance = Service.objects.filter(id=int(service_id)).first()
+            if not instance:
+                messages.error(request, "Không tìm thấy dịch vụ cần chỉnh sửa.")
+                return redirect('services:service_admin')
+
+        cleaned, err = _validate_and_prepare_service(request.POST, instance=instance)
+        if err:
+            messages.error(request, err)
+            return redirect('services:service_admin')
+
+        with transaction.atomic():
+            if instance:
+                for field, value in cleaned.items():
+                    setattr(instance, field, value)
+                instance.save()
+                messages.success(request, f'Đã cập nhật dịch vụ "{instance.name}".')
+            else:
+                created = Service.objects.create(**cleaned)
+                messages.success(request, f'Đã thêm mới dịch vụ "{created.name}".')
+        return redirect('services:service_admin')
+
+    messages.error(request, "Thao tác quản trị dịch vụ không hợp lệ.")
+    return redirect('services:service_admin')
+
+
 @login_required
 def service_admin_view(request):
     """
-    Màn hình Quản trị Dịch vụ & Danh mục dành cho Quản lý / Ban Giám đốc (UC-3.3)
-    Khớp 100% Giao diện Figma Hình 23 (Node quản lý danh mục dịch vụ):
-      - 4 Thẻ KPI thống kê: Tổng dịch vụ, Đang hoạt động, Đang ẩn/Khóa, Số danh mục
+    Màn hình Quản trị Dịch vụ & Danh mục dành cho Quản lý / Nhân viên.
+      - Thẻ KPI thống kê: Tổng dịch vụ, Đang hoạt động, Đang ẩn/Khóa
       - Thanh công cụ lọc nhanh, chọn danh mục, chọn trạng thái, nút Xuất Excel (SheetJS)
-      - Nút '+ Thêm dịch vụ mới' mở Modal nhập liệu
-      - Bảng dữ liệu Data Table (Mã DV, Ảnh, Tên dịch vụ, Danh mục, Thời lượng, Giá, Trạng thái, Thao tác)
-      - Nút Toggle Switch đổi trạng thái trực tiếp bằng Fetch API không tải lại trang
-      - Tab Quản lý Danh mục (Category)
+      - Nút '+ Thêm dịch vụ mới' mở Modal nhập liệu (Form POST)
+      - Bảng dữ liệu Data Table & Toggle Switch đổi trạng thái (Form POST)
     """
     # Chỉ tài khoản Quản lý (is_superuser=True hoặc is_staff=True) mới có quyền truy cập
     if not (request.user.is_superuser or request.user.is_staff):
         raise PermissionDenied("Chỉ Quản lý hoặc Nhân viên có thẩm quyền mới được truy cập trang này.")
 
+    if request.method == 'POST':
+        return _handle_service_admin_post(request)
+
     services = Service.objects.all().select_related('category').prefetch_related('images').order_by('id')
+    for s in services:
+        s.formatted_price = f"{int(s.price_vnd):,}".replace(',', '.') + " VNĐ"
     categories = Category.objects.all().annotate(total_svc=Count('services')).order_by('id')
 
     # Thống kê KPI khớp Figma
@@ -154,7 +294,6 @@ def service_admin_view(request):
     services_admin_data = [
         {
             'id': s.id,
-            'code': f"#DVO{s.id:02d}",
             'name': s.name,
             'slug': s.slug,
             'category_id': s.category_id,
@@ -163,6 +302,7 @@ def service_admin_view(request):
             'price_vnd': float(s.price_vnd),
             'formatted_price': f"{int(s.price_vnd):,}".replace(',', '.') + " VNĐ",
             'duration_minutes': s.duration_minutes,
+            'description': s.description or '',
             'status': s.status,
             'is_active': s.status == 'Hoạt động',
             'rating_avg': float(s.rating_avg),
@@ -178,7 +318,7 @@ def service_admin_view(request):
             'name': c.name,
             'slug': c.slug,
             'status': c.status,
-            'is_active': c.status == 'Active',
+            'is_active': c.status in ['Active', 'Hoạt động'],
             'total_services': c.total_svc
         }
         for c in categories

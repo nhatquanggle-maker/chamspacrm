@@ -1,36 +1,26 @@
 """
 ================================================================================
 UNIT TESTS CHO PHÂN HỆ QUẢN LÝ BOXCHAT TƯ VẤN (MOD-02) - CHAMSPA CRM
-Thành viên phụ trách: Thảo Ngọc
-Kiểm thử toàn diện 3 Use Cases và các ràng buộc nghiệp vụ:
-  - UC-2.1: Chatbot tự động trả lời (Vãng lai in-memory vs Đăng nhập lưu DB)
-  - UC-2.2: Trò chuyện trực tiếp & Phân quyền tiếp nhận (Figma Node 210:2465)
-  - UC-2.3: Quản lý kịch bản Chatbot FAQ (CRUD, unique faq_code)
-  - Tiện ích tra cứu dịch vụ & Mẫu câu tư vấn (Figma Node 210:2465)
 ================================================================================
 """
 
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
-from django.utils import timezone
-from rest_framework.test import APIClient
-from rest_framework import status
 
 from core.models import User, FAQ, Conversation, ConversationMessage, Service, Category
 
 
 class ChatboxModuleTests(TestCase):
     def setUp(self):
-        self.client = APIClient()
+        self.client = Client()
 
-        # Tạo người dùng test
         self.customer_user = User.objects.create_user(
             username='0909111222',
             phone='0909111222',
             email='customer.test@gmail.com',
             name='Nguyễn Khách Hàng',
             is_staff=False,
-            is_superuser=False
+            is_superuser=False,
         )
 
         self.staff_user_1 = User.objects.create_user(
@@ -39,7 +29,7 @@ class ChatboxModuleTests(TestCase):
             email='staff1@chamspa.vn',
             name='Thanh Thảo',
             is_staff=True,
-            is_superuser=False
+            is_superuser=False,
         )
 
         self.staff_user_2 = User.objects.create_user(
@@ -48,23 +38,21 @@ class ChatboxModuleTests(TestCase):
             email='staff2@chamspa.vn',
             name='Thảo Ngọc',
             is_staff=True,
-            is_superuser=False
+            is_superuser=False,
         )
 
-        # Quản trị viên (Admin) duy nhất có quyền quản lý FAQ kịch bản bot
         self.admin_user = User.objects.create_superuser(
             username='admin_chamspa',
             phone='0905999888',
             email='admin@chamspa.vn',
             name='Quản Lý Cham Spa',
-            password='adminpassword123'
+            password='adminpassword123',
         )
 
-        # Tạo danh mục và dịch vụ test
         self.category = Category.objects.create(
             name='Massage Body',
             slug='massage-body-test',
-            status='Active'
+            status='Active',
         )
         self.service = Service.objects.create(
             category=self.category,
@@ -72,334 +60,441 @@ class ChatboxModuleTests(TestCase):
             slug='massage-body-da-nong-90p-test',
             price_vnd=550000,
             duration_minutes=90,
-            status='Hoạt động'
+            status='Hoạt động',
         )
 
-        # Tạo FAQ mẫu
         self.faq_price = FAQ.objects.create(
             faq_code='FAQ-TEST-GIA',
             category='Bảng giá',
             question='Bảng giá dịch vụ massage tại Cham Spa?',
             keywords='giá, bao nhiêu tiền, chi phí, bảng giá',
             answer='Dạ các gói massage tại Cham Spa có giá từ 350.000đ đến 650.000đ ạ.',
-            status='Active'
+            status='Active',
         )
 
-    # --------------------------------------------------------------------------
-    # 1. TEST UC-2.1: CHATBOT TỰ ĐỘNG (FAQ THUẦN TEXT)
-    # --------------------------------------------------------------------------
     def test_uc21_anonymous_user_in_memory_only(self):
         """Khách vãng lai chat với bot -> Không được lưu vào bảng Conversation/ConversationMessage"""
         conv_count_before = Conversation.objects.count()
         msg_count_before = ConversationMessage.objects.count()
 
-        response = self.client.post('/chatbox/api/chat/bot-reply/', {
-            'message': 'Cho mình hỏi giá dịch vụ thế nào ạ?'
-        }, format='json')
+        response = self.client.post(
+            '/chatbox/api/chat/bot-reply/',
+            {'message': 'Cho mình hỏi giá dịch vụ thế nào ạ?'},
+            content_type='application/json',
+        )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'success')
-        self.assertIn('350.000đ', response.data['reply'])
-        self.assertIsNone(response.data['conversation_id'])
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertIn('350.000đ', data['reply'])
+        self.assertIsNone(data['conversation_id'])
 
-        # Kiểm tra CSDL không tăng bản ghi
         self.assertEqual(Conversation.objects.count(), conv_count_before)
         self.assertEqual(ConversationMessage.objects.count(), msg_count_before)
 
     def test_uc21_authenticated_user_saves_to_db(self):
         """Khách hàng đã đăng nhập chat với bot -> Tự động lưu vào Conversation và Message"""
-        self.client.force_authenticate(user=self.customer_user)
+        self.client.force_login(self.customer_user)
 
-        response = self.client.post('/chatbox/api/chat/bot-reply/', {
-            'message': 'Cho mình hỏi bảng giá massage đá nóng?'
-        }, format='json')
+        response = self.client.post(
+            '/chatbox/api/chat/bot-reply/',
+            {'message': 'Cho mình hỏi bảng giá massage đá nóng?'},
+            content_type='application/json',
+        )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsNotNone(response.data['conversation_id'])
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIsNotNone(data['conversation_id'])
 
-        conv_id = response.data['conversation_id']
-        conv = Conversation.objects.get(pk=conv_id)
+        conv = Conversation.objects.get(pk=data['conversation_id'])
         self.assertEqual(conv.customer, self.customer_user)
         self.assertEqual(conv.status, 'Bot xử lý')
-        self.assertEqual(conv.messages.count(), 2)  # 1 tin khách, 1 tin bot
+        self.assertEqual(conv.messages.count(), 2)
 
-    # --------------------------------------------------------------------------
-    # 2. TEST UC-2.2: KẾT NỐI NHÂN VIÊN TƯ VẤN & BẢO VỆ PHÂN QUYỀN TIẾP NHẬN
-    # --------------------------------------------------------------------------
     def test_uc22_transfer_to_staff_requires_login(self):
         """Khách vãng lai bấm 'Gặp nhân viên tư vấn' -> Bị chặn 401 yêu cầu đăng nhập"""
-        response = self.client.post('/chatbox/api/conversations/transfer/', {}, format='json')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['status'], 'require_login')
+        response = self.client.post('/chatbox/api/conversations/transfer/', {}, content_type='application/json')
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()['status'], 'require_login')
 
     def test_uc22_transfer_to_staff_success(self):
         """Khách hàng đăng nhập bấm 'Gặp nhân viên tư vấn' -> Status đổi sang 'Đang chờ'"""
-        self.client.force_authenticate(user=self.customer_user)
+        self.client.force_login(self.customer_user)
 
-        response = self.client.post('/chatbox/api/conversations/transfer/', {}, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['conversation_status'], 'Đang chờ')
+        response = self.client.post('/chatbox/api/conversations/transfer/', {}, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['conversation_status'], 'Đang chờ')
 
-        conv = Conversation.objects.get(pk=response.data['conversation_id'])
+        conv = Conversation.objects.get(pk=data['conversation_id'])
         self.assertEqual(conv.status, 'Đang chờ')
 
     def test_uc22_staff_accept_conversation(self):
         """Nhân viên bấm 'Tiếp nhận' -> Status sang 'Đang xử lý', staff được gán"""
         conv = Conversation.objects.create(
             customer=self.customer_user,
-            status='Đang chờ'
+            status='Đang chờ',
         )
 
-        self.client.force_authenticate(user=self.staff_user_1)
+        self.client.force_login(self.staff_user_1)
         response = self.client.post(f'/chatbox/api/conversations/{conv.id}/accept/')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         conv.refresh_from_db()
         self.assertEqual(conv.status, 'Đang xử lý')
         self.assertEqual(conv.staff, self.staff_user_1)
 
     def test_uc22_conflict_when_other_staff_already_assigned(self):
-        """
-        RÀNG BUỘC FIGMA NODE 210:2465:
-        Khi cuộc hội thoại đã được Nhân viên 1 tiếp nhận và đang xử lý,
-        Nhân viên 2 cố tình gửi tin nhắn -> Hệ thống BẢO VỆ và CHẶN (HTTP 403 Forbidden).
-        """
+        """Khi cuộc hội thoại đã có Nhân viên 1 xử lý, Nhân viên 2 gửi tin nhắn bị chặn 403."""
         conv = Conversation.objects.create(
             customer=self.customer_user,
             staff=self.staff_user_1,
-            status='Đang xử lý'
+            status='Đang xử lý',
         )
 
-        # Nhân viên 2 (Thảo Ngọc) cố tình gửi tin nhắn vào cuộc hội thoại của Nhân viên 1 (Thanh Thảo)
-        self.client.force_authenticate(user=self.staff_user_2)
-        response = self.client.post(f'/chatbox/api/conversations/{conv.id}/messages/', {
-            'content': 'Em chào anh chị ạ!'
-        }, format='json')
+        self.client.force_login(self.staff_user_2)
+        response = self.client.post(
+            f'/chatbox/api/conversations/{conv.id}/messages/',
+            {'content': 'Em chào anh chị ạ!'},
+            content_type='application/json',
+        )
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.data['status'], 'forbidden_assigned')
-        self.assertIn('Thanh Thảo', response.data['error'])
+        self.assertEqual(response.status_code, 403)
+        data = response.json()
+        self.assertEqual(data['status'], 'forbidden_assigned')
+        self.assertIn('Thanh Thảo', data['error'])
 
     def test_uc22_assigned_staff_sends_message_with_name(self):
         """Nhân viên phụ trách gửi tin nhắn -> Lưu với sender_type='Staff', hiển thị tên nhân viên"""
         conv = Conversation.objects.create(
             customer=self.customer_user,
             staff=self.staff_user_1,
-            status='Đang xử lý'
+            status='Đang xử lý',
         )
 
-        self.client.force_authenticate(user=self.staff_user_1)
-        response = self.client.post(f'/chatbox/api/conversations/{conv.id}/messages/', {
-            'content': 'Dạ em chào anh/chị, em có thể hỗ trợ gì ạ?'
-        }, format='json')
+        self.client.force_login(self.staff_user_1)
+        response = self.client.post(
+            f'/chatbox/api/conversations/{conv.id}/messages/',
+            {'content': 'Dạ em chào anh/chị, em có thể hỗ trợ gì ạ?'},
+            content_type='application/json',
+        )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['sender_type'], 'Staff')
-        self.assertEqual(response.data['sender_name'], 'Thanh Thảo')
+        self.assertEqual(response.status_code, 201)
+        data = response.json()
+        self.assertEqual(data['sender_type'], 'Staff')
+        self.assertEqual(data['sender_name'], 'Thanh Thảo')
 
     def test_uc22_close_conversation(self):
         """Nhân viên bấm 'Đóng phiên chat' -> Status chuyển sang 'Kết thúc', lưu closed_at"""
         conv = Conversation.objects.create(
             customer=self.customer_user,
             staff=self.staff_user_1,
-            status='Đang xử lý'
+            status='Đang xử lý',
         )
 
-        self.client.force_authenticate(user=self.staff_user_1)
+        self.client.force_login(self.staff_user_1)
         response = self.client.post(f'/chatbox/api/conversations/{conv.id}/close/')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         conv.refresh_from_db()
         self.assertEqual(conv.status, 'Kết thúc')
         self.assertIsNotNone(conv.closed_at)
 
-    # --------------------------------------------------------------------------
-    # 3. TEST UC-2.3: QUẢN LÝ KỊCH BẢN CHATBOT (FAQ) - CHỈ DÀNH CHO QUẢN TRỊ VIÊN
-    # --------------------------------------------------------------------------
-    def test_uc23_staff_cannot_manage_faqs_forbidden(self):
-        """YÊU CẦU NGHIÊM NGẶT: Nhân viên (Staff) không được quản lý FAQ -> Bị chặn 403 Forbidden"""
-        self.client.force_authenticate(user=self.staff_user_1)
+    def test_uc23_customer_cannot_manage_faqs_forbidden(self):
+        """Khách hàng thông thường (Customer) không được phép quản lý FAQ -> Bị chặn 403 Forbidden"""
+        self.client.force_login(self.customer_user)
         res = self.client.get('/chatbox/api/admin/faqs/')
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(res.status_code, 403)
 
-        res_post = self.client.post('/chatbox/api/admin/faqs/', {
-            'faq_code': 'FAQ-ILLEGAL',
-            'category': 'Dịch vụ',
-            'question': 'Staff cố tình tạo?',
-            'keywords': 'test',
-            'answer': 'Không được phép',
-            'status': 'Active'
-        }, format='json')
-        self.assertEqual(res_post.status_code, status.HTTP_403_FORBIDDEN)
+        res_post = self.client.post(
+            '/chatbox/api/admin/faqs/',
+            {
+                'faq_code': 'FAQ-ILLEGAL',
+                'category': 'Dịch vụ',
+                'question': 'Customer cố tình tạo?',
+                'keywords': 'test',
+                'answer': 'Không được phép',
+                'status': 'Active',
+            },
+            content_type='application/json',
+        )
+        self.assertEqual(res_post.status_code, 403)
 
     def test_uc23_create_faq_unique_code(self):
         """Quản lý tạo FAQ mới và bắt lỗi trùng mã faq_code"""
-        self.client.force_authenticate(user=self.admin_user)
+        self.client.force_login(self.admin_user)
 
-        # 1. Tạo mới hợp lệ
-        res1 = self.client.post('/chatbox/api/admin/faqs/', {
-            'faq_code': 'FAQ-MOI-01',
-            'category': 'Khuyến mãi',
-            'question': 'Cham Spa có ưu đãi sinh nhật không?',
-            'keywords': 'sinh nhật, ưu đãi, giảm giá sinh nhật',
-            'answer': 'Dạ Cham Spa giảm ngay 20% cho khách hàng trải nghiệm trong tuần sinh nhật ạ!',
-            'status': 'Active'
-        }, format='json')
-        self.assertEqual(res1.status_code, status.HTTP_201_CREATED)
+        res1 = self.client.post(
+            '/chatbox/api/admin/faqs/',
+            {
+                'faq_code': 'FAQ-MOI-01',
+                'category': 'Khuyến mãi',
+                'question': 'Cham Spa có ưu đãi sinh nhật không?',
+                'keywords': 'sinh nhật, ưu đãi, giảm giá sinh nhật',
+                'answer': 'Dạ Cham Spa giảm ngay 20% cho khách hàng trải nghiệm trong tuần sinh nhật ạ!',
+                'status': 'Active',
+            },
+            content_type='application/json',
+        )
+        self.assertEqual(res1.status_code, 201)
 
-        # 2. Cố tình tạo trùng mã FAQ-MOI-01
-        res2 = self.client.post('/chatbox/api/admin/faqs/', {
-            'faq_code': 'FAQ-MOI-01',
-            'category': 'Khuyến mãi',
-            'question': 'Câu hỏi khác nhưng trùng mã?',
-            'keywords': 'test',
-            'answer': 'Câu trả lời test',
-            'status': 'Active'
-        }, format='json')
-        self.assertEqual(res2.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('faq_code', res2.data['errors'])
+        res2 = self.client.post(
+            '/chatbox/api/admin/faqs/',
+            {
+                'faq_code': 'FAQ-MOI-01',
+                'category': 'Khuyến mãi',
+                'question': 'Câu hỏi khác nhưng trùng mã?',
+                'keywords': 'test',
+                'answer': 'Câu trả lời test',
+                'status': 'Active',
+            },
+            content_type='application/json',
+        )
+        self.assertEqual(res2.status_code, 400)
+        self.assertIn('faq_code', res2.json()['errors'])
 
     def test_uc23_toggle_faq_status(self):
         """Quản lý bật/tắt trạng thái Active <-> Hidden"""
-        self.client.force_authenticate(user=self.admin_user)
+        self.client.force_login(self.admin_user)
 
         self.assertEqual(self.faq_price.status, 'Active')
         res = self.client.post(f'/chatbox/api/admin/faqs/{self.faq_price.id}/toggle-status/')
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data['current_status'], 'Hidden')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()['current_status'], 'Hidden')
 
         self.faq_price.refresh_from_db()
         self.assertEqual(self.faq_price.status, 'Hidden')
 
-    # --------------------------------------------------------------------------
-    # 4. TEST TIỆN ÍCH TRA CỨU DỊCH VỤ (FIGMA NODE 210:2465)
-    # --------------------------------------------------------------------------
-    def test_quick_services_lookup(self):
-        """Tra cứu dịch vụ và sinh mẫu câu tư vấn (pitch_template)"""
-        self.client.force_authenticate(user=self.staff_user_1)
-
-        res = self.client.get(f'/chatbox/api/services/lookup/?service_id={self.service.id}')
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data['service']['name'], 'Massage Body Đá Nóng 90p')
-        self.assertIn('Massage Body Đá Nóng 90p', res.data['service']['pitch_template'])
-        self.assertIn('550.000 VNĐ', res.data['service']['pitch_template'])
-
-    # --------------------------------------------------------------------------
-    # 5. TEST LƯU TRỮ LỊCH SỬ CHAT (ĐĂNG NHẬP VS VÃNG LAI)
-    # --------------------------------------------------------------------------
     def test_customer_active_conversation_anonymous_returns_none(self):
         """Khách vãng lai gọi lấy lịch sử -> Trả về conversation = null, không lưu DB"""
         res = self.client.get('/chatbox/api/conversations/my-active/')
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertFalse(res.data['is_authenticated'])
-        self.assertIsNone(res.data['conversation'])
-        self.assertEqual(len(res.data['messages']), 0)
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertFalse(data['is_authenticated'])
+        self.assertIsNone(data['conversation'])
+        self.assertEqual(len(data['messages']), 0)
 
     def test_customer_active_conversation_authenticated_returns_history(self):
         """Khách hàng đã đăng nhập -> Lấy lại toàn bộ lịch sử tin nhắn lưu trữ từ CSDL"""
         conv = Conversation.objects.create(
             customer=self.customer_user,
-            status='Bot xử lý'
+            status='Bot xử lý',
         )
         ConversationMessage.objects.create(
             conversation=conv,
             sender_type='Customer',
-            content='Tin nhắn cũ của khách'
+            content='Tin nhắn cũ của khách',
         )
         ConversationMessage.objects.create(
             conversation=conv,
             sender_type='Bot',
-            content='Tin nhắn phản hồi cũ của bot'
+            content='Tin nhắn phản hồi cũ của bot',
         )
 
-        self.client.force_authenticate(user=self.customer_user)
+        self.client.force_login(self.customer_user)
         res = self.client.get('/chatbox/api/conversations/my-active/')
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertTrue(res.data['is_authenticated'])
-        self.assertIsNotNone(res.data['conversation'])
-        self.assertEqual(len(res.data['messages']), 2)
-        self.assertEqual(res.data['messages'][0]['content'], 'Tin nhắn cũ của khách')
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertTrue(data['is_authenticated'])
+        self.assertIsNotNone(data['conversation'])
+        self.assertEqual(len(data['messages']), 2)
+        self.assertEqual(data['messages'][0]['content'], 'Tin nhắn cũ của khách')
 
-    # --------------------------------------------------------------------------
-    # 6. TEST PHÂN QUYỀN HIỂN THỊ CHAT WIDGET TRÊN HOMEPAGE
-    # --------------------------------------------------------------------------
     def test_homepage_chat_widget_visibility(self):
-        """
-        Ràng buộc giao diện:
-        - Khách vãng lai và Khách hàng: CÓ Chat Widget (chamChatbotFab).
-        - Nhân viên (Staff) và Quản lý (Admin): KHÔNG ĐƯỢC CÓ Chat Widget ngay chỗ homepage.
-        """
-        # 1. Khách vãng lai truy cập Homepage -> CÓ chat widget
+        """Khách vãng lai/khách hàng có chat widget trên homepage; Staff/Admin không có."""
         self.client.logout()
         res_anon = self.client.get('/')
         self.assertEqual(res_anon.status_code, 200)
         self.assertContains(res_anon, 'chamChatbotFab')
 
-        # 2. Khách hàng đã đăng nhập truy cập Homepage -> CÓ chat widget
         self.client.force_login(self.customer_user)
         res_customer = self.client.get('/')
         self.assertEqual(res_customer.status_code, 200)
         self.assertContains(res_customer, 'chamChatbotFab')
 
-        # 3. Nhân viên (Staff) truy cập Homepage -> KHÔNG CÓ chat widget
         self.client.force_login(self.staff_user_1)
         res_staff = self.client.get('/')
         self.assertEqual(res_staff.status_code, 200)
         self.assertNotContains(res_staff, 'chamChatbotFab')
 
-        # 4. Quản trị viên (Admin) truy cập Homepage -> KHÔNG CÓ chat widget
         self.client.force_login(self.admin_user)
         res_admin = self.client.get('/')
         self.assertEqual(res_admin.status_code, 200)
         self.assertNotContains(res_admin, 'chamChatbotFab')
 
-    # --------------------------------------------------------------------------
-    # 7. TEST CÁC TÍNH NĂNG & GIAO DIỆN ADMIN (FIGMA 502:2005, 211:3459, 212:4527)
-    # --------------------------------------------------------------------------
     def test_admin_views_permission_and_rendering(self):
-        """Admin truy cập được 2 màn hình; Staff bị chặn"""
-        # Admin vào Giám sát Livechat thành công
+        """Admin và nhân sự quản trị truy cập màn hình Admin Boxchat (Giám sát & FAQ)."""
         self.client.force_login(self.admin_user)
         res_mon = self.client.get('/chatbox/admin/monitor/')
         self.assertEqual(res_mon.status_code, 200)
         self.assertContains(res_mon, 'Quản lý Boxchat')
         self.assertContains(res_mon, 'Giám sát Live chat')
+        self.assertContains(res_mon, 'Quản lý kịch bản Chatbot')
 
-        # Admin vào Quản lý kịch bản FAQ thành công
         res_faq = self.client.get('/chatbox/admin/faqs/')
         self.assertEqual(res_faq.status_code, 200)
         self.assertContains(res_faq, 'Thêm câu hỏi FAQ mới')
 
-        # Staff thường vào màn hình Giám sát của Admin -> Bị chặn chuyển hướng
         self.client.force_login(self.staff_user_1)
         res_staff_mon = self.client.get('/chatbox/admin/monitor/')
-        self.assertEqual(res_staff_mon.status_code, 302)
+        self.assertEqual(res_staff_mon.status_code, 200)
+
+        res_staff_faq = self.client.get('/chatbox/admin/faqs/')
+        self.assertEqual(res_staff_faq.status_code, 200)
+        self.assertContains(res_staff_faq, 'Quản lý kịch bản Chatbot')
+
+        self.client.force_login(self.customer_user)
+        res_cust_mon = self.client.get('/chatbox/admin/monitor/')
+        self.assertEqual(res_cust_mon.status_code, 302)
+        self.assertEqual(res_cust_mon.url, '/')
+
+        res_cust_faq = self.client.get('/chatbox/admin/faqs/')
+        self.assertEqual(res_cust_faq.status_code, 302)
+        self.assertEqual(res_cust_faq.url, '/')
+
+    def test_chatbox_index_role_dispatch(self):
+        """Kiểm tra điều hướng tự động tại /chatbox/ theo đúng vai trò tài khoản"""
+        self.client.force_login(self.admin_user)
+        res_admin = self.client.get('/chatbox/')
+        self.assertEqual(res_admin.status_code, 302)
+        self.assertEqual(res_admin.url, '/chatbox/admin/monitor/')
+
+        self.client.force_login(self.staff_user_1)
+        res_staff = self.client.get('/chatbox/')
+        self.assertEqual(res_staff.status_code, 302)
+        self.assertEqual(res_staff.url, '/chatbox/inbox/')
+
+        self.client.force_login(self.customer_user)
+        res_cust = self.client.get('/chatbox/')
+        self.assertEqual(res_cust.status_code, 302)
+        self.assertEqual(res_cust.url, '/chatbox/customer/')
 
     def test_admin_monitor_and_reassign_apis(self):
         """Admin giám sát chi tiết và chuyển giao nhân viên tư vấn"""
         conv = Conversation.objects.create(
             customer=self.customer_user,
             staff=self.staff_user_1,
-            status='Đang xử lý'
+            status='Đang xử lý',
         )
 
-        # 1. Admin gọi API Monitor
-        self.client.force_authenticate(user=self.admin_user)
+        self.client.force_login(self.admin_user)
         res_mon = self.client.get(f'/chatbox/api/admin/conversations/{conv.id}/monitor/')
-        self.assertEqual(res_mon.status_code, status.HTTP_200_OK)
-        self.assertEqual(res_mon.data['conversation']['customer']['name'], 'Nguyễn Khách Hàng')
+        self.assertEqual(res_mon.status_code, 200)
+        self.assertEqual(res_mon.json()['conversation']['customer']['name'], 'Nguyễn Khách Hàng')
 
-        # 2. Admin gọi Reassign đổi sang staff_user_2
-        res_reassign = self.client.post(f'/chatbox/api/admin/conversations/{conv.id}/reassign/', {
-            'staff_id': self.staff_user_2.id
-        }, format='json')
-        self.assertEqual(res_reassign.status_code, status.HTTP_200_OK)
+        res_reassign = self.client.post(
+            f'/chatbox/api/admin/conversations/{conv.id}/reassign/',
+            {'staff_id': self.staff_user_2.id},
+            content_type='application/json',
+        )
+        self.assertEqual(res_reassign.status_code, 200)
         conv.refresh_from_db()
         self.assertEqual(conv.staff, self.staff_user_2)
 
     def test_admin_export_faqs_csv(self):
         """Admin xuất danh sách FAQ dạng CSV UTF-8 thành công"""
-        self.client.force_authenticate(user=self.admin_user)
+        self.client.force_login(self.admin_user)
         res = self.client.get('/chatbox/api/admin/faqs/export/')
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.status_code, 200)
         self.assertEqual(res['Content-Type'], 'text/csv; charset=utf-8-sig')
+
+    def test_faq_blocks_sync_and_exact_answer(self):
+        """Khối câu hỏi FAQ đồng bộ đúng với DB và chọn block trả lời chuẩn xác theo faq_id"""
+        faq_schedule = FAQ.objects.create(
+            faq_code='FAQ-TEST-LICH',
+            category='Đặt lịch hẹn',
+            question='Giờ mở cửa đón khách của Cham Spa?',
+            keywords='giờ mở cửa, hoạt động',
+            answer='Dạ Cham Spa mở cửa từ 08:30 đến 22:00 mỗi ngày kể cả cuối tuần ạ.',
+            status='Active',
+        )
+        faq_hidden = FAQ.objects.create(
+            faq_code='FAQ-TEST-AN',
+            category='Nội bộ',
+            question='Câu hỏi đang ẩn chưa công bố?',
+            keywords='ẩn, nháp',
+            answer='Nội dung chưa phát hành.',
+            status='Hidden',
+        )
+
+        res = self.client.get('/chatbox/api/chat/faq-blocks/')
+        self.assertEqual(res.status_code, 200)
+        res_data = res.json()
+        self.assertEqual(res_data['status'], 'success')
+        block_ids = [b['id'] for b in res_data['blocks']]
+        self.assertIn(self.faq_price.id, block_ids)
+        self.assertIn(faq_schedule.id, block_ids)
+        self.assertNotIn(faq_hidden.id, block_ids)
+        self.assertEqual(res_data['categories'], ['Bảng giá', 'Đặt lịch hẹn'])
+
+        conv_before = Conversation.objects.count()
+        msg_before = ConversationMessage.objects.count()
+        res_anon = self.client.post(
+            '/chatbox/api/chat/bot-reply/',
+            {'faq_id': faq_schedule.id, 'message': 'Một câu text không chứa từ khóa'},
+            content_type='application/json',
+        )
+        self.assertEqual(res_anon.status_code, 200)
+        anon_data = res_anon.json()
+        self.assertEqual(anon_data['reply'], faq_schedule.answer)
+        self.assertEqual(anon_data['faq_id'], faq_schedule.id)
+        self.assertEqual(Conversation.objects.count(), conv_before)
+        self.assertEqual(ConversationMessage.objects.count(), msg_before)
+
+        self.client.force_login(self.customer_user)
+        res_auth = self.client.post(
+            '/chatbox/api/chat/bot-reply/',
+            {'faq_id': self.faq_price.id},
+            content_type='application/json',
+        )
+        self.assertEqual(res_auth.status_code, 200)
+        auth_data = res_auth.json()
+        self.assertEqual(auth_data['reply'], self.faq_price.answer)
+        self.assertEqual(auth_data['faq_id'], self.faq_price.id)
+        self.assertIsNotNone(auth_data['conversation_id'])
+        saved_msgs = ConversationMessage.objects.filter(
+            conversation_id=auth_data['conversation_id']
+        ).order_by('created_at', 'id')
+        self.assertEqual(saved_msgs.count(), 2)
+        self.assertEqual(saved_msgs[0].content, self.faq_price.question)
+        self.assertEqual(saved_msgs[1].content, self.faq_price.answer)
+
+        res_hidden = self.client.post(
+            '/chatbox/api/chat/bot-reply/',
+            {'faq_id': faq_hidden.id, 'message': 'ẩn nháp'},
+            content_type='application/json',
+        )
+        self.assertEqual(res_hidden.status_code, 200)
+        self.assertNotEqual(res_hidden.json()['reply'], faq_hidden.answer)
+
+    def test_faq_blocks_ui_and_admin_tabs_rendering(self):
+        """Kiểm tra render UI khối FAQ (widget & customer_chat) và tab Quản lý Boxchat đồng bộ Admin"""
+        res_home = self.client.get('/')
+        self.assertEqual(res_home.status_code, 200)
+        self.assertContains(res_home, 'chamFaqBlocksPanel')
+        self.assertContains(res_home, 'sendWidgetFaqBlock')
+
+        self.client.force_login(self.customer_user)
+        res_cust = self.client.get('/chatbox/customer/')
+        self.assertEqual(res_cust.status_code, 200)
+        self.assertContains(res_cust, 'cust-faq-block')
+        self.assertContains(res_cust, 'sendFaqBlockFromBtn')
+        self.assertContains(res_cust, self.faq_price.question)
+
+        self.client.force_login(self.admin_user)
+        res_mon = self.client.get(reverse('chatbox:admin_monitor'))
+        self.assertEqual(res_mon.status_code, 200)
+        self.assertContains(res_mon, 'admin-chatbox-nav')
+        self.assertContains(res_mon, 'admin-chatbox-nav-btn active')
+
+        res_faq = self.client.get(reverse('chatbox:admin_faq'))
+        self.assertEqual(res_faq.status_code, 200)
+        self.assertContains(res_faq, 'admin-chatbox-nav')
+        self.assertContains(res_faq, 'admin-chatbox-nav-btn active')
+
+        self.client.force_login(self.staff_user_1)
+        res_inbox = self.client.get(reverse('chatbox:inbox'))
+        self.assertEqual(res_inbox.status_code, 200)
+        self.assertNotContains(res_inbox, 'appointmentDirectCard')
+        self.assertNotContains(res_inbox, 'Xác nhận lịch hẹn trực tiếp')
+        self.assertNotContains(res_inbox, 'staff-unread-badge')

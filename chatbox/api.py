@@ -1,73 +1,197 @@
 """
-================================================================================
-RESTFUL API ENDPOINTS CHO PHÂN HỆ QUẢN LÝ BOXCHAT TƯ VẤN (MOD-02) - CHAMSPA CRM
-Thành viên phụ trách: Thảo Ngọc
-Triển khai đầy đủ 3 Use Cases chuẩn CSDL & Hợp đồng API:
-  - UC-2.1: Trò chuyện với Chatbot tự động (FAQ thuần TEXT, vãng lai in-memory)
-            Endpoint chuẩn: POST /api/chat/bot-reply/
-  - UC-2.2: Trò chuyện trực tiếp (Kết nối nhân viên tư vấn & Phân quyền tiếp nhận)
-            Endpoint chuẩn: POST /api/chat/conversations/{id}/messages/
-            Và các API: Tiếp nhận, Đóng chat, Tiếp quản, Danh sách hội thoại
-  - UC-2.3: Quản lý kịch bản Chatbot (FAQ thuần TEXT)
-            Endpoint chuẩn: GET, POST, PUT, DELETE /api/admin/faqs/
-  - Tích hợp tính năng Figma Node 210:2465:
-      + Giao diện xem chi tiết dịch vụ & gửi tóm tắt gói vào chat
-      + Cảnh báo khi cuộc hội thoại đã do nhân viên khác tiếp nhận (Khóa input, chỉ xem)
-================================================================================
+API Endpoints (Pure Django JsonResponse) cho Phân hệ Quản lý Boxchat Tư vấn - CHAMSPA CRM
 """
 
-import json
 import csv
-from decimal import Decimal
-from django.http import HttpResponse
 from django.db import transaction
-from django.db.models import Q, Count
+from django.db.models import Q
+from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status, permissions
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
+from core.ajax import (
+    is_staff_or_admin,
+    json_error,
+    parse_json_body,
+    require_auth_json,
+    require_staff_json,
+)
 from core.models import (
-    FAQ, Conversation, ConversationMessage, User, Service,
-    Membership, UserHealthProfile, Tier
-)
-from .serializers import (
-    FAQSerializer,
-    ConversationMessageSerializer,
-    SendMessageInputSerializer,
-    ConversationListSerializer,
-    ConversationDetailSerializer,
-    BotReplyInputSerializer,
+    Conversation,
+    ConversationMessage,
+    FAQ,
+    Membership,
+    User,
+    UserHealthProfile,
 )
 
 
-# ==============================================================================
-# HÀM BỔ TRỢ: TÌM KIẾM CÂU TRẢ LỜI FAQ THÔNG MINH (CHO UC-2.1)
-# ==============================================================================
+def _format_local_dt(dt_val, fmt='%d/%m/%Y %H:%M'):
+    if not dt_val:
+        return ""
+    return timezone.localtime(dt_val).strftime(fmt)
+
+
+def serialize_faq(faq):
+    return {
+        'id': faq.id,
+        'faq_code': faq.faq_code,
+        'category': faq.category,
+        'question': faq.question,
+        'keywords': faq.keywords or '',
+        'answer': faq.answer,
+        'status': faq.status,
+        'created_at': faq.created_at.isoformat() if faq.created_at else None,
+        'updated_at': faq.updated_at.isoformat() if faq.updated_at else None,
+        'formatted_created_at': faq.created_at.strftime('%d/%m/%Y %H:%M') if faq.created_at else "",
+        'formatted_updated_at': faq.updated_at.strftime('%d/%m/%Y %H:%M') if faq.updated_at else "",
+    }
+
+
+def _get_message_sender_name(msg):
+    if msg.sender_type == 'Staff':
+        if msg.conversation.staff:
+            return msg.conversation.staff.name or msg.conversation.staff.username
+        return "Nhân viên tư vấn"
+    if msg.sender_type == 'Customer':
+        if msg.conversation.customer:
+            return msg.conversation.customer.name or "Khách hàng"
+        return "Khách hàng"
+    if msg.sender_type == 'Bot':
+        return "Trợ lý ảo Cham Spa"
+    return "Hệ thống"
+
+
+def serialize_message(msg):
+    return {
+        'id': msg.id,
+        'conversation': msg.conversation_id,
+        'sender_type': msg.sender_type,
+        'sender_name': _get_message_sender_name(msg),
+        'message_type': msg.message_type,
+        'content': msg.content,
+        'attachment_url': msg.attachment_url,
+        'attachment_name': msg.attachment_name,
+        'attachment_size': msg.attachment_size,
+        'created_at': msg.created_at.isoformat() if msg.created_at else None,
+        'formatted_time': _format_local_dt(msg.created_at, '%H:%M - %d/%m'),
+    }
+
+
+def serialize_conversation_list_item(conv, request):
+    cust = conv.customer
+    profile = getattr(cust, 'profile', None) if cust else None
+    membership = getattr(cust, 'membership', None) if cust else None
+    tier_name = membership.tier.name if (membership and membership.tier) else "Khách hàng"
+
+    last_msg = conv.messages.order_by('-created_at').first()
+    if last_msg:
+        prefix = "Bạn: " if last_msg.sender_type == 'Staff' else ("Bot: " if last_msg.sender_type == 'Bot' else "")
+        last_message = f"{prefix}{last_msg.content or '[Tệp đính kèm]'}"
+        last_message_time = _format_local_dt(last_msg.created_at, '%H:%M')
+    else:
+        last_message = "Chưa có tin nhắn"
+        last_message_time = ""
+
+    is_auth_staff = request and request.user.is_authenticated and conv.staff
+    return {
+        'id': conv.id,
+        'status': conv.status,
+        'customer_tag': conv.customer_tag,
+        'customer_name': (cust.name or cust.username) if cust else "Khách vãng lai",
+        'customer_phone': (cust.phone or "") if cust else "",
+        'customer_email': (cust.email or "") if cust else "",
+        'customer_avatar': profile.avatar if (profile and profile.avatar) else None,
+        'membership_tier': tier_name,
+        'staff_id': conv.staff_id,
+        'staff_name': (conv.staff.name or conv.staff.username) if conv.staff else None,
+        'is_assigned_to_me': bool(is_auth_staff and conv.staff_id == request.user.id),
+        'is_assigned_to_other': bool(is_auth_staff and conv.staff_id != request.user.id),
+        'last_message': last_message,
+        'last_message_time': last_message_time,
+        'unread_count': conv.messages.filter(sender_type='Customer').count(),
+        'created_at': conv.created_at.isoformat() if conv.created_at else None,
+        'closed_at': conv.closed_at.isoformat() if conv.closed_at else None,
+    }
+
+
+def serialize_conversation_detail(conv):
+    cust = conv.customer
+    if not cust:
+        customer_info = {
+            'id': None,
+            'name': 'Khách vãng lai',
+            'phone': '',
+            'email': '',
+            'tier': 'Khách vãng lai',
+            'avatar': None,
+        }
+        health_profile = None
+    else:
+        membership = getattr(cust, 'membership', None)
+        tier_name = membership.tier.name if (membership and membership.tier) else "Thành viên"
+        profile = getattr(cust, 'profile', None)
+        customer_info = {
+            'id': cust.id,
+            'name': cust.name or cust.username,
+            'phone': cust.phone or '',
+            'email': cust.email or '',
+            'tier': tier_name,
+            'avatar': profile.avatar if (profile and profile.avatar) else None,
+        }
+        hp = getattr(cust, 'health_profile', None)
+        health_profile = {
+            'health_code': hp.health_code,
+            'height_cm': float(hp.height_cm) if hp.height_cm else None,
+            'weight_kg': float(hp.weight_kg) if hp.weight_kg else None,
+            'blood_pressure': hp.blood_pressure,
+            'focus_areas': hp.focus_areas or [],
+            'massage_pressure': hp.massage_pressure,
+            'pain_level': hp.pain_level,
+            'health_conditions': hp.health_conditions or [],
+            'allergy_notes': hp.allergy_notes,
+            'recovery_goals': hp.recovery_goals or [],
+        } if hp else None
+
+    staff_info = None
+    if conv.staff:
+        staff_info = {
+            'id': conv.staff.id,
+            'name': conv.staff.name or conv.staff.username,
+            'email': conv.staff.email or '',
+            'role': 'Quản lý' if conv.staff.is_superuser else 'Nhân viên CSKH',
+        }
+
+    messages_qs = conv.messages.all().order_by('created_at')
+    return {
+        'id': conv.id,
+        'status': conv.status,
+        'customer_tag': conv.customer_tag,
+        'bot_collected_data': conv.bot_collected_data,
+        'customer_info': customer_info,
+        'staff_info': staff_info,
+        'health_profile': health_profile,
+        'messages': [serialize_message(m) for m in messages_qs],
+        'created_at': conv.created_at.isoformat() if conv.created_at else None,
+        'closed_at': conv.closed_at.isoformat() if conv.closed_at else None,
+    }
+
 
 def find_best_faq_match(user_message):
-    """
-    Tìm kiếm câu trả lời phù hợp nhất từ bảng FAQ (status='Active').
-    Quy tắc nghiệp vụ:
-      - Câu trả lời của FAQ thuần túy là văn bản (TEXT), không kèm ảnh/nút bấm.
-      - So khớp từ khóa keywords, tiêu đề câu hỏi question, hoặc phân loại category.
-    """
+    """Tìm kiếm câu trả lời phù hợp nhất từ bảng FAQ (status='Active')."""
     if not user_message:
         return None
 
     clean_msg = user_message.strip().lower()
     active_faqs = FAQ.objects.filter(status='Active')
 
-    # 1. Tìm khớp chính xác hoặc câu hỏi chứa trong tin nhắn
     for faq in active_faqs:
         faq_q = faq.question.lower().strip()
         if faq_q in clean_msg or clean_msg in faq_q:
             return faq
 
-    # 2. Tìm theo từ khóa (keywords)
     best_faq = None
     max_keyword_matches = 0
-
     for faq in active_faqs:
         matches = 0
         if faq.keywords:
@@ -75,13 +199,10 @@ def find_best_faq_match(user_message):
             for kw in keywords_list:
                 if kw in clean_msg:
                     matches += 1
-        
-        # Nếu có từ trong câu hỏi khớp
         words_in_q = [w for w in faq.question.lower().split() if len(w) >= 3]
         for w in words_in_q:
             if w in clean_msg:
                 matches += 1
-
         if matches > max_keyword_matches:
             max_keyword_matches = matches
             best_faq = faq
@@ -89,7 +210,6 @@ def find_best_faq_match(user_message):
     if max_keyword_matches > 0:
         return best_faq
 
-    # 3. Phân loại theo chủ đề phổ biến
     topics_map = {
         'giá': ['giá', 'bao nhiêu', 'chi phí', 'tiền', 'bảng giá', 'menu'],
         'giờ': ['mở cửa', 'đóng cửa', 'mấy giờ', 'thời gian', 'hoạt động'],
@@ -98,7 +218,6 @@ def find_best_faq_match(user_message):
         'khuyến mãi': ['ưu đãi', 'khuyến mãi', 'voucher', 'giảm giá', 'mã giảm'],
         'khiếu nại': ['phản ánh', 'khiếu nại', 'không hài lòng', 'bồi thường'],
     }
-
     for cat_keyword, trigger_words in topics_map.items():
         if any(w in clean_msg for w in trigger_words):
             fallback_faq = active_faqs.filter(
@@ -110,126 +229,61 @@ def find_best_faq_match(user_message):
     return None
 
 
-# ==============================================================================
-# USE CASE 2.1: TRÒ CHUYỆN VỚI CHATBOT TỰ ĐỘNG
-# Endpoint Hợp đồng: POST /api/chat/bot-reply/
-# ==============================================================================
+@require_POST
+def bot_reply_api(request):
+    """Phản hồi tự động từ Chatbot (khách vãng lai không ghi DB, khách đăng nhập lưu lịch sử)."""
+    data, err = parse_json_body(request)
+    if err:
+        return err
 
-class BotReplyAPI(APIView):
-    """
-    [UC-2.1] API nhận câu hỏi của khách và trả về phản hồi tự động từ Chatbot.
-    Quy tắc nghiệp vụ bất di bất dịch:
-      - Khách vãng lai (chưa đăng nhập): Toàn bộ tin nhắn CHỈ LƯU IN-MEMORY ở client,
-        TUYỆT ĐỐI KHÔNG GHI VÀO CSDL bảng Conversation / ConversationMessage.
-      - Khách hàng đã đăng nhập (is_authenticated và không phải staff):
-        Ghi nhận phiên chat vào Conversation (status='Bot xử lý') và ConversationMessage.
-      - Phản hồi của Chatbot thuần túy là văn bản (TEXT).
-    """
-    permission_classes = [permissions.AllowAny]
+    user_message = str(data.get('message') or '').strip()
+    faq_id_raw = data.get('faq_id')
+    conv_id_raw = data.get('conversation_id')
 
-    def post(self, request):
-        serializer = BotReplyInputSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({
-                'status': 'error',
-                'errors': serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        faq_id = int(faq_id_raw) if faq_id_raw not in (None, '') else None
+    except (TypeError, ValueError):
+        return JsonResponse({'status': 'error', 'errors': {'faq_id': ['Mã FAQ không hợp lệ.']}}, status=400)
 
-        user_message = serializer.validated_data['message'].strip()
-        conv_id = serializer.validated_data.get('conversation_id')
+    try:
+        conv_id = int(conv_id_raw) if conv_id_raw not in (None, '') else None
+    except (TypeError, ValueError):
+        conv_id = None
 
-        # Tìm câu trả lời từ kho FAQ
+    if len(user_message) > 1000:
+        return JsonResponse({'status': 'error', 'errors': {'message': ['Nội dung quá dài (tối đa 1000 ký tự).']}}, status=400)
+
+    if not user_message and not faq_id:
+        return JsonResponse({
+            'status': 'error',
+            'errors': {'message': ['Vui lòng nhập nội dung hoặc chọn câu hỏi kịch bản FAQ.']},
+        }, status=400)
+
+    matched_faq = None
+    if faq_id:
+        matched_faq = FAQ.objects.filter(pk=faq_id, status='Active').first()
+        if matched_faq and not user_message:
+            user_message = matched_faq.question
+
+    if not matched_faq and user_message:
         matched_faq = find_best_faq_match(user_message)
 
-        if matched_faq:
-            bot_reply_text = matched_faq.answer
-            suggested_actions = ["Xem bảng giá", "Gặp nhân viên tư vấn", "Đặt lịch ngay"]
-        else:
-            bot_reply_text = (
-                "Dạ Cham Spa & Massage xin chào quý khách! "
-                "Em chưa hiểu rõ yêu cầu của mình trong kịch bản tự động. "
-                "Quý khách có thể chọn câu hỏi nhanh bên dưới hoặc bấm 'Gặp nhân viên tư vấn' "
-                "để chuyên viên chăm sóc khách hàng hỗ trợ ngay nhé ạ!"
-            )
-            suggested_actions = ["Bảng giá dịch vụ", "Giờ mở cửa & Địa chỉ", "Gặp nhân viên tư vấn"]
+    if matched_faq:
+        bot_reply_text = matched_faq.answer
+        suggested_actions = ["Chọn câu hỏi FAQ khác", "Gặp nhân viên tư vấn"]
+    else:
+        bot_reply_text = (
+            "Dạ Cham Spa & Massage xin chào quý khách! "
+            "Em chưa hiểu rõ yêu cầu của mình trong kịch bản tự động. "
+            "Quý khách có thể chọn các Block câu hỏi FAQ bên dưới hoặc bấm 'Gặp nhân viên tư vấn' "
+            "để chuyên viên chăm sóc khách hàng hỗ trợ ngay nhé ạ!"
+        )
+        suggested_actions = ["Bảng giá dịch vụ", "Giờ mở cửa & Địa chỉ", "Gặp nhân viên tư vấn"]
 
-        user = request.user
-        saved_conv_id = None
+    user = request.user
+    saved_conv_id = None
 
-        # NẾU LÀ KHÁCH HÀNG ĐÃ ĐĂNG NHẬP: Lưu vào CSDL
-        if user.is_authenticated and not user.is_staff and not user.is_superuser:
-            with transaction.atomic():
-                conversation = None
-                if conv_id:
-                    conversation = Conversation.objects.filter(id=conv_id, customer=user).first()
-
-                # Nếu chưa có hoặc phiên trước đã kết thúc -> Tìm phiên đang mở hoặc tạo mới
-                if not conversation or conversation.status == 'Kết thúc':
-                    conversation = Conversation.objects.filter(
-                        customer=user,
-                        status__in=['Bot xử lý', 'Đang chờ', 'Đang xử lý']
-                    ).first()
-
-                if not conversation:
-                    conversation = Conversation.objects.create(
-                        customer=user,
-                        status='Bot xử lý',
-                        customer_tag='Khách quan tâm dịch vụ'
-                    )
-
-                # Lưu tin nhắn của khách hàng
-                ConversationMessage.objects.create(
-                    conversation=conversation,
-                    sender_type='Customer',
-                    message_type='TEXT',
-                    content=user_message
-                )
-
-                # Lưu phản hồi của bot
-                ConversationMessage.objects.create(
-                    conversation=conversation,
-                    sender_type='Bot',
-                    message_type='TEXT',
-                    content=bot_reply_text
-                )
-
-                saved_conv_id = conversation.id
-
-        # NẾU LÀ KHÁCH VÃNG LAI: Không lưu DB, chỉ trả về JSON
-        return Response({
-            'status': 'success',
-            'reply': bot_reply_text,
-            'suggested_actions': suggested_actions,
-            'conversation_id': saved_conv_id,
-            'is_authenticated': user.is_authenticated
-        }, status=status.HTTP_200_OK)
-
-
-# ==============================================================================
-# USE CASE 2.2: TRÒ CHUYỆN TRỰC TIẾP (KẾT NỐI NHÂN VIÊN TƯ VẤN)
-# ==============================================================================
-
-class ConversationTransferStaffAPI(APIView):
-    """
-    [UC-2.2] Khách hàng bấm 'Chuyển tiếp cho nhân viên' trong khung chat.
-    Quy tắc nghiệp vụ chốt:
-      - Tiền điều kiện: Khách hàng BẮT BUỘC ĐÃ ĐĂNG NHẬP tài khoản.
-        Nếu khách vãng lai bấm nút -> Trả về lỗi 401 yêu cầu đăng nhập.
-      - Chuyển trạng thái hội thoại sang: Conversation.status = 'Đang chờ' (hoặc 'Chờ tiếp nhận').
-      - Tạo tin nhắn hệ thống ghi nhận yêu cầu để nhân viên thấy trên Livechat Console.
-    """
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request):
-        if not request.user.is_authenticated:
-            return Response({
-                'status': 'require_login',
-                'message': 'Quý khách vui lòng đăng nhập tài khoản để được kết nối trò chuyện trực tiếp với nhân viên CSKH.'
-            }, status=status.HTTP_401_UNAUTHORIZED)
-
-        conv_id = request.data.get('conversation_id')
-        user = request.user
-
+    if user.is_authenticated and not user.is_staff and not user.is_superuser:
         with transaction.atomic():
             conversation = None
             if conv_id:
@@ -238,370 +292,413 @@ class ConversationTransferStaffAPI(APIView):
             if not conversation or conversation.status == 'Kết thúc':
                 conversation = Conversation.objects.filter(
                     customer=user,
-                    status__in=['Bot xử lý', 'Đang chờ', 'Đang xử lý']
+                    status__in=['Bot xử lý', 'Đang chờ', 'Đang xử lý'],
                 ).first()
 
             if not conversation:
                 conversation = Conversation.objects.create(
                     customer=user,
-                    status='Đang chờ',
-                    customer_tag='Yêu cầu tư vấn trực tiếp'
+                    status='Bot xử lý',
+                    customer_tag=matched_faq.category if matched_faq else 'Khách quan tâm dịch vụ',
                 )
-            else:
-                conversation.status = 'Đang chờ'
-                conversation.save()
+            elif matched_faq and conversation.status == 'Bot xử lý':
+                conversation.customer_tag = matched_faq.category
+                conversation.save(update_fields=['customer_tag'])
 
-            # Tin nhắn thông báo hệ thống
+            ConversationMessage.objects.create(
+                conversation=conversation,
+                sender_type='Customer',
+                message_type='TEXT',
+                content=user_message,
+            )
             ConversationMessage.objects.create(
                 conversation=conversation,
                 sender_type='Bot',
                 message_type='TEXT',
-                content='Dạ, yêu cầu của quý khách đã được chuyển tới chuyên viên tư vấn Cham Spa. Chuyên viên sẽ tiếp nhận và phản hồi ngay trong giây lát ạ!'
+                content=bot_reply_text,
             )
+            saved_conv_id = conversation.id
 
-        return Response({
-            'status': 'success',
-            'message': 'Đã gửi yêu cầu kết nối với nhân viên tư vấn thành công.',
-            'conversation_id': conversation.id,
-            'conversation_status': conversation.status
-        }, status=status.HTTP_200_OK)
+    return JsonResponse({
+        'status': 'success',
+        'reply': bot_reply_text,
+        'faq_id': matched_faq.id if matched_faq else None,
+        'faq_code': matched_faq.faq_code if matched_faq else None,
+        'faq_category': matched_faq.category if matched_faq else None,
+        'suggested_actions': suggested_actions,
+        'conversation_id': saved_conv_id,
+        'is_authenticated': user.is_authenticated,
+    }, status=200)
 
 
-class ConversationMessageListSendAPI(APIView):
-    """
-    [UC-2.2] Lấy lịch sử và Gửi tin nhắn trực tiếp giữa Khách hàng và Nhân viên tư vấn.
-    Endpoint Hợp đồng: POST /api/chat/conversations/{id}/messages/
-    Và GET /api/chat/conversations/{id}/messages/
+@require_GET
+def public_faq_blocks_api(request):
+    """Cung cấp danh sách các Block câu hỏi FAQ đang kích hoạt."""
+    active_faqs = FAQ.objects.filter(status='Active').order_by('category', 'id')
+    blocks = []
+    categories = []
+    seen_cats = set()
 
-    QUY TẮC PHÂN QUYỀN & BẢO VỆ CHUẨN FIGMA NODE 210:2465:
-      - Khách hàng: Chỉ gửi/nhận tin nhắn trong cuộc hội thoại của chính mình.
-      - Nhân viên tư vấn:
-        + Nếu cuộc hội thoại đã được MỘT NHÂN VIÊN KHÁC tiếp nhận (`staff` != request.user và `status` == 'Đang xử lý'):
-          -> CHẶN GỬI TIN NHẮN (HTTP 403 Forbidden).
-          -> Trả về thông báo cảnh báo rõ ràng: "Cuộc hội thoại này đã do nhân viên [Tên] tiếp nhận xử lý."
-        + Nếu cuộc hội thoại chưa có ai nhận (`staff` is None):
-          -> Khi nhân viên gửi tin, tự động gán `staff = request.user` và `status = 'Đang xử lý'`.
-        + Giao diện hiển thị rõ TÊN NHÂN VIÊN GỬI (sender_name) theo đúng yêu cầu Use Case 2.2.
-    """
-    permission_classes = [permissions.IsAuthenticated]
+    for f in active_faqs:
+        if f.category and f.category not in seen_cats:
+            seen_cats.add(f.category)
+            categories.append(f.category)
+        blocks.append({
+            'id': f.id,
+            'faq_code': f.faq_code,
+            'category': f.category,
+            'question': f.question,
+        })
 
-    def get(self, request, pk):
-        try:
-            conversation = Conversation.objects.select_related('customer', 'staff').get(pk=pk)
-        except Conversation.DoesNotExist:
-            return Response({'error': 'Không tìm thấy cuộc hội thoại.'}, status=status.HTTP_404_NOT_FOUND)
+    return JsonResponse({
+        'status': 'success',
+        'categories': categories,
+        'blocks': blocks,
+    }, status=200)
 
-        user = request.user
-        # Kiểm tra quyền xem
-        if not user.is_staff and not user.is_superuser:
-            if conversation.customer_id != user.id:
-                return Response({'error': 'Bạn không có quyền xem cuộc hội thoại này.'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Trả về chi tiết và danh sách tin nhắn
-        serializer = ConversationDetailSerializer(conversation, context={'request': request})
-        
-        # Cung cấp cờ kiểm tra phân quyền cho giao diện Figma
-        is_assigned_to_other = False
-        assigned_staff_name = None
-        if user.is_staff and conversation.staff and conversation.staff_id != user.id and conversation.status == 'Đang xử lý':
-            is_assigned_to_other = True
-            assigned_staff_name = conversation.staff.name or conversation.staff.username
+@require_POST
+def conversation_transfer_staff_api(request):
+    """Khách hàng bấm 'Chuyển tiếp cho nhân viên' trong khung chat."""
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': 'require_login',
+            'message': 'Quý khách vui lòng đăng nhập tài khoản để được kết nối trò chuyện trực tiếp với nhân viên CSKH.',
+        }, status=401)
 
-        data = serializer.data
+    data, err = parse_json_body(request)
+    if err:
+        return err
+
+    conv_id = data.get('conversation_id')
+    user = request.user
+
+    with transaction.atomic():
+        conversation = None
+        if conv_id:
+            conversation = Conversation.objects.filter(id=conv_id, customer=user).first()
+
+        if not conversation or conversation.status == 'Kết thúc':
+            conversation = Conversation.objects.filter(
+                customer=user,
+                status__in=['Bot xử lý', 'Đang chờ', 'Đang xử lý'],
+            ).first()
+
+        if not conversation:
+            conversation = Conversation.objects.create(
+                customer=user,
+                status='Đang chờ',
+                customer_tag='Yêu cầu tư vấn trực tiếp',
+            )
+        else:
+            conversation.status = 'Đang chờ'
+            conversation.save()
+
+        ConversationMessage.objects.create(
+            conversation=conversation,
+            sender_type='Bot',
+            message_type='TEXT',
+            content='Dạ, yêu cầu của quý khách đã được chuyển tới chuyên viên tư vấn Cham Spa. Chuyên viên sẽ tiếp nhận và phản hồi ngay trong giây lát ạ!',
+        )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Đã gửi yêu cầu kết nối với nhân viên tư vấn thành công.',
+        'conversation_id': conversation.id,
+        'conversation_status': conversation.status,
+    }, status=200)
+
+
+@require_auth_json
+@require_http_methods(['GET', 'POST'])
+def conversation_messages_api(request, pk):
+    """Lấy lịch sử và gửi tin nhắn trực tiếp giữa Khách hàng và Nhân viên."""
+    conversation = Conversation.objects.select_related('customer', 'staff').filter(pk=pk).first()
+    if not conversation:
+        return json_error('Không tìm thấy cuộc hội thoại.', status=404)
+
+    user = request.user
+    if request.method == 'GET':
+        if not is_staff_or_admin(user) and conversation.customer_id != user.id:
+            return json_error('Bạn không có quyền xem cuộc hội thoại này.', status=403)
+
+        is_assigned_to_other = bool(
+            user.is_staff and conversation.staff and conversation.staff_id != user.id and conversation.status == 'Đang xử lý'
+        )
+        assigned_staff_name = (
+            (conversation.staff.name or conversation.staff.username) if is_assigned_to_other else None
+        )
+        data = serialize_conversation_detail(conversation)
         data['is_assigned_to_other'] = is_assigned_to_other
         data['assigned_staff_name'] = assigned_staff_name
         data['can_send_message'] = not is_assigned_to_other
+        return JsonResponse(data, status=200)
 
-        return Response(data, status=status.HTTP_200_OK)
+    data, err = parse_json_body(request)
+    if err:
+        return err
 
-    def post(self, request, pk):
-        try:
-            conversation = Conversation.objects.select_related('customer', 'staff').get(pk=pk)
-        except Conversation.DoesNotExist:
-            return Response({'error': 'Không tìm thấy cuộc hội thoại.'}, status=status.HTTP_404_NOT_FOUND)
+    content = str(data.get('content') or '').strip()
+    message_type = data.get('message_type') or 'TEXT'
+    if not content:
+        return JsonResponse({'status': 'error', 'errors': {'content': ['Nội dung tin nhắn không được để trống.']}}, status=400)
+    if len(content) > 5000:
+        return JsonResponse({'status': 'error', 'errors': {'content': ['Nội dung tin nhắn quá dài (tối đa 5000 ký tự).']}}, status=400)
+    if message_type not in ('TEXT', 'IMAGE', 'FILE'):
+        return JsonResponse({'status': 'error', 'errors': {'message_type': ['Loại tin nhắn không hợp lệ.']}}, status=400)
 
-        serializer = SendMessageInputSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({'status': 'error', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        content = serializer.validated_data['content'].strip()
-        message_type = serializer.validated_data.get('message_type', 'TEXT')
-        attachment_url = serializer.validated_data.get('attachment_url')
-        attachment_name = serializer.validated_data.get('attachment_name')
-        attachment_size = serializer.validated_data.get('attachment_size')
-
-        user = request.user
-
-        # 1. TRƯỜNG HỢP NGƯỜI GỬI LÀ NHÂN VIÊN / QUẢN LÝ
-        if user.is_staff or user.is_superuser:
-            # KIỂM TRA PHÂN QUYỀN THEO FIGMA NODE 210:2465:
-            # Nếu cuộc hội thoại đã được nhân viên khác tiếp nhận:
-            if conversation.staff and conversation.staff_id != user.id and conversation.status == 'Đang xử lý':
-                other_name = conversation.staff.name or conversation.staff.username
-                return Response({
-                    'status': 'forbidden_assigned',
-                    'error': f'Cuộc hội thoại này đã do nhân viên {other_name} tiếp nhận xử lý. Bạn đang ở chế độ xem chỉ đọc và không thể gửi tin nhắn.',
-                    'assigned_staff': other_name
-                }, status=status.HTTP_403_FORBIDDEN)
-
-            # Nếu cuộc hội thoại chưa có nhân viên nhận hoặc đang chờ:
-            if not conversation.staff:
-                conversation.staff = user
-                conversation.status = 'Đang xử lý'
-                conversation.save()
-
-            sender_type = 'Staff'
-            sender_name = user.name or user.username
-
-        # 2. TRƯỜNG HỢP NGƯỜI GỬI LÀ KHÁCH HÀNG
-        else:
-            if conversation.customer_id != user.id:
-                return Response({'error': 'Bạn không có quyền gửi tin nhắn trong cuộc hội thoại này.'}, status=status.HTTP_403_FORBIDDEN)
-
-            sender_type = 'Customer'
-            sender_name = user.name or user.username
-
-            # Nếu khách gửi tin nhắn tiếp, đảm bảo trạng thái không bị đóng
-            if conversation.status == 'Kết thúc':
-                conversation.status = 'Đang chờ'
-                conversation.save()
-
-        # Tạo tin nhắn mới trong CSDL
-        msg = ConversationMessage.objects.create(
-            conversation=conversation,
-            sender_type=sender_type,
-            message_type=message_type,
-            content=content,
-            attachment_url=attachment_url,
-            attachment_name=attachment_name,
-            attachment_size=attachment_size
-        )
-
-        # Phản hồi JSON chuẩn theo Hợp đồng API
-        return Response({
-            'status': 'success',
-            'message_id': msg.id,
-            'sender_type': msg.sender_type,
-            'sender_name': sender_name,
-            'created_at': msg.created_at.isoformat(),
-            'formatted_time': timezone.localtime(msg.created_at).strftime('%H:%M - %d/%m'),
-            'content': msg.content,
-            'conversation_status': conversation.status
-        }, status=status.HTTP_201_CREATED)
-
-
-class ConversationAcceptAPI(APIView):
-    """
-    [UC-2.2] Nhân viên CSKH bấm nút 'Tiếp nhận hội thoại'.
-    Khớp logic và thiết kế Figma Node 207:1040 & 210:2465:
-      - Kiểm tra an toàn: Nếu đã có nhân viên khác nhận trước đó, báo lỗi xung đột (Conflict 409).
-      - Nếu hợp lệ: Cập nhật Conversation.staff = request.user, Conversation.status = 'Đang xử lý'.
-      - Tự động sinh tin nhắn thông báo: 'Nhân viên tư vấn [Tên nhân viên] đã tham gia trò chuyện.'
-    """
-    permission_classes = [permissions.IsAdminUser]
-
-    def post(self, request, pk):
-        try:
-            conversation = Conversation.objects.select_related('staff').get(pk=pk)
-        except Conversation.DoesNotExist:
-            return Response({'error': 'Không tìm thấy cuộc hội thoại.'}, status=status.HTTP_404_NOT_FOUND)
-
-        user = request.user
-
-        # Kiểm tra xem có nhân viên khác đã tiếp nhận chưa
+    if is_staff_or_admin(user):
         if conversation.staff and conversation.staff_id != user.id and conversation.status == 'Đang xử lý':
             other_name = conversation.staff.name or conversation.staff.username
-            return Response({
-                'status': 'conflict',
-                'message': f'Cuộc hội thoại đã do nhân viên {other_name} tiếp nhận xử lý!',
-                'assigned_staff': other_name
-            }, status=status.HTTP_409_CONFLICT)
+            return JsonResponse({
+                'status': 'forbidden_assigned',
+                'error': f'Cuộc hội thoại này đã do nhân viên {other_name} tiếp nhận xử lý. Bạn đang ở chế độ xem chỉ đọc và không thể gửi tin nhắn.',
+                'assigned_staff': other_name,
+            }, status=403)
 
-        # Cập nhật tiếp nhận
-        conversation.staff = user
-        conversation.status = 'Đang xử lý'
-        conversation.save()
+        if not conversation.staff:
+            conversation.staff = user
+            conversation.status = 'Đang xử lý'
+            conversation.save()
 
-        staff_name = user.name or user.username
+        sender_type = 'Staff'
+        sender_name = user.name or user.username
+    else:
+        if conversation.customer_id != user.id:
+            return json_error('Bạn không có quyền gửi tin nhắn trong cuộc hội thoại này.', status=403)
 
-        # Tạo tin nhắn hệ thống ghi nhận nhân viên tham gia
-        ConversationMessage.objects.create(
-            conversation=conversation,
-            sender_type='Staff',
-            message_type='TEXT',
-            content=f"Dạ em chào anh/chị! Em là {staff_name} - chuyên viên tư vấn của Cham Spa & Massage. Em rất vui được hỗ trợ quý khách hôm nay ạ!"
-        )
+        sender_type = 'Customer'
+        sender_name = user.name or user.username
+        if conversation.status == 'Kết thúc':
+            conversation.status = 'Đang chờ'
+            conversation.save()
 
-        return Response({
-            'status': 'success',
-            'message': f'Tiếp nhận cuộc hội thoại thành công. Bạn đang phụ trách phiên chat này.',
-            'conversation_id': conversation.id,
-            'staff_name': staff_name,
-            'status_label': 'Đang xử lý'
-        }, status=status.HTTP_200_OK)
+    msg = ConversationMessage.objects.create(
+        conversation=conversation,
+        sender_type=sender_type,
+        message_type=message_type,
+        content=content,
+        attachment_url=data.get('attachment_url'),
+        attachment_name=data.get('attachment_name'),
+        attachment_size=data.get('attachment_size'),
+    )
 
-
-class ConversationCloseAPI(APIView):
-    """
-    [UC-2.2] Nhân viên bấm 'Đóng phiên chat' khi đã hoàn tất tư vấn.
-    Quy tắc nghiệp vụ chốt:
-      - Cập nhật Conversation.status = 'Kết thúc'.
-      - Lưu Conversation.closed_at = now().
-      - Tạo tin nhắn đóng phiên tư vấn.
-    """
-    permission_classes = [permissions.IsAdminUser]
-
-    def post(self, request, pk):
-        try:
-            conversation = Conversation.objects.get(pk=pk)
-        except Conversation.DoesNotExist:
-            return Response({'error': 'Không tìm thấy cuộc hội thoại.'}, status=status.HTTP_404_NOT_FOUND)
-
-        conversation.status = 'Kết thúc'
-        conversation.closed_at = timezone.now()
-        conversation.save()
-
-        # Tạo tin nhắn hệ thống đóng phiên chat
-        staff_name = request.user.name or request.user.username
-        ConversationMessage.objects.create(
-            conversation=conversation,
-            sender_type='Staff',
-            message_type='TEXT',
-            content=f"Phiên tư vấn trực tiếp đã được hoàn tất bởi chuyên viên {staff_name}. Cham Spa trân trọng cảm ơn quý khách và chúc quý khách một ngày an nhiên!"
-        )
-
-        return Response({
-            'status': 'success',
-            'message': 'Đã đóng phiên tư vấn thành công.',
-            'closed_at': conversation.closed_at.isoformat()
-        }, status=status.HTTP_200_OK)
+    return JsonResponse({
+        'status': 'success',
+        'message_id': msg.id,
+        'sender_type': msg.sender_type,
+        'sender_name': sender_name,
+        'created_at': msg.created_at.isoformat(),
+        'formatted_time': _format_local_dt(msg.created_at, '%H:%M - %d/%m'),
+        'content': msg.content,
+        'conversation_status': conversation.status,
+    }, status=201)
 
 
-class ConversationTakeoverAPI(APIView):
-    """
-    [UC-2.2 - Mở rộng Figma 210:2465] Cho phép Quản trị viên hoặc Ca trực
-    chuyển giao / tiếp quản quyền tiếp nhận hội thoại khi nhân viên cũ kết ca hoặc bận.
-    """
-    permission_classes = [permissions.IsAdminUser]
+@require_staff_json
+@require_POST
+def conversation_accept_api(request, pk):
+    """Nhân viên bấm nút 'Tiếp nhận hội thoại'."""
+    conversation = Conversation.objects.select_related('staff').filter(pk=pk).first()
+    if not conversation:
+        return json_error('Không tìm thấy cuộc hội thoại.', status=404)
 
-    def post(self, request, pk):
-        try:
-            conversation = Conversation.objects.select_related('staff').get(pk=pk)
-        except Conversation.DoesNotExist:
-            return Response({'error': 'Không tìm thấy cuộc hội thoại.'}, status=status.HTTP_404_NOT_FOUND)
+    user = request.user
+    if conversation.staff and conversation.staff_id != user.id and conversation.status == 'Đang xử lý':
+        other_name = conversation.staff.name or conversation.staff.username
+        return JsonResponse({
+            'status': 'conflict',
+            'message': f'Cuộc hội thoại đã do nhân viên {other_name} tiếp nhận xử lý!',
+            'assigned_staff': other_name,
+        }, status=409)
 
-        user = request.user
-        old_staff_name = conversation.staff.name if conversation.staff else "Nhân viên trước"
+    conversation.staff = user
+    conversation.status = 'Đang xử lý'
+    conversation.save()
 
-        conversation.staff = user
-        conversation.status = 'Đang xử lý'
-        conversation.save()
+    staff_name = user.name or user.username
+    ConversationMessage.objects.create(
+        conversation=conversation,
+        sender_type='Staff',
+        message_type='TEXT',
+        content=f"Dạ em chào anh/chị! Em là {staff_name} - chuyên viên tư vấn của Cham Spa & Massage. Em rất vui được hỗ trợ quý khách hôm nay ạ!",
+    )
 
-        new_staff_name = user.name or user.username
-
-        ConversationMessage.objects.create(
-            conversation=conversation,
-            sender_type='Staff',
-            message_type='TEXT',
-            content=f"Thông báo: Cuộc trò chuyện đã được chuyển tiếp sang chuyên viên {new_staff_name} tiếp tục hỗ trợ quý khách ạ."
-        )
-
-        return Response({
-            'status': 'success',
-            'message': f'Đã tiếp quản thành công từ {old_staff_name}. Hiện bạn là nhân viên phụ trách chính.',
-            'staff_name': new_staff_name
-        }, status=status.HTTP_200_OK)
-
-
-class StaffConversationListAPI(APIView):
-    """
-    [UC-2.2] API lấy danh sách cuộc hội thoại cho Livechat Console của Staff.
-    Khớp Figma Node 207:1040 (Bộ lọc: Đang chờ, Đang xử lý, Kết thúc, Tất cả).
-    Hỗ trợ tìm kiếm theo tên khách, số điện thoại hoặc từ khóa tin nhắn.
-    """
-    permission_classes = [permissions.IsAdminUser]
-
-    def get(self, request):
-        tab = request.query_params.get('tab', 'waiting')
-        search_kw = request.query_params.get('search', '').strip()
-
-        queryset = Conversation.objects.select_related('customer', 'staff').prefetch_related('messages')
-
-        # Thống kê số lượng thẻ trạng thái
-        counts = {
-            'waiting': Conversation.objects.filter(status='Đang chờ').count(),
-            'processing': Conversation.objects.filter(status='Đang xử lý').count(),
-            'closed': Conversation.objects.filter(status='Kết thúc').count(),
-            'bot': Conversation.objects.filter(status='Bot xử lý').count(),
-            'all': Conversation.objects.count(),
-        }
-
-        # Lọc theo Tab trạng thái
-        if tab == 'waiting':
-            queryset = queryset.filter(status='Đang chờ')
-        elif tab == 'processing':
-            queryset = queryset.filter(status='Đang xử lý')
-        elif tab == 'closed':
-            queryset = queryset.filter(status='Kết thúc')
-        elif tab == 'bot':
-            queryset = queryset.filter(status='Bot xử lý')
-        elif tab == 'mine':
-            # Các cuộc hội thoại do chính staff này phụ trách
-            queryset = queryset.filter(staff=request.user, status='Đang xử lý')
-
-        # Tìm kiếm theo từ khóa
-        if search_kw:
-            queryset = queryset.filter(
-                Q(customer__name__icontains=search_kw) |
-                Q(customer__phone__icontains=search_kw) |
-                Q(customer__username__icontains=search_kw) |
-                Q(customer_tag__icontains=search_kw) |
-                Q(messages__content__icontains=search_kw)
-            ).distinct()
-
-        queryset = queryset.order_by('-created_at')
-
-        serializer = ConversationListSerializer(queryset, many=True, context={'request': request})
-
-        return Response({
-            'status': 'success',
-            'counts': counts,
-            'current_tab': tab,
-            'conversations': serializer.data
-        }, status=status.HTTP_200_OK)
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Tiếp nhận cuộc hội thoại thành công. Bạn đang phụ trách phiên chat này.',
+        'conversation_id': conversation.id,
+        'staff_name': staff_name,
+        'status_label': 'Đang xử lý',
+    }, status=200)
 
 
-class IsSuperUserOnly(permissions.BasePermission):
-    """
-    Phân quyền nghiêm ngặt theo yêu cầu:
-    CHỈ DUY NHẤT QUẢN LÝ (is_superuser=True) mới có quyền CRUD kịch bản Chatbot FAQ.
-    Nhân viên (Staff) không được phép can thiệp.
-    """
-    def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.is_superuser)
+@require_staff_json
+@require_POST
+def conversation_close_api(request, pk):
+    """Nhân viên bấm 'Đóng phiên chat'."""
+    conversation = Conversation.objects.filter(pk=pk).first()
+    if not conversation:
+        return json_error('Không tìm thấy cuộc hội thoại.', status=404)
+
+    conversation.status = 'Kết thúc'
+    conversation.closed_at = timezone.now()
+    conversation.save()
+
+    staff_name = request.user.name or request.user.username
+    ConversationMessage.objects.create(
+        conversation=conversation,
+        sender_type='Staff',
+        message_type='TEXT',
+        content=f"Phiên tư vấn trực tiếp đã được hoàn tất bởi chuyên viên {staff_name}. Cham Spa trân trọng cảm ơn quý khách và chúc quý khách một ngày an nhiên!",
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Đã đóng phiên tư vấn thành công.',
+        'closed_at': conversation.closed_at.isoformat(),
+    }, status=200)
 
 
-# ==============================================================================
-# USE CASE 2.3: QUẢN LÝ KỊCH BẢN CHATBOT (FAQ) - CHỈ DÀNH CHO QUẢN LÝ
-# Endpoint Hợp đồng: GET, POST, PUT, DELETE /api/admin/faqs/
-# ==============================================================================
+@require_staff_json
+@require_POST
+def conversation_takeover_api(request, pk):
+    """Chuyển giao / tiếp quản quyền tiếp nhận hội thoại."""
+    conversation = Conversation.objects.select_related('staff').filter(pk=pk).first()
+    if not conversation:
+        return json_error('Không tìm thấy cuộc hội thoại.', status=404)
 
-class AdminFAQListCreateAPI(APIView):
-    """
-    [UC-2.3] API Quản lý kịch bản Chatbot (FAQ) dành riêng cho Quản lý (Admin).
-    Nhân viên (Staff) bị từ chối truy cập.
-    - GET: Danh sách FAQ, hỗ trợ lọc theo danh mục, trạng thái, tìm kiếm.
-    - POST: Thêm câu hỏi FAQ mới (kiểm tra unique faq_code).
-    """
-    permission_classes = [IsSuperUserOnly]
+    user = request.user
+    old_staff_name = conversation.staff.name if conversation.staff else "Nhân viên trước"
 
-    def get(self, request):
-        category = request.query_params.get('category')
-        status_filter = request.query_params.get('status')
-        search_kw = request.query_params.get('q', '').strip()
+    conversation.staff = user
+    conversation.status = 'Đang xử lý'
+    conversation.save()
+
+    new_staff_name = user.name or user.username
+    ConversationMessage.objects.create(
+        conversation=conversation,
+        sender_type='Staff',
+        message_type='TEXT',
+        content=f"Thông báo: Cuộc trò chuyện đã được chuyển tiếp sang chuyên viên {new_staff_name} tiếp tục hỗ trợ quý khách ạ.",
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Đã tiếp quản thành công từ {old_staff_name}. Hiện bạn là nhân viên phụ trách chính.',
+        'staff_name': new_staff_name,
+    }, status=200)
+
+
+@require_staff_json
+@require_GET
+def staff_conversations_list_api(request):
+    """Lấy danh sách cuộc hội thoại cho Livechat Console của Nhân viên."""
+    tab = request.GET.get('tab', 'waiting')
+    search_kw = (request.GET.get('search') or '').strip()
+
+    queryset = Conversation.objects.select_related('customer', 'staff').prefetch_related('messages')
+
+    counts = {
+        'waiting': Conversation.objects.filter(status='Đang chờ').count(),
+        'processing': Conversation.objects.filter(status='Đang xử lý').count(),
+        'closed': Conversation.objects.filter(status='Kết thúc').count(),
+        'bot': Conversation.objects.filter(status='Bot xử lý').count(),
+        'all': Conversation.objects.count(),
+    }
+
+    if tab == 'waiting':
+        queryset = queryset.filter(status='Đang chờ')
+    elif tab == 'processing':
+        queryset = queryset.filter(status='Đang xử lý')
+    elif tab == 'closed':
+        queryset = queryset.filter(status='Kết thúc')
+    elif tab == 'bot':
+        queryset = queryset.filter(status='Bot xử lý')
+    elif tab == 'mine':
+        queryset = queryset.filter(staff=request.user, status='Đang xử lý')
+
+    if search_kw:
+        queryset = queryset.filter(
+            Q(customer__name__icontains=search_kw) |
+            Q(customer__phone__icontains=search_kw) |
+            Q(customer__username__icontains=search_kw) |
+            Q(customer_tag__icontains=search_kw) |
+            Q(messages__content__icontains=search_kw)
+        ).distinct()
+
+    queryset = queryset.order_by('-created_at')
+    conversations = [serialize_conversation_list_item(c, request) for c in queryset]
+
+    return JsonResponse({
+        'status': 'success',
+        'counts': counts,
+        'current_tab': tab,
+        'conversations': conversations,
+    }, status=200)
+
+
+def _validate_faq_payload(data, instance=None, partial=False):
+    errors = {}
+    cleaned = {}
+
+    if not partial or 'faq_code' in data:
+        code = str(data.get('faq_code') or '').strip().upper()
+        if not code:
+            errors['faq_code'] = ["Mã câu hỏi FAQ không được để trống."]
+        else:
+            existing = FAQ.objects.filter(faq_code=code)
+            if instance:
+                existing = existing.exclude(pk=instance.pk)
+            if existing.exists():
+                errors['faq_code'] = ["Mã câu hỏi đã tồn tại, vui lòng nhập mã khác."]
+            else:
+                cleaned['faq_code'] = code
+
+    if not partial or 'category' in data:
+        cat = str(data.get('category') or '').strip()
+        if not cat:
+            errors['category'] = ["Danh mục không được để trống."]
+        else:
+            cleaned['category'] = cat[:100]
+
+    if not partial or 'question' in data:
+        question = str(data.get('question') or '').strip()
+        if not question:
+            errors['question'] = ["Nội dung câu hỏi không được để trống."]
+        else:
+            cleaned['question'] = question[:255]
+
+    if 'keywords' in data or not partial:
+        cleaned['keywords'] = str(data.get('keywords') or '').strip()
+
+    if not partial or 'answer' in data:
+        answer = str(data.get('answer') or '').strip()
+        if not answer:
+            errors['answer'] = ["Nội dung câu trả lời không được để trống."]
+        else:
+            cleaned['answer'] = answer
+
+    if 'status' in data or not partial:
+        st = data.get('status') or (instance.status if instance else 'Active')
+        if st not in ('Active', 'Hidden'):
+            errors['status'] = ["Trạng thái FAQ không hợp lệ."]
+        else:
+            cleaned['status'] = st
+
+    return (None, errors) if errors else (cleaned, None)
+
+
+@require_staff_json
+@require_http_methods(['GET', 'POST'])
+def admin_faqs_api(request):
+    """Danh sách và thêm mới câu hỏi FAQ cho Quản lý & Nhân viên quản trị."""
+    if request.method == 'GET':
+        category = request.GET.get('category')
+        status_filter = request.GET.get('status')
+        search_kw = (request.GET.get('q') or '').strip()
 
         faqs = FAQ.objects.all()
-
         if category:
             faqs = faqs.filter(category=category)
         if status_filter:
@@ -613,452 +710,305 @@ class AdminFAQListCreateAPI(APIView):
                 Q(faq_code__icontains=search_kw) |
                 Q(answer__icontains=search_kw)
             )
-
         faqs = faqs.order_by('-created_at')
-
-        # Lấy danh sách danh mục để đổ vào dropdown filter
         categories = FAQ.objects.values_list('category', flat=True).distinct()
 
-        serializer = FAQSerializer(faqs, many=True)
-        return Response({
+        return JsonResponse({
             'status': 'success',
             'count': faqs.count(),
             'categories': list(categories),
-            'results': serializer.data
-        }, status=status.HTTP_200_OK)
+            'results': [serialize_faq(f) for f in faqs],
+        }, status=200)
 
-    def post(self, request):
-        serializer = FAQSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({
-                'status': 'error',
-                'errors': serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
+    data, err = parse_json_body(request)
+    if err:
+        return err
 
-        faq = serializer.save()
-        return Response({
-            'status': 'success',
-            'message': f'Thêm câu hỏi FAQ [{faq.faq_code}] thành công.',
-            'data': FAQSerializer(faq).data
-        }, status=status.HTTP_201_CREATED)
+    cleaned, errors = _validate_faq_payload(data, instance=None, partial=False)
+    if errors:
+        return JsonResponse({'status': 'error', 'errors': errors}, status=400)
+
+    faq = FAQ.objects.create(**cleaned)
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Thêm câu hỏi FAQ [{faq.faq_code}] thành công.',
+        'data': serialize_faq(faq),
+    }, status=201)
 
 
-class AdminFAQDetailAPI(APIView):
-    """
-    [UC-2.3] Cập nhật hoặc Xóa một câu hỏi FAQ theo ID (Chỉ Quản lý).
-    GET, PUT, PATCH, DELETE /api/admin/faqs/{id}/
-    """
-    permission_classes = [IsSuperUserOnly]
+@require_staff_json
+@require_http_methods(['GET', 'PUT', 'PATCH', 'DELETE'])
+def admin_faq_detail_api(request, pk):
+    """Xem chi tiết, cập nhật hoặc xóa câu hỏi FAQ theo ID."""
+    faq = FAQ.objects.filter(pk=pk).first()
+    if not faq:
+        return json_error('Không tìm thấy câu hỏi FAQ.', status=404)
 
-    def get_object(self, pk):
-        try:
-            return FAQ.objects.get(pk=pk)
-        except FAQ.DoesNotExist:
-            return None
+    if request.method == 'GET':
+        return JsonResponse(serialize_faq(faq), status=200)
 
-    def get(self, request, pk):
-        faq = self.get_object(pk)
-        if not faq:
-            return Response({'error': 'Không tìm thấy câu hỏi FAQ.'}, status=status.HTTP_404_NOT_FOUND)
-        return Response(FAQSerializer(faq).data, status=status.HTTP_200_OK)
-
-    def put(self, request, pk):
-        faq = self.get_object(pk)
-        if not faq:
-            return Response({'error': 'Không tìm thấy câu hỏi FAQ.'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = FAQSerializer(faq, data=request.data, partial=False)
-        if not serializer.is_valid():
-            return Response({'status': 'error', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        updated_faq = serializer.save()
-        return Response({
-            'status': 'success',
-            'message': 'Cập nhật câu hỏi FAQ thành công.',
-            'data': FAQSerializer(updated_faq).data
-        }, status=status.HTTP_200_OK)
-
-    def patch(self, request, pk):
-        faq = self.get_object(pk)
-        if not faq:
-            return Response({'error': 'Không tìm thấy câu hỏi FAQ.'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = FAQSerializer(faq, data=request.data, partial=True)
-        if not serializer.is_valid():
-            return Response({'status': 'error', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        updated_faq = serializer.save()
-        return Response({
-            'status': 'success',
-            'message': 'Cập nhật câu hỏi FAQ thành công.',
-            'data': FAQSerializer(updated_faq).data
-        }, status=status.HTTP_200_OK)
-
-    def delete(self, request, pk):
-        faq = self.get_object(pk)
-        if not faq:
-            return Response({'error': 'Không tìm thấy câu hỏi FAQ.'}, status=status.HTTP_404_NOT_FOUND)
-
+    if request.method == 'DELETE':
         code = faq.faq_code
         faq.delete()
-        return Response({
+        return JsonResponse({
             'status': 'success',
-            'message': f'Đã xóa câu hỏi FAQ [{code}] thành công.'
-        }, status=status.HTTP_200_OK)
+            'message': f'Đã xóa câu hỏi FAQ [{code}] thành công.',
+        }, status=200)
+
+    data, err = parse_json_body(request)
+    if err:
+        return err
+
+    cleaned, errors = _validate_faq_payload(data, instance=faq, partial=(request.method == 'PATCH'))
+    if errors:
+        return JsonResponse({'status': 'error', 'errors': errors}, status=400)
+
+    for k, v in cleaned.items():
+        setattr(faq, k, v)
+    faq.save()
+
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Cập nhật câu hỏi FAQ thành công.',
+        'data': serialize_faq(faq),
+    }, status=200)
 
 
-class AdminFAQToggleStatusAPI(APIView):
-    """
-    [UC-2.3] Chuyển đổi nhanh trạng thái FAQ giữa 'Active' và 'Hidden' (Chỉ Quản lý).
-    """
-    permission_classes = [IsSuperUserOnly]
+@require_staff_json
+@require_POST
+def admin_faq_toggle_status_api(request, pk):
+    """Chuyển đổi nhanh trạng thái FAQ giữa 'Active' và 'Hidden'."""
+    faq = FAQ.objects.filter(pk=pk).first()
+    if not faq:
+        return json_error('Không tìm thấy câu hỏi FAQ.', status=404)
 
-    def post(self, request, pk):
-        try:
-            faq = FAQ.objects.get(pk=pk)
-        except FAQ.DoesNotExist:
-            return Response({'error': 'Không tìm thấy câu hỏi FAQ.'}, status=status.HTTP_404_NOT_FOUND)
+    faq.status = 'Hidden' if faq.status == 'Active' else 'Active'
+    faq.save()
 
-        faq.status = 'Hidden' if faq.status == 'Active' else 'Active'
-        faq.save()
-
-        return Response({
-            'status': 'success',
-            'message': f"Đã chuyển trạng thái câu hỏi [{faq.faq_code}] sang '{faq.status}'.",
-            'current_status': faq.status
-        }, status=status.HTTP_200_OK)
+    return JsonResponse({
+        'status': 'success',
+        'message': f"Đã chuyển trạng thái câu hỏi [{faq.faq_code}] sang '{faq.status}'.",
+        'current_status': faq.status,
+    }, status=200)
 
 
-# ==============================================================================
-# TÍNH NĂNG FIGMA NODE 210:2465: TRA CỨU CHI TIẾT DỊCH VỤ TRỰC TIẾP TRONG CHAT
-# ==============================================================================
+@require_GET
+def customer_active_conversation_api(request):
+    """Lấy phiên hội thoại hiện tại và lịch sử tin nhắn của khách hàng."""
+    user = request.user
+    if not user.is_authenticated:
+        return JsonResponse({
+            'is_authenticated': False,
+            'conversation': None,
+            'messages': [],
+        }, status=200)
 
-class QuickServicesLookupAPI(APIView):
-    """
-    [Figma Node 210:2465] API hỗ trợ Panel tra cứu nhanh dịch vụ ngay trên màn hình Livechat:
-      - Giúp tư vấn viên tra cứu giá, thời lượng, công dụng liệu trình.
-      - Tự động sinh nội dung tóm tắt để bấm 1 click là gửi vào khung chat cho khách!
-    """
-    permission_classes = [permissions.IsAdminUser]
+    conversation = (
+        Conversation.objects.filter(customer=user)
+        .select_related('staff')
+        .order_by('-created_at')
+        .first()
+    )
 
-    def get(self, request):
-        service_id = request.query_params.get('service_id')
-
-        if service_id:
-            try:
-                service = Service.objects.select_related('category').prefetch_related('images').get(pk=service_id)
-                formatted_price = f"{int(service.price_vnd):,}".replace(',', '.') + " VNĐ"
-                
-                # Mẫu câu tóm tắt nhanh để nhân viên gửi cho khách
-                pitch_template = (
-                    f"Dạ gói '{service.name}' tại Cham Spa có giá niêm yết là {formatted_price} "
-                    f"với thời lượng {service.duration_minutes} phút. "
-                    f"Liệu trình giúp thư giãn chuyên sâu, giảm đau mỏi cơ và lưu thông khí huyết hiệu quả. "
-                    f"Quý khách có muốn em hỗ trợ đặt lịch giữ chỗ khung giờ hôm nay luôn không ạ?"
-                )
-
-                return Response({
-                    'status': 'success',
-                    'service': {
-                        'id': service.id,
-                        'name': service.name,
-                        'category_name': service.category.name if service.category else 'Dịch vụ Spa',
-                        'price_vnd': float(service.price_vnd),
-                        'formatted_price': formatted_price,
-                        'duration_minutes': service.duration_minutes,
-                        'rating_avg': float(service.rating_avg),
-                        'review_count': service.review_count,
-                        'thumbnail_url': service.thumbnail_url or '',
-                        'description': service.description or '',
-                        'pitch_template': pitch_template
-                    }
-                }, status=status.HTTP_200_OK)
-            except Service.DoesNotExist:
-                return Response({'error': 'Dịch vụ không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
-
-        # Lấy danh sách toàn bộ dịch vụ đang hoạt động
-        services = Service.objects.filter(status='Hoạt động').select_related('category').order_by('category_id', 'id')
-        data = [
-            {
-                'id': s.id,
-                'name': s.name,
-                'category_name': s.category.name if s.category else '',
-                'price_vnd': float(s.price_vnd),
-                'formatted_price': f"{int(s.price_vnd):,}".replace(',', '.') + " VNĐ",
-                'duration_minutes': s.duration_minutes,
-                'rating_avg': float(s.rating_avg)
-            }
-            for s in services
-        ]
-
-        return Response({
-            'status': 'success',
-            'services': data
-        }, status=status.HTTP_200_OK)
-
-
-class CustomerActiveConversationAPI(APIView):
-    """
-    [UC-2.1 & UC-2.2] Lấy phiên hội thoại hiện tại và toàn bộ lịch sử tin nhắn của khách hàng.
-    Phục vụ Floating Chat Widget:
-      - Khách hàng đã đăng nhập: Tải lại toàn bộ lịch sử tin nhắn đã lưu trữ trong CSDL.
-      - Khách hàng vãng lai: Không lưu trữ trong CSDL, chỉ chạy in-memory.
-    """
-    permission_classes = [permissions.AllowAny]
-
-    def get(self, request):
-        user = request.user
-        if not user.is_authenticated:
-            return Response({
-                'is_authenticated': False,
-                'conversation': None,
-                'messages': []
-            }, status=status.HTTP_200_OK)
-
-        # Tìm phiên hội thoại gần nhất của khách hàng
-        conversation = (
-            Conversation.objects.filter(customer=user)
-            .select_related('staff')
-            .order_by('-created_at')
-            .first()
-        )
-
-        if not conversation:
-            return Response({
-                'is_authenticated': True,
-                'conversation': None,
-                'messages': []
-            }, status=status.HTTP_200_OK)
-
-        messages_qs = conversation.messages.all().order_by('created_at')
-        serializer = ConversationMessageSerializer(messages_qs, many=True)
-
-        staff_name = None
-        if conversation.staff:
-            staff_name = conversation.staff.name or conversation.staff.username
-
-        return Response({
+    if not conversation:
+        return JsonResponse({
             'is_authenticated': True,
-            'conversation': {
-                'id': conversation.id,
-                'status': conversation.status,
-                'staff_name': staff_name,
-                'created_at': conversation.created_at.isoformat()
-            },
-            'messages': serializer.data
-        }, status=status.HTTP_200_OK)
+            'conversation': None,
+            'messages': [],
+        }, status=200)
+
+    messages_qs = conversation.messages.all().order_by('created_at')
+    staff_name = (conversation.staff.name or conversation.staff.username) if conversation.staff else None
+
+    return JsonResponse({
+        'is_authenticated': True,
+        'conversation': {
+            'id': conversation.id,
+            'status': conversation.status,
+            'staff_name': staff_name,
+            'created_at': conversation.created_at.isoformat(),
+        },
+        'messages': [serialize_message(m) for m in messages_qs],
+    }, status=200)
 
 
-# ==============================================================================
-# CÁC API DÀNH RIÊNG CHO QUẢN TRỊ VIÊN (ADMIN - NODE 502:2005 & NODE 211:3459)
-# ==============================================================================
+@require_staff_json
+@require_GET
+def admin_conversation_monitor_api(request, pk):
+    """Lấy thông tin chi tiết phiên chat cần giám sát cho Admin."""
+    conv = Conversation.objects.select_related('customer', 'staff').filter(pk=pk).first()
+    if not conv:
+        return json_error('Không tìm thấy cuộc hội thoại.', status=404)
 
-class AdminConversationMonitorAPI(APIView):
-    """
-    [Figma Node 502:2005 - ADMIN · Quản lý Live Chat & Giám sát phiên tư vấn]
-    Lấy thông tin chi tiết phiên chat cần giám sát, bao gồm:
-      - Cột 2: Thông tin hội thoại, lịch sử bot, danh sách tin nhắn realtime
-      - Cột 3: Thông tin chi tiết khách hàng (Hạng thẻ VIP, Tổng chi tiêu, Lưu ý sức khỏe)
-      - Card Giám sát: Thời lượng phiên, Staff Response SLA, Lịch sử chuyển giao
-      - Danh sách nhân viên tư vấn trực tuyến để sẵn sàng Reassign (Chuyển nhân viên)
-    """
-    permission_classes = [IsSuperUserOnly]
+    customer = conv.customer
+    membership = Membership.objects.filter(user=customer).select_related('tier').first() if customer else None
+    tier_name = membership.tier.name if (membership and membership.tier) else 'Hạng VÀNG'
+    total_spent = membership.total_spent if membership else 18500000
+    formatted_spent = f"{int(total_spent):,} VNĐ".replace(',', '.')
 
-    def get(self, request, pk):
-        try:
-            conv = Conversation.objects.select_related('customer', 'staff').get(pk=pk)
-        except Conversation.DoesNotExist:
-            return Response({'error': 'Không tìm thấy cuộc hội thoại.'}, status=status.HTTP_404_NOT_FOUND)
+    health = UserHealthProfile.objects.filter(user=customer).first() if customer else None
+    health_notes = []
+    if health:
+        if health.special_requests:
+            health_notes.append(health.special_requests)
+        if health.massage_pressure:
+            health_notes.append(f"ưu tiên lực {health.massage_pressure.lower()}")
+        if health.allergy_notes:
+            health_notes.append(f"dị ứng: {health.allergy_notes}")
+    health_summary = ", ".join(health_notes) if health_notes else "Da nhạy cảm, ưu tiên lực nhẹ."
 
-        customer = conv.customer
-        membership = Membership.objects.filter(user=customer).select_related('tier').first()
-        tier_name = membership.tier.name if (membership and membership.tier) else 'Hạng VÀNG'
-        total_spent = membership.total_spent if membership else 18500000
-        formatted_spent = f"{int(total_spent):,} VNĐ".replace(',', '.')
+    duration_seconds = int((timezone.now() - conv.created_at).total_seconds())
+    duration_display = f"{duration_seconds // 60:02d}:{duration_seconds % 60:02d}"
 
-        health = UserHealthProfile.objects.filter(user=customer).first()
-        health_notes = []
-        if health:
-            if health.special_requests:
-                health_notes.append(health.special_requests)
-            if health.massage_pressure:
-                health_notes.append(f"ưu tiên lực {health.massage_pressure.lower()}")
-            if health.allergy_notes:
-                health_notes.append(f"dị ứng: {health.allergy_notes}")
-        health_summary = ", ".join(health_notes) if health_notes else "Da nhạy cảm, ưu tiên lực nhẹ."
+    available_staffs = User.objects.filter(is_staff=True).exclude(
+        pk=conv.staff_id if conv.staff else 0
+    ).values('id', 'name', 'phone')
 
-        # Tính toán thời lượng phiên
-        now = timezone.now()
-        duration_seconds = int((now - conv.created_at).total_seconds())
-        mins = duration_seconds // 60
-        secs = duration_seconds % 60
-        duration_display = f"{mins:02d}:{secs:02d}"
+    messages_qs = conv.messages.all().order_by('created_at')
 
-        # Danh sách nhân viên khả dụng để chuyển giao
-        available_staffs = User.objects.filter(is_staff=True).exclude(pk=conv.staff_id if conv.staff else 0).values('id', 'name', 'phone')
-
-        messages_qs = conv.messages.all().order_by('created_at')
-        serialized_messages = ConversationMessageSerializer(messages_qs, many=True).data
-
-        return Response({
-            'status': 'success',
-            'conversation': {
-                'id': conv.id,
-                'status': conv.status,
-                'customer_tag': conv.customer_tag or 'Trị liệu vai gáy & Đặt lịch',
-                'created_at': conv.created_at.isoformat(),
-                'duration_display': duration_display,
-                'staff': {
-                    'id': conv.staff.id if conv.staff else None,
-                    'name': conv.staff.name if conv.staff else 'Chưa phân công',
-                    'is_online': True
-                } if conv.staff else None,
-                'customer': {
-                    'id': customer.id,
-                    'name': customer.name,
-                    'phone': customer.phone,
-                    'email': customer.email,
-                    'tier_name': tier_name,
-                    'total_spent': formatted_spent,
-                    'health_summary': health_summary
-                },
-                'sla_status': 'Tốt (< 30 giây)',
-                'sla_badge': 'success',
-                'messages': serialized_messages,
-                'available_staffs': list(available_staffs)
-            }
-        }, status=status.HTTP_200_OK)
-
-
-class AdminReassignStaffAPI(APIView):
-    """
-    [Figma Node 502:2005] Admin điều phối: Chuyển cuộc hội thoại sang cho nhân viên khác.
-    """
-    permission_classes = [IsSuperUserOnly]
-
-    def post(self, request, pk):
-        try:
-            conv = Conversation.objects.get(pk=pk)
-        except Conversation.DoesNotExist:
-            return Response({'error': 'Không tìm thấy cuộc hội thoại.'}, status=status.HTTP_404_NOT_FOUND)
-
-        new_staff_id = request.data.get('staff_id')
-        if not new_staff_id:
-            return Response({'error': 'Vui lòng chọn nhân viên tiếp nhận mới.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            new_staff = User.objects.get(pk=new_staff_id, is_staff=True)
-        except User.DoesNotExist:
-            return Response({'error': 'Nhân viên không tồn tại hoặc không hợp lệ.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        old_staff_name = conv.staff.name if conv.staff else 'Chưa có'
-        conv.staff = new_staff
-        conv.status = 'Đang xử lý'
-        conv.save(update_fields=['staff', 'status'])
-
-        # Ghi nhận log thông báo vào phiên chat
-        admin_name = request.user.name or 'Quản trị viên'
-        sys_msg = ConversationMessage.objects.create(
-            conversation=conv,
-            sender_type='Staff',
-            content=f"[HỆ THỐNG] {admin_name} đã chuyển giao cuộc hội thoại từ {old_staff_name} sang nhân viên {new_staff.name}."
-        )
-
-        return Response({
-            'status': 'success',
-            'message': f'Đã chuyển giao thành công cho nhân viên {new_staff.name}.',
+    return JsonResponse({
+        'status': 'success',
+        'conversation': {
+            'id': conv.id,
+            'status': conv.status,
+            'customer_tag': conv.customer_tag or 'Trị liệu vai gáy & Đặt lịch',
+            'created_at': conv.created_at.isoformat(),
+            'duration_display': duration_display,
             'staff': {
-                'id': new_staff.id,
-                'name': new_staff.name
-            }
-        }, status=status.HTTP_200_OK)
+                'id': conv.staff.id,
+                'name': conv.staff.name,
+                'is_online': True,
+            } if conv.staff else None,
+            'customer': {
+                'id': customer.id if customer else None,
+                'name': customer.name if customer else 'Khách vãng lai',
+                'phone': customer.phone if customer else '',
+                'email': customer.email if customer else '',
+                'tier_name': tier_name,
+                'total_spent': formatted_spent,
+                'health_summary': health_summary,
+            },
+            'sla_status': 'Tốt (< 30 giây)',
+            'sla_badge': 'success',
+            'messages': [serialize_message(m) for m in messages_qs],
+            'available_staffs': list(available_staffs),
+        },
+    }, status=200)
 
 
-class AdminTakeoverConversationAPI(APIView):
-    """
-    [Figma Node 502:2005] Nút: Can thiệp / Tiếp quản phiên chat.
-    Admin trực tiếp tiếp quản cuộc hội thoại, gán staff=admin và đổi trạng thái.
-    """
-    permission_classes = [IsSuperUserOnly]
+@require_staff_json
+@require_POST
+def admin_reassign_staff_api(request, pk):
+    """Chuyển cuộc hội thoại sang cho nhân viên khác."""
+    conv = Conversation.objects.filter(pk=pk).first()
+    if not conv:
+        return json_error('Không tìm thấy cuộc hội thoại.', status=404)
 
-    def post(self, request, pk):
-        try:
-            conv = Conversation.objects.get(pk=pk)
-        except Conversation.DoesNotExist:
-            return Response({'error': 'Không tìm thấy cuộc hội thoại.'}, status=status.HTTP_404_NOT_FOUND)
+    data, err = parse_json_body(request)
+    if err:
+        return err
 
-        admin_name = request.user.name or 'Quản trị viên'
-        conv.staff = request.user
-        conv.status = 'Đang xử lý'
-        conv.save(update_fields=['staff', 'status'])
+    new_staff_id = data.get('staff_id')
+    if not new_staff_id:
+        return json_error('Vui lòng chọn nhân viên tiếp nhận mới.', status=400)
 
-        ConversationMessage.objects.create(
-            conversation=conv,
-            sender_type='Staff',
-            content=f"[HỆ THỐNG] Quản lý ({admin_name}) đã can thiệp và trực tiếp tiếp quản phiên tư vấn này."
-        )
+    new_staff = User.objects.filter(pk=new_staff_id, is_staff=True).first()
+    if not new_staff:
+        return json_error('Nhân viên không tồn tại hoặc không hợp lệ.', status=400)
 
-        return Response({
-            'status': 'success',
-            'message': f'Quản lý {admin_name} đã tiếp quản cuộc hội thoại thành công.',
-            'staff_name': admin_name
-        }, status=status.HTTP_200_OK)
+    old_staff_name = conv.staff.name if conv.staff else 'Chưa có'
+    conv.staff = new_staff
+    conv.status = 'Đang xử lý'
+    conv.save(update_fields=['staff', 'status'])
 
+    admin_name = request.user.name or 'Quản trị viên'
+    ConversationMessage.objects.create(
+        conversation=conv,
+        sender_type='Staff',
+        content=f"[HỆ THỐNG] {admin_name} đã chuyển giao cuộc hội thoại từ {old_staff_name} sang nhân viên {new_staff.name}.",
+    )
 
-class AdminSendMessageAPI(APIView):
-    """
-    [Figma Node 502:2005] Admin gửi tin nhắn can thiệp / chỉ đạo trực tiếp vào phiên chat.
-    """
-    permission_classes = [IsSuperUserOnly]
-
-    def post(self, request, pk):
-        try:
-            conv = Conversation.objects.get(pk=pk)
-        except Conversation.DoesNotExist:
-            return Response({'error': 'Không tìm thấy cuộc hội thoại.'}, status=status.HTTP_404_NOT_FOUND)
-
-        content = request.data.get('content', '').strip()
-        if not content:
-            return Response({'error': 'Nội dung tin nhắn không được để trống.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        admin_name = request.user.name or 'Quản lý Cham Spa'
-        msg = ConversationMessage.objects.create(
-            conversation=conv,
-            sender_type='Staff',
-            content=f"[Quản lý {admin_name}]: {content}"
-        )
-
-        serializer = ConversationMessageSerializer(msg)
-        return Response({
-            'status': 'success',
-            'message': serializer.data
-        }, status=status.HTTP_201_CREATED)
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Đã chuyển giao thành công cho nhân viên {new_staff.name}.',
+        'staff': {'id': new_staff.id, 'name': new_staff.name},
+    }, status=200)
 
 
-class AdminFAQExportAPI(APIView):
-    """
-    [Figma Node 211:3459] Nút: 'Xuất dữ liệu 📥'
-    Xuất toàn bộ danh sách kịch bản FAQ ra file CSV có BOM UTF-8 (chuẩn Excel tiếng Việt).
-    """
-    permission_classes = [IsSuperUserOnly]
+@require_staff_json
+@require_POST
+def admin_takeover_conversation_api(request, pk):
+    """Admin trực tiếp tiếp quản cuộc hội thoại."""
+    conv = Conversation.objects.filter(pk=pk).first()
+    if not conv:
+        return json_error('Không tìm thấy cuộc hội thoại.', status=404)
 
-    def get(self, request):
-        response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-        response['Content-Disposition'] = 'attachment; filename="ChamSpa_KichBan_FAQ.csv"'
+    admin_name = request.user.name or 'Quản trị viên'
+    conv.staff = request.user
+    conv.status = 'Đang xử lý'
+    conv.save(update_fields=['staff', 'status'])
 
-        writer = csv.writer(response)
-        writer.writerow(['Mã FAQ', 'Danh mục', 'Câu hỏi hiển thị', 'Từ khóa kích hoạt', 'Câu trả lời tự động', 'Trạng thái', 'Ngày tạo'])
+    ConversationMessage.objects.create(
+        conversation=conv,
+        sender_type='Staff',
+        content=f"[HỆ THỐNG] Quản lý ({admin_name}) đã can thiệp và trực tiếp tiếp quản phiên tư vấn này.",
+    )
 
-        faqs = FAQ.objects.all().order_by('category', 'faq_code')
-        for faq in faqs:
-            writer.writerow([
-                faq.faq_code,
-                faq.category,
-                faq.question,
-                faq.keywords,
-                faq.answer,
-                'Kích hoạt' if faq.status == 'Active' else 'Đang ẩn',
-                faq.created_at.strftime('%d/%m/%Y %H:%M') if faq.created_at else ''
-            ])
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Quản lý {admin_name} đã tiếp quản cuộc hội thoại thành công.',
+        'staff_name': admin_name,
+    }, status=200)
 
-        return response
+
+@require_staff_json
+@require_POST
+def admin_send_message_api(request, pk):
+    """Admin gửi tin nhắn can thiệp / chỉ đạo trực tiếp vào phiên chat."""
+    conv = Conversation.objects.filter(pk=pk).first()
+    if not conv:
+        return json_error('Không tìm thấy cuộc hội thoại.', status=404)
+
+    data, err = parse_json_body(request)
+    if err:
+        return err
+
+    content = str(data.get('content') or '').strip()
+    if not content:
+        return json_error('Nội dung tin nhắn không được để trống.', status=400)
+
+    admin_name = request.user.name or 'Quản lý Cham Spa'
+    msg = ConversationMessage.objects.create(
+        conversation=conv,
+        sender_type='Staff',
+        content=f"[Quản lý {admin_name}]: {content}",
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': serialize_message(msg),
+    }, status=201)
+
+
+@require_staff_json
+@require_GET
+def admin_faq_export_api(request):
+    """Xuất toàn bộ danh sách kịch bản FAQ ra file CSV có BOM UTF-8."""
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="ChamSpa_KichBan_FAQ.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Mã FAQ', 'Danh mục', 'Câu hỏi hiển thị', 'Từ khóa kích hoạt', 'Câu trả lời tự động', 'Trạng thái', 'Ngày tạo'])
+
+    for faq in FAQ.objects.all().order_by('category', 'faq_code'):
+        writer.writerow([
+            faq.faq_code,
+            faq.category,
+            faq.question,
+            faq.keywords,
+            faq.answer,
+            'Kích hoạt' if faq.status == 'Active' else 'Đang ẩn',
+            faq.created_at.strftime('%d/%m/%Y %H:%M') if faq.created_at else '',
+        ])
+
+    return response

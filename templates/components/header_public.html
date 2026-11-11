@@ -33,6 +33,15 @@
             </button>
 
             {% if user.is_authenticated %}
+                <!-- Bell icon with Dropdown for Customer / Logged-in User (Figma 777:440) -->
+                <div class="cham-notif-dropdown-wrapper position-relative me-1">
+                    <button class="workspace-bell-btn cham-customer-bell-btn" type="button" title="Thông báo hệ thống" aria-label="Thông báo" id="customerHeaderBellBtn">
+                        <i class="bi bi-bell"></i>
+                        <span class="cham-bell-badge" style="display: none;">0</span>
+                    </button>
+                    {% include "marketing/components/bell_dropdown.html" %}
+                </div>
+
                 <!-- KHI ĐÃ ĐĂNG NHẬP: Hiện Tên thật và Dropdown phân quyền theo vai trò -->
                 <div class="profile-dropdown-container">
                     <div class="profile-pill-figma" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" title="Tài khoản của bạn">
@@ -84,17 +93,13 @@
                                     <i class="bi bi-calendar-event"></i>
                                     <span>Quản lý lịch hẹn</span>
                                 </a>
-                                <a href="{% url 'dashboard:admin' %}?tab=chatbox" class="dropdown-menu-item" data-nav-target="Quản lý Chatbox">
+                                <a href="{% url 'chatbox:admin_monitor' %}" class="dropdown-menu-item" data-nav-target="Quản lý Chatbox">
                                     <i class="bi bi-chat-dots"></i>
                                     <span>Quản lý Chatbox</span>
                                 </a>
-                                <a href="{% url 'dashboard:admin' %}?tab=feedbacks" class="dropdown-menu-item" data-nav-target="Quản lý đánh giá và khiếu nại">
+                                <a href="{% url 'feedbacks:admin_management' %}" class="dropdown-menu-item" data-nav-target="Quản lý đánh giá và khiếu nại">
                                     <i class="bi bi-star"></i>
                                     <span>Quản lý đánh giá và khiếu nại</span>
-                                </a>
-                                <a href="{% url 'dashboard:admin' %}?tab=payments" class="dropdown-menu-item" data-nav-target="Quản lý thanh toán & hóa đơn">
-                                    <i class="bi bi-receipt"></i>
-                                    <span>Quản lý thanh toán & hóa đơn</span>
                                 </a>
 
                                 <div class="dropdown-category-label">HỆ THỐNG</div>
@@ -137,28 +142,21 @@
                                     <i class="bi bi-calendar-check"></i>
                                     <span>Lịch hẹn</span>
                                 </a>
-                                <a href="{% url 'dashboard:staff' %}?tab=inbox" class="dropdown-menu-item justify-content-between" data-nav-target="Inbox">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <i class="bi bi-inbox"></i>
-                                        <span>Inbox</span>
-                                    </div>
-                                    <span class="badge bg-danger rounded-pill px-2 py-1" style="font-size: 11px;">8</span>
+                                <a href="{% url 'dashboard:staff' %}?tab=inbox" class="dropdown-menu-item" data-nav-target="Inbox">
+                                    <i class="bi bi-inbox"></i>
+                                    <span>Inbox</span>
                                 </a>
                                 <a href="{% url 'dashboard:staff' %}?tab=notifications" class="dropdown-menu-item" data-nav-target="Quản lý Thông báo">
                                     <i class="bi bi-bell"></i>
                                     <span>Quản lý Thông báo</span>
                                 </a>
-                                <a href="{% url 'dashboard:staff' %}?tab=feedbacks" class="dropdown-menu-item" data-nav-target="Đánh giá và Khiếu nại">
+                                <a href="{% url 'feedbacks:admin_management' %}" class="dropdown-menu-item" data-nav-target="Đánh giá và Khiếu nại">
                                     <i class="bi bi-chat-left-dots"></i>
                                     <span>Đánh giá và Khiếu nại</span>
                                 </a>
                                 <a href="{% url 'dashboard:staff' %}?tab=customers" class="dropdown-menu-item" data-nav-target="Hồ sơ Khách hàng">
                                     <i class="bi bi-people"></i>
                                     <span>Hồ sơ Khách hàng</span>
-                                </a>
-                                <a href="{% url 'dashboard:staff' %}?tab=payments" class="dropdown-menu-item" data-nav-target="Hóa đơn & thanh toán">
-                                    <i class="bi bi-receipt"></i>
-                                    <span>Hóa đơn & thanh toán</span>
                                 </a>
 
                             {% else %}
@@ -175,15 +173,15 @@
                                     <i class="bi bi-heart-pulse"></i>
                                     <span>Hồ sơ sức khỏe</span>
                                 </a>
-                                <a href="{% url 'accounts:profile' %}?tab=notifications" class="dropdown-menu-item" data-nav-target="Thông báo từ Cham">
+                                <a href="{% url 'marketing:notifications' %}" class="dropdown-menu-item" data-nav-target="Thông báo từ Cham">
                                     <i class="bi bi-bell"></i>
                                     <span>Thông báo từ Cham</span>
                                 </a>
-                                <a href="{% url 'accounts:profile' %}?tab=membership" class="dropdown-menu-item" data-nav-target="Thẻ hội viên & Tích điểm">
+                                <a href="{% url 'membership:my_card' %}" class="dropdown-menu-item" data-nav-target="Thẻ hội viên & Tích điểm">
                                     <i class="bi bi-credit-card"></i>
                                     <span>Thẻ hội viên & Tích điểm</span>
                                 </a>
-                                <a href="{% url 'accounts:profile' %}?tab=feedbacks" class="dropdown-menu-item" data-nav-target="Đánh giá & Phản hồi">
+                                <a href="{% url 'feedbacks:customer_tracking' %}" class="dropdown-menu-item" data-nav-target="Đánh giá & Phản hồi">
                                     <i class="bi bi-star"></i>
                                     <span>Đánh giá & Phản hồi</span>
                                 </a>

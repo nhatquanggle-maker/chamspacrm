@@ -1,0 +1,307 @@
+{% load static %}
+<!-- ==========================================================================
+     MODULE 07: QUẢN LÝ THÔNG BÁO & KHUYẾN MÃI (MOD-07)
+     COMPONENT: DROPDOWN THÔNG BÁO TẠI QUẢ CHUÔNG (UC-7.1)
+     Figma Reference: Workspace Topbar Bell Icon (Node 772:2 & Node 760:751)
+     Thành viên phụ trách: MINH KHA
+     Mục đích:
+       - Dropdown menu thông báo mở ngay dưới icon quả chuông khi click chuột.
+       - Tự động nhận diện phân quyền 3 cấp (Admin, Staff, Customer):
+           + Admin: Sự thay đổi hệ thống, nhân viên xử lý thành công, VietQR,...
+           + Staff: Admin phân công xử lý lịch hẹn/khiếu nại, ca trực,...
+           + Customer: Nhắc lịch hẹn, tặng voucher, kết quả khiếu nại,...
+       - Tương tác động không tải lại trang qua Vanilla JS & Fetch API.
+       ========================================================================== -->
+<!-- Dropdown Menu HTML (Được render sẵn trực tiếp trong DOM ngay cạnh nút chuông) -->
+<div class="cham-notif-menu" role="menu" aria-label="Menu thông báo">
+    <div class="cham-notif-header">
+        <div class="cham-notif-header-title">
+            <i class="bi bi-bell-fill"></i>
+            <span>Thông báo hệ thống</span>
+        </div>
+        <span class="cham-notif-role-badge chamNotifRoleBadgeText">
+            {% if user.is_superuser %}ADMIN{% elif user.is_staff %}STAFF{% else %}CUSTOMER{% endif %}
+        </span>
+    </div>
+
+    <!-- Thanh tab lọc nhanh -->
+    <div class="cham-notif-tabs">
+        <button type="button" class="cham-notif-tab-btn active" data-filter="all">Tất cả</button>
+        {% if user.is_staff and not user.is_superuser %}
+            <button type="button" class="cham-notif-tab-btn" data-filter="complaint">Khiếu nại</button>
+            <button type="button" class="cham-notif-tab-btn" data-filter="system">Hệ thống</button>
+        {% else %}
+            <button type="button" class="cham-notif-tab-btn" data-filter="appointment">Lịch hẹn</button>
+            <button type="button" class="cham-notif-tab-btn" data-filter="voucher">Ưu đãi</button>
+            <button type="button" class="cham-notif-tab-btn" data-filter="complaint">Khiếu nại</button>
+        {% endif %}
+    </div>
+
+    <!-- Danh sách thông báo (cuộn) nạp qua Fetch API -->
+    <div class="cham-notif-body chamNotifBodyList">
+        <div class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-danger" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+            <div class="mt-2" style="font-size: 12px; color: #716761;">Đang tải thông báo...</div>
+        </div>
+    </div>
+
+    <!-- Footer dẫn tới trang xem đầy đủ -->
+    <div class="cham-notif-footer">
+        {% if user.is_superuser %}
+            <a href="{% url 'marketing:admin_notifications' %}" class="cham-notif-view-all-link">
+                <span>Xem tất cả thông báo</span>
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        {% elif user.is_staff %}
+            <a href="{% url 'marketing:staff_notifications' %}" class="cham-notif-view-all-link">
+                <span>Xem tất cả thông báo</span>
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        {% else %}
+            <a href="{% url 'marketing:notifications' %}" class="cham-notif-view-all-link">
+                <span>Xem tất cả thông báo</span>
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Popup chi tiết thông báo cấp Root -->
+<div class="modal fade" id="chamNotifDetailModal" tabindex="-1" aria-labelledby="chamNotifModalTitle" aria-hidden="true" style="z-index: 1095;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border: 1px solid #D0B581; border-radius: 18px; overflow: hidden; box-shadow: 0 16px 40px rgba(46, 29, 23, 0.25);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #781A24 0%, #5C121B 100%); color: #FFFFFF; border-bottom: 1px solid #D0B581;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-bell-fill" style="color: #D0B581; font-size: 18px;"></i>
+                    <h5 class="modal-title font-serif fw-bold mb-0" id="chamNotifModalTitle" style="font-size: 17px;">Chi tiết thông báo</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" style="background-color: #FAF7EF;">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="badge px-3 py-1" id="chamNotifModalCategory" style="font-size: 11.5px; border-radius: 999px;">Hệ thống</span>
+                    <span class="text-muted" id="chamNotifModalTime" style="font-size: 12px;"><i class="bi bi-clock me-1"></i>Vừa xong</span>
+                </div>
+                <div class="p-3 bg-white rounded-3 border" style="border-color: #E8E2D9 !important; font-size: 14px; line-height: 1.6; color: #2E1D17;" id="chamNotifModalContent">
+                    Nội dung thông báo chi tiết...
+                </div>
+            </div>
+            <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
+                <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-size: 13px; font-weight: 600;">Đóng</button>
+                {% if user.is_superuser %}
+                    <a href="{% url 'marketing:admin_notifications' %}" class="btn px-4 py-2" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-size: 13px; font-weight: 600;">Xem tất cả</a>
+                {% elif user.is_staff %}
+                    <a href="{% url 'marketing:staff_notifications' %}" class="btn px-4 py-2" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-size: 13px; font-weight: 600;">Xem tất cả</a>
+                {% else %}
+                    <a href="{% url 'marketing:notifications' %}" class="btn px-4 py-2" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-size: 13px; font-weight: 600;">Xem tất cả</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script tương tác Dropdown Quả chuông (Vanilla JS + Fetch API) -->
+<script>
+(function() {
+    const DROPDOWN_API_URL = "{% url 'marketing:api_notification_dropdown' %}";
+
+    let cachedNotifs = [];
+    let currentFilter = 'all';
+
+    // Đưa modal ra ngoài body nếu đang nằm trong container con (tránh bị overflow: hidden của layout cha)
+    function ensureModalInBody() {
+        const modalElem = document.getElementById('chamNotifDetailModal');
+        if (modalElem && modalElem.parentElement !== document.body) {
+            document.body.appendChild(modalElem);
+        }
+    }
+
+    // Hàm tạo HTML cho 1 item thông báo
+    function renderItemHTML(item) {
+        const jsonSafe = encodeURIComponent(JSON.stringify(item));
+        return `
+            <div class="cham-notif-item" data-category="${item.category}" onclick="openNotifDetailModal('${jsonSafe}')">
+                <div class="cham-notif-icon-circle" style="background-color: ${item.category_color};">
+                    <i class="bi ${item.category_icon}"></i>
+                </div>
+                <div class="cham-notif-item-content">
+                    <div class="cham-notif-item-title">${item.title}</div>
+                    <div class="cham-notif-item-desc">${item.content}</div>
+                    <div class="cham-notif-item-time">
+                        <i class="bi bi-clock"></i>
+                        <span>${item.time_ago}</span>
+                        <span class="mx-1">•</span>
+                        <span class="badge" style="background-color: #FAF0E4; color: #781A24; font-size: 10px; font-weight: 600;">${item.category_label}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Hàm render danh sách theo bộ lọc
+    function renderListIntoContainers(items) {
+        document.querySelectorAll('.chamNotifBodyList').forEach(container => {
+            let filtered = items;
+            if (currentFilter !== 'all') {
+                filtered = items.filter(it => it.category === currentFilter);
+            }
+
+            if (!filtered || filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 px-3">
+                        <i class="bi bi-bell-slash" style="font-size: 28px; color: #D0B581;"></i>
+                        <div class="mt-2" style="font-size: 13px; color: #716761; font-weight: 600;">Không có thông báo mới</div>
+                        <div style="font-size: 11.5px; color: #9E948E;">Hệ thống sẽ cập nhật thông báo khi có sự kiện mới.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(renderItemHTML).join('');
+        });
+    }
+
+    // Gọi Fetch API lấy danh sách thông báo
+    function loadDropdownNotifications() {
+        fetch(DROPDOWN_API_URL, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                cachedNotifs = data.notifications || [];
+                renderListIntoContainers(cachedNotifs);
+
+                // Cập nhật nhãn quyền vai trò
+                if (data.role) {
+                    document.querySelectorAll('.chamNotifRoleBadgeText').forEach(badge => {
+                        badge.textContent = data.role;
+                    });
+                }
+
+                // Cập nhật số badge trên tất cả các quả chuông
+                document.querySelectorAll('.cham-bell-badge').forEach(b => {
+                    if (data.unread_count > 0) {
+                        b.textContent = data.unread_count;
+                        b.style.display = 'flex';
+                    } else {
+                        b.style.display = 'none';
+                    }
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Lỗi khi tải thông báo dropdown:', err);
+            document.querySelectorAll('.chamNotifBodyList').forEach(container => {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-danger" style="font-size: 12px;">
+                        <i class="bi bi-exclamation-circle fs-5 d-block mb-1"></i>
+                        Không thể kết nối đến máy chủ thông báo.
+                    </div>
+                `;
+            });
+        });
+    }
+
+    // Modal popup hiển thị chi tiết thông báo
+    window.openNotifDetailModal = function(encodedItem) {
+        try {
+            const item = JSON.parse(decodeURIComponent(encodedItem));
+            const modalTitle = document.getElementById('chamNotifModalTitle');
+            const modalContent = document.getElementById('chamNotifModalContent');
+            const modalTime = document.getElementById('chamNotifModalTime');
+            const modalCategory = document.getElementById('chamNotifModalCategory');
+
+            if (modalTitle) modalTitle.textContent = item.title;
+            if (modalContent) modalContent.textContent = item.content;
+            if (modalTime) modalTime.textContent = item.time_ago + ' (' + (item.created_at || '') + ')';
+            if (modalCategory) {
+                modalCategory.textContent = item.category_label;
+                modalCategory.style.backgroundColor = item.category_color;
+                modalCategory.style.color = '#FFFFFF';
+            }
+
+            const modalElem = document.getElementById('chamNotifDetailModal');
+            if (modalElem && window.bootstrap) {
+                const bsModal = bootstrap.Modal.getInstance(modalElem) || new bootstrap.Modal(modalElem);
+                bsModal.show();
+            } else {
+                alert(item.title + "\n\n" + item.content);
+            }
+        } catch (e) {
+            console.error('Lỗi mở popup chi tiết thông báo:', e);
+        }
+    };
+
+    // Thiết lập sự kiện click chuông & dropdown
+    function initBellInteractions() {
+        ensureModalInBody();
+
+        // 1. Gắn sự kiện click cho nút chuông
+        const bellButtons = document.querySelectorAll('.workspace-bell-btn, .cham-customer-bell-btn');
+        bellButtons.forEach(btn => {
+            if (btn.dataset.bellInit) return;
+            btn.dataset.bellInit = 'true';
+
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const wrapper = btn.closest('.cham-notif-dropdown-wrapper') || btn.parentElement;
+                const menu = wrapper.querySelector('.cham-notif-menu');
+                if (!menu) return;
+
+                const isShown = menu.classList.contains('show');
+
+                // Đóng tất cả dropdown khác
+                document.querySelectorAll('.cham-notif-menu.show').forEach(m => m.classList.remove('show'));
+
+                if (!isShown) {
+                    menu.classList.add('show');
+                    loadDropdownNotifications();
+                }
+            });
+        });
+
+        // 2. Gắn sự kiện cho các tabs lọc trong dropdown
+        document.querySelectorAll('.cham-notif-tab-btn').forEach(tabBtn => {
+            if (tabBtn.dataset.tabInit) return;
+            tabBtn.dataset.tabInit = 'true';
+
+            tabBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const parentMenu = tabBtn.closest('.cham-notif-menu');
+                if (parentMenu) {
+                    parentMenu.querySelectorAll('.cham-notif-tab-btn').forEach(b => b.classList.remove('active'));
+                }
+                tabBtn.classList.add('active');
+                currentFilter = tabBtn.dataset.filter || 'all';
+                renderListIntoContainers(cachedNotifs);
+            });
+        });
+
+        // 3. Đóng dropdown khi click ra ngoài
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.cham-notif-dropdown-wrapper')) {
+                document.querySelectorAll('.cham-notif-menu.show').forEach(m => m.classList.remove('show'));
+            }
+        });
+
+        // 4. Tải trước số lượng badge ban đầu
+        loadDropdownNotifications();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initBellInteractions);
+    } else {
+        initBellInteractions();
+    }
+})();
+</script>

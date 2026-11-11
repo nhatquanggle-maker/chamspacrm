@@ -1,0 +1,149 @@
+{% extends "layouts/staff_layout.html" %}
+{% load static %}
+
+{% block body_class %}page-marketing-staff-notifications{% endblock %}
+
+{% block title %}Bảng Tin Điều Phối & Nhiệm Vụ | Cham Spa Staff Workspace{% endblock %}
+
+
+{% block staff_content %}
+<div class="staff-notifications-wrapper">
+    <!-- 1. Header Bảng Tin Nhân Viên -->
+    <div class="staff-notif-header">
+        <div>
+            <div class="mb-1 text-muted" style="font-size: 12.5px;">
+                <i class="bi bi-person-workspace me-1"></i>Khu vực Chăm sóc Khách hàng &amp; Xử lý Khiếu nại
+            </div>
+            <h1 class="staff-notif-title">Thông Báo Điều Phối & Nhiệm Vụ Nhân Viên</h1>
+        </div>
+    </div>
+
+    <!-- 2. Thống Kê Nhanh 3 Chỉ Số Nhiệm Vụ Staff -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="staff-task-stat-card">
+                <div class="staff-stat-icon" style="background: #F7E9EB; color: #781A24;">
+                    <i class="bi bi-inbox-fill"></i>
+                </div>
+                <div>
+                    <div style="font-family: var(--font-serif); font-size: 22px; font-weight: 700; color: #2E1D17;">{{ stats.all }}</div>
+                    <div style="font-size: 12px; color: #716761; font-weight: 600;">Tổng thông báo</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="staff-task-stat-card">
+                <div class="staff-stat-icon" style="background: #FFF7E6; color: #D48806;">
+                    <i class="bi bi-person-check-fill"></i>
+                </div>
+                <div>
+                    <div style="font-family: var(--font-serif); font-size: 22px; font-weight: 700; color: #2E1D17;">{{ stats.assigned }}</div>
+                    <div style="font-size: 12px; color: #716761; font-weight: 600;">Admin phân công</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="staff-task-stat-card">
+                <div class="staff-stat-icon" style="background: #FFF0F6; color: #EB2F96;">
+                    <i class="bi bi-shield-exclamation"></i>
+                </div>
+                <div>
+                    <div style="font-family: var(--font-serif); font-size: 22px; font-weight: 700; color: #2E1D17;">{{ stats.complaints }}</div>
+                    <div style="font-size: 12px; color: #716761; font-weight: 600;">Khiếu nại được giao</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Bộ Lọc Tabs (Phân loại tách biệt, không trùng lặp) -->
+    <div class="staff-filter-tabs">
+        <a href="?tab=all" class="staff-filter-btn {% if active_tab == 'all' %}active{% endif %}">
+            <i class="bi bi-bell"></i>
+            <span>Tất cả</span>
+            <span class="badge bg-light text-dark border">{{ stats.all }}</span>
+        </a>
+        <a href="?tab=complaints" class="staff-filter-btn {% if active_tab == 'complaints' %}active{% endif %}">
+            <i class="bi bi-shield-exclamation"></i>
+            <span>Khiếu nại</span>
+            <span class="badge bg-light text-dark border">{{ stats.complaints }}</span>
+        </a>
+        <a href="?tab=consultation" class="staff-filter-btn {% if active_tab == 'consultation' %}active{% endif %}">
+            <i class="bi bi-chat-dots"></i>
+            <span>Tư vấn Livechat</span>
+            <span class="badge bg-light text-dark border">{{ stats.consultation }}</span>
+        </a>
+        <a href="?tab=internal" class="staff-filter-btn {% if active_tab == 'internal' %}active{% endif %}">
+            <i class="bi bi-megaphone"></i>
+            <span>Nội bộ</span>
+            <span class="badge bg-light text-dark border">{{ stats.internal }}</span>
+        </a>
+    </div>
+
+    <!-- 4. Danh Sách Thẻ Thông Báo Nhiệm Vụ -->
+    <div class="staff-notifs-list">
+        {% for notif in notifications %}
+            <div class="staff-notif-card">
+                <div class="staff-notif-card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="{{ notif.staff_badge_class }}" style="font-size: 11px;">{{ notif.staff_badge_label }}</span>
+                        <h4 class="staff-notif-card-title">{{ notif.title }}</h4>
+                    </div>
+                </div>
+
+                <div class="staff-notif-card-desc">
+                    {{ notif.content|linebreaks }}
+                </div>
+
+                <div class="staff-notif-card-footer">
+                    <div>
+                        <i class="bi bi-clock me-1 text-danger"></i>
+                        <span>{{ notif.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div>
+                        {% if notif.staff_action_url %}
+                            <a href="{{ notif.staff_action_url }}" class="btn-action-task">
+                                <span>{{ notif.staff_action_label }}</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="card p-5 text-center bg-white border" style="border-color: #D0B581 !important; border-radius: 18px;">
+                <i class="bi bi-check2-all" style="font-size: 48px; color: #D0B581;"></i>
+                <h4 class="font-serif fw-bold mt-3" style="color: #2E1D17;">Không có nhiệm vụ cần xử lý</h4>
+                <p class="text-muted" style="font-size: 13.5px;">Bạn đã hoàn tất tất cả các công việc và nhiệm vụ được phân công.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Phân trang Pagination -->
+    {% if page_obj.has_other_pages %}
+        <nav class="d-flex justify-content-center mt-4">
+            <ul class="pagination pagination-sm">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?tab={{ active_tab }}&page={{ page_obj.previous_page_number }}" style="color: #781A24;">&laquo; Trước</a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?tab={{ active_tab }}&page={{ num }}" style="{% if page_obj.number == num %}background-color: #781A24; border-color: #781A24;{% else %}color: #781A24;{% endif %}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?tab={{ active_tab }}&page={{ page_obj.next_page_number }}" style="color: #781A24;">Sau &raquo;</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+
+
+{% endblock %}
+

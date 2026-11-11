@@ -1,0 +1,1479 @@
+{% extends "layouts/admin_layout.html" %}
+{% load static %}
+
+{% block body_class %}page-dashboard-admin-dashboard{% endblock %}
+
+{% block title %}Bảng điều khiển & Báo cáo Doanh thu | Cham Spa Admin Workspace{% endblock %}
+
+
+{% block admin_content %}
+<div class="container-fluid px-0">
+
+    <!-- =====================================================================
+         1. HEADER BẢNG ĐIỀU KHIỂN DOANH THU & HIỆU SUẤT VẬN HÀNH (UC-10.1)
+         ===================================================================== -->
+    <div class="dashboard-header-card">
+        <div>
+            <h1 class="dashboard-title">BẢNG ĐIỀU KHIỂN & BÁO CÁO DOANH THU</h1>
+            <p class="dashboard-subtitle">
+                Hệ thống phân tích hiệu suất kinh doanh, dòng tiền, hồ sơ sức khỏe và dữ liệu khách hàng theo thời gian thực.
+            </p>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         2. BỘ LỌC THỜI GIAN THỜI GIAN THỰC (TIME PERIOD FILTER TOOLBAR)
+         ===================================================================== -->
+    <div class="filter-toolbar-card">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <span class="text-muted fw-bold small text-uppercase">
+                <i class="bi bi-calendar3 me-1"></i> Kỳ thống kê:
+            </span>
+            <div class="period-pill-group" role="group">
+                <button type="button" class="period-pill-btn {% if current_period == 'today' %}active{% endif %}" data-period="today">
+                    Hôm nay
+                </button>
+                <button type="button" class="period-pill-btn {% if current_period == 'last_7_days' %}active{% endif %}" data-period="last_7_days">
+                    7 ngày qua
+                </button>
+                <button type="button" class="period-pill-btn {% if current_period == 'this_month' %}active{% endif %}" data-period="this_month">
+                    Tháng này
+                </button>
+                <button type="button" class="period-pill-btn {% if current_period == 'this_year' %}active{% endif %}" data-period="this_year">
+                    Năm nay
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         3. 4 THẺ CHỈ SỐ KPI CHÍNH (UC-10.1: REVENUE, GUESTS, COMPLETION, MEMBERS)
+         ===================================================================== -->
+    <div class="row g-4 mb-4">
+        <!-- KPI 1: Tổng doanh thu (VNĐ) -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="kpi-metric-card">
+                <div class="kpi-metric-header">
+                    <div>
+                        <div class="kpi-metric-label">Tổng doanh thu</div>
+                        <div class="kpi-metric-value text-danger" id="kpi-total-revenue">
+                            {{ kpis.total_revenue_formatted }}
+                        </div>
+                    </div>
+                    <div class="kpi-icon-wrapper kpi-icon-red">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                </div>
+                <div class="kpi-metric-footer">
+                    <span class="growth-badge {% if kpis.revenue_growth >= 0 %}growth-positive{% else %}growth-negative{% endif %}" id="kpi-revenue-growth">
+                        <i class="bi {% if kpis.revenue_growth >= 0 %}bi-arrow-up-right{% else %}bi-arrow-down-right{% endif %}"></i>
+                        {{ kpis.revenue_growth }}%
+                    </span>
+                    <span>so với kỳ trước</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 2: Tổng lượt khách -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="kpi-metric-card">
+                <div class="kpi-metric-header">
+                    <div>
+                        <div class="kpi-metric-label">Tổng lượt khách</div>
+                        <div class="kpi-metric-value text-dark" id="kpi-total-guests">
+                            {{ kpis.total_guests }} <span class="fs-6 fw-normal text-muted">lượt</span>
+                        </div>
+                    </div>
+                    <div class="kpi-icon-wrapper kpi-icon-gold">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                </div>
+                <div class="kpi-metric-footer">
+                    <span class="growth-badge {% if kpis.guests_growth >= 0 %}growth-positive{% else %}growth-negative{% endif %}" id="kpi-guests-growth">
+                        <i class="bi {% if kpis.guests_growth >= 0 %}bi-arrow-up-right{% else %}bi-arrow-down-right{% endif %}"></i>
+                        {{ kpis.guests_growth }}%
+                    </span>
+                    <span>tổng {{ kpis.total_appointments }} lịch hẹn</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 3: Tỷ lệ hoàn thành lịch hẹn (%) -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="kpi-metric-card">
+                <div class="kpi-metric-header">
+                    <div>
+                        <div class="kpi-metric-label">Tỷ lệ hoàn thành</div>
+                        <div class="kpi-metric-value text-success" id="kpi-completed-rate">
+                            {{ kpis.completed_rate }}%
+                        </div>
+                    </div>
+                    <div class="kpi-icon-wrapper kpi-icon-green">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                </div>
+                <div class="kpi-metric-footer">
+                    <span class="growth-badge growth-positive" id="kpi-completed-count">
+                        {{ kpis.completed_appointments }} hoàn thành
+                    </span>
+                    <span class="text-danger" id="kpi-cancelled-count">({{ kpis.cancelled_appointments }} đã hủy)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 4: Số hội viên mới gia nhập -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="kpi-metric-card">
+                <div class="kpi-metric-header">
+                    <div>
+                        <div class="kpi-metric-label">Hội viên mới</div>
+                        <div class="kpi-metric-value text-primary" id="kpi-new-members">
+                            +{{ kpis.new_members }} <span class="fs-6 fw-normal text-muted">thẻ</span>
+                        </div>
+                    </div>
+                    <div class="kpi-icon-wrapper kpi-icon-blue">
+                        <i class="bi bi-award-fill"></i>
+                    </div>
+                </div>
+                <div class="kpi-metric-footer">
+                    <span class="text-warning fw-bold">
+                        <i class="bi bi-star-fill"></i> {{ kpis.avg_rating }} / 5.0
+                    </span>
+                    <span>({{ kpis.total_feedbacks }} đánh giá)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         4. HÀNG BIỂU ĐỒ 1: BIỂU ĐỒ ĐƯỜNG DOANH THU & BIỂU ĐỒ CỘT TOP DỊCH VỤ
+         ===================================================================== -->
+    <div class="row g-4 mb-4">
+        <!-- Biểu đồ đường (Line Chart): Xu hướng biến động doanh thu & Lượt khách -->
+        <div class="col-12 col-lg-8">
+            <div class="dashboard-chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <h2 class="chart-card-title">
+                            <i class="bi bi-graph-up-arrow"></i>
+                            Xu hướng Doanh thu & Lượt khách
+                        </h2>
+                        <small class="text-muted">Biểu đồ đường biểu diễn sự biến thiên qua từng mốc thời gian</small>
+                    </div>
+                    <div class="chart-toggle-btn-group">
+                        <button type="button" class="chart-toggle-btn active" id="btn-show-revenue-metric">Doanh thu (VNĐ)</button>
+                        <button type="button" class="chart-toggle-btn" id="btn-show-guests-metric">Lượt khách</button>
+                    </div>
+                </div>
+                <div class="chart-body-wrapper" style="height: 320px; max-height: 320px; position: relative;">
+                    <canvas id="revenueTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ cột (Bar Chart): Top 5 Dịch vụ được đặt nhiều nhất -->
+        <div class="col-12 col-lg-4">
+            <div class="dashboard-chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <h2 class="chart-card-title">
+                            <i class="bi bi-bar-chart-fill"></i>
+                            Top 5 Dịch vụ bán chạy
+                        </h2>
+                        <small class="text-muted">Theo số lượt hoàn thành trị liệu</small>
+                    </div>
+                </div>
+                <div class="chart-body-wrapper" style="height: 320px; max-height: 320px; position: relative;">
+                    <canvas id="topServicesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         5. HÀNG BIỂU ĐỒ 2: CƠ CẤU HỘI VIÊN (DOUGHNUT) & PHÂN BỔ TRẠNG THÁI LỊCH
+         ===================================================================== -->
+    <div class="row g-4 mb-4">
+        <!-- Biểu đồ tròn (Doughnut Chart): Cơ cấu Hội viên theo hạng thẻ -->
+        <div class="col-12 col-lg-6">
+            <div class="dashboard-chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <h2 class="chart-card-title">
+                            <i class="bi bi-pie-chart-fill"></i>
+                            Cơ cấu Hội viên theo Hạng thẻ VIP
+                        </h2>
+                        <small class="text-muted">Tỷ lệ phân bổ: Thành viên, Bạc, Vàng, Kim Cương</small>
+                    </div>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-12 col-sm-6">
+                        <div class="chart-body-wrapper-sm" style="height: 250px; max-height: 250px; position: relative;">
+                            <canvas id="membershipDoughnutChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <div class="p-2" id="membership-legend-list">
+                            <!-- Danh sách hạng thẻ được render động bằng JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ phân bổ Trạng thái Lịch hẹn -->
+        <div class="col-12 col-lg-6">
+            <div class="dashboard-chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <h2 class="chart-card-title">
+                            <i class="bi bi-calendar2-check-fill"></i>
+                            Phân bổ Trạng thái Lịch hẹn
+                        </h2>
+                        <small class="text-muted">Tỷ lệ Completed, Confirmed, Hold, Cancelled...</small>
+                    </div>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-12 col-sm-6">
+                        <div class="chart-body-wrapper-sm" style="height: 250px; max-height: 250px; position: relative;">
+                            <canvas id="apptStatusChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <div class="p-2" id="status-legend-list">
+                            <!-- Danh sách trạng thái được render động bằng JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         5.5. HÀNG BIỂU ĐỒ 3: PHÂN TÍCH HỒ SƠ SỨC KHỎE KHÁCH HÀNG (MOD-08)
+         ===================================================================== -->
+    <div class="row g-4 mb-4">
+        <!-- Biểu đồ cột ngang: Top Vùng Đau Mỏi Tập Trung -->
+        <div class="col-12 col-lg-6">
+            <div class="dashboard-chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <h2 class="chart-card-title">
+                            <i class="bi bi-heart-pulse-fill"></i>
+                            Vùng Đau Mỏi Cần Tập Trung (Hồ sơ Sức khỏe)
+                        </h2>
+                        <small class="text-muted">Phân tích vùng cơ thể khách hàng thường đau mỏi để tối ưu trị liệu</small>
+                    </div>
+                </div>
+                <div class="chart-body-wrapper-sm" style="height: 250px; max-height: 250px; position: relative;">
+                    <canvas id="healthFocusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ tròn: Nhu cầu Lực Massage & Chỉ số Cảnh báo Y tế -->
+        <div class="col-12 col-lg-6">
+            <div class="dashboard-chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <h2 class="chart-card-title">
+                            <i class="bi bi-activity"></i>
+                            Nhu cầu Lực Massage & Lưu ý Sức khỏe
+                        </h2>
+                        <small class="text-muted">Phân bổ lực trị liệu và cảnh báo an toàn cho Kỹ thuật viên</small>
+                    </div>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-12 col-sm-5">
+                        <div class="chart-body-wrapper-sm" style="height: 250px; max-height: 250px; position: relative;">
+                            <canvas id="healthPressureChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-7">
+                        <!-- 3 Thẻ chỉ số sức khỏe tóm tắt -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-4">
+                                <div class="p-2 rounded-3 text-center" style="background: #FAF7F0; border: 1px solid var(--cham-border);">
+                                    <div class="small text-muted" style="font-size: 11px;">Tổng hồ sơ</div>
+                                    <div class="fw-bold text-dark fs-6" id="health-total-profiles">{{ health_analytics.total_profiles }}</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 rounded-3 text-center" style="background: #FFF8E1; border: 1px solid rgba(245,127,23,0.2);">
+                                    <div class="small text-muted" style="font-size: 11px;">Mức đau TB</div>
+                                    <div class="fw-bold text-warning fs-6" id="health-avg-pain">{{ health_analytics.avg_pain_level }}/10</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 rounded-3 text-center" style="background: #FFEBEE; border: 1px solid rgba(198,40,40,0.2);">
+                                    <div class="small text-muted" style="font-size: 11px;">Cần lưu ý</div>
+                                    <div class="fw-bold text-danger fs-6" id="health-special-alerts">{{ health_analytics.special_alert_count }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-1" id="health-pressure-legend-list">
+                            <!-- Danh sách tỷ lệ lực massage được render động bằng JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         6. BẢNG DỮ LIỆU CHI TIẾT (RECENT TRANSACTIONS & TOP SERVICES RANKING)
+         ===================================================================== -->
+    <div class="dashboard-table-card">
+        <div class="table-tabs-header">
+            <ul class="nav nav-tabs-cham" id="dashboardTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#tab-transactions" type="button" role="tab">
+                        <i class="bi bi-receipt me-1"></i> Giao dịch & Hóa đơn gần đây
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="services-ranking-tab" data-bs-toggle="tab" data-bs-target="#tab-services-ranking" type="button" role="tab">
+                        <i class="bi bi-trophy me-1"></i> Bảng xếp hạng Dịch vụ
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tab-content" id="dashboardTabContent">
+            <!-- Tab 1: Danh sách Giao dịch & Hóa đơn gần đây -->
+            <div class="tab-pane fade show active" id="tab-transactions" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="cham-table">
+                        <thead>
+                            <tr>
+                                <th class="text-nowrap">Mã HĐ</th>
+                                <th class="text-nowrap">Mã Lịch hẹn</th>
+                                <th>Khách hàng</th>
+                                <th>Dịch vụ trải nghiệm</th>
+                                <th class="text-nowrap">Khung giờ</th>
+                                <th class="text-end text-nowrap">Thực thu (VNĐ)</th>
+                                <th class="text-end text-nowrap">Ưu đãi</th>
+                                <th class="text-nowrap">Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-tbody">
+                            {% for item in recent_transactions %}
+                            <tr>
+                                <td class="fw-bold text-danger text-nowrap">{{ item.invoice_code }}</td>
+                                <td class="text-nowrap"><span class="badge bg-light text-dark border">{{ item.appointment_code }}</span></td>
+                                <td class="fw-bold">{{ item.customer_name }}</td>
+                                <td>{{ item.service_name }}</td>
+                                <td class="text-nowrap">{{ item.appointment_date }} ({{ item.time_slot }})</td>
+                                <td class="text-end fw-bold text-dark text-nowrap">{{ item.amount_formatted }}</td>
+                                <td class="text-end text-success text-nowrap">{{ item.discount_formatted }}</td>
+                                <td class="small text-muted text-nowrap">{{ item.paid_at }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">Chưa có giao dịch hóa đơn nào trong hệ thống.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 2: Bảng xếp hạng Dịch vụ -->
+            <div class="tab-pane fade" id="tab-services-ranking" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="cham-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width: 60px;">Hạng</th>
+                                <th>Tên Dịch vụ Liệu trình</th>
+                                <th>Danh mục</th>
+                                <th class="text-end">Đơn giá niêm yết</th>
+                                <th class="text-center">Lượt thực hiện</th>
+                                <th class="text-end">Tổng doanh thu</th>
+                                <th class="text-center">Đánh giá TB</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-services-tbody">
+                            {% for s in top_services %}
+                            <tr>
+                                <td class="text-center fw-bold">
+                                    {% if forloop.counter == 1 %}
+                                        <span class="badge rounded-circle p-2 bg-warning text-dark">#1</span>
+                                    {% elif forloop.counter == 2 %}
+                                        <span class="badge rounded-circle p-2 bg-secondary text-white">#2</span>
+                                    {% elif forloop.counter == 3 %}
+                                        <span class="badge rounded-circle p-2 bg-danger text-white">#3</span>
+                                    {% else %}
+                                        <span class="text-muted">#{{ forloop.counter }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold text-dark">{{ s.name }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ s.category_name }}</span></td>
+                                <td class="text-end">{{ s.price_formatted }}</td>
+                                <td class="text-center fw-bold text-primary">{{ s.booking_count }} lượt</td>
+                                <td class="text-end fw-bold text-danger">{{ s.total_revenue_formatted }}</td>
+                                <td class="text-center text-warning fw-bold"><i class="bi bi-star-fill"></i> {{ s.rating_avg }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">Chưa có dữ liệu xếp hạng dịch vụ.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- =====================================================================
+     7. MẪU XUẤT BÁO CÁO IN ẤN / PDF CHUẨN DOANH NGHIỆP (UC-10.2: html2pdf.js)
+     ===================================================================== -->
+<div id="printable-report-area">
+    <div style="border-bottom: 2px solid #781A24; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="color: #781A24; font-size: 20px; font-weight: bold; margin: 0; text-transform: uppercase;">CHAM SPA & MASSAGE ĐÀ NẴNG</h3>
+            <p style="margin: 3px 0 0 0; font-size: 13px; color: #555;">Khu phức hợp Spa trị liệu Champa cổ điển cao cấp</p>
+            <p style="margin: 0; font-size: 12px; color: #777;">Địa chỉ: 05 Lê Quang Hòa, P. Hòa Xuân, Q. Cẩm Lệ, TP. Đà Nẵng</p>
+        </div>
+        <div style="text-align: right;">
+            <p style="margin: 0; font-size: 12px;"><strong>Mã báo cáo:</strong> <span id="pdf-report-code">RP-20261109</span></p>
+            <p style="margin: 2px 0 0 0; font-size: 12px;"><strong>Ngày xuất:</strong> <span id="pdf-export-date">{{ today_str }}</span></p>
+            <p style="margin: 2px 0 0 0; font-size: 12px;"><strong>Người lập:</strong> {{ request.user.name|default:request.user.username }}</p>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 25px;">
+        <h2 style="color: #000; font-size: 22px; font-weight: bold; margin: 0; text-transform: uppercase;">BÁO CÁO TỔNG KẾT DOANH THU & HIỆU SUẤT VẬN HÀNH</h2>
+        <p style="font-size: 14px; color: #444; margin-top: 5px;">Kỳ thống kê: <strong id="pdf-period-label">{{ period_label }}</strong></p>
+    </div>
+
+    <!-- Tóm tắt KPI -->
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; border: 1px solid #ddd;">
+        <thead>
+            <tr style="background-color: #F4EFE3;">
+                <th style="border: 1px solid #ddd; padding: 10px; font-size: 13px; text-align: center;">TỔNG DOANH THU</th>
+                <th style="border: 1px solid #ddd; padding: 10px; font-size: 13px; text-align: center;">TỔNG LƯỢT KHÁCH</th>
+                <th style="border: 1px solid #ddd; padding: 10px; font-size: 13px; text-align: center;">TỶ LỆ HOÀN THÀNH</th>
+                <th style="border: 1px solid #ddd; padding: 10px; font-size: 13px; text-align: center;">HỘI VIÊN MỚI</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px; font-size: 16px; font-weight: bold; color: #781A24; text-align: center;" id="pdf-kpi-revenue">
+                    {{ kpis.total_revenue_formatted }}
+                </td>
+                <td style="border: 1px solid #ddd; padding: 12px; font-size: 16px; font-weight: bold; text-align: center;" id="pdf-kpi-guests">
+                    {{ kpis.total_guests }} khách
+                </td>
+                <td style="border: 1px solid #ddd; padding: 12px; font-size: 16px; font-weight: bold; color: #2E7D32; text-align: center;" id="pdf-kpi-completed-rate">
+                    {{ kpis.completed_rate }}%
+                </td>
+                <td style="border: 1px solid #ddd; padding: 12px; font-size: 16px; font-weight: bold; color: #1565C0; text-align: center;" id="pdf-kpi-members">
+                    +{{ kpis.new_members }} thẻ
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Bảng danh sách chi tiết hóa đơn trong kỳ -->
+    <h4 style="font-size: 15px; font-weight: bold; margin-bottom: 8px;">DANH SÁCH HÓA ĐƠN DOANH THU CHI TIẾT</h4>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 11px;">
+        <thead>
+            <tr style="background-color: #FAF7F0;">
+                <th style="border: 1px solid #ddd; padding: 6px; text-align: center;">STT</th>
+                <th style="border: 1px solid #ddd; padding: 6px;">Mã HĐ</th>
+                <th style="border: 1px solid #ddd; padding: 6px;">Mã Đặt lịch</th>
+                <th style="border: 1px solid #ddd; padding: 6px;">Khách hàng</th>
+                <th style="border: 1px solid #ddd; padding: 6px;">Dịch vụ</th>
+                <th style="border: 1px solid #ddd; padding: 6px; text-align: right;">Số tiền (VNĐ)</th>
+                <th style="border: 1px solid #ddd; padding: 6px; text-align: right;">Giảm giá</th>
+                <th style="border: 1px solid #ddd; padding: 6px; text-align: center;">Trạng thái</th>
+                <th style="border: 1px solid #ddd; padding: 6px;">Ngày thanh toán</th>
+            </tr>
+        </thead>
+        <tbody id="pdf-invoices-tbody">
+            <!-- Đổ dữ liệu động khi bấm xuất PDF -->
+        </tbody>
+    </table>
+
+    <!-- Chữ ký xác nhận -->
+    <div style="display: flex; justify-content: space-between; margin-top: 40px; text-align: center;">
+        <div style="width: 200px;">
+            <p style="font-size: 13px; font-weight: bold; margin: 0;">NGƯỜI LẬP BIỂU</p>
+            <p style="font-size: 11px; color: #666; margin: 3px 0 0 0;">(Ký và ghi rõ họ tên)</p>
+            <div style="height: 60px;"></div>
+            <p style="font-size: 13px; font-weight: bold; margin: 0;">{{ request.user.name|default:request.user.username }}</p>
+        </div>
+        <div style="width: 200px;">
+            <p style="font-size: 13px; font-weight: bold; margin: 0;">KẾ TOÁN TRƯỞNG</p>
+            <p style="font-size: 11px; color: #666; margin: 3px 0 0 0;">(Ký và ghi rõ họ tên)</p>
+            <div style="height: 60px;"></div>
+            <p style="font-size: 13px; font-weight: bold; margin: 0;">Ban Tài chính Cham Spa</p>
+        </div>
+        <div style="width: 200px;">
+            <p style="font-size: 13px; font-weight: bold; margin: 0;">GIÁM ĐỐC ĐIỀU HÀNH</p>
+            <p style="font-size: 11px; color: #666; margin: 3px 0 0 0;">(Ký và đóng dấu)</p>
+            <div style="height: 60px;"></div>
+            <p style="font-size: 13px; font-weight: bold; margin: 0;">Cham Spa Management</p>
+        </div>
+    </div>
+</div>
+
+<!-- Khối Toast thông báo phản hồi thao tác -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+    <div id="dashboard-toast" class="toast align-items-center text-white bg-dark border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center gap-2" id="dashboard-toast-message">
+                <i class="bi bi-info-circle-fill text-warning"></i>
+                <span>Thông báo hệ thống Cham Spa</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Tích hợp SheetJS (XLSX) và html2pdf.js qua CDN chuẩn (Techstack requirement) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+/**
+ * ============================================================================
+ * MODULE 10: QUẢN LÝ DASHBOARD & BÁO CÁO (MOD-10) - CLIENT LOGIC JAVASCRIPT
+ * Thành viên phụ trách: MINH KHA
+ * Công nghệ: Vanilla JavaScript + Fetch API + Chart.js + SheetJS + html2pdf.js
+ * Tính năng chính:
+ *   1. Quản lý 4 đối tượng biểu đồ Chart.js (Line, Bar, Doughnut, Status).
+ *   2. Tương tác động Fetch API: Lọc thời gian, cập nhật chỉ số không tải lại trang.
+ *   3. Hiệu ứng số nhảy (Count-up animation) cho 4 thẻ KPI.
+ *   4. Xuất báo cáo trực tiếp tại trình duyệt (UC-10.2):
+ *      - SheetJS (.xlsx) với 2 bảng tính: KPI Tổng quan & Chi tiết Hóa đơn.
+ *      - html2pdf.js (.pdf) chuẩn trang in văn bản doanh nghiệp hoàng gia.
+ * ============================================================================
+ */
+
+document.addEventListener('DOMContentLoaded', function () {
+    // ------------------------------------------------------------------------
+    // A. KHỞI TẠO BIẾN TRẠNG THÁI VÀ DỮ LIỆU BAN ĐẦU
+    // ------------------------------------------------------------------------
+    let currentPeriod = '{{ current_period }}' || 'this_month';
+    let currentMetricMode = 'revenue'; // 'revenue' hoặc 'guests'
+    let rawRevenueData = JSON.parse('{{ revenue_chart_json|escapejs }}');
+    let rawTopServicesData = JSON.parse('{{ top_services_json|escapejs }}');
+    let rawMembershipData = JSON.parse('{{ membership_chart_json|escapejs }}');
+    let rawStatusData = JSON.parse('{{ status_chart_json|escapejs }}');
+    let rawHealthData = JSON.parse('{{ health_analytics_json|escapejs }}');
+
+    let revenueChartInstance = null;
+    let topServicesChartInstance = null;
+    let membershipChartInstance = null;
+    let statusChartInstance = null;
+    let healthFocusChartInstance = null;
+    let healthPressureChartInstance = null;
+
+    // Toast thông báo
+    const toastEl = document.getElementById('dashboard-toast');
+    const toastInstance = toastEl ? new bootstrap.Toast(toastEl, { delay: 3500 }) : null;
+
+    function showToast(message, type = 'info') {
+        const toastMsg = document.getElementById('dashboard-toast-message');
+        if (!toastMsg || !toastInstance) return;
+
+        let icon = '<i class="bi bi-info-circle-fill text-warning"></i>';
+        if (type === 'success') icon = '<i class="bi bi-check-circle-fill text-success"></i>';
+        if (type === 'error') icon = '<i class="bi bi-exclamation-triangle-fill text-danger"></i>';
+
+        toastMsg.innerHTML = `${icon} <span>${message}</span>`;
+        toastInstance.show();
+    }
+
+    // Định dạng tiền tệ VNĐ
+    function formatCurrency(num) {
+        return Math.round(num || 0).toLocaleString('vi-VN') + ' đ';
+    }
+
+    // ------------------------------------------------------------------------
+    // B. VẼ VÀ CẬP NHẬT 4 BIỂU ĐỒ CHART.JS
+    // ------------------------------------------------------------------------
+
+    // 1. BIỂU ĐỒ ĐƯỜNG: XU HƯỚNG DOANH THU & LƯỢT KHÁCH (LINE CHART)
+    function initRevenueTrendChart() {
+        const ctx = document.getElementById('revenueTrendChart')?.getContext('2d');
+        if (!ctx) return;
+
+        // Tạo gradient màu đỏ rượu vang hoàng gia Cham Spa (#781A24)
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(120, 26, 36, 0.28)');
+        gradient.addColorStop(1, 'rgba(120, 26, 36, 0.00)');
+
+        const isRevenue = (currentMetricMode === 'revenue');
+        const datasetData = isRevenue ? rawRevenueData.revenue_data : rawRevenueData.guests_data;
+        const datasetLabel = isRevenue ? 'Doanh thu thực tế (VNĐ)' : 'Lượt khách (Khách)';
+        const borderColor = isRevenue ? '#781A24' : '#1565C0';
+
+        if (revenueChartInstance) {
+            revenueChartInstance.destroy();
+        }
+
+        revenueChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: rawRevenueData.labels,
+                datasets: [{
+                    label: datasetLabel,
+                    data: datasetData,
+                    borderColor: borderColor,
+                    backgroundColor: gradient,
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.38,
+                    pointBackgroundColor: '#FFFFFF',
+                    pointBorderColor: borderColor,
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                resizeDelay: 100,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#2E1D17',
+                        titleColor: '#D0B581',
+                        bodyColor: '#FFFFFF',
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function (context) {
+                                if (currentMetricMode === 'revenue') {
+                                    return ' Doanh thu: ' + formatCurrency(context.parsed.y);
+                                } else {
+                                    return ' Lượt khách: ' + context.parsed.y + ' khách';
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 12 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#F0ECE6' },
+                        ticks: {
+                            font: { size: 11 },
+                            callback: function (val) {
+                                if (currentMetricMode === 'revenue') {
+                                    if (val >= 1000000) return (val / 1000000) + 'M';
+                                    if (val >= 1000) return (val / 1000) + 'k';
+                                    return val;
+                                }
+                                return val;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 2. BIỂU ĐỒ CỘT: TOP 5 DỊCH VỤ BÁN CHẠY NHẤT (BAR CHART)
+    function initTopServicesChart() {
+        const ctx = document.getElementById('topServicesChart')?.getContext('2d');
+        if (!ctx) return;
+
+        if (topServicesChartInstance) {
+            topServicesChartInstance.destroy();
+        }
+
+        topServicesChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: rawTopServicesData.labels,
+                datasets: [{
+                    label: 'Số lượt thực hiện',
+                    data: rawTopServicesData.counts,
+                    backgroundColor: '#D0B581',
+                    borderColor: '#781A24',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                resizeDelay: 100,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#2E1D17',
+                        titleColor: '#D0B581',
+                        bodyColor: '#FFFFFF',
+                        callbacks: {
+                            label: function (context) {
+                                const idx = context.dataIndex;
+                                const rev = rawTopServicesData.revenues[idx] || 0;
+                                return [
+                                    ' Số lượt: ' + context.parsed.y + ' lượt',
+                                    ' Doanh thu: ' + formatCurrency(rev)
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 11 },
+                            maxRotation: 30,
+                            minRotation: 15
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#F0ECE6' },
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        });
+    }
+
+    // 3. BIỂU ĐỒ TRÒN: CƠ CẤU HỘI VIÊN THEO HẠNG THẺ (DOUGHNUT CHART)
+    function initMembershipChart() {
+        const ctx = document.getElementById('membershipDoughnutChart')?.getContext('2d');
+        if (!ctx) return;
+
+        if (membershipChartInstance) {
+            membershipChartInstance.destroy();
+        }
+
+        membershipChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: rawMembershipData.labels,
+                datasets: [{
+                    data: rawMembershipData.data,
+                    backgroundColor: rawMembershipData.colors,
+                    borderColor: '#FFFFFF',
+                    borderWidth: 2,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                resizeDelay: 100,
+                cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#2E1D17',
+                        titleColor: '#D0B581',
+                        callbacks: {
+                            label: function (context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const val = context.parsed;
+                                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                                return ` ${context.label}: ${val} hội viên (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        renderMembershipLegend(rawMembershipData.items);
+    }
+
+    function renderMembershipLegend(items) {
+        const container = document.getElementById('membership-legend-list');
+        if (!container || !items) return;
+
+        let html = '';
+        items.forEach(item => {
+            html += `
+                <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="display:inline-block; width:12px; height:12px; border-radius:3px; background-color:${item.color};"></span>
+                        <span class="small fw-semibold">${item.tier_name}</span>
+                    </div>
+                    <div class="small text-muted">
+                        <strong>${item.count}</strong> thẻ <span class="badge bg-light text-dark border ms-1">${item.percentage}%</span>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    // 4. BIỂU ĐỒ PHÂN BỔ TRẠNG THÁI LỊCH HẸN
+    function initStatusChart() {
+        const ctx = document.getElementById('apptStatusChart')?.getContext('2d');
+        if (!ctx) return;
+
+        if (statusChartInstance) {
+            statusChartInstance.destroy();
+        }
+
+        statusChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: rawStatusData.labels,
+                datasets: [{
+                    data: rawStatusData.data,
+                    backgroundColor: rawStatusData.colors,
+                    borderColor: '#FFFFFF',
+                    borderWidth: 2,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                resizeDelay: 100,
+                cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#2E1D17',
+                        callbacks: {
+                            label: function (context) {
+                                return ` ${context.label}: ${context.parsed} lịch hẹn`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        renderStatusLegend(rawStatusData.details);
+    }
+
+    function renderStatusLegend(details) {
+        const container = document.getElementById('status-legend-list');
+        if (!container || !details) return;
+
+        let html = '';
+        details.forEach(item => {
+            html += `
+                <div class="d-flex align-items-center justify-content-between py-1 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${item.color};"></span>
+                        <span class="small">${item.label}</span>
+                    </div>
+                    <span class="small fw-bold">${item.count}</span>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    // 5. BIỂU ĐỒ CỘT NGANG: PHÂN BỔ VÙNG ĐAU MỎI TẬP TRUNG (HỒ SƠ SỨC KHỎE)
+    function initHealthFocusChart() {
+        const ctx = document.getElementById('healthFocusChart')?.getContext('2d');
+        if (!ctx || !rawHealthData || !rawHealthData.focus_chart) return;
+
+        if (healthFocusChartInstance) {
+            healthFocusChartInstance.destroy();
+        }
+
+        healthFocusChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: rawHealthData.focus_chart.labels,
+                datasets: [{
+                    label: 'Số khách hàng cần tập trung',
+                    data: rawHealthData.focus_chart.data,
+                    backgroundColor: 'rgba(120, 26, 36, 0.85)',
+                    borderColor: '#D0B581',
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    barThickness: 22
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                resizeDelay: 100,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#2E1D17',
+                        titleColor: '#D0B581',
+                        callbacks: {
+                            label: function (context) {
+                                return ` ${context.parsed.x} hồ sơ khách hàng`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: '#F0ECE6' },
+                        ticks: { stepSize: 1, font: { size: 11 } }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { font: { size: 12, weight: 'bold' } }
+                    }
+                }
+            }
+        });
+    }
+
+    // 6. BIỂU ĐỒ TRÒN: NHU CẦU LỰC MASSAGE TỪ HỒ SƠ SỨC KHỎE & LỊCH HẸN
+    function initHealthPressureChart() {
+        const ctx = document.getElementById('healthPressureChart')?.getContext('2d');
+        if (!ctx || !rawHealthData || !rawHealthData.pressure_chart) return;
+
+        if (healthPressureChartInstance) {
+            healthPressureChartInstance.destroy();
+        }
+
+        const pChart = rawHealthData.pressure_chart;
+
+        healthPressureChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: pChart.labels,
+                datasets: [{
+                    data: pChart.data,
+                    backgroundColor: pChart.colors,
+                    borderColor: '#FFFFFF',
+                    borderWidth: 2,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                resizeDelay: 100,
+                cutout: '65%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#2E1D17',
+                        titleColor: '#D0B581',
+                        callbacks: {
+                            label: function (context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const val = context.parsed;
+                                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                                return ` ${context.label}: ${val} lượt (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        renderHealthPressureLegend(pChart.items);
+    }
+
+    function renderHealthPressureLegend(items) {
+        const container = document.getElementById('health-pressure-legend-list');
+        if (!container || !items) return;
+
+        let html = '';
+        items.forEach(item => {
+            html += `
+                <div class="d-flex align-items-center justify-content-between py-1 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="display:inline-block; width:10px; height:10px; border-radius:3px; background-color:${item.color};"></span>
+                        <span class="small fw-semibold">${item.label}</span>
+                    </div>
+                    <div class="small text-muted">
+                        <strong>${item.count}</strong> <span class="badge bg-light text-dark border ms-1">${item.percentage}%</span>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    // Khởi tạo các biểu đồ lần đầu
+    initRevenueTrendChart();
+    initTopServicesChart();
+    initMembershipChart();
+    initStatusChart();
+    initHealthFocusChart();
+    initHealthPressureChart();
+
+    // ------------------------------------------------------------------------
+    // C. CHUYỂN ĐỔI CHẾ ĐỘ XEM BIỂU ĐỒ ĐƯỜNG (DOANH THU <-> LƯỢT KHÁCH)
+    // ------------------------------------------------------------------------
+    const btnShowRev = document.getElementById('btn-show-revenue-metric');
+    const btnShowGuests = document.getElementById('btn-show-guests-metric');
+
+    if (btnShowRev && btnShowGuests) {
+        btnShowRev.addEventListener('click', function () {
+            currentMetricMode = 'revenue';
+            btnShowRev.classList.add('active');
+            btnShowGuests.classList.remove('active');
+            updateRevenueLineChart();
+        });
+
+        btnShowGuests.addEventListener('click', function () {
+            currentMetricMode = 'guests';
+            btnShowGuests.classList.add('active');
+            btnShowRev.classList.remove('active');
+            updateRevenueLineChart();
+        });
+    }
+
+    function updateRevenueLineChart() {
+        if (!revenueChartInstance) return;
+        const isRevenue = (currentMetricMode === 'revenue');
+        const borderColor = isRevenue ? '#781A24' : '#1565C0';
+
+        revenueChartInstance.data.labels = rawRevenueData.labels;
+        revenueChartInstance.data.datasets[0].label = isRevenue ? 'Doanh thu thực tế (VNĐ)' : 'Lượt khách (Khách)';
+        revenueChartInstance.data.datasets[0].data = isRevenue ? rawRevenueData.revenue_data : rawRevenueData.guests_data;
+        revenueChartInstance.data.datasets[0].borderColor = borderColor;
+        revenueChartInstance.data.datasets[0].pointBorderColor = borderColor;
+        revenueChartInstance.update();
+    }
+
+    // ------------------------------------------------------------------------
+    // D. GỌI FETCH API CẬP NHẬT THỜI GIAN THỰC (UC-10.1)
+    // ------------------------------------------------------------------------
+    function fetchDashboardStats(period) {
+        const refreshIcon = document.getElementById('refresh-icon');
+        if (refreshIcon) refreshIcon.classList.add('spin-animation');
+
+        const url = `/dashboard/api/stats/?period=${period}`;
+
+        fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Không thể tải dữ liệu thống kê');
+            return res.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                updateUIWithNewData(data);
+                showToast(`Đã đồng bộ dữ liệu: ${data.period_label}`, 'success');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast('Lỗi tải dữ liệu: ' + err.message, 'error');
+        })
+        .finally(() => {
+            if (refreshIcon) refreshIcon.classList.remove('spin-animation');
+        });
+    }
+
+    function updateUIWithNewData(data) {
+        // 1. Cập nhật 4 thẻ KPI
+        const kpi = data.kpi;
+        const revEl = document.getElementById('kpi-total-revenue');
+        if (revEl) revEl.textContent = kpi.total_revenue_formatted;
+
+        const revGrowthEl = document.getElementById('kpi-revenue-growth');
+        if (revGrowthEl) {
+            revGrowthEl.className = `growth-badge ${kpi.revenue_growth >= 0 ? 'growth-positive' : 'growth-negative'}`;
+            revGrowthEl.innerHTML = `<i class="bi ${kpi.revenue_growth >= 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right'}"></i> ${kpi.revenue_growth}%`;
+        }
+
+        const guestsEl = document.getElementById('kpi-total-guests');
+        if (guestsEl) guestsEl.innerHTML = `${kpi.total_guests} <span class="fs-6 fw-normal text-muted">lượt</span>`;
+
+        const guestsGrowthEl = document.getElementById('kpi-guests-growth');
+        if (guestsGrowthEl) {
+            guestsGrowthEl.className = `growth-badge ${kpi.guests_growth >= 0 ? 'growth-positive' : 'growth-negative'}`;
+            guestsGrowthEl.innerHTML = `<i class="bi ${kpi.guests_growth >= 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right'}"></i> ${kpi.guests_growth}%`;
+        }
+
+        const rateEl = document.getElementById('kpi-completed-rate');
+        if (rateEl) rateEl.textContent = `${kpi.completed_rate}%`;
+
+        const countCompletedEl = document.getElementById('kpi-completed-count');
+        if (countCompletedEl) countCompletedEl.textContent = `${kpi.completed_appointments} hoàn thành`;
+
+        const countCancelledEl = document.getElementById('kpi-cancelled-count');
+        if (countCancelledEl) countCancelledEl.textContent = `(${kpi.cancelled_appointments} đã hủy)`;
+
+        const membersEl = document.getElementById('kpi-new-members');
+        if (membersEl) membersEl.innerHTML = `+${kpi.new_members} <span class="fs-6 fw-normal text-muted">thẻ</span>`;
+
+        // 3. Cập nhật biến dữ liệu Chart.js
+        rawRevenueData = data.revenue_chart;
+        updateRevenueLineChart();
+
+        // Cập nhật Top Services Bar Chart
+        if (topServicesChartInstance && data.top_services) {
+            const labels = data.top_services.map(s => s.short_name);
+            const counts = data.top_services.map(s => s.booking_count);
+            const revs = data.top_services.map(s => s.total_revenue);
+
+            rawTopServicesData = { labels: labels, counts: counts, revenues: revs };
+            topServicesChartInstance.data.labels = labels;
+            topServicesChartInstance.data.datasets[0].data = counts;
+            topServicesChartInstance.update();
+        }
+
+        // Cập nhật Doughnut Hội viên
+        if (membershipChartInstance && data.membership_chart) {
+            rawMembershipData = data.membership_chart;
+            membershipChartInstance.data.labels = rawMembershipData.labels;
+            membershipChartInstance.data.datasets[0].data = rawMembershipData.data;
+            membershipChartInstance.data.datasets[0].backgroundColor = rawMembershipData.colors;
+            membershipChartInstance.update();
+            renderMembershipLegend(rawMembershipData.items);
+        }
+
+        // Cập nhật Phân bổ Trạng thái
+        if (statusChartInstance && data.appointment_status_chart) {
+            rawStatusData = data.appointment_status_chart;
+            statusChartInstance.data.labels = rawStatusData.labels;
+            statusChartInstance.data.datasets[0].data = rawStatusData.data;
+            statusChartInstance.data.datasets[0].backgroundColor = rawStatusData.colors;
+            statusChartInstance.update();
+            renderStatusLegend(rawStatusData.details);
+        }
+
+        // Cập nhật Phân tích Hồ sơ Sức khỏe (MOD-08)
+        if (data.health_analytics) {
+            rawHealthData = data.health_analytics;
+            const totalProfilesEl = document.getElementById('health-total-profiles');
+            if (totalProfilesEl) totalProfilesEl.textContent = rawHealthData.total_profiles;
+
+            const avgPainEl = document.getElementById('health-avg-pain');
+            if (avgPainEl) avgPainEl.textContent = `${rawHealthData.avg_pain_level}/10`;
+
+            const alertsEl = document.getElementById('health-special-alerts');
+            if (alertsEl) alertsEl.textContent = rawHealthData.special_alert_count;
+
+            if (healthFocusChartInstance && rawHealthData.focus_chart) {
+                healthFocusChartInstance.data.labels = rawHealthData.focus_chart.labels;
+                healthFocusChartInstance.data.datasets[0].data = rawHealthData.focus_chart.data;
+                healthFocusChartInstance.update();
+            }
+
+            if (healthPressureChartInstance && rawHealthData.pressure_chart) {
+                healthPressureChartInstance.data.labels = rawHealthData.pressure_chart.labels;
+                healthPressureChartInstance.data.datasets[0].data = rawHealthData.pressure_chart.data;
+                healthPressureChartInstance.update();
+                renderHealthPressureLegend(rawHealthData.pressure_chart.items);
+            }
+        }
+
+        // 4. Cập nhật bảng Giao dịch gần đây
+        renderRecentTransactions(data.recent_transactions);
+
+        // 5. Cập nhật bảng Xếp hạng Dịch vụ
+        renderTopServicesTable(data.top_services);
+    }
+
+    function renderRecentTransactions(transactions) {
+        const tbody = document.getElementById('transactions-tbody');
+        if (!tbody || !transactions) return;
+
+        if (transactions.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Không có giao dịch nào trong kỳ này.</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        transactions.forEach(item => {
+            html += `
+                <tr>
+                    <td class="fw-bold text-danger text-nowrap">${item.invoice_code}</td>
+                    <td class="text-nowrap"><span class="badge bg-light text-dark border">${item.appointment_code}</span></td>
+                    <td class="fw-bold">${item.customer_name}</td>
+                    <td>${item.service_name}</td>
+                    <td class="text-nowrap">${item.appointment_date} (${item.time_slot})</td>
+                    <td class="text-end fw-bold text-dark text-nowrap">${item.amount_formatted}</td>
+                    <td class="text-end text-success text-nowrap">${item.discount_formatted}</td>
+                    <td class="small text-muted text-nowrap">${item.paid_at}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function renderTopServicesTable(services) {
+        const tbody = document.getElementById('top-services-tbody');
+        if (!tbody || !services) return;
+
+        if (services.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">Chưa có dữ liệu xếp hạng dịch vụ.</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        services.forEach((s, idx) => {
+            let rankBadge = `<span class="text-muted">#${idx + 1}</span>`;
+            if (idx === 0) rankBadge = `<span class="badge rounded-circle p-2 bg-warning text-dark">#1</span>`;
+            else if (idx === 1) rankBadge = `<span class="badge rounded-circle p-2 bg-secondary text-white">#2</span>`;
+            else if (idx === 2) rankBadge = `<span class="badge rounded-circle p-2 bg-danger text-white">#3</span>`;
+
+            html += `
+                <tr>
+                    <td class="text-center fw-bold">${rankBadge}</td>
+                    <td class="fw-bold text-dark">${s.name}</td>
+                    <td><span class="badge bg-light text-dark border">${s.category_name}</span></td>
+                    <td class="text-end">${s.price_formatted}</td>
+                    <td class="text-center fw-bold text-primary">${s.booking_count} lượt</td>
+                    <td class="text-end fw-bold text-danger">${s.total_revenue_formatted}</td>
+                    <td class="text-center text-warning fw-bold"><i class="bi bi-star-fill"></i> ${s.rating_avg}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    // ------------------------------------------------------------------------
+    // E. BẮT SỰ KIỆN NÚT LỌC THỜI GIAN & LÀM MỚI
+    // ------------------------------------------------------------------------
+    document.querySelectorAll('.period-pill-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.period-pill-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentPeriod = this.getAttribute('data-period');
+            fetchDashboardStats(currentPeriod);
+        });
+    });
+
+    // Nút làm mới dữ liệu
+    const btnRefresh = document.getElementById('btn-refresh-dashboard');
+    if (btnRefresh) {
+        btnRefresh.addEventListener('click', function () {
+            fetchDashboardStats(currentPeriod);
+        });
+    }
+
+    // ------------------------------------------------------------------------
+    // F. XUẤT BÁO CÁO EXCEL BẰNG SHEETJS (UC-10.2: xlsx.full.min.js)
+    // ------------------------------------------------------------------------
+    const btnExportExcel = document.getElementById('btn-export-excel');
+    if (btnExportExcel) {
+        btnExportExcel.addEventListener('click', function () {
+            if (typeof XLSX === 'undefined') {
+                showToast('Thư viện SheetJS chưa được tải hoàn tất', 'error');
+                return;
+            }
+
+            showToast('Đang kết xuất báo cáo Excel...', 'info');
+
+            // Gọi API lấy toàn bộ dữ liệu báo cáo
+            const url = `/dashboard/api/export-data/?period=${currentPeriod}`;
+
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+            .then(res => res.json())
+            .then(resData => {
+                if (resData.status !== 'success') throw new Error('Không thể lấy dữ liệu xuất');
+                const data = resData.data;
+
+                // 1. Sheet 1: Tổng quan KPI
+                const kpiRows = [
+                    ["BÁO CÁO TỔNG QUAN DOANH THU & KPI - CHAM SPA & MASSAGE ĐÀ NẴNG"],
+                    ["Kỳ thống kê:", data.period_label],
+                    ["Thời điểm xuất:", data.exported_at],
+                    ["Người xuất báo cáo:", "{{ request.user.name|default:request.user.username }}"],
+                    [],
+                    ["CHỈ SỐ KPI CHÍNH", "GIÁ TRỊ", "TĂNG TRƯỞNG SO VỚI KỲ TRƯỚC", "GHI CHÚ"],
+                    ["Tổng doanh thu thực tế (VNĐ)", data.kpis.total_revenue, data.kpis.revenue_growth + "%", "Từ hóa đơn đã thanh toán"],
+                    ["Tổng lượt khách phục vụ", data.kpis.total_guests, data.kpis.guests_growth + "%", "Số khách trải nghiệm spa"],
+                    ["Tỷ lệ hoàn thành lịch hẹn", data.kpis.completed_rate + "%", data.kpis.completion_growth + "%", data.kpis.completed_appointments + " hoàn thành / " + data.kpis.total_appointments + " tổng lịch"],
+                    ["Hội viên mới gia nhập", data.kpis.new_members, data.kpis.members_growth + "%", "Cấp thẻ Serenity mới"],
+                    ["Đánh giá dịch vụ trung bình", data.kpis.avg_rating + " / 5.0", "", data.kpis.total_feedbacks + " lượt đánh giá"],
+                    ["Tổng ưu đãi giảm giá (VNĐ)", data.kpis.total_discount, "", "Áp dụng từ voucher & hạng thẻ"],
+                    [],
+                    ["TOP 5 DỊCH VỤ ĐƯỢC ĐẶT NHIỀU NHẤT"],
+                    ["Hạng", "Tên Dịch vụ", "Danh mục", "Đơn giá (VNĐ)", "Lượt làm", "Tổng doanh thu (VNĐ)", "Đánh giá"]
+                ];
+
+                data.top_services.forEach((s, idx) => {
+                    kpiRows.push([
+                        idx + 1,
+                        s.name,
+                        s.category_name,
+                        s.price,
+                        s.booking_count,
+                        s.total_revenue,
+                        s.rating_avg
+                    ]);
+                });
+
+                const wsKpi = XLSX.utils.aoa_to_sheet(kpiRows);
+
+                // Căn chỉnh độ rộng cột Sheet 1
+                wsKpi['!cols'] = [
+                    { wch: 35 }, { wch: 25 }, { wch: 30 }, { wch: 35 }, { wch: 15 }, { wch: 22 }, { wch: 10 }
+                ];
+
+                // 2. Sheet 2: Danh sách chi tiết Hóa đơn
+                const invoiceHeaders = [
+                    "STT", "Mã Hóa đơn", "Mã Lịch hẹn", "Khách hàng", "Số điện thoại",
+                    "Dịch vụ trải nghiệm", "Số khách", "Số tiền (VNĐ)", "Giảm giá (VNĐ)",
+                    "Trạng thái", "Ngày hẹn", "Khung giờ", "Thời điểm thanh toán"
+                ];
+
+                const invoiceRows = [invoiceHeaders];
+                data.invoice_rows.forEach(inv => {
+                    invoiceRows.push([
+                        inv.stt,
+                        inv.invoice_code,
+                        inv.appointment_code,
+                        inv.customer_name,
+                        inv.customer_phone,
+                        inv.service_name,
+                        inv.total_guests,
+                        inv.amount,
+                        inv.discount,
+                        inv.status,
+                        inv.appointment_date,
+                        inv.time_slot,
+                        inv.paid_at
+                    ]);
+                });
+
+                const wsInvoices = XLSX.utils.aoa_to_sheet(invoiceRows);
+                wsInvoices['!cols'] = [
+                    { wch: 6 }, { wch: 14 }, { wch: 16 }, { wch: 24 }, { wch: 14 },
+                    { wch: 35 }, { wch: 10 }, { wch: 16 }, { wch: 15 },
+                    { wch: 16 }, { wch: 14 }, { wch: 12 }, { wch: 20 }
+                ];
+
+                // Tạo Workbook và gắn Sheets
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, wsKpi, "TongQuan_KPI");
+                XLSX.utils.book_append_sheet(wb, wsInvoices, "ChiTiet_HoaDon");
+
+                // Xuất và tải file trực tiếp tại trình duyệt (Client-side)
+                const filename = `BaoCao_ChamSpa_${currentPeriod}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                XLSX.writeFile(wb, filename);
+
+                showToast(`Đã xuất thành công: ${filename}`, 'success');
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Lỗi xuất Excel: ' + err.message, 'error');
+            });
+        });
+    }
+
+    // ------------------------------------------------------------------------
+    // G. XUẤT BÁO CÁO PDF BẰNG HTML2PDF.JS (UC-10.2: html2pdf.bundle.min.js)
+    // ------------------------------------------------------------------------
+    const btnExportPdf = document.getElementById('btn-export-pdf');
+    if (btnExportPdf) {
+        btnExportPdf.addEventListener('click', function () {
+            if (typeof html2pdf === 'undefined') {
+                showToast('Thư viện html2pdf chưa được tải hoàn tất', 'error');
+                return;
+            }
+
+            showToast('Đang kết xuất tài liệu PDF...', 'info');
+
+            // Gọi API lấy dữ liệu chi tiết đưa vào mẫu in ấn
+            const url = `/dashboard/api/export-data/?period=${currentPeriod}`;
+
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+            .then(res => res.json())
+            .then(resData => {
+                if (resData.status !== 'success') throw new Error('Không thể tải dữ liệu xuất');
+                const data = resData.data;
+
+                // Cập nhật thông tin vào mẫu in
+                const codeEl = document.getElementById('pdf-report-code');
+                if (codeEl) codeEl.textContent = `RP-${new Date().getTime().toString().slice(-8)}`;
+
+                const periodEl = document.getElementById('pdf-period-label');
+                if (periodEl) periodEl.textContent = data.period_label;
+
+                const pdfRevEl = document.getElementById('pdf-kpi-revenue');
+                if (pdfRevEl) pdfRevEl.textContent = data.kpis.total_revenue_formatted;
+
+                const pdfGuestsEl = document.getElementById('pdf-kpi-guests');
+                if (pdfGuestsEl) pdfGuestsEl.textContent = `${data.kpis.total_guests} khách`;
+
+                const pdfRateEl = document.getElementById('pdf-kpi-completed-rate');
+                if (pdfRateEl) pdfRateEl.textContent = `${data.kpis.completed_rate}%`;
+
+                const pdfMemEl = document.getElementById('pdf-kpi-members');
+                if (pdfMemEl) pdfMemEl.textContent = `+${data.kpis.new_members} thẻ`;
+
+                // Đổ bảng danh sách hóa đơn (tối đa 25 dòng để vừa khổ giấy in đẹp)
+                const tbody = document.getElementById('pdf-invoices-tbody');
+                if (tbody) {
+                    let html = '';
+                    const displayRows = data.invoice_rows.slice(0, 30);
+                    displayRows.forEach(inv => {
+                        html += `
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 5px; text-align: center;">${inv.stt}</td>
+                                <td style="border: 1px solid #ddd; padding: 5px; font-weight: bold;">${inv.invoice_code}</td>
+                                <td style="border: 1px solid #ddd; padding: 5px;">${inv.appointment_code}</td>
+                                <td style="border: 1px solid #ddd; padding: 5px;">${inv.customer_name}</td>
+                                <td style="border: 1px solid #ddd; padding: 5px;">${inv.service_name}</td>
+                                <td style="border: 1px solid #ddd; padding: 5px; text-align: right; font-weight: bold;">${Math.round(inv.amount).toLocaleString('vi-VN')} đ</td>
+                                <td style="border: 1px solid #ddd; padding: 5px; text-align: right; color: #2E7D32;">${Math.round(inv.discount).toLocaleString('vi-VN')} đ</td>
+                                <td style="border: 1px solid #ddd; padding: 5px; text-align: center;">${inv.status}</td>
+                                <td style="border: 1px solid #ddd; padding: 5px;">${inv.paid_at}</td>
+                            </tr>
+                        `;
+                    });
+                    if (data.invoice_rows.length > 30) {
+                        html += `
+                            <tr>
+                                <td colspan="9" style="border: 1px solid #ddd; padding: 6px; text-align: center; color: #777; font-style: italic;">
+                                    ... và ${data.invoice_rows.length - 30} hóa đơn khác (Xem đầy đủ tại file Excel đính kèm)
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    tbody.innerHTML = html;
+                }
+
+                const printArea = document.getElementById('printable-report-area');
+                printArea.style.display = 'block';
+
+                const opt = {
+                    margin: [10, 10, 10, 10],
+                    filename: `BaoCao_ChamSpa_${currentPeriod}_${new Date().toISOString().slice(0, 10)}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(printArea).save().then(() => {
+                    printArea.style.display = 'none';
+                    showToast('Đã xuất file PDF thành công!', 'success');
+                }).catch(err => {
+                    printArea.style.display = 'none';
+                    console.error(err);
+                    showToast('Lỗi xuất PDF: ' + err.message, 'error');
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Lỗi xuất PDF: ' + err.message, 'error');
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
+

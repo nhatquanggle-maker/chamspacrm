@@ -1,0 +1,554 @@
+{% extends "layouts/customer_layout.html" %}
+{% load static %}
+
+{% block body_class %}page-feedbacks-customer-tracking{% endblock %}
+
+{% block page_title %}Đánh giá & Phản hồi{% endblock %}
+
+{% block customer_content %}
+<!-- ==========================================================================
+     MODULE 04: QUẢN LÝ ĐÁNH GIÁ & KHIẾU NẠI (MOD-04)
+     Giao diện Khách hàng Tinh gọn & Đơn giản theo chuẩn Figma Node 694:4
+     Thành viên phụ trách: NGUYỄN THỊ THANH THẢO
+     ========================================================================== -->
+
+
+<!-- ==========================================================================
+     NỘI DUNG GIAO DIỆN KHÁCH HÀNG (FIGMA NODE 694:4)
+     ========================================================================== -->
+<div>
+    <!-- 2. Page Heading (Figma Node 694:4) -->
+    <div class="figma-page-header">
+        <div>
+            <h1 class="figma-header-title">Đánh giá & Phản hồi</h1>
+            <p class="figma-header-desc">Theo dõi các đánh giá và phản hồi</p>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show border-0 shadow-sm" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 3. Segmented Pill Tabs: Đánh giá vs Khiếu nại -->
+    <div class="figma-detail-tabs">
+        <button type="button" class="figma-tab-btn {% if active_tab != 'complaints' %}active{% endif %}"
+            id="btnTabReviews" onclick="switchSimpleTab('reviews')">
+            <i class="bi bi-star"></i>
+            <span>Đánh giá</span>
+            <span class="badge bg-light text-dark border">{{ feedback_counts.all }}</span>
+        </button>
+        <button type="button" class="figma-tab-btn {% if active_tab == 'complaints' %}active{% endif %}"
+            id="btnTabComplaints" onclick="switchSimpleTab('complaints')">
+            <i class="bi bi-shield-exclamation"></i>
+            <span>Khiếu nại</span>
+            <span class="badge bg-light text-dark border">{{ complaint_counts.all }}</span>
+        </button>
+    </div>
+
+    <!-- =====================================================================
+         TAB 1: DANH SÁCH ĐÁNH GIÁ (FIGMA NODE 694:4)
+         ===================================================================== -->
+    <div id="paneReviews" class="{% if active_tab == 'complaints' %}d-none{% endif %}">
+        {% if feedbacks %}
+        {% for fb in feedbacks %}
+        <div class="figma-tracking-card" id="cardFeedback{{ fb.id }}">
+            <!-- Linked booking -->
+            <div class="figma-linked-booking">
+                <div>
+                    <div class="figma-booking-link">
+                        <span>{{ fb.appointment.appointment_code }} — {{ fb.appointment.details.first.service.name|default:"Massage Trị Liệu Vai Gáy" }}</span>
+                    </div>
+                    <div class="figma-therapist">
+                        KTV: {{ fb.appointment.details.first.gender|default:"Chuyên viên" }} ({{ fb.appointment.details.first.massage_pressure|default:"Lực vừa" }})
+                        · Ngày thực hiện: {{ fb.appointment.appointment_date|date:"d/m/Y" }} ({{ fb.appointment.time_slot }})
+                    </div>
+                </div>
+                <div class="text-muted small">
+                    {{ fb.created_at|date:"d/m/Y" }}
+                </div>
+            </div>
+
+            <!-- Customer review box (Figma 694:4) -->
+            <div class="figma-customer-review-box">
+                <div class="figma-star-rating">
+                    {% for i in "12345" %}
+                    {% if forloop.counter <= fb.rating %} <i class="bi bi-star-fill figma-star-icon"></i>
+                        {% else %}
+                        <i class="bi bi-star text-muted opacity-50 figma-star-icon"></i>
+                        {% endif %}
+                        {% endfor %}
+                        <span class="figma-rating-value">{{ fb.rating }}/5</span>
+                </div>
+
+                <p class="figma-full-review">
+                    {{ fb.comment|default:"Trải nghiệm dịch vụ tuyệt vời!"|linebreaksbr }}
+                </p>
+
+                <!-- Tags cảm nhận nhanh nếu có -->
+                {% if fb.tags %}
+                <div class="mt-2">
+                    {% for t in fb.tags %}
+                    <span class="figma-pill-tag">{{ t }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Ảnh trải nghiệm đính kèm nếu có -->
+                {% if fb.attached_media %}
+                <div class="d-flex gap-2 mt-2">
+                    {% for m in fb.attached_media %}
+                    <a href="{{ m }}" target="_blank">
+                        <img src="{{ m }}" class="figma-thumb-img" alt="Ảnh trải nghiệm">
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Phản hồi từ Cham Spa nếu đã được phản hồi (UC-4.3) -->
+                {% if fb.reply %}
+                <div class="figma-spa-reply">
+                    <div class="figma-reply-author">
+                        <span>Được phản hồi bởi: {% if fb.replied_by %}{{ fb.replied_by.name|default:fb.replied_by.username }}{% else %}Đại diện Cham Spa{% endif %} ({{ fb.replied_at|date:"d/m/Y" }})</span>
+                    </div>
+                    <div class="text-muted fst-italic">
+                        {{ fb.reply|linebreaksbr }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <!-- Trạng thái trống (Empty state) -->
+        <div class="figma-empty-box">
+            <i class="bi bi-star fs-1" style="color: var(--cham-gold);"></i>
+            <h5 class="font-serif fw-bold mt-2" style="color: var(--cham-red);">Chưa có đánh giá nào</h5>
+            <p class="text-muted small mb-0">Bạn có thể gửi đánh giá từ lịch hẹn đã hoàn thành tại trang Lịch hẹn của
+                tôi.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- =====================================================================
+         TAB 2: DANH SÁCH KHIẾU NẠI (FIGMA NODE 694:4 - TINH GỌN ĐỒNG NHẤT)
+         ===================================================================== -->
+    <div id="paneComplaints" class="{% if active_tab != 'complaints' %}d-none{% endif %}">
+        {% if complaints %}
+        {% for c in complaints %}
+        <div class="figma-tracking-card" id="cardComplaint{{ c.id }}">
+            <!-- Linked booking -->
+            <div class="figma-linked-booking">
+                <div>
+                    <div class="figma-booking-link">
+                        <span>{{ c.appointment.appointment_code }} — {{ c.appointment.details.first.service.name|default:"Massage Trị Liệu Vai Gáy" }}</span>
+                    </div>
+                    <div class="figma-therapist">
+                        KTV: {{ c.appointment.details.first.gender|default:"Chuyên viên" }} ({{ c.appointment.details.first.massage_pressure|default:"Lực vừa" }})
+                        · Ngày thực hiện: {{ c.appointment.appointment_date|date:"d/m/Y" }} ({{ c.appointment.time_slot }})
+                    </div>
+                </div>
+                <div>
+                    {% if c.status == 'Chờ phân công' or c.status == 'Chờ liên hệ lại' %}
+                    <span class="figma-badge badge-pending">{{ c.status }}</span>
+                    {% elif c.status == 'Đang xử lý' %}
+                    <span class="figma-badge badge-processing">Đang xử lý</span>
+                    {% elif c.status == 'Đã xử lý' %}
+                    <span class="figma-badge badge-resolved">Đã xử lý</span>
+                    {% else %}
+                    <span class="figma-badge badge-rejected">{{ c.status }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Customer issue inner box (Form chuẩn như 694:4) -->
+            <div class="figma-customer-review-box">
+                <div class="fw-semibold text-danger small mb-1">
+                    Sự cố phản ánh:
+                </div>
+                <p class="figma-full-review">
+                    {{ c.description|linebreaksbr }}
+                </p>
+
+                {% if c.desired_resolution %}
+                <div class="small text-muted mt-2">
+                    Mong muốn: <em>{{ c.desired_resolution }}</em>
+                </div>
+                {% endif %}
+
+                <!-- Ảnh bằng chứng nếu có -->
+                {% if c.attached_proofs %}
+                <div class="d-flex gap-2 mt-2">
+                    {% for p in c.attached_proofs %}
+                    <a href="{{ p }}" target="_blank">
+                        <img src="{{ p }}" class="figma-thumb-img" alt="Bằng chứng sự cố">
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Kết quả giải quyết của Spa -->
+                {% if c.resolution_note %}
+                <div class="figma-spa-reply">
+                    <div class="figma-reply-author">
+                        <span>Kết quả giải quyết từ Cham Spa ({{ c.updated_at|date:"d/m/Y" }}):</span>
+                    </div>
+                    <div class="text-dark">
+                        {{ c.resolution_note|linebreaksbr }}
+                    </div>
+
+                    <!-- Thẻ Voucher đền bù nếu được cấp (UC-4.4) -->
+                    {% if c.compensated_voucher %}
+                    <div class="figma-voucher-compact">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-semibold text-danger small">Voucher đền bù:</span>
+                            <span class="figma-voucher-code">{{ c.compensated_voucher.voucher_code }}</span>
+                            <span class="small text-muted ms-1">
+                                (Giảm {% if c.compensated_voucher.discount_type == 'PERCENT' %}{{ c.compensated_voucher.discount_value|floatformat:0 }}%{% else %}{{ c.compensated_voucher.discount_value|floatformat:0 }}đ{% endif %})
+                            </span>
+                        </div>
+                        <button type="button" class="btn-copy-sm"
+                            onclick="copyVoucherCode('{{ c.compensated_voucher.voucher_code }}')">
+                            Sao chép
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <!-- Trạng thái trống (Empty state khiếu nại) -->
+        <div class="figma-empty-box">
+            <i class="bi bi-shield-check fs-1" style="color: var(--cham-gold);"></i>
+            <h5 class="font-serif fw-bold mt-2" style="color: var(--cham-red);">Chưa có khiếu nại nào</h5>
+            <p class="text-muted small mb-3">Nếu trải nghiệm chưa trọn vẹn, bạn có thể gửi phản hồi từ một lịch hẹn đã
+                hoàn tất.</p>
+            <a href="{% url 'appointment:my_appointments' %}" class="btn btn-cham-outline px-4 py-2">
+                <i class="bi bi-clock-history me-1"></i> Xem lịch sử dịch vụ
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ==========================================================================
+     MODAL ĐÁNH GIÁ & KHIẾU NẠI (FIGMA NODE 186:14151 & 186:14323)
+     ========================================================================== -->
+<div class="modal fade" id="modalFeedback" tabindex="-1" aria-labelledby="modalFeedbackLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-fb-content">
+            <div class="modal-fb-header d-flex justify-content-between align-items-start">
+                <div>
+                    <h5 class="modal-title font-serif fw-bold" style="color: var(--cham-red); font-size: 20px;"
+                        id="modalFeedbackLabel">
+                        Đánh giá & Phản hồi trải nghiệm
+                    </h5>
+                    <!-- Tóm tắt lịch hẹn -->
+                    <div class="small text-muted mt-1" id="modalBookingSummary">
+                        {% if target_appointment %}
+                        Mã lịch hẹn: <strong>{{ target_appointment.appointment_code }}</strong>
+                        | Dịch vụ: <strong>{{ target_appointment.details.first.service.name|default:"Massage Spa" }}</strong>
+                        <br>
+                        KTV: <strong>{{ target_appointment.details.first.gender|default:"Chuyên viên" }} ({{ target_appointment.details.first.massage_pressure|default:"Lực vừa" }})</strong>
+                        | Thời gian: <strong>{{ target_appointment.time_slot }} - {{ target_appointment.appointment_date|date:"d/m/Y" }}</strong>
+                        {% elif completed_appointments %}
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <label for="selectAppointmentInput" class="fw-semibold text-dark">Chọn lịch hẹn hoàn
+                                tất:</label>
+                            <select class="form-select form-select-sm" id="selectAppointmentInput"
+                                style="max-width: 320px;" onchange="onAppointmentSelectChange(this)">
+                                {% for appt in completed_appointments %}
+                                <option value="{{ appt.id }}" data-code="{{ appt.appointment_code }}">
+                                    {{ appt.appointment_code }} - {{ appt.details.first.service.name|default:"Spa" }}
+                                    ({{ appt.appointment_date|date:"d/m" }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% else %}
+                        <span class="text-danger">Hiện tại bạn chưa có lịch hẹn nào ở trạng thái Hoàn thành để đánh
+                            giá.</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Sub Tabs -->
+            <div class="modal-tab-nav">
+                <button type="button" class="modal-tab-link active" id="modalTabBtnRating"
+                    onclick="switchModalForm('rating')">
+                    <i class="bi bi-star-fill text-warning me-1"></i> Đánh giá chất lượng
+                </button>
+                <button type="button" class="modal-tab-link" id="modalTabBtnComplaint"
+                    onclick="switchModalForm('complaint')">
+                    <i class="bi bi-shield-exclamation text-danger me-1"></i> Gửi khiếu nại sự cố
+                </button>
+            </div>
+
+            <div class="modal-body p-4">
+                <!-- FORM TAB 1: ĐÁNH GIÁ CHẤT LƯỢNG (Figma 186:14151) -->
+                <form id="formSubmitFeedback" method="POST" action="{% url 'feedbacks:customer_tracking' %}" enctype="multipart/form-data" onsubmit="return validateAppointmentSelected('fbAppointmentId')">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="submit_feedback">
+                    <input type="hidden" id="fbAppointmentId" name="appointment_id" value="{{ default_appointment_id|default:'' }}">
+
+                    <!-- Mức độ hài lòng * -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small">Mức độ hài lòng của bạn *</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="star-rating-box" id="starRatingContainer">
+                                <i class="bi bi-star-fill star-item active" data-rating="1"></i>
+                                <i class="bi bi-star-fill star-item active" data-rating="2"></i>
+                                <i class="bi bi-star-fill star-item active" data-rating="3"></i>
+                                <i class="bi bi-star-fill star-item active" data-rating="4"></i>
+                                <i class="bi bi-star-fill star-item active" data-rating="5"></i>
+                            </div>
+                            <span class="fw-bold text-warning" id="ratingTextLabel">5.0 / 5 sao (Xuất sắc)</span>
+                        </div>
+                        <input type="hidden" id="ratingValueInput" name="rating" value="5">
+                    </div>
+
+                    <!-- Gợi ý phản hồi nhanh -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small">Gợi ý phản hồi nhanh</label>
+                        <div id="quickTagsContainer">
+                            <label class="quick-tag-pill selected"><input type="checkbox" name="tags" value="Tay nghề KTV tốt" class="d-none" checked onchange="this.parentElement.classList.toggle('selected', this.checked)">Tay nghề KTV tốt</label>
+                            <label class="quick-tag-pill selected"><input type="checkbox" name="tags" value="Thân thiện" class="d-none" checked onchange="this.parentElement.classList.toggle('selected', this.checked)">Thân thiện</label>
+                            <label class="quick-tag-pill"><input type="checkbox" name="tags" value="Không gian sạch sẽ" class="d-none" onchange="this.parentElement.classList.toggle('selected', this.checked)">Không gian sạch sẽ</label>
+                            <label class="quick-tag-pill"><input type="checkbox" name="tags" value="Lực massage vừa phải" class="d-none" onchange="this.parentElement.classList.toggle('selected', this.checked)">Lực massage vừa phải</label>
+                            <label class="quick-tag-pill"><input type="checkbox" name="tags" value="Phục vụ nhanh" class="d-none" onchange="this.parentElement.classList.toggle('selected', this.checked)">Phục vụ nhanh</label>
+                        </div>
+                    </div>
+
+                    <!-- Nội dung nhận xét -->
+                    <div class="mb-3">
+                        <label for="fbCommentInput" class="form-label fw-bold text-dark small">Nội dung đánh giá</label>
+                        <textarea class="form-control" id="fbCommentInput" name="comment" rows="3"
+                            placeholder="Chia sẻ cảm nhận chi tiết của bạn về buổi liệu trình..."></textarea>
+                    </div>
+
+                    <!-- Tải lên hình ảnh / video -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small">Hình ảnh / video (tối đa 3 tệp)</label>
+                        <input type="file" id="fbMediaFileInput" name="media_files" class="form-control form-control-sm" multiple
+                            accept="image/*,video/*" onchange="previewLocalFiles(this, 'fbPreviewContainer')">
+                        <div class="d-flex gap-2 mt-2" id="fbPreviewContainer"></div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <button type="button" class="btn btn-cham-outline px-4" data-bs-dismiss="modal">Để sau</button>
+                        <button type="submit" class="btn btn-cham-primary px-4 d-inline-flex align-items-center gap-2"
+                            id="btnSubmitFeedback">
+                            <i class="bi bi-send-fill"></i>
+                            <span>Gửi phản hồi</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- FORM TAB 2: GỬI KHIẾU NẠI SỰ CỐ (Figma 186:14323) -->
+                <form id="formSubmitComplaint" class="d-none" method="POST" action="{% url 'feedbacks:customer_tracking' %}" enctype="multipart/form-data" onsubmit="return validateAppointmentSelected('complaintAppointmentId')">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="submit_complaint">
+                    <input type="hidden" id="complaintAppointmentId" name="appointment_id" value="{{ default_appointment_id|default:'' }}">
+
+                    <!-- Danh mục sự cố -->
+                    <div class="mb-3">
+                        <label for="complaintCategoryInput" class="form-label fw-bold text-dark small">Danh mục sự cố
+                            *</label>
+                        <select class="form-select" id="complaintCategoryInput" name="category" required>
+                            <option value="Chất lượng dịch vụ">Chất lượng dịch vụ</option>
+                            <option value="Thái độ KTV/Nhân viên">Thái độ KTV/Nhân viên</option>
+                            <option value="Sự cố giá/Thanh toán">Sự cố giá/Thanh toán</option>
+                            <option value="Vệ sinh/Cơ sở vật chất">Vệ sinh/Cơ sở vật chất</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+
+                    <!-- Mô tả chi tiết -->
+                    <div class="mb-3">
+                        <label for="complaintDescInput" class="form-label fw-bold text-dark small">Mô tả chi tiết
+                            *</label>
+                        <textarea class="form-control" id="complaintDescInput" name="description" rows="3" minlength="5" required
+                            placeholder="Mô tả chi tiết sự cố bạn gặp phải..."></textarea>
+                    </div>
+
+                    <!-- Bằng chứng đính kèm -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small">Bằng chứng đính kèm (tối đa 3 tệp)</label>
+                        <input type="file" id="complaintProofFileInput" name="proof_files" class="form-control form-control-sm" multiple
+                            accept="image/*,video/*" onchange="previewLocalFiles(this, 'complaintPreviewContainer')">
+                        <div class="d-flex gap-2 mt-2" id="complaintPreviewContainer"></div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <button type="button" class="btn btn-cham-outline px-4" data-bs-dismiss="modal">Để sau</button>
+                        <button type="submit" class="btn btn-danger px-4 d-inline-flex align-items-center gap-2"
+                            id="btnSubmitComplaint">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span>Gửi khiếu nại</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     VANILLA JAVASCRIPT: LOGIC ĐIỀU HƯỚNG & TƯƠNG TÁC
+     ========================================================================== -->
+<script>
+    // Chuyển tab đơn giản: Đánh giá vs Khiếu nại (Figma Node 694:4)
+    function switchSimpleTab(tabName) {
+        const btnRev = document.getElementById('btnTabReviews');
+        const btnComp = document.getElementById('btnTabComplaints');
+        const paneRev = document.getElementById('paneReviews');
+        const paneComp = document.getElementById('paneComplaints');
+
+        if (tabName === 'reviews') {
+            btnRev.classList.add('active');
+            btnComp.classList.remove('active');
+            paneRev.classList.remove('d-none');
+            paneComp.classList.add('d-none');
+        } else {
+            btnComp.classList.add('active');
+            btnRev.classList.remove('active');
+            paneComp.classList.remove('d-none');
+            paneRev.classList.add('d-none');
+        }
+    }
+
+    // Chuyển form trong Modal (Đánh giá vs Khiếu nại)
+    function switchModalForm(type) {
+        const btnRating = document.getElementById('modalTabBtnRating');
+        const btnComp = document.getElementById('modalTabBtnComplaint');
+        const formRating = document.getElementById('formSubmitFeedback');
+        const formComp = document.getElementById('formSubmitComplaint');
+
+        if (type === 'rating') {
+            btnRating.classList.add('active');
+            btnComp.classList.remove('active');
+            formRating.classList.remove('d-none');
+            formComp.classList.add('d-none');
+        } else {
+            btnComp.classList.add('active');
+            btnRating.classList.remove('active');
+            formComp.classList.remove('d-none');
+            formRating.classList.add('d-none');
+        }
+    }
+
+    // Chọn số sao đánh giá
+    const starTextMap = {
+        1: '1.0 / 5 sao (Rất tệ)',
+        2: '2.0 / 5 sao (Tạm được)',
+        3: '3.0 / 5 sao (Hài lòng)',
+        4: '4.0 / 5 sao (Rất tốt)',
+        5: '5.0 / 5 sao (Xuất sắc)'
+    };
+    document.querySelectorAll('.star-item').forEach(star => {
+        star.addEventListener('click', function () {
+            const r = parseInt(this.getAttribute('data-rating'));
+            document.getElementById('ratingValueInput').value = r;
+            document.getElementById('ratingTextLabel').textContent = starTextMap[r] || (r + ' sao');
+
+            document.querySelectorAll('.star-item').forEach(s => {
+                const sr = parseInt(s.getAttribute('data-rating'));
+                if (sr <= r) s.classList.add('active');
+                else s.classList.remove('active');
+            });
+        });
+    });
+
+    // Dropdown chọn lịch hẹn
+    function onAppointmentSelectChange(selectEl) {
+        const id = selectEl.value;
+        document.getElementById('fbAppointmentId').value = id;
+        document.getElementById('complaintAppointmentId').value = id;
+    }
+
+    // Kiểm tra đã chọn lịch hẹn trước khi submit form
+    function validateAppointmentSelected(hiddenInputId) {
+        const el = document.getElementById(hiddenInputId);
+        if (!el || !el.value) {
+            alert('Vui lòng chọn một lịch hẹn đã hoàn thành.');
+            return false;
+        }
+        return true;
+    }
+
+    // Xem trước ảnh/video đã chọn trên trình duyệt trước khi gửi form
+    function previewLocalFiles(inputEl, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        const files = inputEl.files;
+        if (!files || files.length === 0) return;
+        for (let i = 0; i < Math.min(files.length, 3); i++) {
+            const file = files[i];
+            if (file.type && file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.style.cssText = 'width: 48px; height: 48px; border-radius: 6px; object-fit: cover; border: 1px solid #D0B581;';
+                container.appendChild(img);
+            } else {
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-light text-dark border';
+                badge.textContent = file.name;
+                container.appendChild(badge);
+            }
+        }
+    }
+
+    // Sao chép mã voucher
+    function copyVoucherCode(code) {
+        navigator.clipboard.writeText(code).then(() => {
+            alert('Đã sao chép mã voucher: ' + code);
+        }).catch(() => {
+            alert('Mã voucher: ' + code);
+        });
+    }
+
+    // Khởi tạo trạng thái active cho sidebar & tự động mở modal nếu có appointment param
+    document.addEventListener('DOMContentLoaded', function () {
+        // Active sidebar item "Đánh giá & Phản hồi"
+        const sidebarItems = document.querySelectorAll('.customer-nav-item, .sidebar-nav-item');
+        sidebarItems.forEach(function (item) {
+            item.classList.remove('active');
+            const target = item.getAttribute('data-nav-target') || '';
+            const txt = item.textContent || '';
+            if (target.includes('Đánh giá') || txt.includes('Đánh giá & Phản hồi')) {
+                item.classList.add('active');
+            }
+        });
+
+        // Tự động mở Modal nếu có param ?appointment=
+        const urlParams = new URLSearchParams(window.location.search);
+        const apptId = urlParams.get('appointment');
+        if (apptId) {
+            const modalEl = document.getElementById('modalFeedback');
+            if (modalEl) {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+
+                const fbApptInput = document.getElementById('fbAppointmentId');
+                const compApptInput = document.getElementById('complaintAppointmentId');
+                if (fbApptInput) fbApptInput.value = apptId;
+                if (compApptInput) compApptInput.value = apptId;
+
+                const selectEl = document.getElementById('selectAppointmentInput');
+                if (selectEl) selectEl.value = apptId;
+            }
+        }
+    });
+</script>
+{% endblock %}

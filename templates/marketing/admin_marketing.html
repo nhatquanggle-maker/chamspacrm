@@ -1,0 +1,685 @@
+{% extends "layouts/admin_layout.html" %}
+{% load static %}
+
+{% block body_class %}page-marketing-admin-marketing{% endblock %}
+
+{% block title %}Quản trị Thông báo & Khuyến mãi (Marketing) | Cham Spa Admin Workspace{% endblock %}
+
+
+{% block admin_content %}
+<div class="marketing-admin-container">
+    <!-- 1. Header -->
+    <div class="admin-mkt-header">
+        <div>
+            <h1 class="admin-mkt-title">Quản Trị Thông Báo & Khuyến Mãi</h1>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'marketing:promotions' %}" target="_blank" class="btn btn-outline-dark px-3 py-2" style="border-radius: 999px; font-size: 13px; font-weight: 600;">
+                <i class="bi bi-box-arrow-up-right me-1"></i>Xem trang Khách hàng
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show border-0 shadow-sm" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 2. Thống Kê 4 Thẻ KPI Phân Hệ Marketing -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="mkt-kpi-card">
+                <div class="mkt-kpi-icon" style="background: #F7E9EB; color: #781A24;">
+                    <i class="bi bi-bell-fill"></i>
+                </div>
+                <div>
+                    <div class="mkt-kpi-number" id="kpiTotalNotifs">{{ kpi.total_notifications }}</div>
+                    <div class="mkt-kpi-label">Thông báo đã phát</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="mkt-kpi-card">
+                <div class="mkt-kpi-icon" style="background: #FFF7E6; color: #D48806;">
+                    <i class="bi bi-percent"></i>
+                </div>
+                <div>
+                    <div class="mkt-kpi-number" id="kpiActivePromos">{{ kpi.active_promotions }}</div>
+                    <div class="mkt-kpi-label">Chiến dịch KM đang chạy</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="mkt-kpi-card">
+                <div class="mkt-kpi-icon" style="background: #E6F7FF; color: #096DD9;">
+                    <i class="bi bi-ticket-perforated-fill"></i>
+                </div>
+                <div>
+                    <div class="mkt-kpi-number" id="kpiAvailVouchers">{{ kpi.available_vouchers }}</div>
+                    <div class="mkt-kpi-label">Mã Voucher khả dụng</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="mkt-kpi-card">
+                <div class="mkt-kpi-icon" style="background: #F6FFED; color: #389E0D;">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+                <div>
+                    <div class="mkt-kpi-number" id="kpiUsedVouchers">{{ kpi.used_vouchers }}</div>
+                    <div class="mkt-kpi-label">Lượt Voucher đã dùng</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Navigation 3 Tabs Nghiệp Vụ -->
+    <div class="admin-mkt-nav">
+        <button type="button" class="admin-mkt-nav-btn {% if active_tab == 'notifications' %}active{% endif %}" onclick="switchAdminTab('notifications', this)">
+            <i class="bi bi-bell"></i>
+            <span>Quản lý Thông báo</span>
+        </button>
+        <button type="button" class="admin-mkt-nav-btn {% if active_tab == 'promotions' %}active{% endif %}" onclick="switchAdminTab('promotions', this)">
+            <i class="bi bi-megaphone"></i>
+            <span>Chương trình Khuyến mãi</span>
+        </button>
+        <button type="button" class="admin-mkt-nav-btn {% if active_tab == 'vouchers' %}active{% endif %}" onclick="switchAdminTab('vouchers', this)">
+            <i class="bi bi-ticket-perforated"></i>
+            <span>Quản lý Mã Voucher</span>
+        </button>
+    </div>
+
+    <!-- =====================================================================
+         TAB 1: QUẢN LÝ THÔNG BÁO (UC-7.3)
+         Hỗ trợ soạn thông báo gửi cá nhân hoặc phát hàng loạt bulk_create
+         ===================================================================== -->
+    <div id="adminTabContentNotifications" style="display: {% if active_tab == 'notifications' %}block{% else %}none{% endif %};">
+        <div class="cham-table-card">
+            <div class="cham-table-card-header">
+                <div>
+                    <h5 class="font-serif fw-bold mb-1" style="color: #781A24; font-size: 17px;">
+                        <i class="bi bi-send-check-fill me-2" style="color: #D0B581;"></i>
+                        Lịch Sử Thông Báo Đã Phát Hành
+                    </h5>
+                    <div class="text-muted" style="font-size: 12.5px;">Quản lý và điều phối các thông báo đến khách hàng và nhân sự.</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalCreateNotification" style="background-color: #781A24; color: #FFFFFF; font-weight: 700; border-radius: 999px;">
+                        <i class="bi bi-plus-circle me-1"></i>Soạn thông báo mới
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table cham-table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Tiêu đề & Nội dung</th>
+                            <th>Người nhận</th>
+                            <th>Kênh gửi</th>
+                            <th>Trạng thái</th>
+                            <th>Thời gian gửi</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="notifTableBody">
+                        {% for notif in notifications %}
+                            <tr id="notif-row-{{ notif.id }}">
+                                <td style="max-width: 320px;">
+                                    <div class="fw-bold text-dark">{{ notif.title }}</div>
+                                    <div class="text-muted text-truncate" style="font-size: 12px;">{{ notif.content }}</div>
+                                    {% if notif.promotion %}
+                                        <div class="mt-1" style="font-size: 11px; color: #781A24;">
+                                            <i class="bi bi-gift-fill me-1"></i>KM: {{ notif.promotion.title }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{ notif.user.name|default:notif.user.username }}</div>
+                                    <div class="text-muted" style="font-size: 11.5px;">
+                                        {% if notif.user.is_superuser %}
+                                            <span class="badge bg-danger-subtle text-danger">ADMIN</span>
+                                        {% elif notif.user.is_staff %}
+                                            <span class="badge bg-warning-subtle text-warning-emphasis">STAFF</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary-subtle text-secondary">{{ notif.user.phone|default:"Khách hàng" }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 11px;">
+                                        {{ notif.delivery_channels|default:"Web" }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 11px;">
+                                        {{ notif.status }}
+                                    </span>
+                                </td>
+                                <td style="font-size: 12.5px; color: #716761;">
+                                    {{ notif.created_at|date:"d/m/Y H:i" }}
+                                </td>
+                                <td class="text-end">
+                                    <form method="POST" action="{% url 'marketing:admin_notifications' %}" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thông báo này khỏi hệ thống?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_notification">
+                                        <input type="hidden" name="notification_id" value="{{ notif.id }}">
+                                        <input type="hidden" name="scope" value="single">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa thông báo">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">Chưa có thông báo nào trong hệ thống.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         TAB 2: QUẢN LÝ CHƯƠNG TRÌNH KHUYẾN MÃI (UC-7.4)
+         CRUD Chương trình khuyến mãi toàn Spa
+         ===================================================================== -->
+    <div id="adminTabContentPromotions" style="display: {% if active_tab == 'promotions' %}block{% else %}none{% endif %};">
+        <div class="cham-table-card">
+            <div class="cham-table-card-header">
+                <div>
+                    <h5 class="font-serif fw-bold mb-1" style="color: #781A24; font-size: 17px;">
+                        <i class="bi bi-tags-fill me-2" style="color: #D0B581;"></i>
+                        Danh Sách Chương Trình Khuyến Mãi
+                    </h5>
+                    <div class="text-muted" style="font-size: 12.5px;">Thiết lập các chiến dịch ưu đãi hiển thị thẻ Card CSS gradient trên trang khách hàng.</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalCreatePromotion" style="background-color: #781A24; color: #FFFFFF; font-weight: 700; border-radius: 999px;">
+                        <i class="bi bi-plus-circle me-1"></i>Tạo chương trình ưu đãi
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table cham-table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Tiêu đề chiến dịch</th>
+                            <th>Điều kiện áp dụng</th>
+                            <th>Thời hạn</th>
+                            <th>Số Voucher</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promoTableBody">
+                        {% for promo in promotions %}
+                            <tr id="promo-row-{{ promo.id }}">
+                                <td>
+                                    <div class="fw-bold text-dark">{{ promo.title }}</div>
+                                </td>
+                                <td style="max-width: 280px; font-size: 12.5px; color: #716761;">
+                                    {{ promo.conditions_desc|default:"Áp dụng chung toàn bộ dịch vụ" }}
+                                </td>
+                                <td style="font-size: 12px;">
+                                    <div>Từ: <strong>{{ promo.valid_from|date:"d/m/Y"|default:"---" }}</strong></div>
+                                    <div>Đến: <strong>{{ promo.valid_until|date:"d/m/Y"|default:"Vô thời hạn" }}</strong></div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1">
+                                        {{ promo.total_vouchers }} voucher
+                                    </span>
+                                </td>
+                                <td>
+                                    <form method="POST" action="{% url 'marketing:admin_promotions' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="toggle_promotion">
+                                        <input type="hidden" name="promotion_id" value="{{ promo.id }}">
+                                        <button type="submit" class="btn btn-sm border-0 p-0" title="Nhấn để đổi trạng thái">
+                                            {% if promo.status == 'Đang hoạt động' %}
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                                    <i class="bi bi-check-circle me-1"></i>Đang hoạt động
+                                                </span>
+                                            {% elif promo.status == 'Sắp diễn ra' %}
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">
+                                                    <i class="bi bi-hourglass-split me-1"></i>Sắp diễn ra
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                                                    <i class="bi bi-slash-circle me-1"></i>Hết hạn
+                                                </span>
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                </td>
+                                <td class="text-end">
+                                    <form method="POST" action="{% url 'marketing:admin_promotions' %}" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa chương trình khuyến mãi này?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_promotion">
+                                        <input type="hidden" name="promotion_id" value="{{ promo.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa chương trình">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">Chưa có chương trình khuyến mãi nào.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         TAB 3: QUẢN LÝ MÃ VOUCHER (HỢP ĐỒNG API 17 TRONG README)
+         Phát hành Voucher linh hoạt (% có mức trần hoặc cố định VNĐ, đơn tối thiểu)
+         ===================================================================== -->
+    <div id="adminTabContentVouchers" style="display: {% if active_tab == 'vouchers' %}block{% else %}none{% endif %};">
+        <div class="cham-table-card">
+            <div class="cham-table-card-header">
+                <div>
+                    <h5 class="font-serif fw-bold mb-1" style="color: #781A24; font-size: 17px;">
+                        <i class="bi bi-ticket-perforated-fill me-2" style="color: #D0B581;"></i>
+                        Kho Mã Voucher Khuyến Mãi & Tri Ân
+                    </h5>
+                    <div class="text-muted" style="font-size: 12.5px;">Phát hành mã chiết khấu giảm theo % (có mức trần) hoặc giảm tiền mặt cố định.</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalCreateVoucher" style="background-color: #781A24; color: #FFFFFF; font-weight: 700; border-radius: 999px;">
+                        <i class="bi bi-plus-circle me-1"></i>Phát hành Voucher mới
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table cham-table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Mã Voucher</th>
+                            <th>Hình thức giảm</th>
+                            <th>Mức giảm</th>
+                            <th>Trần giảm tối đa</th>
+                            <th>Đơn tối thiểu</th>
+                            <th>Hạn sử dụng</th>
+                            <th>Đối tượng áp dụng</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="voucherTableBody">
+                        {% for voucher in vouchers %}
+                            <tr id="voucher-row-{{ voucher.id }}">
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #D0B581; font-family: monospace; font-size: 13px;">
+                                            {{ voucher.voucher_code }}
+                                        </span>
+                                        <button type="button" class="btn btn-sm btn-link p-0 text-muted" onclick="navigator.clipboard.writeText('{{ voucher.voucher_code }}'); showAdminToast('Đã copy: {{ voucher.voucher_code }}')" title="Copy mã">
+                                            <i class="bi bi-copy"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if voucher.discount_type == 'PERCENT' %}
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                                            Giảm theo %
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                            Giảm tiền mặt (VNĐ)
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold" style="color: #781A24;">
+                                    {% if voucher.discount_type == 'PERCENT' %}
+                                        {{ voucher.discount_value|floatformat:0 }}%
+                                    {% else %}
+                                        {{ voucher.discount_value|floatformat:0 }} VNĐ
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if voucher.max_discount_amount %}
+                                        <span class="fw-bold">{{ voucher.max_discount_amount|floatformat:0 }} VNĐ</span>
+                                    {% else %}
+                                        <span class="text-muted">Không áp dụng</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span>{{ voucher.min_order_amount|floatformat:0|default:"0" }} VNĐ</span>
+                                </td>
+                                <td style="font-size: 12.5px;">
+                                    {{ voucher.expiry_date|date:"d/m/Y H:i" }}
+                                </td>
+                                <td>
+                                    {% if voucher.customer %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                            {{ voucher.customer.name|default:voucher.customer.username }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary">Toàn bộ khách hàng</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if voucher.status == 'Khả dụng' %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Khả dụng</span>
+                                    {% elif voucher.status == 'Đã dùng' %}
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">Đã dùng</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary px-2 py-1">Hết hạn</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <form method="POST" action="{% url 'marketing:admin_promotions' %}" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mã voucher này?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_voucher">
+                                        <input type="hidden" name="voucher_id" value="{{ voucher.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa voucher">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center py-4 text-muted">Chưa có mã voucher nào được phát hành.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 1: SOẠN THÔNG BÁO MỚI (UC-7.3)
+     Hỗ trợ gửi cá nhân hoặc phát hàng loạt bulk_create
+     ========================================================================= -->
+{% block admin_modals %}
+<div class="modal fade" id="modalCreateNotification" tabindex="-1" aria-labelledby="modalCreateNotificationLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border: 1px solid #D0B581; border-radius: 18px; overflow: hidden; box-shadow: 0 20px 48px rgba(46, 29, 23, 0.25);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #781A24 0%, #5C121B 100%); color: #FFFFFF; border-bottom: 1px solid #D0B581;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-send-plus-fill" style="color: #D0B581; font-size: 18px;"></i>
+                    <h5 class="modal-title font-serif fw-bold mb-0" id="modalCreateNotificationLabel" style="font-size: 18px;">Soạn & Phát Hành Thông Báo Mới</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formCreateNotification" method="POST" action="{% url 'marketing:admin_notifications' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_notification">
+                <div class="modal-body p-4" style="background-color: #FAF7EF;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Đối tượng nhận thông báo <span class="text-danger">*</span></label>
+                            <select class="form-select" id="notifTargetType" name="target_type" onchange="toggleTargetUserSelect(this.value)" required style="border-color: #D0B581;">
+                                <option value="all_customers" selected>Tất cả khách hàng (Gửi hàng loạt)</option>
+                                <option value="all_staff">Tất cả nhân viên (Thông báo nội bộ)</option>
+                                <option value="all_users">Toàn bộ người dùng hệ thống</option>
+                                <option value="single_user">Gửi một cá nhân cụ thể</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="divSelectUser" style="display: none;">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Chọn người dùng nhận <span class="text-danger">*</span></label>
+                            <select class="form-select" id="notifUserId" name="user_id" style="border-color: #D0B581;">
+                                <option value="">-- Chọn tài khoản --</option>
+                                <optgroup label="Khách hàng">
+                                    {% for c in customers %}
+                                        <option value="{{ c.id }}">{{ c.name|default:c.username }} ({{ c.phone|default:c.email }})</option>
+                                    {% endfor %}
+                                </optgroup>
+                                <optgroup label="Nhân viên">
+                                    {% for s in staffs %}
+                                        <option value="{{ s.id }}">{{ s.name|default:s.username }} (Staff)</option>
+                                    {% endfor %}
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Tiêu đề thông báo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="notifTitle" name="title" placeholder="Ví dụ: Tặng bạn mã ưu đãi 20% đón chào năm mới" required style="border-color: #D0B581;">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Nội dung chi tiết <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="notifContent" name="content" rows="4" placeholder="Nhập nội dung đầy đủ của thông báo gửi đến người dùng..." required style="border-color: #D0B581;"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Chương trình Khuyến mãi đính kèm (Tùy chọn)</label>
+                            <select class="form-select" id="notifPromotionId" name="promotion_id" style="border-color: #D0B581;">
+                                <option value="">-- Không đính kèm --</option>
+                                {% for p in promotions %}
+                                    <option value="{{ p.id }}">{{ p.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Kênh phát hành</label>
+                            <select class="form-select" id="notifChannels" name="delivery_channels" style="border-color: #D0B581;">
+                                <option value="Web" selected>Hệ thống Web Cham Spa</option>
+                                <option value="Web + Email">Hệ thống Web + Email</option>
+                                <option value="Web + SMS">Hệ thống Web + SMS</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-size: 13px; font-weight: 600;">Hủy</button>
+                    <button type="submit" id="btnSubmitNotif" class="btn px-4 py-2" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-size: 13px; font-weight: 700;">
+                        <i class="bi bi-send-fill me-1"></i>Gửi thông báo ngay
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 2: TẠO CHƯƠNG TRÌNH KHUYẾN MÃI (UC-7.4)
+     ========================================================================= -->
+<div class="modal fade" id="modalCreatePromotion" tabindex="-1" aria-labelledby="modalCreatePromotionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border: 1px solid #D0B581; border-radius: 18px; overflow: hidden; box-shadow: 0 20px 48px rgba(46, 29, 23, 0.25);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #781A24 0%, #5C121B 100%); color: #FFFFFF; border-bottom: 1px solid #D0B581;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-tag-fill" style="color: #D0B581; font-size: 18px;"></i>
+                    <h5 class="modal-title font-serif fw-bold mb-0" id="modalCreatePromotionLabel" style="font-size: 18px;">Tạo Chương Trình Khuyến Mãi Mới</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formCreatePromotion" method="POST" action="{% url 'marketing:admin_promotions' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_promotion">
+                <div class="modal-body p-4" style="background-color: #FAF7EF;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Mã chương trình <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="promoCode" name="promotion_code" placeholder="Ví dụ: SPRING2026" required style="text-transform: uppercase; border-color: #D0B581; font-weight: 700;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Trạng thái</label>
+                            <select class="form-select" id="promoStatus" name="status" style="border-color: #D0B581;">
+                                <option value="Đang hoạt động" selected>Đang hoạt động</option>
+                                <option value="Sắp diễn ra">Sắp diễn ra</option>
+                                <option value="Hết hạn">Hết hạn</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Tiêu đề ưu đãi <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="promoTitle" name="title" placeholder="Ví dụ: Khởi Đầu An Yên - Giảm 20% Dịch Vụ Massage Body" required style="border-color: #D0B581;">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Điều kiện áp dụng</label>
+                            <textarea class="form-control" id="promoConditions" name="conditions_desc" rows="3" placeholder="Nhập điều kiện áp dụng, ví dụ: Áp dụng từ thứ 2 đến thứ 6..." style="border-color: #D0B581;"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Ngày bắt đầu</label>
+                            <input type="date" class="form-control" id="promoValidFrom" name="valid_from" style="border-color: #D0B581;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Ngày kết thúc</label>
+                            <input type="date" class="form-control" id="promoValidUntil" name="valid_until" style="border-color: #D0B581;">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-size: 13px; font-weight: 600;">Hủy</button>
+                    <button type="submit" id="btnSubmitPromo" class="btn px-4 py-2" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-size: 13px; font-weight: 700;">
+                        <i class="bi bi-check-circle me-1"></i>Tạo chương trình
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 3: PHÁT HÀNH VOUCHER LINH HOẠT (UC-7.4 & HỢP ĐỒNG API 17)
+     ========================================================================= -->
+<div class="modal fade" id="modalCreateVoucher" tabindex="-1" aria-labelledby="modalCreateVoucherLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border: 1px solid #D0B581; border-radius: 18px; overflow: hidden; box-shadow: 0 20px 48px rgba(46, 29, 23, 0.25);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #781A24 0%, #5C121B 100%); color: #FFFFFF; border-bottom: 1px solid #D0B581;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-ticket-perforated-fill" style="color: #D0B581; font-size: 18px;"></i>
+                    <h5 class="modal-title font-serif fw-bold mb-0" id="modalCreateVoucherLabel" style="font-size: 18px;">Phát Hành Mã Voucher Khuyến Mãi</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formCreateVoucher" method="POST" action="{% url 'marketing:admin_promotions' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_voucher">
+                <div class="modal-body p-4" style="background-color: #FAF7EF;">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Mã Voucher (Nhập hoặc sinh tự động) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="vouchCode" name="voucher_code" placeholder="Ví dụ: CHAMSPA20" required style="text-transform: uppercase; border-color: #D0B581; font-weight: 700; letter-spacing: 1px;">
+                                <button type="button" class="btn btn-outline-secondary" onclick="generateRandomVoucherCode()" title="Tự động tạo mã ngẫu nhiên">
+                                    <i class="bi bi-dice-5 me-1"></i>Tự sinh mã
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Hình thức giảm giá <span class="text-danger">*</span></label>
+                            <select class="form-select" id="vouchDiscountType" name="discount_type" onchange="toggleDiscountTypeInputs(this.value)" required style="border-color: #D0B581;">
+                                <option value="PERCENT" selected>Giảm theo phần trăm (%)</option>
+                                <option value="FIXED">Giảm tiền mặt cố định (VNĐ)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" id="lblDiscountValue" style="font-size: 13px; color: #2E1D17;">Giá trị giảm (%) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" class="form-control" id="vouchDiscountValue" name="discount_value" placeholder="Ví dụ: 20" required min="1" max="100" style="border-color: #D0B581; font-weight: 700;">
+                        </div>
+
+                        <div class="col-md-6" id="divMaxDiscount">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Mức giảm tối đa (VNĐ) <span class="text-muted">(Trần chiết khấu)</span></label>
+                            <input type="number" class="form-control" id="vouchMaxDiscount" name="max_discount_amount" placeholder="Ví dụ: 150000" style="border-color: #D0B581;">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Đơn hàng tối thiểu (VNĐ)</label>
+                            <input type="number" class="form-control" id="vouchMinOrder" name="min_order_amount" placeholder="Ví dụ: 500000" value="0" min="0" style="border-color: #D0B581;">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Ngày giờ hết hạn <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="vouchExpiryDate" name="expiry_date" required style="border-color: #D0B581;">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Chương trình Khuyến mãi gốc (Tùy chọn)</label>
+                            <select class="form-select" id="vouchPromotionId" name="promotion_id" style="border-color: #D0B581;">
+                                <option value="">-- Dùng chung toàn hệ thống --</option>
+                                {% for p in promotions %}
+                                    <option value="{{ p.id }}">{{ p.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 13px; color: #2E1D17;">Gán riêng cho Khách hàng (Tùy chọn)</label>
+                            <select class="form-select" id="vouchCustomerId" name="customer_id" style="border-color: #D0B581;">
+                                <option value="">-- Mọi khách hàng đều dùng được --</option>
+                                {% for c in customers %}
+                                    <option value="{{ c.id }}">{{ c.name|default:c.username }} ({{ c.phone|default:c.email }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-size: 13px; font-weight: 600;">Hủy</button>
+                    <button type="submit" id="btnSubmitVoucher" class="btn px-4 py-2" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-size: 13px; font-weight: 700;">
+                        <i class="bi bi-ticket-fill me-1"></i>Xác nhận phát hành
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- Script điều hướng tab & điều khiển form -->
+<script>
+    // 1. Chuyển đổi giữa 3 Tab nghiệp vụ của Admin
+    function switchAdminTab(tabName, btnElem) {
+        document.querySelectorAll('.admin-mkt-nav-btn').forEach(b => b.classList.remove('active'));
+        btnElem.classList.add('active');
+
+        document.getElementById('adminTabContentNotifications').style.display = (tabName === 'notifications') ? 'block' : 'none';
+        document.getElementById('adminTabContentPromotions').style.display = (tabName === 'promotions') ? 'block' : 'none';
+        document.getElementById('adminTabContentVouchers').style.display = (tabName === 'vouchers') ? 'block' : 'none';
+    }
+
+    // 2. Xử lý hiển thị chọn cá nhân khi gửi thông báo
+    function toggleTargetUserSelect(val) {
+        const div = document.getElementById('divSelectUser');
+        div.style.display = (val === 'single_user') ? 'block' : 'none';
+        document.getElementById('notifUserId').required = (val === 'single_user');
+    }
+
+    // 3. Xử lý hiển thị trường theo loại giảm giá của Voucher
+    function toggleDiscountTypeInputs(val) {
+        const lblValue = document.getElementById('lblDiscountValue');
+        const divMax = document.getElementById('divMaxDiscount');
+        const inputVal = document.getElementById('vouchDiscountValue');
+
+        if (val === 'PERCENT') {
+            lblValue.textContent = 'Giá trị giảm (%) *';
+            divMax.style.display = 'block';
+            inputVal.placeholder = 'Ví dụ: 20';
+            inputVal.max = 100;
+        } else {
+            lblValue.textContent = 'Giá trị giảm (VNĐ) *';
+            divMax.style.display = 'none';
+            inputVal.placeholder = 'Ví dụ: 100000';
+            inputVal.removeAttribute('max');
+        }
+    }
+
+    // 4. Tự sinh mã Voucher ngẫu nhiên
+    function generateRandomVoucherCode() {
+        const rand = Math.random().toString(36).substring(2, 7).toUpperCase();
+        document.getElementById('vouchCode').value = 'CHAM' + rand;
+    }
+</script>
+{% endblock %}
+

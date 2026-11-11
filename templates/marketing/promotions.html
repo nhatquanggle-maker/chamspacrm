@@ -1,0 +1,286 @@
+{% extends base_layout|default:"layouts/customer_layout.html" %}
+{% load static %}
+
+{% block body_class %}page-marketing-promotions{% endblock %}
+
+{% block title %}Ưu Đãi & Kho Voucher | Cham Spa & Massage Đà Nẵng{% endblock %}
+{% block page_title %}Ưu đãi & Kho Voucher{% endblock %}
+
+
+{% block content %}
+<div class="{% if not user.is_authenticated %}container py-4 py-md-5{% endif %}">
+<div class="marketing-promotions-wrapper">
+    <!-- 1. Hero Banner Giới Thiệu Ưu Đãi -->
+    <div class="promo-hero-banner">
+        <div class="promo-hero-badge">
+            <i class="bi bi-stars"></i>
+            <span>Cham Spa Privilege Offers</span>
+        </div>
+        <h1 class="promo-hero-title">Đặc Quyền Ưu Đãi & Ví Voucher Hoàng Gia</h1>
+        <p class="promo-hero-desc">
+            Khám phá trọn bộ chương trình khuyến mãi theo mùa và mã voucher chiết khấu dịch vụ độc quyền. Tận hưởng liệu trình massage trị liệu, xông hơi đá muối và phục hồi thể trạng chuẩn quốc tế tại Cham Spa & Massage Đà Nẵng.
+        </p>
+    </div>
+
+    <!-- 2. Tabs Chuyển Đổi (Khuyến Mãi & Ví Voucher) -->
+    <div class="promo-nav-tabs">
+        <button type="button" class="promo-nav-tab {% if active_tab == 'promotions' %}active{% endif %}" onclick="switchPromoTab('promotions', this)">
+            <i class="bi bi-tag-fill"></i>
+            <span>Chương trình Khuyến mãi</span>
+            <span class="promo-tab-badge">{{ total_promotions }}</span>
+        </button>
+        <button type="button" class="promo-nav-tab {% if active_tab == 'vouchers' %}active{% endif %}" onclick="switchPromoTab('vouchers', this)">
+            <i class="bi bi-wallet2"></i>
+            <span>Ví Voucher Của Tôi</span>
+            <span class="promo-tab-badge">{{ total_vouchers }}</span>
+        </button>
+    </div>
+
+    <!-- 3. TAB 1: DANH SÁCH CHƯƠNG TRÌNH KHUYẾN MÃI (CARD GRADIENT) -->
+    <div id="tabContentPromotions" style="display: {% if active_tab == 'promotions' %}block{% else %}none{% endif %};">
+        <div class="row g-4">
+            {% for promo in promotions %}
+                <div class="col-md-6 col-lg-6">
+                    <div class="promo-card">
+                        <div class="promo-card-top">
+                            <div class="promo-card-code">
+                                <span><i class="bi bi-gift-fill me-1"></i>Ưu đãi đặc biệt</span>
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1" style="font-size: 11px;">
+                                    {{ promo.status }}
+                                </span>
+                            </div>
+                            <h3 class="promo-card-title">{{ promo.title }}</h3>
+                        </div>
+                        <div class="promo-card-body">
+                            <div>
+                                <div class="promo-conditions">
+                                    <i class="bi bi-info-circle me-1 text-danger"></i>
+                                    {{ promo.conditions_desc|default:"Áp dụng cho tất cả khách hàng đặt lịch trực tuyến hoặc trải nghiệm tại quầy." }}
+                                </div>
+                                <div class="promo-date-badge">
+                                    <i class="bi bi-calendar-range"></i>
+                                    <span>Hạn áp dụng: <strong>{{ promo.valid_until|date:"d/m/Y"|default:"Không giới hạn" }}</strong></span>
+                                </div>
+                            </div>
+                            <div>
+                                <a href="{% url 'appointment:booking' %}" class="btn-claim-promo">
+                                    <span>Đặt lịch áp dụng ngay</span>
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-tag" style="font-size: 48px; color: #D0B581;"></i>
+                    <h5 class="font-serif fw-bold mt-3" style="color: #2E1D17;">Hiện chưa có chương trình khuyến mãi nào</h5>
+                    <p class="text-muted" style="font-size: 13.5px;">Quý khách vui lòng quay lại sau để cập nhật các ưu đãi mới nhất từ Cham Spa.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 4. TAB 2: VÍ VOUCHER CỦA TÔI (TICKET STUB + COPY 1-CLICK) -->
+    <div id="tabContentVouchers" style="display: {% if active_tab == 'vouchers' %}block{% else %}none{% endif %};">
+        <!-- Khung nhập mã kích hoạt voucher nhanh -->
+        <div class="card p-3 p-md-4 mb-4" style="background: #FAF7EF; border: 1px solid #D0B581; border-radius: 16px;">
+            <div class="row align-items-center g-3">
+                <div class="col-lg-7">
+                    <h5 class="font-serif fw-bold mb-1" style="color: #781A24; font-size: 17px;">
+                        <i class="bi bi-patch-check-fill me-2" style="color: #D0B581;"></i>
+                        Kiểm tra & Kích hoạt Voucher
+                    </h5>
+                    <p class="mb-0 text-muted" style="font-size: 13px;">
+                        Nhập mã ưu đãi quý khách nhận được qua SMS, Email hoặc từ nhân viên CSKH để kiểm tra mức giảm giá.
+                    </p>
+                </div>
+                <div class="col-lg-5">
+                    <div class="input-group">
+                        <input type="text" id="inputValidateCode" class="form-control" placeholder="Ví dụ: CHAMSPA20" style="text-transform: uppercase; border-color: #D0B581; font-weight: 700; letter-spacing: 1px;">
+                        <button class="btn" type="button" onclick="checkVoucherOnline()" style="background-color: #781A24; color: #FFFFFF; font-weight: 700; padding: 0 20px;">
+                            Kiểm tra
+                        </button>
+                    </div>
+                    <div id="voucherCheckFeedback" class="mt-2" style="font-size: 12px; display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách vé Voucher khả dụng -->
+        <div class="row g-3">
+            {% for voucher in available_vouchers %}
+                <div class="col-lg-12">
+                    <div class="voucher-ticket">
+                        <!-- Phần cuống vé bên trái -->
+                        <div class="voucher-left-stub">
+                            {% if voucher.discount_type == 'PERCENT' %}
+                                <div class="voucher-amount-number">{{ voucher.discount_value|floatformat:0 }}%</div>
+                                <div class="voucher-amount-unit">GIẢM THEO %</div>
+                            {% else %}
+                                <div class="voucher-amount-number" style="font-size: 24px;">{{ voucher.discount_value|floatformat:0 }}</div>
+                                <div class="voucher-amount-unit">VNĐ TIỀN MẶT</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Phần thân vé bên phải -->
+                        <div class="voucher-right-body">
+                            <div>
+                                <div class="voucher-meta-row">
+                                    <div class="voucher-code-pill">
+                                        <i class="bi bi-qr-code"></i>
+                                        <span id="code-text-{{ voucher.id }}">{{ voucher.voucher_code }}</span>
+                                    </div>
+                                    <button type="button" class="voucher-btn-copy" onclick="copyVoucherCode('{{ voucher.voucher_code }}', this)">
+                                        <i class="bi bi-copy"></i>
+                                        <span>Sao chép mã</span>
+                                    </button>
+                                </div>
+
+                                <h4 class="font-serif fw-bold mb-1" style="color: #2E1D17; font-size: 16px;">
+                                    {% if voucher.promotion %}
+                                        {{ voucher.promotion.title }}
+                                    {% elif voucher.complaint %}
+                                        Voucher tri ân & Đền bù khiếu nại #{{ voucher.complaint.id }}
+                                    {% else %}
+                                        Voucher tri ân Khách hàng thân thiết
+                                    {% endif %}
+                                </h4>
+
+                                <div class="voucher-desc-text">
+                                    {% if voucher.discount_type == 'PERCENT' and voucher.max_discount_amount %}
+                                        Mức giảm tối đa: <strong>{{ voucher.max_discount_amount|floatformat:0 }} VNĐ</strong>.
+                                    {% endif %}
+                                    Đơn tối thiểu: <strong>{{ voucher.min_order_amount|floatformat:0|default:"0" }} VNĐ</strong>.
+                                    {% if voucher.customer %}
+                                        <span class="badge bg-danger-subtle text-danger ms-1">Dành riêng cho bạn</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="voucher-footer-info">
+                                <div>
+                                    <i class="bi bi-clock me-1 text-danger"></i>
+                                    <span>Hết hạn: <strong>{{ voucher.expiry_date|date:"d/m/Y H:i" }}</strong></span>
+                                </div>
+                                <div>
+                                    <a href="{% url 'appointment:booking' %}?voucher={{ voucher.voucher_code|urlencode }}" class="text-decoration-none fw-bold" style="color: #781A24; font-size: 12.5px;">
+                                        Áp dụng lịch hẹn ➔
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-wallet2" style="font-size: 48px; color: #D0B581;"></i>
+                    <h5 class="font-serif fw-bold mt-3" style="color: #2E1D17;">Ví Voucher của bạn đang trống</h5>
+                    <p class="text-muted" style="font-size: 13.5px;">Bạn sẽ nhận được mã voucher khi tham gia các chương trình khuyến mãi hoặc nâng hạng hội viên VIP.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container Thông Báo Sao Chép -->
+<div class="cham-toast-container" id="chamToastContainer"></div>
+
+
+
+<script>
+    // Chuyển đổi giữa 2 tab Khuyến mãi & Ví voucher
+    function switchPromoTab(tabName, element) {
+        document.querySelectorAll('.promo-nav-tab').forEach(tab => tab.classList.remove('active'));
+        element.classList.add('active');
+
+        const tabPromo = document.getElementById('tabContentPromotions');
+        const tabVoucher = document.getElementById('tabContentVouchers');
+
+        if (tabName === 'promotions') {
+            tabPromo.style.display = 'block';
+            tabVoucher.style.display = 'none';
+        } else {
+            tabPromo.style.display = 'none';
+            tabVoucher.style.display = 'block';
+        }
+    }
+
+    // Hiển thị Toast thông báo nhanh (Vanilla JS)
+    function showChamToast(msg) {
+        const container = document.getElementById('chamToastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'cham-toast';
+        toast.innerHTML = `
+            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            <div>${msg}</div>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 2800);
+    }
+
+    // Nút sao chép mã 1-click vào Clipboard tiện lợi (UC-7.2)
+    function copyVoucherCode(code, btnElement) {
+        navigator.clipboard.writeText(code).then(() => {
+            btnElement.classList.add('copied');
+            const originalHtml = btnElement.innerHTML;
+            btnElement.innerHTML = `<i class="bi bi-check2"></i><span>Đã sao chép!</span>`;
+            showChamToast(`Đã sao chép mã voucher <strong>${code}</strong> vào clipboard!`);
+            setTimeout(() => {
+                btnElement.classList.remove('copied');
+                btnElement.innerHTML = originalHtml;
+            }, 2500);
+        }).catch(err => {
+            alert('Mã voucher: ' + code);
+        });
+    }
+
+    // Kiểm tra Voucher trực tiếp qua Fetch API
+    function checkVoucherOnline() {
+        const input = document.getElementById('inputValidateCode');
+        const feedback = document.getElementById('voucherCheckFeedback');
+        const code = (input.value || '').trim();
+
+        if (!code) {
+            feedback.style.display = 'block';
+            feedback.className = 'mt-2 text-danger';
+            feedback.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>Vui lòng nhập mã Voucher.';
+            return;
+        }
+
+        feedback.style.display = 'block';
+        feedback.className = 'mt-2 text-muted';
+        feedback.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang kiểm tra tính hợp lệ...';
+
+        const csrftoken = (document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/) || [])[1] || '';
+        fetch("{% url 'marketing:api_voucher_validate' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': decodeURIComponent(csrftoken),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ voucher_code: code, order_amount: 500000 })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.valid) {
+                feedback.className = 'mt-2 text-success fw-bold';
+                feedback.innerHTML = `<i class="bi bi-check-circle me-1"></i>Mã hợp lệ! Mức giảm: ${data.formatted_discount} (${data.message})`;
+            } else {
+                feedback.className = 'mt-2 text-danger fw-bold';
+                feedback.innerHTML = `<i class="bi bi-x-circle me-1"></i>${data.message || 'Mã voucher không khả dụng.'}`;
+            }
+        })
+        .catch(err => {
+            feedback.className = 'mt-2 text-danger';
+            feedback.innerHTML = '<i class="bi bi-wifi-off me-1"></i>Lỗi kết nối máy chủ.';
+        });
+    }
+</script>
+</div>
+{% endblock %}

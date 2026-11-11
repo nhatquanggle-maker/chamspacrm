@@ -1,0 +1,147 @@
+{% extends "layouts/staff_layout.html" %}
+{% load static %}
+
+{% block body_class %}page-dashboard-staff-dashboard{% endblock %}
+
+{% block title %}Bảng điều khiển Ca trực Kỹ thuật viên | Cham Spa Staff Workspace{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <!-- Header Ca trực Staff -->
+    <div class="staff-dash-header">
+        <div>
+            <div class="text-muted small mb-1">
+                <i class="bi bi-clock-history me-1"></i> Ca trực hôm nay: <strong>{{ today_str }}</strong>
+            </div>
+            <h1 class="staff-dash-title">BẢNG ĐIỀU KHIỂN CA TRỰC KỸ THUẬT VIÊN</h1>
+            <p class="text-muted small mb-0 mt-1">
+                Theo dõi tiến độ ca trực, đón tiếp khách hàng và kiểm tra lực massage yêu cầu.
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'appointment:staff_appointments' %}" class="btn btn-outline-dark btn-sm rounded-pill px-3">
+                <i class="bi bi-calendar-event me-1"></i> Bảng Lịch hẹn
+            </a>
+            <a href="{% url 'health:staff_lookup' %}" class="btn btn-danger btn-sm rounded-pill px-3" style="background: #781A24; border-color: #781A24;">
+                <i class="bi bi-search-heart me-1"></i> Tra cứu Hồ sơ Khách
+            </a>
+        </div>
+    </div>
+
+    <!-- 4 Thẻ KPI ca trực trong ngày -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="staff-kpi-card">
+                <div class="staff-kpi-label">Lịch hẹn hôm nay</div>
+                <div class="staff-kpi-val text-primary">{{ total_today }} <span class="fs-6 fw-normal text-muted">lịch</span></div>
+                <small class="text-muted mt-2 d-block">Toàn bộ khách đặt</small>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="staff-kpi-card">
+                <div class="staff-kpi-label">Đang thực hiện</div>
+                <div class="staff-kpi-val text-warning">{{ in_progress_today }} <span class="fs-6 fw-normal text-muted">phòng</span></div>
+                <small class="text-muted mt-2 d-block">Đang làm dịch vụ</small>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="staff-kpi-card">
+                <div class="staff-kpi-label">Đã hoàn thành</div>
+                <div class="staff-kpi-val text-success">{{ completed_today }} <span class="fs-6 fw-normal text-muted">lịch</span></div>
+                <small class="text-muted mt-2 d-block">Đã xong trị liệu</small>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="staff-kpi-card">
+                <div class="staff-kpi-label">Doanh thu quầy hôm nay</div>
+                <div class="staff-kpi-val text-danger">{{ today_revenue_formatted }}</div>
+                <small class="text-muted mt-2 d-block">Tiền đã thanh toán</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách Lịch hẹn hôm nay cần phục vụ -->
+    <div class="shift-table-card">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-list-task text-danger me-2"></i> Danh sách Lịch hẹn Ca trực hôm nay
+            </h5>
+            <span class="badge bg-light text-dark border">{{ today_appointments|length }} lượt đặt</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr class="small text-uppercase text-muted">
+                        <th>Khung giờ</th>
+                        <th>Mã lịch</th>
+                        <th>Khách hàng</th>
+                        <th>Số khách</th>
+                        <th>Dịch vụ yêu cầu</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Tác vụ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appt in today_appointments %}
+                    <tr>
+                        <td class="fw-bold text-danger">
+                            <i class="bi bi-clock me-1"></i> {{ appt.time_slot }}
+                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ appt.appointment_code }}</span></td>
+                        <td>
+                            <div class="fw-bold">{{ appt.customer_name }}</div>
+                            <small class="text-muted">{{ appt.customer_phone }}</small>
+                        </td>
+                        <td>{{ appt.total_guests }} khách</td>
+                        <td>
+                            {% for d in appt.details.all %}
+                                <div class="small fw-semibold text-dark">{{ d.service.name }}</div>
+                                <small class="text-muted">Khách {{ d.guest_index }} ({{ d.gender }}): {{ d.massage_pressure }}</small>
+                            {% empty %}
+                                <span class="text-muted small">Chưa phân bổ chi tiết</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if appt.status == 'Completed' %}
+                                <span class="badge bg-success">Hoàn thành</span>
+                            {% elif appt.status == 'In_Progress' %}
+                                <span class="badge bg-warning text-dark">Đang thực hiện</span>
+                            {% elif appt.status == 'Confirmed' %}
+                                <span class="badge bg-primary">Đã xác nhận</span>
+                            {% elif appt.status == 'Hold' %}
+                                <span class="badge bg-secondary">Chờ quét QR</span>
+                            {% else %}
+                                <span class="badge bg-danger">{{ appt.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'health:staff_lookup' %}?phone={{ appt.customer_phone }}" class="btn btn-sm btn-outline-secondary" title="Xem hồ sơ sức khỏe khách">
+                                <i class="bi bi-file-medical"></i>
+                            </a>
+                            <a href="{% url 'appointment:staff_appointments' %}" class="btn btn-sm btn-outline-danger" title="Vào bảng lịch hẹn">
+                                <i class="bi bi-arrow-right-short"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-calendar-check fs-2 d-block text-secondary mb-2"></i>
+                            Chưa có lịch hẹn nào phát sinh trong ngày hôm nay.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

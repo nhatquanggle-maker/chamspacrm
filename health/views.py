@@ -11,6 +11,7 @@ Triển khai giao diện chuẩn Figma:
 
 import json
 from datetime import datetime
+from urllib.parse import quote, urlencode
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -18,10 +19,11 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
+from django.core.paginator import Paginator
 
 from core.models import UserHealthProfile, User, Appointment, Tier, Membership, UserProfile
-from .serializers import UserHealthProfileSerializer
-from .api import generate_unique_health_code
+from accounts.forms import validate_account_payload, parse_optional_date
+from .helpers import generate_unique_health_code, serialize_health_profile, validate_health_payload
 
 
 def is_staff_or_superuser(user):
@@ -65,8 +67,7 @@ def my_health_profile_view(request):
     height_display = ""
     weight_display = ""
     if profile:
-        serializer = UserHealthProfileSerializer(profile)
-        profile_data = serializer.data
+        profile_data = serialize_health_profile(profile)
         height_display = format_metric_value(profile.height_cm)
         weight_display = format_metric_value(profile.weight_kg)
 
@@ -105,77 +106,53 @@ def health_profile_update_view(request):
 
     # Xử lý khi người dùng submit qua Form POST truyền thống
     if request.method == 'POST':
+        target_user = user
+        target_uid = request.POST.get('user_id')
+        if target_uid and is_staff_or_superuser(user):
+            target_user = get_object_or_404(User, id=target_uid)
+            profile = UserHealthProfile.objects.filter(user=target_user).first()
+
+        payload = {
+            'height_cm': request.POST.get('height_cm'),
+            'weight_kg': request.POST.get('weight_kg'),
+            'blood_pressure': request.POST.get('blood_pressure', 'Bình thường'),
+            'massage_pressure': request.POST.get('massage_pressure', 'Lực vừa'),
+            'pain_level': request.POST.get('pain_level', '5'),
+            'allergy_notes': request.POST.get('allergy_notes', ''),
+            'special_requests': request.POST.get('special_requests', ''),
+            'focus_areas': request.POST.getlist('focus_areas'),
+            'health_conditions': request.POST.getlist('health_conditions'),
+            'recovery_goals': request.POST.getlist('recovery_goals'),
+        }
+        cleaned, errors = validate_health_payload(payload)
+        if errors:
+            messages.error(request, next(iter(errors.values())))
+            return redirect('health:update')
+
         try:
             with transaction.atomic():
-                height_raw = request.POST.get('height_cm')
-                weight_raw = request.POST.get('weight_kg')
-                blood_pressure = request.POST.get('blood_pressure', 'Bình thường')
-                massage_pressure = request.POST.get('massage_pressure', 'Lực vừa')
-                pain_level_raw = request.POST.get('pain_level', '5')
-                allergy_notes = request.POST.get('allergy_notes', '').strip()
-                special_requests = request.POST.get('special_requests', '').strip()
-
-                # Lấy mảng JSON từ checkbox / multi-select
-                focus_areas = request.POST.getlist('focus_areas')
-                health_conditions = request.POST.getlist('health_conditions')
-                recovery_goals = request.POST.getlist('recovery_goals')
-
-                # Chuyển đổi số an toàn
-                height_cm = float(height_raw) if height_raw and float(height_raw) > 0 else None
-                weight_kg = float(weight_raw) if weight_raw and float(weight_raw) > 0 else None
-                pain_level = int(pain_level_raw) if pain_level_raw and pain_level_raw.isdigit() else 5
-
-                # Validation kiểm tra chiều cao cân nặng hợp lý
-                if height_cm and (height_cm < 50 or height_cm > 250):
-                    messages.error(request, "Chiều cao không hợp lý (phải từ 50 cm đến 250 cm).")
-                    return redirect('health:update')
-
-                if weight_kg and (weight_kg < 20 or weight_kg > 250):
-                    messages.error(request, "Cân nặng không hợp lý (phải từ 20 kg đến 250 kg).")
-                    return redirect('health:update')
-
-                # Chuẩn 1-1 tối giản: bản ghi mới ghi đè bản ghi cũ
                 if profile:
-                    profile.height_cm = height_cm
-                    profile.weight_kg = weight_kg
-                    profile.blood_pressure = blood_pressure
-                    profile.focus_areas = focus_areas
-                    profile.massage_pressure = massage_pressure
-                    profile.pain_level = pain_level
-                    profile.health_conditions = health_conditions
-                    profile.allergy_notes = allergy_notes
-                    profile.special_requests = special_requests
-                    profile.recovery_goals = recovery_goals
+                    for field, val in cleaned.items():
+                        setattr(profile, field, val)
                     profile.save()
                     messages.success(request, "Cập nhật hồ sơ sức khỏe thành công! Dữ liệu đã được lưu an toàn.")
                 else:
-                    health_code = generate_unique_health_code(user)
                     profile = UserHealthProfile.objects.create(
-                        user=user,
-                        health_code=health_code,
-                        height_cm=height_cm,
-                        weight_kg=weight_kg,
-                        blood_pressure=blood_pressure,
-                        focus_areas=focus_areas,
-                        massage_pressure=massage_pressure,
-                        pain_level=pain_level,
-                        health_conditions=health_conditions,
-                        allergy_notes=allergy_notes,
-                        special_requests=special_requests,
-                        recovery_goals=recovery_goals
+                        user=target_user,
+                        health_code=generate_unique_health_code(target_user),
+                        **cleaned,
                     )
-                    messages.success(request, f"Tạo mới hồ sơ sức khỏe thành công (Mã: {profile.health_code})!")
-
+                    messages.success(request, "Tạo mới hồ sơ sức khỏe thành công!")
                 return redirect('health:profile')
         except Exception as e:
             messages.error(request, f"Lỗi khi lưu hồ sơ sức khỏe: {str(e)}")
+            return redirect('health:update')
 
     profile_data = None
     height_display = ""
     weight_display = ""
     if profile:
-        serializer = UserHealthProfileSerializer(profile)
-        profile_data = serializer.data
+        profile_data = serialize_health_profile(profile)
         height_display = format_metric_value(profile.height_cm)
         weight_display = format_metric_value(profile.weight_kg)
 
@@ -245,37 +222,36 @@ def staff_health_lookup_view(request):
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'create_customer':
-            name = request.POST.get('name', '').strip()
-            phone = request.POST.get('phone', '').strip().replace(' ', '')
-            email = request.POST.get('email', '').strip().lower()
             password = request.POST.get('password', '').strip() or 'customer123456'
             gender = request.POST.get('gender', 'Nữ')
-            bday_str = request.POST.get('birthday', '').strip()
             tier_name = request.POST.get('tier_name', 'Thành viên')
             care_note = request.POST.get('care_note', '').strip()
 
-            if not name or not phone:
-                messages.error(request, "Vui lòng nhập đầy đủ Họ tên và Số điện thoại khách hàng.")
-            elif User.objects.filter(username=phone).exists() or User.objects.filter(phone=phone).exists():
-                messages.error(request, f"Số điện thoại {phone} đã được đăng ký tài khoản khác.")
-            elif email and User.objects.filter(email=email).exists():
-                messages.error(request, f"Địa chỉ email {email} đã được đăng ký tài khoản khác.")
+            validated, err = validate_account_payload(
+                request.POST.get('name'),
+                request.POST.get('phone'),
+                request.POST.get('email'),
+                is_staff_or_admin=False,
+                require_email=True,
+            )
+            bday, date_err = parse_optional_date(request.POST.get('birthday'))
+
+            if err or date_err:
+                messages.error(request, err or date_err)
             else:
                 new_user = User.objects.create_user(
-                    username=phone,
-                    name=name,
-                    phone=phone,
-                    email=email,
+                    username=validated['phone'],
+                    name=validated['name'],
+                    phone=validated['phone'],
+                    email=validated['email'],
                     password=password,
                     is_staff=False,
                     is_superuser=False,
                     is_active=True
                 )
-                bday = datetime.strptime(bday_str, '%Y-%m-%d').date() if bday_str else None
                 profile, _ = UserProfile.objects.get_or_create(user=new_user)
                 profile.gender = gender
-                if bday:
-                    profile.birthday = bday
+                profile.birthday = bday
                 profile.save()
                 tier_obj = Tier.objects.filter(name=tier_name).first() or Tier.objects.first()
                 mem, _ = Membership.objects.get_or_create(user=new_user)
@@ -313,8 +289,7 @@ def staff_health_lookup_view(request):
     all_profiles_list = []
 
     for p in profiles_qs:
-        serializer = UserHealthProfileSerializer(p)
-        p_data = serializer.data
+        p_data = serialize_health_profile(p)
         if p_data.get('has_medical_alert'):
             high_alert_count += 1
 
@@ -329,6 +304,19 @@ def staff_health_lookup_view(request):
             'data': p_data,
         })
 
+    # Phân trang chuẩn 7 hồ sơ mỗi trang
+    paginator = Paginator(all_profiles_list, 7)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    page_range = list(paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1))
+
+    params = {}
+    if query:
+        params['q'] = query
+    if filter_alert:
+        params['alert'] = filter_alert
+    pagination_prefix = f"?{urlencode(params, quote_via=quote)}&" if params else "?"
+
     tiers = Tier.objects.all().order_by('min_points')
 
     context = {
@@ -338,7 +326,11 @@ def staff_health_lookup_view(request):
         'filter_alert': filter_alert,
         'total_profiles': total_profiles,
         'high_alert_count': high_alert_count,
-        'profiles_list': all_profiles_list,
+        'profiles_list': page_obj,
+        'page_obj': page_obj,
+        'page_range': page_range,
+        'ellipsis_label': paginator.ELLIPSIS,
+        'pagination_prefix': pagination_prefix,
         'tiers': tiers,
     }
 
@@ -368,8 +360,7 @@ def staff_customer_health_detail_view(request, user_id):
         height_display = ""
         weight_display = ""
         if profile:
-            serializer = UserHealthProfileSerializer(profile)
-            profile_data = serializer.data
+            profile_data = serialize_health_profile(profile)
             height_display = format_metric_value(profile.height_cm)
             weight_display = format_metric_value(profile.weight_kg)
 

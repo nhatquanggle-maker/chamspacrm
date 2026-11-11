@@ -4,6 +4,9 @@ from . import views
 app_name = 'feedbacks'
 
 urlpatterns = [
-    # Thêm các route cho module feedbacks tại đây (ví dụ: đánh giá sao, nhận xét liệu trình, khiếu nại dịch vụ)
+    path('', views.customer_feedback_tracking, name='my_feedbacks'),
+    path('tracking/', views.customer_feedback_tracking, name='customer_tracking'),
+    path('manage/', views.admin_feedback_management, name='admin_management'),
+    path('admin/', views.admin_feedback_management, name='admin_feedback_list'),
+    path('staff/', views.admin_feedback_management, name='staff_feedback_list'),
 ]
-

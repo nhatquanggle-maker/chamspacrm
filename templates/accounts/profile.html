@@ -1,274 +1,11 @@
 {% extends base_layout|default:"layouts/customer_layout.html" %}
 {% load static %}
 
+{% block body_class %}page-accounts-profile{% endblock %}
+
 {% block title %}Hồ sơ cá nhân | Cham Spa & Massage Đà Nẵng{% endblock %}
 {% block page_title %}Thông tin cá nhân{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* Module 5: Customer Profile Card Styling (Figma Node 218:9161) */
-    .cham-profile-card {
-        background-color: #FFFFFF;
-        border: 1px solid #D0B581 !important;
-        border-radius: 18px !important;
-        box-shadow: 0 14px 36px rgba(46, 29, 23, 0.08);
-        overflow: hidden;
-        margin-bottom: 30px;
-    }
-
-    .cham-profile-summary {
-        background-color: #FAF7EF;
-        border-right: 1px solid #DED2BA;
-        padding: 36px 24px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        height: 100%;
-        min-height: 100%;
-        flex-grow: 1;
-    }
-
-    .cham-profile-avatar-wrap {
-        width: 124px;
-        height: 124px;
-        position: relative;
-        margin: 0 auto 12px auto;
-    }
-
-    .cham-profile-avatar-img {
-        width: 124px;
-        height: 124px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #D0B581;
-    }
-
-    .cham-profile-avatar-placeholder {
-        width: 124px;
-        height: 124px;
-        border-radius: 50%;
-        background-color: #781A24;
-        color: #FFFFFF;
-        font-size: 42px;
-        font-weight: 700;
-        font-family: var(--font-serif), serif;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 3px solid #D0B581;
-    }
-
-    .cham-avatar-camera-btn {
-        position: absolute;
-        bottom: 2px;
-        right: 2px;
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        background-color: #781A24;
-        color: #FFFFFF;
-        border: 2px solid #FFFFFF;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: transform 0.2s ease, background-color 0.2s ease;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    }
-
-    .cham-avatar-camera-btn:hover {
-        transform: scale(1.08);
-        background-color: #5c121b;
-    }
-
-    .cham-upload-link {
-        color: #781A24 !important;
-        font-family: var(--font-body), sans-serif;
-        font-size: 13.5px;
-        font-weight: 600;
-        text-decoration: underline !important;
-        cursor: pointer;
-    }
-
-    .cham-status-badge {
-        display: inline-block;
-        background-color: #EFE4CD;
-        color: #781A24;
-        font-family: var(--font-body), sans-serif;
-        font-weight: 700;
-        font-size: 12px;
-        letter-spacing: 0.5px;
-        padding: 4px 14px;
-        border-radius: 999px;
-    }
-
-    .cham-subnav-btn {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        width: 100%;
-        padding: 11px 18px;
-        border-radius: 8px;
-        font-family: var(--font-body), sans-serif;
-        font-size: 14.5px;
-        font-weight: 600;
-        color: #4A3E39;
-        background: transparent;
-        border: none;
-        text-align: left;
-        transition: all 0.2s ease;
-        cursor: pointer;
-        text-decoration: none;
-    }
-
-    .cham-subnav-btn:hover {
-        background-color: rgba(208, 181, 129, 0.25);
-        color: #781A24;
-    }
-
-    .cham-subnav-btn.active {
-        background-color: #781A24 !important;
-        color: #FFFFFF !important;
-    }
-
-    .cham-subnav-btn.active i {
-        color: #FFFFFF !important;
-    }
-
-    .cham-subnav-logout:hover {
-        background-color: #FFF5F5 !important;
-        color: #DC2626 !important;
-    }
-
-    .cham-profile-content {
-        padding: 40px 44px;
-    }
-
-    .cham-field-label {
-        display: block;
-        font-family: var(--font-body), sans-serif;
-        font-weight: 600;
-        font-size: 14px;
-        color: #171311;
-        margin-bottom: 7px;
-    }
-
-    .cham-field-input-wrap {
-        display: flex;
-        align-items: center;
-        background-color: #FFFFFF;
-        border: 1px solid #DED2BA;
-        border-radius: 8px;
-        height: 48px;
-        padding: 0 14px;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .cham-field-input-wrap:focus-within {
-        border-color: #781A24 !important;
-        box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.12);
-    }
-
-    .cham-field-icon {
-        color: #6F665E;
-        font-size: 18px;
-        flex-shrink: 0;
-        margin-right: 10px;
-    }
-
-    .cham-field-input {
-        border: none !important;
-        box-shadow: none !important;
-        background: transparent !important;
-        width: 100%;
-        height: 100%;
-        padding: 0 !important;
-        font-family: var(--font-body), sans-serif;
-        font-size: 14.5px;
-        color: #171311;
-    }
-
-    .cham-field-input:focus {
-        outline: none !important;
-    }
-
-    .cham-verified-badge {
-        margin-left: auto;
-        font-size: 18px;
-        flex-shrink: 0;
-    }
-
-    .cham-gender-radio {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-right: 22px;
-        cursor: pointer;
-        font-family: var(--font-body), sans-serif;
-        font-size: 14.5px;
-        font-weight: 500;
-        color: #171311;
-    }
-
-    .cham-gender-radio input[type="radio"] {
-        appearance: none;
-        -webkit-appearance: none;
-        width: 18px;
-        height: 18px;
-        border: 1.5px solid #8C827A;
-        border-radius: 50%;
-        outline: none;
-        cursor: pointer;
-        position: relative;
-        margin: 0;
-        transition: all 0.2s ease;
-    }
-
-    .cham-gender-radio input[type="radio"]:checked {
-        border-color: #781A24;
-        background-color: #781A24;
-        box-shadow: inset 0 0 0 3px #FFFFFF;
-    }
-
-    .cham-profile-submit-btn {
-        background-color: #781A24;
-        color: #FFFFFF;
-        border: none;
-        border-radius: 8px;
-        padding: 12px 28px;
-        font-family: var(--font-body), sans-serif;
-        font-weight: 700;
-        font-size: 14px;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: background-color 0.2s ease, transform 0.15s ease;
-        cursor: pointer;
-    }
-
-    .cham-profile-submit-btn:hover {
-        background-color: #5c121b;
-        color: #FFFFFF;
-        transform: translateY(-1px);
-    }
-
-    .cham-auth-pwd-toggle {
-        background: none;
-        border: none;
-        color: #6F665E;
-        cursor: pointer;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 17px;
-        margin-left: 8px;
-    }
-</style>
-{% endblock %}
 
 {% block content %}
 {% if base_layout == 'layouts/staff_layout.html' or base_layout == 'layouts/admin_layout.html' %}
@@ -293,7 +30,7 @@
 <div class="mb-4">
     {% for message in messages %}
     {% if "quay trở lại" not in message.message and "Chào mừng" not in message.message %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3 small py-2 mb-2" role="alert">
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show rounded-3 small py-2 mb-2" role="alert">
         <i class="bi bi-info-circle-fill me-1"></i> {{ message }}
         <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
@@ -439,7 +176,7 @@
                                 <div class="cham-field-input-wrap" style="background-color: #FAF7EF;">
                                     <i class="bi bi-envelope cham-field-icon"></i>
                                     <input type="email" name="email" id="id_email" class="cham-field-input"
-                                        placeholder="thao.nguyen@gmail.com" value="{{ form.email.value|default:'' }}">
+                                        placeholder="{% if user.is_superuser or user.is_staff %}ten@chamspa.vn{% else %}thao.nguyen@gmail.com{% endif %}" value="{{ form.email.value|default:'' }}">
                                     <span class="cham-verified-badge" title="Tài khoản email đã xác thực">
                                         <i class="bi bi-check-circle-fill text-success"></i>
                                     </span>
@@ -459,7 +196,7 @@
                                 <div class="cham-field-input-wrap">
                                     <i class="bi bi-calendar3 cham-field-icon"></i>
                                     <input type="date" name="birthday" id="id_birthday" class="cham-field-input"
-                                        value="{{ profile.birthday|date:'Y-m-d'|default:'' }}">
+                                        value="{% if form.is_bound %}{{ form.birthday.value|date:'Y-m-d'|default:form.birthday.value|default:'' }}{% else %}{{ profile.birthday|date:'Y-m-d'|default:'' }}{% endif %}">
                                 </div>
                                 {% if form.birthday.errors %}
                                 <div class="text-danger small mt-1" style="font-size: 12px;">
@@ -474,27 +211,29 @@
                                     Giới tính
                                 </label>
                                 <div class="d-flex align-items-center pt-2">
+                                    {% with current_gender=form.gender.value|default:profile.gender|default:'Nữ' %}
                                     <label class="cham-gender-radio">
                                         <input type="radio" 
                                                name="gender" 
                                                value="Nữ" 
-                                               {% if profile.gender == 'Nữ' or not profile.gender %}checked{% endif %}>
+                                               {% if current_gender == 'Nữ' %}checked{% endif %}>
                                         <span>Nữ</span>
                                     </label>
                                     <label class="cham-gender-radio">
                                         <input type="radio" 
                                                name="gender" 
                                                value="Nam" 
-                                               {% if profile.gender == 'Nam' %}checked{% endif %}>
+                                               {% if current_gender == 'Nam' %}checked{% endif %}>
                                         <span>Nam</span>
                                     </label>
                                     <label class="cham-gender-radio">
                                         <input type="radio" 
                                                name="gender" 
                                                value="Khác" 
-                                               {% if profile.gender == 'Khác' %}checked{% endif %}>
+                                               {% if current_gender == 'Khác' %}checked{% endif %}>
                                         <span>Khác</span>
                                     </label>
+                                    {% endwith %}
                                 </div>
                             </div>
                         </div>

@@ -1,0 +1,125 @@
+{% extends base_layout|default:"layouts/customer_layout.html" %}
+{% load static %}
+
+{% block body_class %}page-marketing-notifications{% endblock %}
+
+{% block title %}Thông Báo Từ Cham Spa | Cham Spa & Massage Đà Nẵng{% endblock %}
+{% block page_title %}Thông báo từ Cham Spa{% endblock %}
+
+
+{% block content %}
+<div class="marketing-notifications-wrapper">
+    <!-- 1. Bộ Lọc Segmented Tabs (Phân loại chuẩn xác, không trùng lặp) -->
+    <div class="cus-filter-tabs">
+        <a href="?category=all{% if search_query %}&q={{ search_query }}{% endif %}" class="cus-filter-btn {% if current_category == 'all' %}active{% endif %}">
+            <i class="bi bi-bell"></i>
+            <span>Tất cả</span>
+            <span class="badge bg-light text-dark border">{{ stats.all }}</span>
+        </a>
+        <a href="?category=appointment{% if search_query %}&q={{ search_query }}{% endif %}" class="cus-filter-btn {% if current_category == 'appointment' %}active{% endif %}">
+            <i class="bi bi-calendar-check"></i>
+            <span>Lịch hẹn</span>
+            <span class="badge bg-light text-dark border">{{ stats.appointment }}</span>
+        </a>
+        <a href="?category=voucher{% if search_query %}&q={{ search_query }}{% endif %}" class="cus-filter-btn {% if current_category == 'voucher' %}active{% endif %}">
+            <i class="bi bi-tag-fill"></i>
+            <span>Ưu đãi &amp; Voucher</span>
+            <span class="badge bg-light text-dark border">{{ stats.voucher }}</span>
+        </a>
+        <a href="?category=complaint{% if search_query %}&q={{ search_query }}{% endif %}" class="cus-filter-btn {% if current_category == 'complaint' %}active{% endif %}">
+            <i class="bi bi-shield-exclamation"></i>
+            <span>Khiếu nại</span>
+            <span class="badge bg-light text-dark border">{{ stats.complaint }}</span>
+        </a>
+        <a href="?category=membership{% if search_query %}&q={{ search_query }}{% endif %}" class="cus-filter-btn {% if current_category == 'membership' %}active{% endif %}">
+            <i class="bi bi-gem"></i>
+            <span>Điểm &amp; Hạng thẻ</span>
+            <span class="badge bg-light text-dark border">{{ stats.membership }}</span>
+        </a>
+        <a href="?category=system{% if search_query %}&q={{ search_query }}{% endif %}" class="cus-filter-btn {% if current_category == 'system' %}active{% endif %}">
+            <i class="bi bi-megaphone"></i>
+            <span>Hệ thống</span>
+            <span class="badge bg-light text-dark border">{{ stats.system }}</span>
+        </a>
+    </div>
+
+    <!-- 3. Danh Sách Thẻ Thông Báo -->
+    <div class="cus-notifs-list">
+        {% for notif in notifications %}
+            <div class="cus-notif-card">
+                <div class="cus-notif-card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="{{ notif.notif_badge_class }}" style="{{ notif.notif_badge_style }}">{{ notif.notif_badge_label }}</span>
+                        <h4 class="cus-notif-card-title">{{ notif.title }}</h4>
+                    </div>
+                </div>
+
+                {% if notif.promotion %}
+                    <div class="promo-attached-box">
+                        <div>
+                            <i class="bi bi-gift-fill text-danger me-2"></i>
+                            <strong>Chương trình đính kèm:</strong> {{ notif.promotion.title }}
+                        </div>
+                        <a href="{% url 'marketing:promotions' %}" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 11px;">
+                            Xem chi tiết
+                        </a>
+                    </div>
+                {% endif %}
+
+                <div class="cus-notif-card-desc">
+                    {{ notif.content|linebreaks }}
+                </div>
+
+                <div class="cus-notif-card-footer">
+                    <div>
+                        <i class="bi bi-clock me-1 text-danger"></i>
+                        <span>{{ notif.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div>
+                        {% if notif.notif_action_url %}
+                            <a href="{{ notif.notif_action_url }}" class="btn-action-cus">
+                                <span>{{ notif.notif_action_label }}</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="card p-5 text-center bg-white border" style="border-color: #D0B581 !important; border-radius: 18px;">
+                <i class="bi bi-bell-slash" style="font-size: 48px; color: #D0B581;"></i>
+                <h4 class="font-serif fw-bold mt-3" style="color: #2E1D17;">Không tìm thấy thông báo nào</h4>
+                <p class="text-muted" style="font-size: 13.5px;">Bạn chưa có thông báo nào trong danh mục này hoặc từ khóa tìm kiếm không khớp.</p>
+                <div class="mt-2">
+                    <a href="?category=all" class="btn px-4 py-2" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-size: 13px; font-weight: 600;">Xem tất cả</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Phân trang Pagination -->
+    {% if page_obj.has_other_pages %}
+        <nav class="d-flex justify-content-center mt-4">
+            <ul class="pagination pagination-sm">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?category={{ current_category }}&q={{ search_query }}&page={{ page_obj.previous_page_number }}" style="color: #781A24;">&laquo; Trước</a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?category={{ current_category }}&q={{ search_query }}&page={{ num }}" style="{% if page_obj.number == num %}background-color: #781A24; border-color: #781A24;{% else %}color: #781A24;{% endif %}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?category={{ current_category }}&q={{ search_query }}&page={{ page_obj.next_page_number }}" style="color: #781A24;">Sau &raquo;</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,27 +1,21 @@
 {% extends "layouts/admin_layout.html" %}
 {% load static %}
 
+{% block body_class %}page-chatbox-faq-management{% endblock %}
+
 {% block title %}Quản lý kịch bản Chatbot (FAQ) | Cham Spa & Massage Admin{% endblock %}
 
 {% block admin_content %}
 <div class="container-fluid px-0 py-2">
     <!-- ========================================================================
-         HEADER TRANG & NAVIGATION SWITCH TAB (FIGMA NODE 211:3459)
+         HEADER TRANG & NAVIGATION SWITCH TAB
          ======================================================================== -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-3">
         <div>
             <h1 class="fw-bold mb-1" style="font-family: var(--font-serif); color: var(--cham-red); font-size: 28px;">
                 Quản lý Boxchat
             </h1>
-            <div class="d-flex align-items-center gap-2" style="font-size: 13.5px; color: #6B7280;">
-                <a href="{% url 'chatbox:admin_monitor' %}" class="text-decoration-none" style="color: #6B7280;">
-                    Giám sát Live chat
-                </a>
-                <span>|</span>
-                <span class="fw-bold" style="color: var(--cham-red);">
-                    Quản lý kịch bản Chatbot
-                </span>
-            </div>
+            <p class="text-muted mb-0" style="font-size: 13.5px;">Giám sát phiên tư vấn trực tuyến của nhân viên và thiết lập kịch bản Chatbot tự động.</p>
         </div>
 
         <!-- Nút thêm câu hỏi FAQ mới (Figma Node 211:3459) -->
@@ -30,6 +24,21 @@
                 onclick="openCreateFaqModal()">
             <i class="bi bi-plus-lg"></i> Thêm câu hỏi FAQ mới
         </button>
+    </div>
+
+    <div class="admin-chatbox-nav">
+        <a href="{% url 'chatbox:admin_monitor' %}"
+           class="admin-chatbox-nav-btn"
+           title="Giám sát phiên tư vấn Live chat của nhân viên">
+            <i class="bi bi-headset"></i>
+            <span>Giám sát Live chat</span>
+        </a>
+        <a href="{% url 'chatbox:admin_faq' %}"
+           class="admin-chatbox-nav-btn active"
+           title="Quản lý bộ câu hỏi kịch bản Chatbot tự động (FAQ)">
+            <i class="bi bi-robot"></i>
+            <span>Quản lý kịch bản Chatbot (FAQ)</span>
+        </a>
     </div>
 
     <!-- ========================================================================
@@ -510,5 +519,14 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// Đảm bảo active trạng thái menu Admin Sidebar
+document.addEventListener('DOMContentLoaded', function() {
+    const boxchatNav = document.querySelector('.sidebar-nav-item[data-nav-target="Quản lý Boxchat"]');
+    if (boxchatNav) {
+        document.querySelectorAll('.sidebar-nav-item').forEach(el => el.classList.remove('active'));
+        boxchatNav.classList.add('active');
+    }
+});
 </script>
 {% endblock %}

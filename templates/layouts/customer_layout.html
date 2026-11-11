@@ -48,6 +48,13 @@
                 window.location.replace("{% url 'appointment:my_appointments' %}");
             } else if (tab === 'health' && !window.location.pathname.includes('/health/')) {
                 window.location.replace("{% url 'health:profile' %}");
+            } else if (tab === 'feedbacks' && !window.location.pathname.includes('/feedbacks/')) {
+                const apptId = urlParams.get('appointment');
+                window.location.replace("{% url 'feedbacks:my_feedbacks' %}" + (apptId ? `?appointment=${apptId}` : ''));
+            } else if (tab === 'membership' && !window.location.pathname.includes('/membership/')) {
+                window.location.replace("{% url 'membership:my_card' %}");
+            } else if (tab === 'notifications' && !window.location.pathname.includes('/marketing/notifications/')) {
+                window.location.replace("{% url 'marketing:notifications' %}");
             }
         })();
     </script>

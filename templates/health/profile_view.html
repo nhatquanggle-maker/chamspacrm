@@ -1,231 +1,11 @@
 {% extends base_layout|default:"layouts/customer_layout.html" %}
-{% load static %}
+{% load static l10n %}
+
+{% block body_class %}page-health-profile-view{% endblock %}
 
 {% block title %}Hồ sơ sức khỏe cá nhân | Cham Spa & Massage Đà Nẵng{% endblock %}
 {% block page_title %}Hồ sơ sức khỏe cá nhân{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* ==========================================================================
-       CHAM SPA & MASSAGE - MOD-08: HỒ SƠ SỨC KHỎE CÁ NHÂN (FIGMA NODE 273:2575)
-       Sửa triệt để các lỗi giao diện theo ảnh 3:
-       - Định dạng số đo đẹp: 165 cm, 52 kg (không còn ,00).
-       - Thanh mức độ đau mỏi chuẩn thiết kế ảnh 2 (mảnh, đỏ rượu Champa).
-       - Bố cục thẳng hàng, có nút [Cập nhật hồ sơ] nổi bật trên header card.
-       - Tông màu: Nền kem #FAF7EF, Trắng #FFFFFF, Viền #DED2BA, Đỏ #781A24.
-       ========================================================================== */
-
-    .cham-health-card {
-        background-color: #FFFFFF;
-        border: 1px solid #D0B581 !important;
-        border-radius: 18px !important;
-        box-shadow: 0 14px 36px rgba(46, 29, 23, 0.08);
-        overflow: hidden;
-        margin-bottom: 50px;
-        padding-bottom: 10px;
-    }
-
-    .cham-health-header {
-        padding: 28px 36px 20px 36px;
-        border-bottom: 1px solid #DED2BA;
-    }
-
-    .cham-health-body {
-        padding: 30px 36px 36px 36px;
-    }
-
-    /* Nút Cập nhật hồ sơ chuẩn Cham Spa */
-    .btn-cham-update {
-        background-color: #781A24;
-        color: #FFFFFF !important;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 22px;
-        font-family: var(--font-body), sans-serif;
-        font-weight: 700;
-        font-size: 13.5px;
-        letter-spacing: 0.5px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        box-shadow: 0 4px 12px rgba(120, 26, 36, 0.2);
-        white-space: nowrap;
-    }
-
-    .btn-cham-update:hover {
-        background-color: #5C121B;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(120, 26, 36, 0.3);
-    }
-
-    /* Mã hồ sơ sức khỏe */
-    .cham-code-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        background-color: #EFE4CD;
-        color: #781A24;
-        font-family: var(--font-body), sans-serif;
-        font-weight: 700;
-        font-size: 12px;
-        padding: 3px 12px;
-        border-radius: 999px;
-        border: 1px solid #D0B581;
-    }
-
-    /* 4 Thẻ chỉ số sinh trắc học */
-    .cham-metric-tile {
-        background-color: #FAF7EF;
-        border: 1px solid #EADEC7;
-        border-radius: 12px;
-        padding: 16px 20px;
-        height: 100%;
-        transition: all 0.2s ease;
-    }
-
-    .cham-metric-tile:hover {
-        border-color: #D0B581;
-        background-color: #FFFFFF;
-        box-shadow: 0 4px 12px rgba(46, 29, 23, 0.05);
-    }
-
-    .cham-metric-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: #716761;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 8px;
-    }
-
-    .cham-metric-val {
-        font-family: var(--font-serif), Georgia, serif;
-        font-size: 26px;
-        font-weight: 700;
-        color: #171311;
-        line-height: 1.15;
-    }
-
-    /* ==========================================================================
-       THANH MỨC ĐỘ ĐAU MỎI HIỆN TẠI (CHUẨN FIGMA GIỐNG ẢNH 2)
-       ========================================================================== */
-    .cham-pain-display-box {
-        background-color: #FAF7EF;
-        border: 1px solid #EADEC7;
-        border-radius: 12px;
-        padding: 18px 22px;
-        height: 100%;
-    }
-
-    .cham-pain-track {
-        position: relative;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        margin: 10px 0 6px 0;
-    }
-
-    .cham-pain-track-bg {
-        width: 100%;
-        height: 4px;
-        border-radius: 999px;
-        background-color: #EADEC7;
-        position: absolute;
-    }
-
-    .cham-pain-track-fill {
-        height: 4px;
-        border-radius: 999px;
-        background-color: #781A24;
-        position: absolute;
-        left: 0;
-    }
-
-    .cham-pain-thumb {
-        position: absolute;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background-color: #FFFFFF;
-        border: 3.5px solid #781A24;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-        transform: translate(-50%, 0);
-        z-index: 2;
-    }
-
-    .cham-pain-ticks {
-        display: flex;
-        justify-content: space-between;
-        padding: 0 2px;
-    }
-
-    .pain-tick {
-        font-size: 12px;
-        color: #8C827A;
-        font-family: var(--font-body), sans-serif;
-    }
-
-    .pain-tick.active {
-        color: #781A24 !important;
-        font-weight: 700 !important;
-        transform: scale(1.15);
-    }
-
-    /* Ô Lực massage yêu thích */
-    .cham-pressure-box {
-        background-color: #FAF7EF;
-        border: 1px solid #EADEC7;
-        border-radius: 12px;
-        padding: 18px 22px;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-
-    /* Mục tiêu & Ghi chú */
-    .cham-section-subtitle {
-        font-size: 12.5px;
-        font-weight: 700;
-        color: #716761;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 10px;
-    }
-
-    .cham-goal-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 7px 16px;
-        border-radius: 999px;
-        background-color: #FAF7EF;
-        border: 1px solid #DED2BA;
-        color: #4A3E39;
-        font-size: 13.5px;
-        font-weight: 600;
-        margin: 4px;
-    }
-
-    .cham-notes-card {
-        background-color: #FAF7EF;
-        border: 1px solid #EADEC7;
-        border-radius: 10px;
-        padding: 16px 20px;
-        font-size: 14px;
-        color: #171311;
-        line-height: 1.5;
-    }
-</style>
-{% endblock %}
 
 {% block admin_topbar %}{% endblock %}
 {% block staff_topbar %}{% endblock %}
@@ -254,9 +34,6 @@
                 <h3 class="font-serif fw-bold mb-0" style="color: #781A24; font-size: 24px;">
                     Chi tiết Thể trạng & Chỉ số Sức khỏe
                 </h3>
-                <span class="cham-code-badge">
-                    <i class="bi bi-upc-scan"></i> {{ profile.health_code }}
-                </span>
             </div>
             <p class="text-muted small mb-0" style="font-size: 14px;">
                 Thông tin thể trạng và chỉ số BMI y khoa được đồng bộ phục vụ liệu trình thư giãn của bạn.
@@ -310,7 +87,7 @@
                     </div>
                     <div class="d-flex align-items-baseline gap-2 mb-1">
                         <div class="cham-metric-val" style="color: #781A24;">
-                            {{ profile_data.bmi|default:"--" }}
+                            {{ profile_data.bmi|unlocalize|default:"--" }}
                         </div>
                     </div>
                     <span class="badge rounded-pill fw-semibold" style="background-color: #FFFFFF; border: 1px solid #D0B581; color: #781A24; font-size: 11px; padding: 4px 10px;">

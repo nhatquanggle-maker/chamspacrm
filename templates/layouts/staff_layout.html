@@ -39,6 +39,10 @@
             window.location.replace("{% url 'health:staff_lookup' %}");
         } else if ((!tab || tab === 'appointments') && window.location.pathname === '/dashboard/staff/') {
             window.location.replace("{% url 'appointment:staff_appointments' %}");
+        } else if (tab === 'feedbacks' && !window.location.pathname.includes('/feedbacks/')) {
+            window.location.replace("{% url 'feedbacks:admin_management' %}");
+        } else if (tab === 'notifications' && !window.location.pathname.includes('/marketing/staff/')) {
+            window.location.replace("{% url 'marketing:staff_notifications' %}");
         }
     })();
 </script>

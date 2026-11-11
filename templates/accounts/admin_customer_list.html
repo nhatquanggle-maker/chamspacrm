@@ -1,256 +1,12 @@
 {% extends base_layout|default:"layouts/admin_layout.html" %}
 {% load static %}
 
-{% block extra_css %}
-<style>
-    /* ==========================================================================
-       CHUẨN XÁC 100% THEO THIẾT KẾ FIGMA NODE 218:9398
-       Admin - Danh sách tài khoản Khách hàng
-       ========================================================================== */
-    .customer-admin-page {
-        font-family: 'Cabin', sans-serif;
-        color: #171311;
-    }
 
-    .breadcrumb-item-custom {
-        font-size: 11px;
-        color: #716761;
-    }
-    .breadcrumb-sep {
-        color: #D0B581;
-        margin: 0 6px;
-    }
-    .breadcrumb-active {
-        color: #781A24;
-        font-weight: 700;
-    }
-
-    /* Toolbar & Search Input */
-    .search-box-custom {
-        background: #FFFFFF;
-        border: 1px solid #EFE4CD;
-        border-radius: 8px;
-        transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .search-box-custom:focus-within {
-        border-color: #D0B581;
-        box-shadow: 0 0 0 3px rgba(208, 181, 129, 0.2);
-    }
-    .search-input-custom {
-        border: none;
-        outline: none;
-        font-size: 14px;
-        color: #171311;
-        width: 100%;
-        background: transparent;
-    }
-    .search-input-custom::placeholder {
-        color: #6F665E;
-    }
-
-    .btn-add-customer {
-        background-color: #781A24 !important;
-        color: #FFFFFF !important;
-        font-weight: 700;
-        font-size: 14px;
-        border-radius: 8px;
-        padding: 9px 18px;
-        border: none;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .btn-add-customer:hover {
-        background-color: #5c141c !important;
-        color: #FFFFFF !important;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(120, 26, 36, 0.25);
-    }
-
-    /* Tabs Filter */
-    .filter-tab-pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 7px 16px;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 700;
-        text-decoration: none;
-        transition: all 0.2s ease;
-    }
-    .filter-tab-pill.active {
-        background-color: #781A24;
-        color: #FFFFFF !important;
-    }
-    .filter-tab-pill:not(.active) {
-        background-color: #FAF7F0;
-        color: #716761;
-        border: 1px solid #EFE4CD;
-    }
-    .filter-tab-pill:not(.active):hover {
-        background-color: #EFE4CD;
-        color: #171311;
-    }
-
-    /* Data Table Styling */
-    .table-container-card {
-        background: #FFFFFF;
-        border: 1px solid #EFE4CD;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-    }
-    .custom-admin-table {
-        margin-bottom: 0;
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-    .custom-admin-table thead tr {
-        background-color: #781A24;
-    }
-    .custom-admin-table thead th {
-        color: #FFFFFF;
-        font-size: 13px;
-        font-weight: 700;
-        padding: 13px 16px;
-        border: none;
-        white-space: nowrap;
-        vertical-align: middle;
-    }
-    .custom-admin-table tbody tr {
-        transition: background-color 0.15s ease;
-        border-bottom: 1px solid #F4EFE3;
-    }
-    .custom-admin-table tbody tr:hover {
-        background-color: #FAF7F0;
-    }
-    .custom-admin-table tbody td {
-        padding: 14px 16px;
-        font-size: 13px;
-        color: #171311;
-        vertical-align: middle;
-        border-top: 1px solid #F4EFE3;
-    }
-
-    /* Avatar Pill in Table */
-    .cust-avatar-pill {
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        background-color: #EFE4CD;
-        color: #781A24;
-        font-family: 'Lora', serif;
-        font-weight: 700;
-        font-size: 12px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
-    /* Badges */
-    .badge-status-active {
-        background-color: #E8F4ED;
-        color: #2F7D5B;
-        font-size: 12px;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 20px;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-    }
-    .badge-status-locked {
-        background-color: #F1ECE1;
-        color: #716761;
-        font-size: 12px;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 20px;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-    }
-    .badge-role-pill {
-        background-color: #FAF7F0;
-        color: #6F665E;
-        border: 1px solid #EFE4CD;
-        font-size: 12px;
-        font-weight: 600;
-        padding: 3px 8px;
-        border-radius: 6px;
-    }
-
-    /* Action buttons in Row */
-    .btn-action-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #EFE4CD;
-        background: #FFFFFF;
-        color: #6F665E;
-        text-decoration: none;
-        transition: all 0.15s ease;
-        cursor: pointer;
-    }
-    .btn-action-icon:hover {
-        border-color: #781A24;
-        color: #781A24;
-        background-color: #FAF7F0;
-    }
-    .btn-action-icon.action-view:hover {
-        border-color: #16A34A;
-        color: #16A34A;
-        background-color: #E8F4ED;
-    }
-    .btn-action-icon.action-lock:hover {
-        border-color: #DC2626;
-        color: #DC2626;
-        background-color: #FEE2E2;
-    }
-
-    /* Pagination */
-    .pagination-custom .page-link {
-        color: #171311;
-        border: 1px solid #EFE4CD;
-        padding: 6px 12px;
-        font-size: 13px;
-        background: #FFFFFF;
-    }
-    .pagination-custom .page-item.active .page-link {
-        background-color: #781A24;
-        border-color: #781A24;
-        color: #FFFFFF;
-    }
-
-    /* =========================================================================
-       FIX BOOTSTRAP MODAL STACKING CONTEXT & BACKDROP OVERLAY
-       Ngăn chặn triệt để hiện tượng lớp nền mờ backdrop đè lên modal
-       ========================================================================= */
-    .modal {
-        z-index: 1060 !important;
-    }
-    .modal-backdrop {
-        z-index: 1050 !important;
-    }
-</style>
-{% endblock %}
+{% block body_class %}page-accounts-admin-customer-list{% endblock %}
 
 {% block admin_content %}
 <div class="customer-admin-page py-2">
-    <!-- 1. Breadcrumb -->
-    <div class="d-flex align-items-center gap-1 mb-3">
-        <span class="breadcrumb-item-custom">Hệ thống</span>
-        <span class="breadcrumb-sep">/</span>
-        <span class="breadcrumb-active">Quản lý Khách hàng</span>
-    </div>
-
-    <!-- 2. Toolbar & Search Bar (Figma 218:9398) -->
+    <!-- 1. Toolbar & Search Bar -->
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
         <form method="GET" action="{% url 'accounts:admin_customer_list' %}" class="d-flex align-items-center flex-grow-1" style="max-width: 520px;">
             <div class="search-box-custom d-flex align-items-center px-3 py-2 w-100">
@@ -286,6 +42,17 @@
         </a>
     </div>
 
+    <!-- Thông báo hệ thống Flash Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show rounded-3 py-2 px-3 mb-3 shadow-sm" role="alert">
+                <i class="bi {% if message.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-check-circle-fill{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <!-- 4. Data Table (Figma Node 218:9398) -->
     <div class="table-container-card mb-3">
         <div class="table-responsive">
@@ -295,7 +62,6 @@
                         <th style="width: 44px; text-align: center;">
                             <input type="checkbox" class="form-check-input" id="checkAllCustomers">
                         </th>
-                        <th style="width: 100px;">Mã TK</th>
                         <th>Avatar & Họ tên</th>
                         <th>Số điện thoại</th>
                         <th>Email</th>
@@ -310,9 +76,6 @@
                     <tr>
                         <td style="text-align: center;">
                             <input type="checkbox" class="form-check-input cust-checkbox" value="{{ c.id }}">
-                        </td>
-                        <td>
-                            <span class="fw-bold" style="color: #781A24;">#CUS{{ c.id|stringformat:"03d" }}</span>
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-3">
@@ -394,7 +157,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="text-center py-5 text-muted">
+                        <td colspan="8" class="text-center py-5 text-muted">
                             <i class="bi bi-people fs-1 d-block mb-2 text-muted"></i>
                             <div class="fw-bold mb-1">Không tìm thấy tài khoản khách hàng nào</div>
                             <div style="font-size: 13px;">Thử thay đổi từ khóa tìm kiếm hoặc bấm "Thêm tài khoản KHÁCH HÀNG" mới</div>
@@ -481,8 +244,8 @@
                             <input type="tel" name="phone" class="form-control" placeholder="0901 234 567" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold" style="font-size: 13px;">Địa chỉ Email</label>
-                            <input type="email" name="email" class="form-control" placeholder="mai.nguyen@gmail.com">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Địa chỉ Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" placeholder="mai.nguyen@gmail.com" required>
                         </div>
                     </div>
 
@@ -559,8 +322,8 @@
                             <input type="tel" name="phone" id="editCustomerPhone" class="form-control" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold" style="font-size: 13px;">Email</label>
-                            <input type="email" name="email" id="editCustomerEmail" class="form-control">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" id="editCustomerEmail" class="form-control" placeholder="ten@gmail.com" required>
                         </div>
                     </div>
 

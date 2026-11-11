@@ -13,7 +13,16 @@ from django.db.models import Q, Avg, Sum
 from django.utils import timezone
 from datetime import timedelta, datetime
 from decimal import Decimal
-from .forms import LoginForm, RegisterForm, ProfileForm, ForgotPasswordForm, ResetPasswordForm
+from .forms import (
+    LoginForm,
+    RegisterForm,
+    ProfileForm,
+    ForgotPasswordForm,
+    ResetPasswordForm,
+    validate_account_payload,
+    parse_optional_date,
+    sync_user_phone_username,
+)
 from core.models import User, UserProfile, UserHealthProfile, Tier, Membership, MembershipPoint, Appointment, Feedback
 import os
 
@@ -251,13 +260,14 @@ def profile_view(request):
             form = ProfileForm(request.POST, instance=user)
             if form.is_valid():
                 form.save()
-                gender_val = form.cleaned_data.get('gender') or request.POST.get('gender')
-                profile.gender = gender_val if gender_val else None
-                bday_val = form.cleaned_data.get('birthday') or request.POST.get('birthday')
-                profile.birthday = bday_val if bday_val else None
+                profile.gender = form.cleaned_data.get('gender') or None
+                profile.birthday = form.cleaned_data.get('birthday') or None
                 profile.save()
                 messages.success(request, "Cập nhật thông tin cá nhân thành công!")
                 return redirect('accounts:profile')
+            if form.errors:
+                first_err = next(iter(form.errors.values()))[0]
+                messages.error(request, first_err)
     else:
         form = ProfileForm(instance=user, initial={
             'gender': profile.gender,
@@ -319,37 +329,36 @@ def admin_customer_list_view(request):
 
         # 1. Tạo mới tài khoản khách hàng
         if action == 'create_customer':
-            name = request.POST.get('name', '').strip()
-            phone = request.POST.get('phone', '').strip().replace(' ', '')
-            email = request.POST.get('email', '').strip().lower()
             password = request.POST.get('password', '').strip() or 'customer123456'
             gender = request.POST.get('gender', 'Nữ')
-            bday_str = request.POST.get('birthday', '').strip()
             tier_name = request.POST.get('tier_name', 'Thành viên')
             care_note = request.POST.get('care_note', '').strip()
 
-            if not name or not phone:
-                messages.error(request, "Vui lòng nhập đầy đủ Họ tên và Số điện thoại khách hàng.")
-            elif User.objects.filter(username=phone).exists() or User.objects.filter(phone=phone).exists():
-                messages.error(request, f"Số điện thoại {phone} đã được đăng ký tài khoản khác.")
-            elif email and User.objects.filter(email=email).exists():
-                messages.error(request, f"Địa chỉ email {email} đã được đăng ký tài khoản khác.")
+            validated, err = validate_account_payload(
+                request.POST.get('name'),
+                request.POST.get('phone'),
+                request.POST.get('email'),
+                is_staff_or_admin=False,
+                require_email=True,
+            )
+            bday, date_err = parse_optional_date(request.POST.get('birthday'))
+
+            if err or date_err:
+                messages.error(request, err or date_err)
             else:
                 new_user = User.objects.create_user(
-                    username=phone,
-                    name=name,
-                    phone=phone,
-                    email=email,
+                    username=validated['phone'],
+                    name=validated['name'],
+                    phone=validated['phone'],
+                    email=validated['email'],
                     password=password,
                     is_staff=False,
                     is_superuser=False,
                     is_active=True
                 )
-                bday = datetime.strptime(bday_str, '%Y-%m-%d').date() if bday_str else None
                 profile, _ = UserProfile.objects.get_or_create(user=new_user)
                 profile.gender = gender
-                if bday:
-                    profile.birthday = bday
+                profile.birthday = bday
                 profile.save()
 
                 tier_obj = Tier.objects.filter(name=tier_name).first() or Tier.objects.first()
@@ -358,7 +367,7 @@ def admin_customer_list_view(request):
                 mem.current_points = tier_obj.min_points if tier_obj else 0
                 mem.save()
 
-                care_note = request.POST.get('care_note', '').strip()
+                care_note_val = care_note
                 hp, _ = UserHealthProfile.objects.get_or_create(
                     user=new_user,
                     defaults={
@@ -368,8 +377,8 @@ def admin_customer_list_view(request):
                         'pain_level': 5,
                     }
                 )
-                if care_note:
-                    hp.special_requests = care_note
+                if care_note_val:
+                    hp.special_requests = care_note_val
                     hp.save()
                 messages.success(request, f"Đã thêm thành công tài khoản khách hàng {new_user.name} (#{new_user.id:03d})!")
             redirect_to = request.POST.get('redirect_to')
@@ -391,28 +400,36 @@ def admin_customer_list_view(request):
         elif action == 'edit_customer':
             target_id = request.POST.get('customer_id')
             target_user = get_object_or_404(User, id=target_id, is_staff=False, is_superuser=False)
-            name = request.POST.get('name', '').strip()
-            phone = request.POST.get('phone', '').strip().replace(' ', '')
-            email = request.POST.get('email', '').strip().lower()
             gender = request.POST.get('gender', 'Nữ')
-            bday_str = request.POST.get('birthday', '').strip()
             tier_name = request.POST.get('tier_name', '')
             status_val = request.POST.get('is_active')
 
-            if name:
-                target_user.name = name
-            if phone and not User.objects.exclude(id=target_user.id).filter(phone=phone).exists():
-                target_user.phone = phone
-            if email and not User.objects.exclude(id=target_user.id).filter(email=email).exists():
-                target_user.email = email
+            validated, err = validate_account_payload(
+                request.POST.get('name'),
+                request.POST.get('phone'),
+                request.POST.get('email'),
+                is_staff_or_admin=False,
+                exclude_user_id=target_user.id,
+                require_email=True,
+            )
+            bday, date_err = parse_optional_date(request.POST.get('birthday'))
+
+            if err or date_err:
+                messages.error(request, err or date_err)
+                return redirect('accounts:admin_customer_list')
+
+            old_phone = target_user.phone
+            target_user.name = validated['name']
+            target_user.phone = validated['phone']
+            target_user.email = validated['email']
+            sync_user_phone_username(target_user, validated['phone'], old_phone)
             if status_val is not None:
                 target_user.is_active = (status_val in ['true', '1', 'on'])
             target_user.save()
 
             profile, _ = UserProfile.objects.get_or_create(user=target_user)
             profile.gender = gender
-            if bday_str:
-                profile.birthday = datetime.strptime(bday_str, '%Y-%m-%d').date()
+            profile.birthday = bday
             profile.save()
 
             if tier_name:
@@ -520,30 +537,38 @@ def admin_customer_detail_view(request, pk):
         action = request.POST.get('action')
 
         if action == 'edit_customer_detail':
-            name = request.POST.get('name', '').strip()
-            phone = request.POST.get('phone', '').strip().replace(' ', '')
-            email = request.POST.get('email', '').strip().lower()
             gender = request.POST.get('gender', 'Nữ')
-            bday_str = request.POST.get('birthday', '').strip()
             care_note = request.POST.get('care_note', '').strip()
             tier_name = request.POST.get('tier_name', '')
+            tab_param = request.GET.get('tab', 'info')
 
-            if name:
-                customer.name = name
-            if phone and not User.objects.exclude(id=customer.id).filter(phone=phone).exists():
-                customer.phone = phone
-            if email and not User.objects.exclude(id=customer.id).filter(email=email).exists():
-                customer.email = email
+            validated, err = validate_account_payload(
+                request.POST.get('name'),
+                request.POST.get('phone'),
+                request.POST.get('email'),
+                is_staff_or_admin=False,
+                exclude_user_id=customer.id,
+                require_email=True,
+            )
+            bday, date_err = parse_optional_date(request.POST.get('birthday'))
+
+            if err or date_err:
+                messages.error(request, err or date_err)
+                return redirect(f"{reverse('accounts:admin_customer_detail', kwargs={'pk': customer.id})}?tab={tab_param}")
+
+            old_phone = customer.phone
+            customer.name = validated['name']
+            customer.phone = validated['phone']
+            customer.email = validated['email']
+            sync_user_phone_username(customer, validated['phone'], old_phone)
             customer.save()
 
             profile.gender = gender
-            if bday_str:
-                profile.birthday = datetime.strptime(bday_str, '%Y-%m-%d').date()
+            profile.birthday = bday
             profile.save()
 
-            if care_note:
-                health_profile.special_requests = care_note
-                health_profile.save()
+            health_profile.special_requests = care_note
+            health_profile.save()
 
             if tier_name:
                 t_obj = Tier.objects.filter(name=tier_name).first()
@@ -552,7 +577,6 @@ def admin_customer_detail_view(request, pk):
                     membership.save()
 
             messages.success(request, f"Cập nhật hồ sơ khách hàng {customer.name} thành công!")
-            tab_param = request.GET.get('tab', 'info')
             return redirect(f"{reverse('accounts:admin_customer_detail', kwargs={'pk': customer.id})}?tab={tab_param}")
 
         elif action == 'toggle_status':
@@ -700,6 +724,13 @@ def get_staff_initials(name):
     return clean_name[:2].upper()
 
 
+def _normalize_staff_status(raw_status):
+    """Chuẩn hóa trạng thái nhân viên về đúng 2 mức: Hoạt động và Tạm khóa."""
+    normalized = (raw_status or '').strip()
+    is_locked = normalized in ('Tạm khóa', 'Khóa', 'Đã khóa')
+    return ('Tạm khóa' if is_locked else 'Hoạt động'), (not is_locked)
+
+
 @login_required
 def admin_staff_list_view(request):
     """
@@ -718,31 +749,29 @@ def admin_staff_list_view(request):
         action = request.POST.get('action')
 
         if action == 'create_staff':
-            name = request.POST.get('name', '').strip()
-            phone = request.POST.get('phone', '').strip().replace(' ', '').replace('.', '')
-            email = request.POST.get('email', '').strip().lower()
             position = 'Staff'
-            work_status = request.POST.get('work_status', 'Hoạt động').strip()
+            work_status, is_active = _normalize_staff_status(request.POST.get('work_status', 'Hoạt động'))
             gender = request.POST.get('gender', 'Nữ')
-            bday_str = request.POST.get('birthday', '').strip()
             password = request.POST.get('password', '').strip() or 'Cham@2026'
 
-            # Kiểm tra trùng SĐT
-            if User.objects.filter(phone=phone).exists() or User.objects.filter(username=phone).exists():
-                messages.error(request, f"Số điện thoại '{phone}' đã được đăng ký cho tài khoản khác!")
+            validated, err = validate_account_payload(
+                request.POST.get('name'),
+                request.POST.get('phone'),
+                request.POST.get('email'),
+                is_staff_or_admin=True,
+                require_email=True,
+            )
+            bday_val, date_err = parse_optional_date(request.POST.get('birthday'))
+
+            if err or date_err:
+                messages.error(request, err or date_err)
                 return redirect('accounts:admin_staff_list')
 
-            # Kiểm tra trùng Email
-            if email and User.objects.filter(email=email).exists():
-                messages.error(request, f"Địa chỉ email '{email}' đã tồn tại trong hệ thống!")
-                return redirect('accounts:admin_staff_list')
-
-            is_active = (work_status != 'Tạm khóa')
             new_staff = User.objects.create_user(
-                username=phone,
-                name=name,
-                phone=phone,
-                email=email,
+                username=validated['phone'],
+                name=validated['name'],
+                phone=validated['phone'],
+                email=validated['email'],
                 password=password,
                 is_staff=True,
                 is_superuser=False,
@@ -757,13 +786,6 @@ def admin_staff_list_view(request):
             new_staff.groups.set([grp])
 
             # Hồ sơ cá nhân UserProfile
-            bday_val = None
-            if bday_str:
-                try:
-                    bday_val = datetime.strptime(bday_str, '%Y-%m-%d').date()
-                except ValueError:
-                    pass
-
             UserProfile.objects.get_or_create(
                 user=new_staff,
                 defaults={
@@ -779,27 +801,32 @@ def admin_staff_list_view(request):
             staff_id = request.POST.get('staff_id')
             staff = get_object_or_404(User, id=staff_id, is_staff=True)
 
-            name = request.POST.get('name', '').strip()
-            phone = request.POST.get('phone', '').strip().replace(' ', '').replace('.', '')
-            email = request.POST.get('email', '').strip().lower()
             work_status = request.POST.get('work_status', '').strip()
             gender = request.POST.get('gender', 'Nữ')
-            bday_str = request.POST.get('birthday', '').strip()
             new_pwd = request.POST.get('password', '').strip()
 
-            if name:
-                staff.name = name
-            if phone and not User.objects.exclude(id=staff.id).filter(phone=phone).exists():
-                staff.phone = phone
-            if email and not User.objects.exclude(id=staff.id).filter(email=email).exists():
-                staff.email = email
+            validated, err = validate_account_payload(
+                request.POST.get('name'),
+                request.POST.get('phone'),
+                request.POST.get('email'),
+                is_staff_or_admin=True,
+                exclude_user_id=staff.id,
+                require_email=True,
+            )
+            bday_val, date_err = parse_optional_date(request.POST.get('birthday'))
+
+            if err or date_err:
+                messages.error(request, err or date_err)
+                return redirect('accounts:admin_staff_list')
+
+            old_phone = staff.phone
+            staff.name = validated['name']
+            staff.phone = validated['phone']
+            staff.email = validated['email']
+            sync_user_phone_username(staff, validated['phone'], old_phone)
             staff.first_name = 'Staff'
             if work_status:
-                staff.last_name = work_status
-                if work_status == 'Tạm khóa':
-                    staff.is_active = False
-                elif work_status in ['Hoạt động', 'Nghỉ phép']:
-                    staff.is_active = True
+                staff.last_name, staff.is_active = _normalize_staff_status(work_status)
             if new_pwd:
                 staff.set_password(new_pwd)
             staff.save()
@@ -807,11 +834,7 @@ def admin_staff_list_view(request):
             # Cập nhật profile
             profile, _ = UserProfile.objects.get_or_create(user=staff)
             profile.gender = gender
-            if bday_str:
-                try:
-                    profile.birthday = datetime.strptime(bday_str, '%Y-%m-%d').date()
-                except ValueError:
-                    pass
+            profile.birthday = bday_val
             profile.save()
 
             messages.success(request, f"Đã cập nhật hồ sơ nhân viên {staff.name} thành công!")
@@ -837,12 +860,11 @@ def admin_staff_list_view(request):
             messages.success(request, f"Đã {msg_action.lower()} tài khoản nhân viên {staff.name} thành công!")
             return redirect('accounts:admin_staff_list')
 
-    # Toàn bộ danh sách nhân viên
+    # Toàn bộ danh sách nhân viên (chỉ gồm 2 trạng thái: Hoạt động và Tạm khóa)
     base_qs = User.objects.filter(is_staff=True).exclude(is_superuser=True)
     total_staff_all = base_qs.count()
-    active_count = base_qs.filter(is_active=True, last_name='Hoạt động').count()
-    leave_count = base_qs.filter(last_name='Nghỉ phép').count()
-    locked_count = base_qs.filter(Q(is_active=False) | Q(last_name='Tạm khóa')).count()
+    active_count = base_qs.filter(is_active=True).count()
+    locked_count = base_qs.filter(is_active=False).count()
 
     qs = base_qs.select_related('profile').order_by('-id')
 
@@ -861,14 +883,14 @@ def admin_staff_list_view(request):
             code_filter
         )
 
-    # Bộ lọc trạng thái tabs
+    # Bộ lọc trạng thái tabs (chỉ all | active | locked)
     status_filter = request.GET.get('status', 'all').strip()
     if status_filter == 'active':
-        qs = qs.filter(is_active=True, last_name='Hoạt động')
-    elif status_filter == 'on_leave':
-        qs = qs.filter(last_name='Nghỉ phép')
+        qs = qs.filter(is_active=True)
     elif status_filter == 'locked':
-        qs = qs.filter(Q(is_active=False) | Q(last_name='Tạm khóa'))
+        qs = qs.filter(is_active=False)
+    else:
+        status_filter = 'all'
 
     filtered_count = qs.count()
 
@@ -882,10 +904,7 @@ def admin_staff_list_view(request):
         s.staff_code = f"#NV{s.id:03d}"
         s.initials = get_staff_initials(s.name)
         s.position = 'Staff'
-        if not s.is_active:
-            s.work_status = 'Tạm khóa'
-        else:
-            s.work_status = s.last_name or 'Hoạt động'
+        s.work_status = 'Hoạt động' if s.is_active else 'Tạm khóa'
 
     context = {
         'page_obj': page_obj,
@@ -893,7 +912,6 @@ def admin_staff_list_view(request):
         'current_status': status_filter,
         'total_count': total_staff_all,
         'active_count': active_count,
-        'leave_count': leave_count,
         'locked_count': locked_count,
         'filtered_count': filtered_count,
         'next_code': f"#NV{(User.objects.filter(is_staff=True).count() + 1):03d}"
@@ -912,7 +930,7 @@ def admin_staff_detail_view(request, pk):
     staff.staff_code = f"#NV{staff.id:03d}"
     staff.initials = get_staff_initials(staff.name)
     staff.position = 'Staff'
-    staff.work_status = 'Tạm khóa' if not staff.is_active else (staff.last_name or 'Hoạt động')
+    staff.work_status = 'Hoạt động' if staff.is_active else 'Tạm khóa'
 
     # Thống kê lịch hẹn phụ trách chung theo ca
     assigned_appointments = Appointment.objects.all().order_by('-appointment_date', '-time_slot')[:10]

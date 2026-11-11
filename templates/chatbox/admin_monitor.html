@@ -1,28 +1,37 @@
 {% extends "layouts/admin_layout.html" %}
 {% load static %}
 
+{% block body_class %}page-chatbox-admin-monitor{% endblock %}
+
 {% block title %}Quản lý Boxchat | Giám sát phiên tư vấn - Cham Spa & Massage{% endblock %}
 
 {% block admin_content %}
 <div class="container-fluid px-0 py-2">
     <!-- ========================================================================
-         HEADER TRANG & NAVIGATION SWITCH TAB (FIGMA NODE 502:2005)
+         HEADER TRANG & NAVIGATION SWITCH TAB
          ======================================================================== -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-3">
         <div>
             <h1 class="fw-bold mb-1" style="font-family: var(--font-serif); color: var(--cham-red); font-size: 28px;">
                 Quản lý Boxchat
             </h1>
-            <div class="d-flex align-items-center gap-2" style="font-size: 13.5px; color: #6B7280;">
-                <a href="{% url 'chatbox:admin_monitor' %}" class="fw-bold text-decoration-none" style="color: var(--cham-red);">
-                    Giám sát Live chat
-                </a>
-                <span>|</span>
-                <a href="{% url 'chatbox:admin_faq' %}" class="text-decoration-none" style="color: #6B7280;">
-                    Quản lý kịch bản Chatbot
-                </a>
-            </div>
+            <p class="text-muted mb-0" style="font-size: 13.5px;">Giám sát phiên tư vấn trực tuyến của nhân viên và thiết lập kịch bản Chatbot tự động.</p>
         </div>
+    </div>
+
+    <div class="admin-chatbox-nav">
+        <a href="{% url 'chatbox:admin_monitor' %}"
+           class="admin-chatbox-nav-btn active"
+           title="Giám sát phiên tư vấn Live chat của nhân viên">
+            <i class="bi bi-headset"></i>
+            <span>Giám sát Live chat</span>
+        </a>
+        <a href="{% url 'chatbox:admin_faq' %}"
+           class="admin-chatbox-nav-btn"
+           title="Quản lý bộ câu hỏi kịch bản Chatbot tự động (FAQ)">
+            <i class="bi bi-robot"></i>
+            <span>Quản lý kịch bản Chatbot (FAQ)</span>
+        </a>
     </div>
 
     <!-- ========================================================================
@@ -71,36 +80,39 @@
                     <!-- Danh sách Đang xử lý -->
                     <div id="tabProcessingList" class="conv-tab-pane">
                         {% for conv in processing_conversations %}
-                        <div class="conv-card p-3 mb-2 rounded-3 border transition-all cursor-pointer {% if active_conv and active_conv.id == conv.id %}active-card{% endif %}" 
-                             data-conv-id="{{ conv.id }}" 
-                             data-name="{{ conv.customer.name|lower }}" 
-                             data-phone="{{ conv.customer.phone }}"
-                             onclick="selectConversation({{ conv.id }})"
-                             style="cursor: pointer; background-color: {% if active_conv and active_conv.id == conv.id %}#FFF8F6{% else %}#FFFFFF{% endif %}; border-color: {% if active_conv and active_conv.id == conv.id %}var(--cham-red){% else %}#E5E7EB{% endif %} !important;">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" 
-                                     style="width: 38px; height: 38px; background-color: var(--cham-red); font-size: 13px;">
-                                    {{ conv.customer.name|default:"KH"|slice:":2"|upper }}
+                        <a href="{% url 'chatbox:admin_monitor' %}?conv_id={{ conv.id }}" 
+                           class="text-decoration-none text-dark d-block mb-2 conv-card-link" 
+                           onclick="selectConversation({{ conv.id }}, event)">
+                            <div class="conv-card p-3 rounded-3 cursor-pointer {% if active_conv and active_conv.id == conv.id %}active-card{% endif %}" 
+                                 data-conv-id="{{ conv.id }}" 
+                                 data-name="{{ conv.customer.name|lower }}" 
+                                 data-phone="{{ conv.customer.phone }}"
+                                 style="cursor: pointer;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" 
+                                         style="width: 38px; height: 38px; background-color: var(--cham-red); font-size: 13px;">
+                                        {{ conv.customer.name|default:"KH"|slice:":2"|upper }}
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 14.5px;">{{ conv.customer.name }}</div>
+                                        <div class="text-muted" style="font-size: 12px;">+84 {{ conv.customer.phone|slice:"1:" }}</div>
+                                    </div>
                                 </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <div class="fw-bold text-dark text-truncate" style="font-size: 14.5px;">{{ conv.customer.name }}</div>
-                                    <div class="text-muted" style="font-size: 12px;">+84 {{ conv.customer.phone|slice:"1:" }}</div>
+                                
+                                <div class="mb-2">
+                                    <span class="badge py-1 px-2 rounded-pill" style="background-color: #FFF1F2; color: #9F1239; font-size: 11px; font-weight: 500;">
+                                        • Đang chat với Staff: {{ conv.staff.name|default:"Lê Thị Mai" }}
+                                    </span>
                                 </div>
-                            </div>
-                            
-                            <div class="mb-2">
-                                <span class="badge py-1 px-2 rounded-pill" style="background-color: #FFF1F2; color: #9F1239; font-size: 11px; font-weight: 500;">
-                                    • Đang chat với Staff: {{ conv.staff.name|default:"Lê Thị Mai" }}
-                                </span>
-                            </div>
 
-                            <div class="d-flex justify-content-between align-items-center" style="font-size: 12px;">
-                                <div class="text-muted text-truncate" style="max-width: 170px;">
-                                    Nhu cầu: {{ conv.customer_tag|default:"Trị liệu vai gáy & Đặt lịch" }}
+                                <div class="d-flex justify-content-between align-items-center" style="font-size: 12px;">
+                                    <div class="text-muted text-truncate" style="max-width: 170px;">
+                                        Nhu cầu: {{ conv.customer_tag|default:"Trị liệu vai gáy & Đặt lịch" }}
+                                    </div>
+                                    <div class="text-muted" style="font-size: 11px;">2 phút trước</div>
                                 </div>
-                                <div class="text-muted" style="font-size: 11px;">2 phút trước</div>
                             </div>
-                        </div>
+                        </a>
                         {% empty %}
                         <div class="text-center text-muted py-4" style="font-size: 13px;">Không có hội thoại đang tư vấn</div>
                         {% endfor %}
@@ -109,32 +121,35 @@
                     <!-- Danh sách Đang chờ tiếp nhận -->
                     <div id="tabWaitingList" class="conv-tab-pane d-none">
                         {% for conv in waiting_conversations %}
-                        <div class="conv-card p-3 mb-2 rounded-3 border transition-all cursor-pointer" 
-                             data-conv-id="{{ conv.id }}" 
-                             data-name="{{ conv.customer.name|lower }}" 
-                             data-phone="{{ conv.customer.phone }}"
-                             onclick="selectConversation({{ conv.id }})"
-                             style="cursor: pointer; background-color: #FFFFFF;">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" 
-                                     style="width: 38px; height: 38px; background-color: #FEF3C7; color: #92400E; font-size: 13px;">
-                                    {{ conv.customer.name|default:"KH"|slice:":2"|upper }}
+                        <a href="{% url 'chatbox:admin_monitor' %}?conv_id={{ conv.id }}" 
+                           class="text-decoration-none text-dark d-block mb-2 conv-card-link" 
+                           onclick="selectConversation({{ conv.id }}, event)">
+                            <div class="conv-card p-3 rounded-3 cursor-pointer {% if active_conv and active_conv.id == conv.id %}active-card{% endif %}" 
+                                 data-conv-id="{{ conv.id }}" 
+                                 data-name="{{ conv.customer.name|lower }}" 
+                                 data-phone="{{ conv.customer.phone }}"
+                                 style="cursor: pointer;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" 
+                                         style="width: 38px; height: 38px; background-color: #FEF3C7; color: #92400E; font-size: 13px;">
+                                        {{ conv.customer.name|default:"KH"|slice:":2"|upper }}
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 14.5px;">{{ conv.customer.name }}</div>
+                                        <div class="text-muted" style="font-size: 12px;">+84 {{ conv.customer.phone|slice:"1:" }}</div>
+                                    </div>
                                 </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <div class="fw-bold text-dark text-truncate" style="font-size: 14.5px;">{{ conv.customer.name }}</div>
-                                    <div class="text-muted" style="font-size: 12px;">+84 {{ conv.customer.phone|slice:"1:" }}</div>
+                                <div class="mb-2">
+                                    <span class="badge py-1 px-2 rounded-pill" style="background-color: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 500;">
+                                        • Đang chờ
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center" style="font-size: 12px;">
+                                    <div class="text-muted text-truncate">Nhu cầu: {{ conv.customer_tag|default:"Tư vấn dịch vụ" }}</div>
+                                    <div class="text-muted" style="font-size: 11px;">5 phút trước</div>
                                 </div>
                             </div>
-                            <div class="mb-2">
-                                <span class="badge py-1 px-2 rounded-pill" style="background-color: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 500;">
-                                    • Đang chờ
-                                </span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center" style="font-size: 12px;">
-                                <div class="text-muted text-truncate">Nhu cầu: {{ conv.customer_tag|default:"Tư vấn dịch vụ" }}</div>
-                                <div class="text-muted" style="font-size: 11px;">5 phút trước</div>
-                            </div>
-                        </div>
+                        </a>
                         {% empty %}
                         <div class="text-center text-muted py-4" style="font-size: 13px;">Không có hội thoại chờ tiếp nhận</div>
                         {% endfor %}
@@ -143,21 +158,26 @@
                     <!-- Danh sách Đã kết thúc -->
                     <div id="tabClosedList" class="conv-tab-pane d-none">
                         {% for conv in closed_conversations %}
-                        <div class="conv-card p-3 mb-2 rounded-3 border transition-all cursor-pointer" 
-                             data-conv-id="{{ conv.id }}" 
-                             onclick="selectConversation({{ conv.id }})"
-                             style="cursor: pointer; background-color: #F9FAFB;">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center text-muted bg-light border" 
-                                     style="width: 36px; height: 36px; font-size: 12px;">
-                                    {{ conv.customer.name|default:"KH"|slice:":2"|upper }}
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-bold text-secondary" style="font-size: 14px;">{{ conv.customer.name }}</div>
-                                    <div class="text-muted" style="font-size: 11.5px;">Đã đóng phiên</div>
+                        <a href="{% url 'chatbox:admin_monitor' %}?conv_id={{ conv.id }}" 
+                           class="text-decoration-none text-dark d-block mb-2 conv-card-link" 
+                           onclick="selectConversation({{ conv.id }}, event)">
+                            <div class="conv-card p-3 rounded-3 cursor-pointer {% if active_conv and active_conv.id == conv.id %}active-card{% endif %}" 
+                                 data-conv-id="{{ conv.id }}" 
+                                 data-name="{{ conv.customer.name|lower }}" 
+                                 data-phone="{{ conv.customer.phone }}"
+                                 style="cursor: pointer;">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-muted bg-light border" 
+                                         style="width: 36px; height: 36px; font-size: 12px;">
+                                        {{ conv.customer.name|default:"KH"|slice:":2"|upper }}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold text-secondary" style="font-size: 14px;">{{ conv.customer.name }}</div>
+                                        <div class="text-muted" style="font-size: 11.5px;">Đã đóng phiên</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                         {% empty %}
                         <div class="text-center text-muted py-4" style="font-size: 13px;">Chưa có hội thoại kết thúc</div>
                         {% endfor %}
@@ -194,7 +214,7 @@
                             </div>
                             <div class="d-flex align-items-center gap-1" id="monitorStaffIndicator" style="font-size: 12.5px; color: #10B981;">
                                 <i class="bi bi-circle-fill" style="font-size: 7px;"></i>
-                                <span id="monitorStaffName">Nhân viên hỗ trợ: {{ active_conv.staff.name|default:"Lê Thị Mai" }} (Online)</span>
+                                <span id="monitorStaffName">{% if active_conv.staff %}Nhân viên hỗ trợ: {{ active_conv.staff.name }} (Online){% else %}Chưa có nhân viên tiếp nhận{% endif %}</span>
                             </div>
                         </div>
                     </div>
@@ -252,16 +272,32 @@
                                 <div class="text-muted mt-1 text-end" style="font-size: 10px;">{{ msg.created_at|date:"H:i" }}</div>
                             </div>
                         </div>
+                        {% elif msg.sender_type == 'Bot' %}
+                        <!-- Tin nhắn Bot AI (Trái) -->
+                        <div class="d-flex align-items-start gap-2 align-self-start" style="max-width: 80%;">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" 
+                                 style="width: 32px; height: 32px; background-color: #FEF3C7; color: #92400E; font-size: 11px;">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted small mb-1" style="font-size: 11px;">Trợ lý Chatbot AI · Tự động</div>
+                                <div class="p-3 rounded-4 shadow-sm border" 
+                                     style="background-color: #FDFBF7; border-color: #E6D8BF !important; color: #78350F; font-size: 13.5px; line-height: 1.5; border-bottom-left-radius: 4px;">
+                                    {{ msg.content }}
+                                </div>
+                                <div class="text-muted mt-1 text-end" style="font-size: 10px;">{{ msg.created_at|date:"H:i" }}</div>
+                            </div>
+                        </div>
                         {% else %}
                         <!-- Tin nhắn nhân viên / Quản lý (Phải) -->
                         <div class="d-flex align-items-start gap-2 align-self-end flex-row-reverse" style="max-width: 80%;">
                             <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
                                  style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
-                                {{ msg.sender_name|default:active_conv.staff.name|default:"Mai"|slice:":2"|upper }}
+                                {% if msg.sender_name %}{{ msg.sender_name|slice:":2"|upper }}{% elif active_conv.staff %}{{ active_conv.staff.name|slice:":2"|upper }}{% else %}NV{% endif %}
                             </div>
                             <div>
                                 <div class="text-muted small mb-1 text-end" style="font-size: 11px;">
-                                    {{ msg.sender_name|default:active_conv.staff.name|default:"Lê Thị Mai" }} · Nhân viên hỗ trợ
+                                    {% if msg.sender_name %}{{ msg.sender_name }}{% elif active_conv.staff %}{{ active_conv.staff.name }}{% else %}Nhân viên tư vấn{% endif %} · Nhân viên hỗ trợ
                                 </div>
                                 <div class="p-3 rounded-4 text-white shadow-sm" 
                                      style="background-color: var(--cham-red); font-size: 13.5px; line-height: 1.5; border-bottom-right-radius: 4px;">
@@ -421,71 +457,179 @@ function toggleAdminMode(mode) {
 }
 
 // Chọn cuộc hội thoại để giám sát qua API
-function selectConversation(convId) {
+function selectConversation(convId, event) {
+    if (event) {
+        if (!event.ctrlKey && !event.metaKey && event.button === 0) {
+            event.preventDefault();
+        } else {
+            return; // Cho phép mở tab mới khi click chuột giữa hoặc giữ phím Ctrl
+        }
+    }
+    if (!convId) return;
     currentConvId = convId;
+
+    const log = document.getElementById('adminChatLog');
+    if (log) {
+        log.style.opacity = '0.5';
+    }
+
+    // Active visual card ngay lập tức khi click
+    document.querySelectorAll('.conv-card').forEach(c => {
+        c.classList.remove('active-card');
+        c.style.removeProperty('background-color');
+        c.style.removeProperty('border-color');
+    });
+    const activeC = document.querySelector(`.conv-card[data-conv-id="${convId}"]`);
+    if (activeC) {
+        activeC.classList.add('active-card');
+    }
+
     fetch(`/chatbox/api/admin/conversations/${convId}/monitor/`)
-    .then(res => res.json())
     .then(res => {
+        if (!res.ok) {
+            throw new Error(`HTTP error ${res.status}`);
+        }
+        return res.json();
+    })
+    .then(res => {
+        if (log) log.style.opacity = '1';
         if (res.status === 'success') {
             const data = res.conversation;
+            const custName = data.customer ? (data.customer.name || 'Khách hàng') : 'Khách hàng';
+            
             // Cập nhật Cột 2 Header
-            document.getElementById('monitorCustomerName').textContent = data.customer.name;
-            document.getElementById('monitorCustomerAvatar').textContent = data.customer.name.slice(0, 2).toUpperCase();
-            if (data.staff) {
-                document.getElementById('monitorStaffName').textContent = `Nhân viên hỗ trợ: ${data.staff.name} (Online)`;
-            } else {
-                document.getElementById('monitorStaffName').textContent = 'Chưa có nhân viên tiếp nhận';
+            const custNameEl = document.getElementById('monitorCustomerName');
+            if (custNameEl) custNameEl.textContent = custName;
+
+            const avatarEl = document.getElementById('monitorCustomerAvatar');
+            if (avatarEl) avatarEl.textContent = custName.slice(0, 2).toUpperCase();
+
+            const staffEl = document.getElementById('monitorStaffName');
+            if (staffEl) {
+                if (data.staff && data.staff.name) {
+                    staffEl.textContent = `Nhân viên hỗ trợ: ${data.staff.name} (Online)`;
+                } else {
+                    staffEl.textContent = 'Chưa có nhân viên tiếp nhận';
+                }
             }
 
             // Cập nhật Nút nhỏ xem chi tiết khách hàng
             const btnDetail = document.getElementById('btnViewCustomerDetail');
-            if (btnDetail && data.customer) {
-                btnDetail.href = `/accounts/admin/customers/${data.customer.id}/`;
+            if (btnDetail) {
+                if (data.customer && data.customer.id) {
+                    btnDetail.href = `/accounts/admin/customers/${data.customer.id}/`;
+                    btnDetail.classList.remove('d-none');
+                } else {
+                    btnDetail.classList.add('d-none');
+                }
+            }
+
+            // Cập nhật tên khách hàng trong modal chuyển giao
+            const reassignCustEl = document.getElementById('reassignCustomerName');
+            if (reassignCustEl) reassignCustEl.textContent = custName;
+
+            // Cập nhật tóm tắt bot
+            const botSummaryEl = document.getElementById('monitorBotSummary');
+            if (botSummaryEl) {
+                botSummaryEl.textContent = data.customer_tag ? `(Nhu cầu: ${data.customer_tag})` : '(Chưa có thông tin tương tác với bot)';
             }
 
             // Render lại tin nhắn
-            renderAdminChatLog(data.messages, data.customer.name);
+            renderAdminChatLog(data.messages, custName);
 
-            // Active visual card
-            document.querySelectorAll('.conv-card').forEach(c => {
-                c.style.backgroundColor = '#FFFFFF';
-                c.style.borderColor = '#E5E7EB';
-            });
-            const activeC = document.querySelector(`.conv-card[data-conv-id="${convId}"]`);
-            if (activeC) {
-                activeC.style.backgroundColor = '#FFF8F6';
-                activeC.style.borderColor = 'var(--cham-red)';
+            // Cập nhật URL trình duyệt (pushState) để lưu trạng thái
+            if (window.history && window.history.pushState) {
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set('conv_id', convId);
+                window.history.pushState({ convId: convId }, '', newUrl.toString());
             }
         }
     })
-    .catch(err => console.error(err));
+    .catch(err => {
+        if (log) log.style.opacity = '1';
+        console.warn('Lỗi fetch API monitor, kích hoạt fallback reload trang:', err);
+        // Fallback: reload với param ?conv_id= để đảm bảo xem được 100%
+        window.location.href = `?conv_id=${convId}`;
+    });
 }
 
 // Render tin nhắn vào log
 function renderAdminChatLog(messages, customerName) {
     const log = document.getElementById('adminChatLog');
+    if (!log) return;
     log.innerHTML = '';
-    messages.forEach(msg => {
-        const isCust = msg.sender_type === 'Customer';
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `d-flex align-items-start gap-2 ${isCust ? 'align-self-start' : 'align-self-end flex-row-reverse'}`;
-        msgDiv.style.maxWidth = '80%';
-        msgDiv.innerHTML = `
-            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
-                 style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
-                ${isCust ? customerName.slice(0, 2).toUpperCase() : 'NV'}
-            </div>
-            <div>
-                <div class="text-muted small mb-1 ${isCust ? '' : 'text-end'}" style="font-size: 11px;">
-                    ${isCust ? customerName + ' · Khách hàng' : (msg.sender_name || 'Nhân viên')}
-                </div>
-                <div class="p-3 rounded-4 ${isCust ? 'bg-white shadow-sm border text-dark' : 'text-white shadow-sm'}" 
-                     style="${isCust ? 'border-bottom-left-radius: 4px;' : 'background-color: var(--cham-red); border-bottom-right-radius: 4px;'} font-size: 13.5px; line-height: 1.5;">
-                    ${escapeHtml(msg.content)}
-                </div>
-                <div class="text-muted mt-1 ${isCust ? 'text-end' : ''}" style="font-size: 10px;">${formatTime(msg.created_at)}</div>
+
+    if (!messages || messages.length === 0) {
+        log.innerHTML = `
+            <div class="text-center text-muted my-auto py-5" style="font-size: 13.5px;">
+                <i class="bi bi-chat-square-text fs-3 d-block mb-2 text-secondary opacity-50"></i>
+                Chưa có tin nhắn trong phiên hội thoại này.
             </div>
         `;
+        return;
+    }
+
+    const safeName = customerName || 'Khách hàng';
+    messages.forEach(msg => {
+        const isCust = msg.sender_type === 'Customer';
+        const isBot = msg.sender_type === 'Bot';
+        const msgDiv = document.createElement('div');
+
+        if (isCust) {
+            msgDiv.className = 'd-flex align-items-start gap-2 align-self-start';
+            msgDiv.style.maxWidth = '80%';
+            msgDiv.innerHTML = `
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
+                     style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
+                    ${safeName.slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                    <div class="text-muted small mb-1" style="font-size: 11px;">${safeName} · Khách hàng</div>
+                    <div class="p-3 rounded-4 bg-white shadow-sm border text-dark" 
+                         style="font-size: 13.5px; line-height: 1.5; border-bottom-left-radius: 4px;">
+                        ${escapeHtml(msg.content)}
+                    </div>
+                    <div class="text-muted mt-1 text-end" style="font-size: 10px;">${msg.formatted_time || formatTime(msg.created_at)}</div>
+                </div>
+            `;
+        } else if (isBot) {
+            msgDiv.className = 'd-flex align-items-start gap-2 align-self-start';
+            msgDiv.style.maxWidth = '80%';
+            msgDiv.innerHTML = `
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" 
+                     style="width: 32px; height: 32px; background-color: #FEF3C7; color: #92400E; font-size: 11px;">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div>
+                    <div class="text-muted small mb-1" style="font-size: 11px;">Trợ lý Chatbot AI · Tự động</div>
+                    <div class="p-3 rounded-4 shadow-sm border" 
+                         style="background-color: #FDFBF7; border-color: #E6D8BF !important; color: #78350F; font-size: 13.5px; line-height: 1.5; border-bottom-left-radius: 4px;">
+                        ${escapeHtml(msg.content)}
+                    </div>
+                    <div class="text-muted mt-1 text-end" style="font-size: 10px;">${msg.formatted_time || formatTime(msg.created_at)}</div>
+                </div>
+            `;
+        } else {
+            const staffName = msg.sender_name || 'Nhân viên hỗ trợ';
+            msgDiv.className = 'd-flex align-items-start gap-2 align-self-end flex-row-reverse';
+            msgDiv.style.maxWidth = '80%';
+            msgDiv.innerHTML = `
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
+                     style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
+                    ${staffName.slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                    <div class="text-muted small mb-1 text-end" style="font-size: 11px;">
+                        ${staffName} · Nhân viên tư vấn
+                    </div>
+                    <div class="p-3 rounded-4 text-white shadow-sm" 
+                         style="background-color: var(--cham-red); font-size: 13.5px; line-height: 1.5; border-bottom-right-radius: 4px;">
+                        ${escapeHtml(msg.content)}
+                    </div>
+                    <div class="text-muted mt-1" style="font-size: 10px;">${msg.formatted_time || formatTime(msg.created_at)}</div>
+                </div>
+            `;
+        }
         log.appendChild(msgDiv);
     });
     log.scrollTop = log.scrollHeight;
@@ -608,5 +752,25 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// Đảm bảo active trạng thái menu Admin Sidebar & Khởi tạo Tab hội thoại
+document.addEventListener('DOMContentLoaded', function() {
+    const boxchatNav = document.querySelector('.sidebar-nav-item[data-nav-target="Quản lý Boxchat"]');
+    if (boxchatNav) {
+        document.querySelectorAll('.sidebar-nav-item').forEach(el => el.classList.remove('active'));
+        boxchatNav.classList.add('active');
+    }
+
+    // Mở đúng tab chứa hội thoại đang kích hoạt
+    switchConvTab('{{ initial_tab|default:"processing" }}');
+
+    // Đánh dấu active cho card hội thoại đang mở
+    if (currentConvId) {
+        const activeC = document.querySelector(`.conv-card[data-conv-id="${currentConvId}"]`);
+        if (activeC) {
+            activeC.classList.add('active-card');
+        }
+    }
+});
 </script>
 {% endblock %}

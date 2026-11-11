@@ -1,7 +1,112 @@
+import re
+from datetime import datetime
 from django import forms
 from django.db.models import Q
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email as django_validate_email
 from core.models import User, UserProfile
+
+
+def normalize_phone(raw_phone):
+    """Chuẩn hóa số điện thoại bằng cách bỏ khoảng trắng và ký tự phân tách."""
+    return re.sub(r'[\s.\-()]+', '', (raw_phone or '').strip())
+
+
+def has_phone_conflict(clean_phone, exclude_user_id=None):
+    """Kiểm tra trùng số điện thoại hoặc username số điện thoại trên tất cả tài khoản khác."""
+    if not clean_phone:
+        return False
+    qs = User.objects.all()
+    if exclude_user_id is not None:
+        qs = qs.exclude(pk=exclude_user_id)
+    for phone_val, username_val in qs.values_list('phone', 'username'):
+        if normalize_phone(phone_val) == clean_phone:
+            return True
+        clean_username = normalize_phone(username_val)
+        if username_val and (
+            username_val.strip().lower() == clean_phone.lower()
+            or (clean_username.isdigit() and clean_username == clean_phone)
+        ):
+            return True
+    return False
+
+
+def has_email_conflict(clean_email, exclude_user_id=None):
+    """Kiểm tra trùng địa chỉ email (không phân biệt hoa thường)."""
+    if not clean_email:
+        return False
+    qs = User.objects.all()
+    if exclude_user_id is not None:
+        qs = qs.exclude(pk=exclude_user_id)
+    return qs.filter(email__iexact=clean_email).exists()
+
+
+def validate_email_domain_for_role(email, is_staff_or_admin=False):
+    """
+    Ràng buộc tên miền email theo vai trò:
+      - Khách hàng: @gmail.com
+      - Nhân viên / Quản trị viên: @chamspa.vn
+    Trả về chuỗi lỗi tiếng Việt nếu không hợp lệ, None nếu hợp lệ.
+    """
+    clean_email = (email or '').strip().lower()
+    if not clean_email:
+        return "Vui lòng nhập địa chỉ email."
+    try:
+        django_validate_email(clean_email)
+    except ValidationError:
+        return "Địa chỉ email không đúng định dạng hợp lệ."
+    if is_staff_or_admin:
+        if not clean_email.endswith('@chamspa.vn'):
+            return "Email nhân viên / quản trị viên phải sử dụng đuôi @chamspa.vn (ví dụ: ten@chamspa.vn)."
+    elif not clean_email.endswith('@gmail.com'):
+        return "Email khách hàng phải sử dụng đuôi @gmail.com (ví dụ: ten@gmail.com)."
+    return None
+
+
+def parse_optional_date(date_str):
+    """Phân tích ngày sinh định dạng YYYY-MM-DD (cho phép rỗng để xóa ngày sinh)."""
+    cleaned = (date_str or '').strip()
+    if not cleaned:
+        return None, None
+    try:
+        return datetime.strptime(cleaned, '%Y-%m-%d').date(), None
+    except ValueError:
+        return None, "Ngày sinh không đúng định dạng hợp lệ (YYYY-MM-DD)."
+
+
+def validate_account_payload(name, raw_phone, raw_email, is_staff_or_admin=False, exclude_user_id=None, require_email=True):
+    """Kiểm tra tính hợp lệ và trùng lặp Họ tên, SĐT, Email theo vai trò tài khoản."""
+    clean_name = (name or '').strip()
+    clean_phone = normalize_phone(raw_phone)
+    clean_email = (raw_email or '').strip().lower()
+
+    if not clean_name or not clean_phone:
+        return None, "Vui lòng nhập đầy đủ Họ tên và Số điện thoại."
+    if has_phone_conflict(clean_phone, exclude_user_id=exclude_user_id):
+        return None, f"Số điện thoại '{clean_phone}' đã được sử dụng bởi tài khoản khác."
+    if require_email or clean_email:
+        domain_err = validate_email_domain_for_role(clean_email, is_staff_or_admin=is_staff_or_admin)
+        if domain_err:
+            return None, domain_err
+        if has_email_conflict(clean_email, exclude_user_id=exclude_user_id):
+            return None, f"Địa chỉ email '{clean_email}' đã được sử dụng bởi tài khoản khác."
+
+    return {
+        'name': clean_name,
+        'phone': clean_phone,
+        'email': clean_email,
+    }, None
+
+
+def sync_user_phone_username(user, new_phone, old_phone=''):
+    """Đồng bộ username theo SĐT khi tài khoản vốn dùng SĐT làm username (giữ nguyên username cố định)."""
+    old_clean = normalize_phone(old_phone)
+    if new_phone and (
+        not user.username
+        or (user.username not in ('admin', 'staff') and normalize_phone(user.username) == old_clean)
+    ):
+        if not User.objects.exclude(pk=user.pk).filter(username=new_phone).exists():
+            user.username = new_phone
 
 
 class LoginForm(forms.Form):
@@ -74,7 +179,7 @@ class RegisterForm(forms.Form):
         label="Email *",
         widget=forms.EmailInput(attrs={
             'class': 'form-control cham-auth-input',
-            'placeholder': 'name@example.com',
+            'placeholder': 'tenban@gmail.com',
             'required': True,
         })
     )
@@ -106,14 +211,19 @@ class RegisterForm(forms.Form):
     )
 
     def clean_phone(self):
-        phone = self.cleaned_data.get('phone', '').strip().replace(' ', '').replace('.', '')
-        if User.objects.filter(phone=phone).exists():
+        phone = normalize_phone(self.cleaned_data.get('phone', ''))
+        if not phone:
+            raise ValidationError("Vui lòng nhập số điện thoại.")
+        if has_phone_conflict(phone):
             raise ValidationError("Số điện thoại này đã được đăng ký tài khoản tại Cham Spa.")
         return phone
 
     def clean_email(self):
         email = self.cleaned_data.get('email', '').strip().lower()
-        if User.objects.filter(email=email).exists():
+        domain_err = validate_email_domain_for_role(email, is_staff_or_admin=False)
+        if domain_err:
+            raise ValidationError(domain_err)
+        if has_email_conflict(email):
             raise ValidationError("Địa chỉ email này đã được sử dụng. Vui lòng dùng email khác.")
         return email
 
@@ -161,7 +271,7 @@ class ForgotPasswordForm(forms.Form):
         label="Email đăng ký *",
         widget=forms.EmailInput(attrs={
             'class': 'form-control cham-auth-input',
-            'placeholder': 'user@example.com',
+            'placeholder': 'ten@gmail.com',
             'required': True,
         })
     )
@@ -234,22 +344,38 @@ class ProfileForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control cham-input', 'placeholder': 'Nhập địa chỉ email...'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_phone = normalize_phone(self.instance.phone) if self.instance and self.instance.pk else ''
+
+    def clean_name(self):
+        name = (self.cleaned_data.get('name') or '').strip()
+        if not name:
+            raise ValidationError("Vui lòng nhập họ và tên.")
+        return name
+
     def clean_phone(self):
-        phone = self.cleaned_data.get('phone', '').strip().replace(' ', '').replace('.', '')
-        if User.objects.exclude(pk=self.instance.pk).filter(phone=phone).exists():
+        phone = normalize_phone(self.cleaned_data.get('phone', ''))
+        if not phone:
+            raise ValidationError("Vui lòng nhập số điện thoại.")
+        if has_phone_conflict(phone, exclude_user_id=self.instance.pk):
             raise ValidationError("Số điện thoại này đã được sử dụng bởi tài khoản khác.")
         return phone
 
     def clean_email(self):
         email = self.cleaned_data.get('email', '').strip().lower()
-        if User.objects.exclude(pk=self.instance.pk).filter(email=email).exists():
+        is_staff_or_admin = bool(self.instance and (self.instance.is_superuser or self.instance.is_staff))
+        domain_err = validate_email_domain_for_role(email, is_staff_or_admin=is_staff_or_admin)
+        if domain_err:
+            raise ValidationError(domain_err)
+        if has_email_conflict(email, exclude_user_id=self.instance.pk):
             raise ValidationError("Địa chỉ email này đã được sử dụng bởi tài khoản khác.")
         return email
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        if user.phone:
-            user.username = user.phone
+        # Chỉ đồng bộ username theo SĐT cho tài khoản dùng SĐT làm username (giữ nguyên username cố định như 'admin', 'staff')
+        sync_user_phone_username(user, user.phone, self._original_phone)
         if commit:
             user.save()
         return user

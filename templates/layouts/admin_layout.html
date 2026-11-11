@@ -35,6 +35,12 @@
             window.location.replace("{% url 'chatbox:admin_monitor' %}");
         } else if (tab === 'appointments' && !window.location.pathname.includes('/appointment/admin/')) {
             window.location.replace("{% url 'appointment:admin_appointments' %}");
+        } else if (tab === 'feedbacks' && !window.location.pathname.includes('/feedbacks/')) {
+            window.location.replace("{% url 'feedbacks:admin_management' %}");
+        } else if (tab === 'notifications' && !window.location.pathname.includes('/marketing/admin/')) {
+            window.location.replace("{% url 'marketing:admin_notifications' %}");
+        } else if (tab === 'promotions' && !window.location.pathname.includes('/marketing/admin/')) {
+            window.location.replace("{% url 'marketing:admin_promotions' %}");
         }
     })();
 </script>

@@ -1,230 +1,11 @@
 {% extends base_layout|default:"layouts/staff_layout.html" %}
 {% load static %}
 
+{% block body_class %}page-health-staff-lookup{% endblock %}
+
 {% block title %}Tra cứu Hồ sơ sức khỏe Khách hàng | Staff Workspace{% endblock %}
 {% block page_title %}Tra cứu Hồ sơ sức khỏe{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* ==========================================================================
-       CHAM SPA & MASSAGE - MOD-08: TRA CỨU HỒ SƠ SỨC KHỎE (STAFF WORKSPACE)
-       Thiết kế tối giản, tinh tế, không màu mè, dùng hệ màu chính thương hiệu:
-       Đỏ Champa #781A24, Nền kem #FAF7EF, Viền #DED2BA, Nâu đen #171311.
-       ========================================================================== */
-
-    .staff-health-container {
-        max-width: 1320px;
-        margin: 0 auto;
-        padding-bottom: 50px;
-    }
-
-    /* 3 Widget thống kê mini tinh gọn */
-    .kpi-mini-card {
-        background-color: #FFFFFF;
-        border: 1px solid #DED2BA;
-        border-radius: 10px;
-        padding: 10px 16px;
-        box-shadow: 0 2px 8px rgba(46, 29, 23, 0.04);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        height: 100%;
-        transition: transform 0.15s ease, border-color 0.15s ease;
-    }
-
-    .kpi-mini-card:hover {
-        transform: translateY(-1px);
-        border-color: #D0B581;
-    }
-
-    .kpi-icon-wrap {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 17px;
-        flex-shrink: 0;
-        background-color: #FAF7EF;
-        color: #781A24;
-        border: 1px solid #D0B581;
-    }
-
-    .kpi-num {
-        font-family: var(--font-serif), Georgia, serif;
-        font-size: 19px;
-        font-weight: 700;
-        color: #781A24;
-        line-height: 1.1;
-    }
-
-    .kpi-title {
-        font-size: 11px;
-        font-weight: 600;
-        color: #716761;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-    }
-
-    /* Thẻ Card chứa bảng dữ liệu */
-    .table-container-card {
-        background-color: #FFFFFF;
-        border: 1px solid #D0B581;
-        border-radius: 14px;
-        box-shadow: 0 6px 20px rgba(46, 29, 23, 0.05);
-        overflow: hidden;
-    }
-
-    .table-header-toolbar {
-        padding: 16px 22px;
-        background-color: #FFFFFF;
-        border-bottom: 1px solid #EADEC7;
-    }
-
-    /* Ô tìm kiếm */
-    .search-input-wrap {
-        position: relative;
-        max-width: 380px;
-        width: 100%;
-    }
-
-    .search-input-box {
-        background-color: #FFFFFF;
-        border: 1px solid #DED2BA;
-        border-radius: 8px;
-        padding: 8px 14px 8px 36px;
-        font-size: 13.5px;
-        width: 100%;
-        color: #171311;
-        transition: all 0.2s ease;
-    }
-
-    .search-input-box:focus {
-        border-color: #781A24;
-        box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.12);
-        outline: none;
-    }
-
-    .search-icon-pos {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #716761;
-        font-size: 14px;
-    }
-
-    /* Nút lọc tinh tế */
-    .filter-btn {
-        padding: 7px 16px;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 600;
-        border: 1px solid #DED2BA;
-        background-color: #FFFFFF;
-        color: #4A3E39;
-        text-decoration: none;
-        transition: all 0.15s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .filter-btn:hover {
-        border-color: #781A24;
-        background-color: #FAF7EF;
-        color: #781A24;
-    }
-
-    .filter-btn.active {
-        background-color: #781A24 !important;
-        border-color: #781A24 !important;
-        color: #FFFFFF !important;
-    }
-
-    /* Bảng dữ liệu */
-    .cham-table {
-        margin-bottom: 0;
-        width: 100%;
-    }
-
-    .cham-table th {
-        background-color: #FAF7EF;
-        color: #781A24;
-        font-family: var(--font-body), sans-serif;
-        font-weight: 700;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 12px 16px;
-        border-bottom: 1px solid #DED2BA;
-        vertical-align: middle;
-        white-space: nowrap;
-    }
-
-    .cham-table td {
-        padding: 12px 16px;
-        vertical-align: middle;
-        font-size: 13.5px;
-        color: #171311;
-        border-bottom: 1px solid #F0EAE1;
-    }
-
-    .cham-table td.cell-nowrap {
-        white-space: nowrap;
-    }
-
-    .cham-table tbody tr:hover {
-        background-color: #FAF7EF;
-    }
-
-    /* Nút Xem hồ sơ tối giản, không icon rườm rà */
-    .btn-cham-view-link {
-        display: inline-block !important;
-        text-align: center;
-        padding: 6px 14px;
-        border-radius: 6px;
-        font-size: 12.5px;
-        font-weight: 600;
-        color: #781A24;
-        border: 1px solid #D0B581;
-        background-color: #FAF7EF;
-        text-decoration: none;
-        white-space: nowrap !important;
-        transition: all 0.15s ease;
-    }
-
-    .btn-cham-view-link:hover {
-        background-color: #781A24;
-        color: #FFFFFF !important;
-        border-color: #781A24;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 6px rgba(120, 26, 36, 0.15);
-    }
-
-    /* Pill cảnh báo KTV tinh gọn, không nhồi nhét icon */
-    .alert-pill-cham {
-        display: inline-block;
-        padding: 3px 10px;
-        border-radius: 999px;
-        background-color: #FAF7EF;
-        border: 1px solid #781A24;
-        color: #781A24;
-        font-size: 11.5px;
-        font-weight: 600;
-        margin: 2px 3px 2px 0;
-        white-space: nowrap;
-    }
-
-    .safe-text-cham {
-        color: #716761;
-        font-size: 12.5px;
-        font-weight: 500;
-        white-space: nowrap;
-    }
-</style>
-{% endblock %}
 
 {% block content %}
 <div class="staff-health-container">
@@ -241,9 +22,6 @@
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small fw-normal">
-                <i class="bi bi-clock me-1" style="color: #781A24;"></i> Ca trực: {{ now|date:"d/m/Y" }}
-            </span>
             <button type="button"
                 class="btn btn-sm text-white fw-semibold px-2.5 py-1 d-inline-flex align-items-center gap-1"
                 style="background-color: #781A24; border-radius: 6px; font-size: 11.5px; border: none; height: 30px; box-shadow: 0 1px 3px rgba(120,26,36,0.15);"
@@ -332,61 +110,60 @@
         <!-- Bảng danh sách hồ sơ tinh gọn -->
         <div class="table-responsive">
             <table class="table cham-table align-middle">
+                <colgroup>
+                    <col style="width: 20%;">
+                    <col style="width: 16%;">
+                    <col style="width: 16%;">
+                    <col style="width: 16%;">
+                    <col style="width: 16%;">
+                    <col style="width: 16%;">
+                </colgroup>
                 <thead>
                     <tr>
-                        <th>Mã hồ sơ</th>
                         <th>Khách hàng</th>
-                        <th>Chỉ số thể trạng</th>
-                        <th>Huyết áp</th>
-                        <th>Mức độ đau</th>
-                        <th>Lực massage</th>
-                        <th>Cảnh báo an toàn KTV</th>
-                        <th class="text-end">Thao tác</th>
+                        <th class="text-center">Chỉ số sức khỏe</th>
+                        <th class="text-center">Huyết áp</th>
+                        <th class="text-center">Mức đau</th>
+                        <th class="text-center">Lực massage</th>
+                        <th class="text-center">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in profiles_list %}
                     {% with p=item.obj data=item.data %}
                     <tr>
-                        <!-- Mã hồ sơ -->
-                        <td class="cell-nowrap">
-                            <a href="{% url 'accounts:admin_customer_detail' p.user.id %}?tab=health" class="fw-bold text-decoration-none"
-                                style="color: #781A24;">
-                                {{ p.health_code }}
-                            </a>
-                            <div class="text-muted" style="font-size: 11.5px;">{{ p.created_at|date:"d/m/Y H:i" }}</div>
-                        </td>
-
                         <!-- Khách hàng -->
-                        <td class="cell-nowrap">
+                        <td>
                             <div class="d-flex align-items-center gap-2">
                                 <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-                                    style="width: 34px; height: 34px; background-color: #781A24; font-size: 13px;">
+                                    style="width: 32px; height: 32px; background-color: #781A24; font-size: 12.5px;">
                                     {{ p.user.name|default:p.user.username|make_list|first|upper }}
                                 </div>
-                                <div>
-                                    <div class="fw-bold text-dark" style="font-size: 13.5px;">
-                                        <a href="{% url 'accounts:admin_customer_detail' p.user.id %}?tab=info" class="text-dark text-decoration-none fw-bold">
+                                <div style="min-width: 0;">
+                                    <div class="fw-bold text-dark" style="font-size: 13px;">
+                                        <a href="{% url 'accounts:admin_customer_detail' p.user.id %}?tab=info"
+                                            class="text-dark text-decoration-none fw-bold">
                                             {{ p.user.name|default:p.user.username }}
                                         </a>
                                     </div>
-                                    <div class="text-muted" style="font-size: 12px;">{{ p.user.phone }}</div>
+                                    <div class="text-muted text-nowrap" style="font-size: 11.5px;">{{ p.user.phone }}</div>
                                 </div>
                             </div>
                         </td>
 
-                        <!-- Chỉ số thể trạng -->
-                        <td class="cell-nowrap">
-                            <div class="fw-semibold text-dark" style="font-size: 13.5px;">
+                        <!-- Chỉ số sức khỏe -->
+                        <td class="text-center cell-nowrap">
+                            <div class="fw-semibold text-dark" style="font-size: 13px;">
                                 {{ data.formatted_height|default:p.height_cm|default:"--" }} cm · {{ data.formatted_weight|default:p.weight_kg|default:"--" }} kg
                             </div>
-                            <div class="text-muted" style="font-size: 11.5px;">
-                                BMI: <strong style="color: #781A24;">{{ data.bmi|default:"--" }}</strong> · {{ data.bmi_classification|default:"Cân đối" }}
+                            <div class="text-muted" style="font-size: 11.5px;"
+                                title="{{ data.bmi_classification|default:'Chưa có chỉ số BMI' }}">
+                                BMI: <strong style="color: #781A24;">{{ data.bmi|default:"--" }}</strong> · {{ data.bmi_short_label|default:"Chưa đo" }}
                             </div>
                         </td>
 
                         <!-- Huyết áp -->
-                        <td class="cell-nowrap">
+                        <td class="text-center cell-nowrap">
                             {% if p.blood_pressure == 'Cao' %}
                             <span class="badge rounded-pill px-2 py-1 fw-bold"
                                 style="background-color: #FAF7EF; border: 1px solid #781A24; color: #781A24; font-size: 11px;">
@@ -404,40 +181,24 @@
                             {% endif %}
                         </td>
 
-                        <!-- Mức độ đau -->
-                        <td class="cell-nowrap">
-                            <span class="fw-bold font-serif" style="color: #781A24; font-size: 14.5px;">
+                        <!-- Mức đau -->
+                        <td class="text-center cell-nowrap">
+                            <span class="fw-bold font-serif" style="color: #781A24; font-size: 14px;">
                                 {{ p.pain_level|default:5 }}/10
                             </span>
                         </td>
 
                         <!-- Lực massage -->
-                        <td class="cell-nowrap">
+                        <td class="text-center cell-nowrap">
                             <span class="text-dark" style="font-size: 13px;">
                                 {{ p.massage_pressure|default:"Lực vừa" }}
                             </span>
                         </td>
 
-                        <!-- Cảnh báo an toàn KTV (Không icon rườm rà) -->
-                        <td>
-                            {% if data.has_medical_alert and data.alert_details %}
-                            <div class="d-flex flex-wrap gap-1">
-                                {% for alert in data.alert_details %}
-                                <span class="alert-pill-cham" title="{{ alert.desc }}">
-                                     {{ alert.title }}
-                                </span>
-                                {% endfor %}
-                            </div>
-                            {% else %}
-                            <span class="safe-text-cham">
-                                Ổn định
-                            </span>
-                            {% endif %}
-                        </td>
-
                         <!-- Thao tác -->
-                        <td class="text-end cell-nowrap">
-                            <a href="{% url 'accounts:admin_customer_detail' p.user.id %}?tab=health" class="btn-cham-view-link">
+                        <td class="text-center cell-nowrap">
+                            <a href="{% url 'accounts:admin_customer_detail' p.user.id %}?tab=health"
+                                class="btn-cham-view-link">
                                 Xem hồ sơ
                             </a>
                         </td>
@@ -445,7 +206,7 @@
                     {% endwith %}
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
+                        <td colspan="6" class="text-center py-5 text-muted">
                             <i class="bi bi-folder2-open fs-2 d-block mb-2 text-muted"></i>
                             <div>Không tìm thấy hồ sơ sức khỏe nào khớp với điều kiện tra cứu.</div>
                         </td>
@@ -454,6 +215,48 @@
                 </tbody>
             </table>
         </div>
+
+        {% if page_obj.paginator.count > 0 %}
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-3 border-top"
+            style="background-color: #FFFDF9; border-color: #ECE2CE !important;">
+            <span class="text-muted small">
+                Hiển thị <strong>{{ page_obj.start_index }}–{{ page_obj.end_index }}</strong> trong
+                <strong>{{ page_obj.paginator.count }}</strong> hồ sơ
+            </span>
+
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Phân trang hồ sơ sức khỏe">
+                <ul class="pagination pagination-sm pagination-custom mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ pagination_prefix }}page={{ page_obj.previous_page_number }}" aria-label="Trang trước">&lsaquo;</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">&lsaquo;</span></li>
+                    {% endif %}
+
+                    {% for num in page_range %}
+                    {% if num == ellipsis_label %}
+                    <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                    {% elif num == page_obj.number %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% else %}
+                    <li class="page-item"><a class="page-link" href="{{ pagination_prefix }}page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ pagination_prefix }}page={{ page_obj.next_page_number }}" aria-label="Trang sau">&rsaquo;</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">&rsaquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+        {% endif %}
 
     </div>
 
@@ -492,8 +295,9 @@
                             <input type="tel" name="phone" class="form-control" placeholder="0901 234 567" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold" style="font-size: 13px;">Địa chỉ Email</label>
-                            <input type="email" name="email" class="form-control" placeholder="mai.nguyen@gmail.com">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Địa chỉ Email <span
+                                    class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" placeholder="mai.nguyen@gmail.com" required>
                         </div>
                     </div>
 

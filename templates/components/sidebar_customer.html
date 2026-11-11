@@ -43,7 +43,7 @@
             <i class="bi bi-chevron-right sidebar-chevron"></i>
         </a>
 
-        <a href="{% url 'accounts:profile' %}?tab=notifications" class="customer-nav-item" data-nav-target="Thông báo từ Cham">
+        <a href="{% url 'marketing:notifications' %}" class="customer-nav-item {% if request.resolver_match.app_name == 'marketing' and request.resolver_match.url_name == 'notifications' %}active{% endif %}" data-nav-target="Thông báo từ Cham">
             <div class="d-flex align-items-center gap-3">
                 <i class="bi bi-bell fs-5"></i>
                 <span>Thông báo từ Cham</span>
@@ -51,7 +51,7 @@
             <i class="bi bi-chevron-right sidebar-chevron"></i>
         </a>
 
-        <a href="{% url 'accounts:profile' %}?tab=membership" class="customer-nav-item" data-nav-target="Thẻ hội viên & Tích điểm">
+        <a href="{% url 'membership:my_card' %}" class="customer-nav-item {% if request.resolver_match.app_name == 'membership' %}active{% endif %}" data-nav-target="Thẻ hội viên & Tích điểm">
             <div class="d-flex align-items-center gap-3">
                 <i class="bi bi-credit-card fs-5"></i>
                 <span>Thẻ hội viên & Tích điểm</span>
@@ -59,7 +59,7 @@
             <i class="bi bi-chevron-right sidebar-chevron"></i>
         </a>
 
-        <a href="{% url 'accounts:profile' %}?tab=feedbacks" class="customer-nav-item" data-nav-target="Đánh giá & Phản hồi">
+        <a href="{% url 'feedbacks:my_feedbacks' %}" class="customer-nav-item" data-nav-target="Đánh giá & Phản hồi">
             <div class="d-flex align-items-center gap-3">
                 <i class="bi bi-star fs-5"></i>
                 <span>Đánh giá & Phản hồi</span>

@@ -1,0 +1,695 @@
+{% extends "layouts/customer_layout.html" %}
+{% load static %}
+
+{% block body_class %}page-membership-customer-membership{% endblock %}
+
+{% block page_title %}Thẻ hội viên & Tích điểm{% endblock %}
+
+{% block customer_content %}
+<!-- ==========================================================================
+     MODULE 06: QUẢN LÝ HỘI VIÊN & TÍCH ĐIỂM (MOD-06)
+     Màn hình Thẻ Hội viên điện tử & Tiến trình thăng hạng (UC-6.1)
+     Figma Source: Node 1323 (Serenity Card) & Node 608:250 (Tier Roadmap & Progress)
+     Thành viên phụ trách: MINH KHÁNH
+     ========================================================================== -->
+
+
+<div class="membership-dashboard-container pb-5">
+    <!-- Thanh Tab Chuyển Đổi: Thẻ hội viên & Tích điểm / Ví Voucher -->
+    <div class="cus-filter-tabs" role="tablist" aria-label="Phân mục hội viên">
+        <button type="button"
+                id="btnTabCard"
+                class="cus-filter-btn {% if active_tab != 'vouchers' %}active{% endif %}"
+                role="tab"
+                aria-selected="{% if active_tab != 'vouchers' %}true{% else %}false{% endif %}"
+                onclick="switchMembershipTab('card', this)">
+            <i class="bi bi-credit-card-2-front"></i>
+            <span>Thẻ hội viên & Tích điểm</span>
+        </button>
+        <button type="button"
+                id="btnTabVouchers"
+                class="cus-filter-btn {% if active_tab == 'vouchers' %}active{% endif %}"
+                role="tab"
+                aria-selected="{% if active_tab == 'vouchers' %}true{% else %}false{% endif %}"
+                onclick="switchMembershipTab('vouchers', this)">
+            <i class="bi bi-ticket-perforated"></i>
+            <span>Ví Voucher</span>
+            <span class="badge bg-light text-dark border">{{ total_vouchers }}</span>
+        </button>
+    </div>
+
+    <div id="tabContentCard" {% if active_tab == 'vouchers' %}style="display: none;"{% endif %}>
+
+    <!-- =====================================================================
+         KHỐI 1: THẺ HỘI VIÊN ĐIỆN TỬ VIP (SERENITY VIP PASS) & THÔNG TIN ĐẶC QUYỀN
+         ===================================================================== -->
+    <div class="row g-4 mb-4">
+        <!-- Cột trái: Thẻ VIP Serenity Card -->
+        <div class="col-xl-7 col-lg-12">
+            <div class="vip-card-container">
+                <!-- Hàng trên: Logo & Hạng thẻ -->
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-flower1" style="color: var(--cham-gold); font-size: 22px;"></i>
+                            <span class="fw-bold tracking-wider" style="color: #F4EFE3; font-size: 15px; letter-spacing: 2px;">
+                                CHAM SPA & MASSAGE
+                            </span>
+                        </div>
+                        <div class="vip-card-chip">
+                            <i class="bi bi-shield-check"></i>
+                            <span>Serenity VIP Pass</span>
+                        </div>
+                    </div>
+
+                    <div class="vip-tier-badge-glowing">
+                        {% if current_tier.name == 'Hạng Kim Cương' %}
+                            <i class="bi bi-gem"></i>
+                        {% elif current_tier.name == 'Hạng Vàng' %}
+                            <i class="bi bi-award-fill"></i>
+                        {% elif current_tier.name == 'Hạng Bạc' %}
+                            <i class="bi bi-star-fill"></i>
+                        {% else %}
+                            <i class="bi bi-shield-check"></i>
+                        {% endif %}
+                        <span>{{ current_tier.name|default:"Hạng Đồng"|upper }}</span>
+                    </div>
+                </div>
+
+                <!-- Hàng giữa: Mã thẻ dập nổi -->
+                <div>
+                    <div class="text-white-50 small text-uppercase" style="letter-spacing: 1px; font-size: 11px;">
+                        MÃ THẺ THÀNH VIÊN
+                    </div>
+                    <div class="vip-card-number d-flex align-items-center justify-content-between">
+                        <span id="vipCardNumberText">{{ card_number }}</span>
+                        <button type="button" class="btn btn-sm text-white-50 p-1" onclick="copyCardNumber()" title="Sao chép mã thẻ">
+                            <i class="bi bi-clipboard fs-5" id="copyIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hàng dưới: Tên chủ thẻ & Quyền lợi chiết khấu -->
+                <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 pt-2 border-top border-white-10" style="border-color: rgba(208, 181, 129, 0.25) !important;">
+                    <div>
+                        <div class="text-white-50 small text-uppercase" style="letter-spacing: 1px; font-size: 10.5px;">CHỦ THẺ HỘI VIÊN</div>
+                        <div class="vip-card-holder-name">{{ user.name|default:user.username }}</div>
+                    </div>
+
+                    <div class="text-end">
+                        <div class="vip-card-privilege d-inline-flex align-items-center gap-2">
+                            <i class="bi bi-percent fs-6 text-warning"></i>
+                            <span>Đặc quyền: <strong>GIẢM {{ current_tier.discount_percent|default:0 }}%</strong> dịch vụ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: 4 Widget thống kê số dư điểm & chi tiêu -->
+        <div class="col-xl-5 col-lg-12">
+            <div class="row g-3 h-100">
+                <!-- Widget 1: Điểm thưởng khả dụng -->
+                <div class="col-sm-6">
+                    <div class="metric-widget-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="metric-widget-title">Điểm khả dụng</div>
+                                <div class="metric-widget-value text-success" id="widgetCurrentPoints">
+                                    {{ membership.current_points|default:0 }}
+                                </div>
+                            </div>
+                            <div class="metric-widget-icon" style="background: #E8F5E9; color: #2E7D32;">
+                                <i class="bi bi-coin"></i>
+                            </div>
+                        </div>
+                        <div class="metric-widget-desc mt-2">
+                            <i class="bi bi-info-circle text-muted me-1"></i>Dùng để khấu trừ & nhận quà
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widget 2: Mức chiết khấu đặc quyền -->
+                <div class="col-sm-6">
+                    <div class="metric-widget-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="metric-widget-title">Chiết khấu VIP</div>
+                                <div class="metric-widget-value" style="color: #B89A64;">
+                                    {{ current_tier.discount_percent|default:0 }}%
+                                </div>
+                            </div>
+                            <div class="metric-widget-icon" style="background: #FFF8E1; color: #F57F17;">
+                                <i class="bi bi-patch-check-fill"></i>
+                            </div>
+                        </div>
+                        <div class="metric-widget-desc mt-2">
+                            <i class="bi bi-check-circle-fill text-warning me-1"></i>Tự động áp dụng tại quầy
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widget 3: Tổng chi tiêu tích lũy -->
+                <div class="col-sm-6">
+                    <div class="metric-widget-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="metric-widget-title">Tổng chi tiêu</div>
+                                <div class="metric-widget-value" style="font-size: 20px; color: var(--cham-red);">
+                                    {{ formatted_total_spent }}
+                                </div>
+                            </div>
+                            <div class="metric-widget-icon" style="background: #FBE9E7; color: #D84315;">
+                                <i class="bi bi-receipt"></i>
+                            </div>
+                        </div>
+                        <div class="metric-widget-desc mt-2">
+                            <i class="bi bi-clock-history me-1"></i>Từ khi bắt đầu sử dụng Spa
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widget 4: Hạng thẻ hội viên VIP -->
+                <div class="col-sm-6">
+                    <div class="metric-widget-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="metric-widget-title">Hạng thẻ VIP</div>
+                                <div class="metric-widget-value" style="font-size: 20px; color: var(--cham-red);">
+                                    {{ current_tier.name|default:"Hạng Đồng" }}
+                                </div>
+                            </div>
+                            <div class="metric-widget-icon" style="background: #FDF2E9; color: #C5A059;">
+                                {% if current_tier.name == 'Hạng Kim Cương' %}
+                                    <i class="bi bi-gem"></i>
+                                {% elif current_tier.name == 'Hạng Vàng' %}
+                                    <i class="bi bi-award-fill"></i>
+                                {% elif current_tier.name == 'Hạng Bạc' %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-shield-check"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="metric-widget-desc mt-2">
+                            <i class="bi bi-award text-warning me-1"></i>Hội viên đặc quyền Cham Spa
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         KHỐI 2: TIẾN TRÌNH NÂNG HẠNG TIẾP THEO (TIER UPGRADE ROADMAP - FIGMA 608:250)
+         ===================================================================== -->
+    <div class="tier-roadmap-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div>
+                <h5 class="fw-bold mb-1" style="font-family: var(--font-serif); color: var(--cham-red); font-size: 21px;">
+                    <i class="bi bi-trophy me-2" style="color: var(--cham-gold);"></i>Tiến trình nâng hạng tiếp theo
+                </h5>
+                <div class="text-muted small">
+                    Hệ thống tự động tích điểm theo tỷ lệ <strong>10.000 VNĐ = 1 điểm thưởng</strong> sau mỗi hóa đơn thanh toán.
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 px-3 py-1.5" style="border-radius: 8px;" data-bs-toggle="modal" data-bs-target="#tierPerksModal">
+                    <i class="bi bi-info-circle"></i>
+                    <span>Xem quyền lợi các hạng</span>
+                </button>
+            </div>
+        </div>
+
+        {% if is_max_tier %}
+            <!-- Thông báo khi đạt hạng cao nhất -->
+            <div class="alert alert-success d-flex align-items-center gap-3 p-3 mb-0 rounded-3" style="background-color: #F0FDF4; border-color: #86EFAC;">
+                <i class="bi bi-patch-check-fill fs-3 text-success"></i>
+                <div>
+                    <h6 class="fw-bold mb-1 text-success">Chúc mừng quý khách đã đạt Hạng Kim Cương!</h6>
+                    <div class="small text-muted">
+                        Quý khách đang sở hữu thứ hạng danh giá cao nhất tại Cham Spa & Massage, được hưởng mức chiết khấu đặc quyền 15% cùng sự phục vụ của Kỹ thuật viên tay nghề bậc cao.
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <!-- 2 Thanh tiến trình: Điểm & Chi tiêu -->
+            <div class="row g-4 mb-3">
+                <!-- Thanh 1: Điểm tích lũy -->
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 14px;">
+                        <span class="text-muted fw-bold">Tiến độ điểm thưởng:</span>
+                        <span class="fw-bold" style="color: var(--cham-dark);">
+                            {{ membership.current_points }} / {{ next_tier_points }} Điểm
+                        </span>
+                    </div>
+                    <div class="progress-track-custom">
+                        <div class="progress-bar-gold" style="width: {{ points_pct }}%;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1 text-muted" style="font-size: 11.5px;">
+                        <span>Hiện tại: {{ membership.current_points }} điểm</span>
+                        <span>Đạt {{ points_pct }}%</span>
+                    </div>
+                </div>
+
+                <!-- Thanh 2: Chi tiêu tích lũy năm nay -->
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 14px;">
+                        <span class="text-muted fw-bold">Chi tiêu tích lũy:</span>
+                        <span class="fw-bold" style="color: var(--cham-dark);">
+                            {{ formatted_total_spent }} / {{ formatted_target_spent }}
+                        </span>
+                    </div>
+                    <div class="progress-track-custom">
+                        <div class="progress-bar-gold" style="width: {{ spent_pct }}%;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1 text-muted" style="font-size: 11.5px;">
+                        <span>Tiến độ chi tiêu: {{ spent_pct }}%</span>
+                        <span>Mục tiêu: 10.000.000 VNĐ</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gợi ý nâng hạng -->
+            <div class="p-3 rounded-3 d-flex align-items-center gap-2" style="background-color: #FAF7EF; border: 1px solid rgba(208, 181, 129, 0.4); font-size: 13.5px;">
+                <i class="bi bi-stars fs-5" style="color: var(--cham-gold-dark);"></i>
+                <div>
+                    Cần tích thêm <strong class="text-danger">{{ remaining_points }} điểm</strong> hoặc chi tiêu thêm <strong>{{ formatted_remaining_spent }}</strong> để thăng hạng <strong style="color: var(--cham-red);">{{ next_tier_name }}</strong>.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- =====================================================================
+         KHỐI 3: LỊCH SỬ TÍCH ĐIỂM THƯỞNG (MEMBERSHIP POINTS)
+         ===================================================================== -->
+    <div class="points-table-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div>
+                <h5 class="fw-bold mb-1" style="font-family: var(--font-serif); color: var(--cham-red); font-size: 21px;">
+                    Lịch sử tích điểm thưởng
+                </h5>
+                <div class="text-muted small">
+                    Chi tiết toàn bộ điểm thưởng tích lũy tự động từ hóa đơn thanh toán dịch vụ (10.000đ = 1 điểm thưởng).
+                </div>
+            </div>
+
+            <!-- Form Tìm Kiếm -->
+            <form method="get" class="d-flex align-items-center" style="min-width: 260px;">
+                <div class="input-group input-group-sm">
+                    <input type="text" name="q" value="{{ search_q }}" class="form-control" placeholder="Tìm mã lịch / lý do..." style="border-color: #D0B581;">
+                    <button class="btn btn-outline-secondary" type="submit" style="border-color: #D0B581;">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    {% if search_q %}
+                    <a href="{% url 'membership:my_card' %}" class="btn btn-outline-danger" title="Xóa tìm kiếm">
+                        <i class="bi bi-x"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Bảng Dữ Liệu -->
+        <div class="table-responsive">
+            <table class="custom-table-points">
+                <thead>
+                    <tr>
+                        <th style="width: 170px;">THỜI GIAN</th>
+                        <th style="width: 160px;">MÃ GIAO DỊCH</th>
+                        <th>LÝ DO / CHI TIẾT TÍCH ĐIỂM</th>
+                        <th style="text-align: right; width: 180px;">ĐIỂM CỘNG</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pt in point_history %}
+                    <tr>
+                        <td class="text-muted fw-semibold" style="font-size: 13px;">
+                            <i class="bi bi-calendar3 me-1"></i>{{ pt.created_at|date:"d/m/Y H:i" }}
+                        </td>
+                        <td>
+                            <span class="fw-bold px-2 py-1 rounded" style="background: #F4EFE3; color: #3D271D; font-size: 12.5px;">
+                                {{ pt.display_code|default:pt.appointment_id|default:"#HD-CHAMSPA" }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="fw-medium text-dark">{{ pt.reason_description }}</div>
+                        </td>
+                        <td style="text-align: right;">
+                            <span class="badge-points-plus">
+                                <i class="bi bi-arrow-up-right"></i>+{{ pt.points_amount }} điểm
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary" style="opacity: 0.5;"></i>
+                                <span class="fw-semibold">Chưa có bản ghi biến động điểm nào.</span>
+                                <div class="small mt-1">
+                                    Điểm thưởng sẽ tự động được cộng sau khi bạn hoàn tất và thanh toán các buổi trị liệu tại Cham Spa.
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phân trang Pagination -->
+        {% if point_history.has_other_pages %}
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+            <div class="small text-muted">
+                Trang {{ point_history.number }} / {{ point_history.paginator.num_pages }} (Tổng cộng {{ point_history.paginator.count }} bản ghi)
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if point_history.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ point_history.previous_page_number }}{% if search_q %}&q={{ search_q }}{% endif %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for i in point_history.paginator.page_range %}
+                        {% if point_history.number == i %}
+                        <li class="page-item active">
+                            <span class="page-link" style="background-color: var(--cham-red); border-color: var(--cham-red);">{{ i }}</span>
+                        </li>
+                        {% elif i > point_history.number|add:"-3" and i < point_history.number|add:"3" %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}{% if search_q %}&q={{ search_q }}{% endif %}">{{ i }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if point_history.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ point_history.next_page_number }}{% if search_q %}&q={{ search_q }}{% endif %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+    </div> <!-- /#tabContentCard -->
+
+    <!-- =====================================================================
+         TAB 2: VÍ VOUCHER CÁ NHÂN (MÃ GIẢM GIÁ & ƯU ĐÃI TỪ CHAM SPA)
+         ===================================================================== -->
+    <div id="tabContentVouchers" {% if active_tab != 'vouchers' %}style="display: none;"{% endif %}>
+        <!-- Danh sách Voucher khả dụng -->
+        <div class="voucher-wallet-card">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                <div>
+                    <h5 class="fw-bold mb-1" style="font-family: var(--font-serif); color: var(--cham-red); font-size: 21px;">
+                        Ví Voucher khả dụng ({{ total_vouchers }})
+                    </h5>
+                    <div class="text-muted small">
+                        Sao chép mã hoặc nhấn Đặt lịch dùng mã để áp dụng trực tiếp khi thanh toán liệu trình tại Cham Spa.
+                    </div>
+                </div>
+            </div>
+
+            {% if available_vouchers %}
+            <div class="row g-3">
+                {% for v in available_vouchers %}
+                <div class="col-lg-6">
+                    <div class="voucher-ticket">
+                        <div class="voucher-left-stub">
+                            <div class="voucher-stub-value">{{ v.display_discount }}</div>
+                            <div class="voucher-stub-label">ƯU ĐÃI SPA</div>
+                        </div>
+                        <div class="voucher-right-body">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                                    {% if v.customer %}
+                                        <span class="badge rounded-pill" style="background: #FDECEC; color: #781A24; font-size: 11px;">
+                                            <i class="bi bi-gift-fill me-1"></i>Dành riêng cho bạn
+                                        </span>
+                                    {% else %}
+                                        <span class="badge rounded-pill" style="background: #EFE8DA; color: #3D271D; font-size: 11px;">
+                                            <i class="bi bi-stars me-1"></i>Ưu đãi hội viên
+                                        </span>
+                                    {% endif %}
+                                    <span class="small text-muted fw-semibold" style="font-size: 11.5px;">
+                                        <i class="bi bi-clock me-1"></i>HSD: {{ v.expiry_date|date:"d/m/Y" }}
+                                    </span>
+                                </div>
+                                <div class="fw-bold text-dark mt-1" style="font-size: 15px;">
+                                    {{ v.promotion.title|default:"Voucher Ưu đãi Cham Spa" }}
+                                </div>
+                                <div class="text-muted small mt-1" style="font-size: 12.5px;">
+                                    {% if v.display_min_order %}
+                                        Đơn tối thiểu <strong>{{ v.display_min_order }}</strong>
+                                    {% else %}
+                                        Áp dụng cho mọi hóa đơn dịch vụ
+                                    {% endif %}
+                                    {% if v.display_max_discount %}
+                                        · Giảm tối đa <strong>{{ v.display_max_discount }}</strong>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top" style="border-color: rgba(208, 181, 129, 0.35) !important;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="voucher-code-pill">{{ v.voucher_code }}</span>
+                                    <button type="button" class="voucher-btn-copy" onclick="copyVoucherCode('{{ v.voucher_code|escapejs }}')">
+                                        <i class="bi bi-clipboard me-1"></i>Sao chép
+                                    </button>
+                                </div>
+                                <a href="{% url 'appointment:booking' %}?voucher={{ v.voucher_code }}"
+                                   class="btn btn-sm fw-bold text-white px-3"
+                                   style="background: var(--cham-red); border-radius: 8px; font-size: 12.5px;">
+                                    Dùng ngay <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-ticket-perforated fs-1 d-block mb-2 text-secondary" style="opacity: 0.45;"></i>
+                <div class="fw-semibold">Bạn chưa có mã Voucher khả dụng nào.</div>
+                <div class="small mt-1">
+                    Các mã ưu đãi đặc quyền theo hạng thẻ và chương trình khuyến mãi sẽ tự động xuất hiện tại đây.
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if history_vouchers %}
+        <!-- Lịch sử Voucher đã dùng / hết hạn -->
+        <div class="voucher-wallet-card">
+            <h6 class="fw-bold mb-3" style="font-family: var(--font-serif); color: var(--cham-muted); font-size: 16px;">
+                <i class="bi bi-clock-history me-2"></i>Voucher đã sử dụng / Hết hạn
+            </h6>
+            <div class="table-responsive">
+                <table class="custom-table-points">
+                    <thead>
+                        <tr>
+                            <th>MÃ VOUCHER</th>
+                            <th>ƯU ĐÃI</th>
+                            <th>CHƯƠNG TRÌNH</th>
+                            <th style="text-align: center;">TRẠNG THÁI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hv in history_vouchers %}
+                        <tr style="opacity: 0.72;">
+                            <td><span class="badge bg-light text-dark border font-monospace">{{ hv.voucher_code }}</span></td>
+                            <td class="fw-bold">{{ hv.display_discount }}</td>
+                            <td>{{ hv.promotion.title|default:"Voucher Cham Spa" }}</td>
+                            <td style="text-align: center;">
+                                <span class="badge bg-secondary-subtle text-secondary border">{{ hv.status }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div> <!-- /#tabContentVouchers -->
+</div>
+
+<!-- =====================================================================
+     MODAL: BẢNG SO SÁNH QUYỀN LỢI CÁC HẠNG THẺ THÀNH VIÊN VIP
+     ===================================================================== -->
+<div class="modal fade" id="tierPerksModal" tabindex="-1" aria-labelledby="tierPerksModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0" style="border-radius: 20px; overflow: hidden; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #3D271D 0%, #781A24 100%); padding: 20px 24px;">
+                <h5 class="modal-title font-serif fw-bold" id="tierPerksModalLabel">
+                    <i class="bi bi-award-fill me-2" style="color: var(--cham-gold);"></i>Đặc quyền các Hạng thẻ VIP Cham Spa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table tier-perk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>HẠNG THẺ</th>
+                                <th style="text-align: center;">ĐIỂM TỐI THIỂU</th>
+                                <th style="text-align: center;">CHIẾT KHẤU</th>
+                                <th>ĐẶC QUYỀN VÀ QUÀ TẶNG</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in all_tiers %}
+                            <tr {% if current_tier.id == t.id %}style="background-color: #FAF4EB;"{% endif %}>
+                                <td>
+                                    <div class="fw-bold d-flex align-items-center gap-2" style="color: var(--cham-red);">
+                                        {% if t.name == 'Hạng Kim Cương' %}
+                                            <i class="bi bi-gem text-info"></i>
+                                        {% elif t.name == 'Hạng Vàng' %}
+                                            <i class="bi bi-award-fill text-warning"></i>
+                                        {% elif t.name == 'Hạng Bạc' %}
+                                            <i class="bi bi-star-fill text-secondary"></i>
+                                        {% else %}
+                                            <i class="bi bi-award-fill" style="color: #B45309;"></i>
+                                        {% endif %}
+                                        <span>{{ t.name }}</span>
+                                        {% if current_tier.id == t.id %}
+                                            <span class="badge bg-danger ms-1" style="font-size: 10px;">HẠNG CỦA BẠN</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td style="text-align: center;" class="fw-bold">{{ t.min_points }} Điểm</td>
+                                <td style="text-align: center;">
+                                    <span class="badge bg-warning text-dark px-2 py-1 fs-6 fw-bold">
+                                        {{ t.discount_percent }}%
+                                    </span>
+                                </td>
+                                <td>{{ t.description|default:"Tích điểm tự động và nhận thông báo ưu đãi độc quyền." }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 bg-light text-muted small">
+                    <i class="bi bi-info-circle me-1 text-primary"></i>
+                    <strong>Lưu ý:</strong> Điểm tích lũy không bị trừ khi khách hàng hủy đơn; hạn duy trì hạng thẻ được bảo lưu 12 tháng kể từ ngày đạt hạng.
+                </div>
+            </div>
+            <div class="modal-footer bg-light" style="padding: 12px 24px;">
+                <button type="button" class="btn btn-cham-outline px-4 py-2" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================================
+     SCRIPTS & FETCH API TƯƠNG TÁC ĐỘNG (KHÔNG LOAD LẠI TRANG)
+     ===================================================================== -->
+<div id="chamVoucherToast" class="cham-voucher-toast" role="status" aria-live="polite">
+    <i class="bi bi-check-circle-fill text-warning"></i>
+    <span id="chamVoucherToastMsg"></span>
+</div>
+
+<script>
+    // 1. Highlight mục 'Thẻ hội viên & Tích điểm' trên Sidebar Khách hàng
+    document.addEventListener("DOMContentLoaded", function() {
+        const sidebarItems = document.querySelectorAll('.customer-nav-item');
+        sidebarItems.forEach(item => {
+            if (item.getAttribute('data-nav-target') === 'Thẻ hội viên & Tích điểm') {
+                item.classList.add('active');
+            }
+        });
+    });
+
+    // 1b. Chuyển đổi Tab giữa 'Thẻ hội viên & Tích điểm' và 'Ví Voucher'
+    function switchMembershipTab(tabName, btnEl) {
+        const cardPanel = document.getElementById('tabContentCard');
+        const vouchersPanel = document.getElementById('tabContentVouchers');
+        const btnCard = document.getElementById('btnTabCard');
+        const btnVouchers = document.getElementById('btnTabVouchers');
+
+        if (!cardPanel || !vouchersPanel) return;
+
+        if (tabName === 'vouchers') {
+            cardPanel.style.display = 'none';
+            vouchersPanel.style.display = 'block';
+            btnCard.classList.remove('active');
+            btnCard.setAttribute('aria-selected', 'false');
+            btnVouchers.classList.add('active');
+            btnVouchers.setAttribute('aria-selected', 'true');
+        } else {
+            cardPanel.style.display = 'block';
+            vouchersPanel.style.display = 'none';
+            btnVouchers.classList.remove('active');
+            btnVouchers.setAttribute('aria-selected', 'false');
+            btnCard.classList.add('active');
+            btnCard.setAttribute('aria-selected', 'true');
+        }
+
+        try {
+            const url = new URL(window.location.href);
+            if (tabName === 'vouchers') {
+                url.searchParams.set('tab', 'vouchers');
+            } else {
+                url.searchParams.delete('tab');
+            }
+            window.history.replaceState(null, '', url.toString());
+        } catch (err) {
+            // Bỏ qua nếu trình duyệt không hỗ trợ history.replaceState
+        }
+    }
+
+    function showVoucherToast(message) {
+        const toastEl = document.getElementById('chamVoucherToast');
+        const msgEl = document.getElementById('chamVoucherToastMsg');
+        if (!toastEl || !msgEl) return;
+        msgEl.textContent = message;
+        toastEl.style.display = 'inline-flex';
+        clearTimeout(window._chamVoucherToastTimer);
+        window._chamVoucherToastTimer = setTimeout(() => {
+            toastEl.style.display = 'none';
+        }, 2800);
+    }
+
+    function copyVoucherCode(code) {
+        if (!code) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(() => {
+                showVoucherToast(`Đã sao chép mã Voucher: ${code}`);
+            }).catch(() => {
+                showVoucherToast(`Mã Voucher: ${code}`);
+            });
+        } else {
+            showVoucherToast(`Mã Voucher: ${code}`);
+        }
+    }
+
+    // 2. Hàm sao chép Mã thẻ VIP kèm Toast thông báo
+    function copyCardNumber() {
+        const cardNumber = document.getElementById('vipCardNumberText').innerText.trim();
+        navigator.clipboard.writeText(cardNumber).then(() => {
+            const copyIcon = document.getElementById('copyIcon');
+            copyIcon.className = 'bi bi-check2 text-success fs-5';
+            
+            // Hiển thị thông báo nhẹ
+            if (window.showToastNotification) {
+                window.showToastNotification("Đã sao chép mã thẻ hội viên vào bộ nhớ tạm!", "success");
+            } else {
+                alert("Đã sao chép mã thẻ: " + cardNumber);
+            }
+
+            setTimeout(() => {
+                copyIcon.className = 'bi bi-clipboard fs-5';
+            }, 2500);
+        }).catch(err => {
+            console.error('Không thể sao chép: ', err);
+        });
+    }
+</script>
+{% endblock %}

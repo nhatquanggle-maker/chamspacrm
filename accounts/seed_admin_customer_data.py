@@ -130,8 +130,8 @@ def seed_data():
 
     # 3. Tạo danh sách khách hàng khớp Bảng Node 218:9398
     customers_table_data = [
-        {'code': 'USR089', 'name': 'Nguyễn Văn A', 'phone': '0905 123 456', 'email': 'a.nguyen@gmail.com', 'is_active': True, 'tier': 'Thành viên', 'date': '2026-09-22', 'gender': 'Nam', 'bday': '1990-05-12'},
-        {'code': 'USR088', 'name': 'Trần Thanh Thảo', 'phone': '0901 234 567', 'email': 'thao.tran@gmail.com', 'is_active': True, 'tier': 'Hạng Bạc', 'date': '2026-09-20', 'gender': 'Nữ', 'bday': '1995-10-18'},
+        {'code': 'USR089', 'name': 'Nguyễn Văn A', 'phone': '0905123457', 'email': 'a.nguyen@gmail.com', 'is_active': True, 'tier': 'Thành viên', 'date': '2026-09-22', 'gender': 'Nam', 'bday': '1990-05-12'},
+        {'code': 'USR088', 'name': 'Trần Thanh Thảo', 'phone': '0901234568', 'email': 'thao.tran@gmail.com', 'is_active': True, 'tier': 'Hạng Bạc', 'date': '2026-09-20', 'gender': 'Nữ', 'bday': '1995-10-18'},
         {'code': 'USR087', 'name': 'Lê Hoàng Long', 'phone': '0918 345 678', 'email': 'long.le@gmail.com', 'is_active': True, 'tier': 'Hạng Vàng', 'date': '2026-09-18', 'gender': 'Nam', 'bday': '1988-12-04'},
         {'code': 'USR086', 'name': 'Đặng Thu Thảo', 'phone': '0935 456 789', 'email': 'thao.dang@gmail.com', 'is_active': False, 'tier': 'Thành viên', 'date': '2026-09-15', 'gender': 'Nữ', 'bday': '1994-07-29'},
         {'code': 'USR085', 'name': 'Võ Minh Trí', 'phone': '0903 567 890', 'email': 'tri.vo@gmail.com', 'is_active': True, 'tier': 'Hạng Bạc', 'date': '2026-09-12', 'gender': 'Nam', 'bday': '1991-03-15'},

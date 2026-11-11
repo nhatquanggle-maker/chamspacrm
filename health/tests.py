@@ -13,10 +13,9 @@ Kiểm thử toàn diện:
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from rest_framework import status
-from rest_framework.test import APIClient
 
 from core.models import UserHealthProfile, Appointment
+from .helpers import serialize_health_profile
 
 User = get_user_model()
 
@@ -71,14 +70,14 @@ class HealthProfileModelAndAPITest(TestCase):
             is_superuser=True
         )
 
-        # API Clients
-        self.client_customer = APIClient()
-        self.client_customer.force_authenticate(user=self.customer)
+        # Test Clients
+        self.client_customer = Client()
+        self.client_customer.force_login(self.customer)
 
-        self.client_staff = APIClient()
-        self.client_staff.force_authenticate(user=self.staff_user)
+        self.client_staff = Client()
+        self.client_staff.force_login(self.staff_user)
 
-        self.client_anonymous = APIClient()
+        self.client_anonymous = Client()
 
     # -------------------------------------------------------------------------
     # TEST 1: UC-8.1 - TẠO MỚI VÀ GHI ĐÈ HỒ SƠ SỨC KHỎE CHUẨN 1-1
@@ -89,49 +88,52 @@ class HealthProfileModelAndAPITest(TestCase):
         Lần 1 tạo mới sinh mã HP-KH...
         Lần 2 cập nhật ghi đè bản ghi cũ, số lượng bản ghi trong DB vẫn là 1.
         """
-        url = reverse('health:api_update')
+        # Xóa bản ghi auto-sync từ accounts.signals để test kịch bản tạo mới từ đầu
+        UserHealthProfile.objects.filter(user=self.customer).delete()
+
+        url = reverse('health:update')
         payload1 = {
-            "height_cm": 160.0,
-            "weight_kg": 50.0,
+            "height_cm": "160.0",
+            "weight_kg": "50.0",
             "blood_pressure": "Bình thường",
             "focus_areas": ["Vai gáy", "Cổ gáy"],
             "massage_pressure": "Lực vừa",
-            "pain_level": 6,
+            "pain_level": "6",
             "health_conditions": ["Da nhạy cảm"],
             "allergy_notes": "Dị ứng tinh dầu sả chanh",
             "recovery_goals": ["Giảm đau mỏi cổ vai gáy"],
-            "special_requests": "Phòng ấm 26 độ"
+            "special_requests": "Phòng ấm 26 độ",
         }
 
-        # Lần 1: Tạo mới hồ sơ
-        response1 = self.client_customer.post(url, payload1, format='json')
-        self.assertEqual(response1.status_code, status.HTTP_200_OK)
-        self.assertEqual(response1.data['status'], 'success')
-        self.assertTrue(response1.data['health_code'].startswith('HP-KH'))
+        # Lần 1: Tạo mới hồ sơ qua Form POST
+        response1 = self.client_customer.post(url, payload1)
+        self.assertEqual(response1.status_code, 302)
+        self.assertEqual(response1.url, reverse('health:profile'))
 
         # Kiểm tra trong DB
         self.assertEqual(UserHealthProfile.objects.filter(user=self.customer).count(), 1)
         hp = UserHealthProfile.objects.get(user=self.customer)
+        self.assertTrue(hp.health_code.startswith('HP-KH'))
         self.assertEqual(hp.pain_level, 6)
         self.assertEqual(hp.massage_pressure, 'Lực vừa')
         self.assertIn('Vai gáy', hp.focus_areas)
 
         # Lần 2: Cập nhật lại (Ghi đè bản ghi cũ)
         payload2 = {
-            "height_cm": 162.0,
-            "weight_kg": 52.0,
+            "height_cm": "162.0",
+            "weight_kg": "52.0",
             "blood_pressure": "Thấp",
             "focus_areas": ["Thắt lưng", "Bắp chân"],
             "massage_pressure": "Nhẹ nhàng",
-            "pain_level": 4,
+            "pain_level": "4",
             "health_conditions": ["Đang mang thai"],
             "allergy_notes": "Dị ứng gừng",
             "recovery_goals": ["Thư giãn giảm stress"],
-            "special_requests": "Không ấn huyệt chân"
+            "special_requests": "Không ấn huyệt chân",
         }
-        response2 = self.client_customer.put(url, payload2, format='json')
-        self.assertEqual(response2.status_code, status.HTTP_200_OK)
-        self.assertEqual(response2.data['status'], 'success')
+        response2 = self.client_customer.post(url, payload2)
+        self.assertEqual(response2.status_code, 302)
+        self.assertEqual(response2.url, reverse('health:profile'))
 
         # Kiểm tra số lượng bản ghi vẫn là 1 (Tuyệt đối không sinh thêm bản ghi thứ 2)
         self.assertEqual(UserHealthProfile.objects.filter(user=self.customer).count(), 1)
@@ -142,143 +144,102 @@ class HealthProfileModelAndAPITest(TestCase):
         self.assertIn('Thắt lưng', hp.focus_areas)
         self.assertIn('Đang mang thai', hp.health_conditions)
 
-    # -------------------------------------------------------------------------
-    # TEST 2: KIỂM TRA TỰ ĐỘNG TÍNH CHỈ SỐ BMI VÀ PHÂN LOẠI
-    # -------------------------------------------------------------------------
     def test_bmi_calculation_and_classification(self):
-        """
-        Kiểm tra công thức tính BMI = weight / (height/100)^2
-        và phân loại thể trạng tự động.
-        Ví dụ: Cao 160cm, Nặng 50kg -> BMI = 50 / (1.6 * 1.6) = 19.5 (Cân đối)
-        """
-        UserHealthProfile.objects.create(
+        """Kiểm tra công thức tính BMI và hiển thị trên giao diện."""
+        hp, _ = UserHealthProfile.objects.update_or_create(
             user=self.customer,
-            health_code='HP-KH0099',
-            height_cm=160.0,
-            weight_kg=50.0,
-            blood_pressure='Bình thường',
-            massage_pressure='Lực vừa',
-            pain_level=3
+            defaults={
+                'health_code': 'HP-KH0099',
+                'height_cm': 160.0,
+                'weight_kg': 50.0,
+                'blood_pressure': 'Bình thường',
+                'massage_pressure': 'Lực vừa',
+                'pain_level': 3,
+            }
         )
 
-        url = reverse('health:api_profile')
-        res = self.client_customer.get(url)
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data['has_profile'], True)
-        self.assertEqual(res.data['data']['bmi'], 19.5)
-        self.assertIn('bình thường', res.data['data']['bmi_classification'].lower())
+        data = serialize_health_profile(hp)
+        self.assertEqual(data['bmi'], 19.5)
+        self.assertIn('bình thường', data['bmi_classification'].lower())
 
-    # -------------------------------------------------------------------------
-    # TEST 3: KIỂM TRA HỆ THỐNG CỜ CẢNH BÁO Y TẾ ĐỎ (SAFETY ALERTS)
-    # -------------------------------------------------------------------------
+        res = self.client_customer.get(reverse('health:profile'))
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, '19.5')
+
     def test_medical_safety_alert_flags(self):
-        """
-        Kiểm tra hệ thống phát hiện các nguy cơ:
-        - Đang mang thai -> Cảnh báo nguy cơ cao (tránh bấm huyệt Hợp Cốc)
-        - Huyết áp cao -> Cảnh báo cao
-        - Dị ứng tinh dầu -> Cảnh báo cấm dùng
-        """
-        hp = UserHealthProfile.objects.create(
+        """Kiểm tra hệ thống cờ cảnh báo y tế đỏ."""
+        hp, _ = UserHealthProfile.objects.update_or_create(
             user=self.customer,
-            health_code='HP-KH0077',
-            height_cm=165.0,
-            weight_kg=55.0,
-            blood_pressure='Cao',
-            health_conditions=['Đang mang thai', 'Da nhạy cảm'],
-            allergy_notes='Dị ứng sả chanh',
-            massage_pressure='Nhẹ nhàng',
-            pain_level=7
+            defaults={
+                'health_code': 'HP-KH0077',
+                'height_cm': 165.0,
+                'weight_kg': 55.0,
+                'blood_pressure': 'Cao',
+                'health_conditions': ['Đang mang thai', 'Da nhạy cảm'],
+                'allergy_notes': 'Dị ứng sả chanh',
+                'massage_pressure': 'Nhẹ nhàng',
+                'pain_level': 7,
+            }
         )
 
-        url = reverse('health:api_profile')
-        res = self.client_customer.get(url)
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertTrue(res.data['data']['has_medical_alert'])
-        alerts = res.data['data']['alert_details']
+        data = serialize_health_profile(hp)
+        self.assertTrue(data['has_medical_alert'])
+        alerts = data['alert_details']
         self.assertTrue(any(a['title'] == 'Huyết áp cao' for a in alerts))
         self.assertTrue(any('mang thai' in a['title'].lower() for a in alerts))
         self.assertTrue(any('dị ứng' in a['title'].lower() for a in alerts))
 
-    # -------------------------------------------------------------------------
-    # TEST 4: VALIDATION DỮ LIỆU ĐẦU VÀO PHI LÝ
-    # -------------------------------------------------------------------------
     def test_invalid_input_validation(self):
-        """
-        Kiểm tra bắt lỗi:
-        - Chiều cao âm hoặc quá 250cm -> Báo lỗi 400
-        - Cân nặng âm hoặc quá 250kg -> Báo lỗi 400
-        - Mức độ đau ngoài khoảng 1-10 -> Báo lỗi 400
-        """
-        url = reverse('health:api_update')
+        """Kiểm tra bắt lỗi chiều cao/cân nặng/mức đau phi lý trên form POST."""
+        url = reverse('health:update')
 
-        # Thử chiều cao âm
-        bad_payload_height = {"height_cm": -10}
-        res1 = self.client_customer.post(url, bad_payload_height, format='json')
-        self.assertEqual(res1.status_code, status.HTTP_400_BAD_REQUEST)
+        res1 = self.client_customer.post(url, {"height_cm": "-10"})
+        self.assertEqual(res1.status_code, 302)
+        self.assertEqual(res1.url, url)
 
-        # Thử cân nặng vượt quá 300kg
-        bad_payload_weight = {"weight_kg": 350}
-        res2 = self.client_customer.post(url, bad_payload_weight, format='json')
-        self.assertEqual(res2.status_code, status.HTTP_400_BAD_REQUEST)
+        res2 = self.client_customer.post(url, {"weight_kg": "350"})
+        self.assertEqual(res2.status_code, 302)
+        self.assertEqual(res2.url, url)
 
-        # Thử mức đau 15/10
-        bad_payload_pain = {"pain_level": 15}
-        res3 = self.client_customer.post(url, bad_payload_pain, format='json')
-        self.assertEqual(res3.status_code, status.HTTP_400_BAD_REQUEST)
+        res3 = self.client_customer.post(url, {"pain_level": "15"})
+        self.assertEqual(res3.status_code, 302)
+        self.assertEqual(res3.url, url)
 
-    # -------------------------------------------------------------------------
-    # TEST 5: PHÂN QUYỀN XEM HỒ SƠ (UC-8.2)
-    # -------------------------------------------------------------------------
+        hp = UserHealthProfile.objects.get(user=self.customer)
+        self.assertIsNone(hp.height_cm)
+        self.assertIsNone(hp.weight_kg)
+
     def test_access_permissions_user_vs_staff(self):
-        """
-        - Khách hàng xem của chính mình -> Được phép.
-        - Khách hàng xem của người khác qua user_id -> Không được phép (Bảo mật).
-        - Nhân viên / Quản lý xem của khách bất kỳ -> Được phép để chuẩn bị ca trực.
-        """
-        hp1 = UserHealthProfile.objects.create(
+        """Kiểm tra phân quyền: Khách ẩn danh redirect login, khách hàng bị chặn trang Staff, Staff xem được."""
+        UserHealthProfile.objects.update_or_create(
             user=self.customer,
-            health_code='HP-KH001',
-            blood_pressure='Bình thường',
-            massage_pressure='Lực vừa',
-            pain_level=5
+            defaults={
+                'health_code': 'HP-KH001',
+                'blood_pressure': 'Bình thường',
+                'massage_pressure': 'Lực vừa',
+                'pain_level': 5,
+            }
         )
 
-        # 1. Khách hàng 1 xem của chính mình -> OK
-        res1 = self.client_customer.get(reverse('health:api_profile'))
-        self.assertEqual(res1.status_code, status.HTTP_200_OK)
-        self.assertEqual(res1.data['data']['health_code'], 'HP-KH001')
+        # Khách chưa đăng nhập gửi form cập nhật -> redirect về login
+        res_anon = self.client_anonymous.post(reverse('health:update'), {})
+        self.assertEqual(res_anon.status_code, 302)
+        self.assertIn(reverse('accounts:login'), res_anon.url)
 
-        # 2. Khách hàng 2 đăng nhập và thử xem qua API customer của Staff -> Bị chặn 403 Forbidden
-        client_customer2 = APIClient()
-        client_customer2.force_authenticate(user=self.customer2)
-        res2 = client_customer2.get(reverse('health:api_customer_health', kwargs={'user_id': self.customer.id}))
-        self.assertEqual(res2.status_code, status.HTTP_403_FORBIDDEN)
+        # Khách hàng 1 xem hồ sơ của chính mình -> 200
+        res1 = self.client_customer.get(reverse('health:profile'))
+        self.assertEqual(res1.status_code, 200)
 
-        # 3. Nhân viên trực xem hồ sơ của Khách hàng 1 -> Được phép 200 OK
-        res3 = self.client_staff.get(reverse('health:api_customer_health', kwargs={'user_id': self.customer.id}))
-        self.assertEqual(res3.status_code, status.HTTP_200_OK)
-        self.assertEqual(res3.data['health_profile']['health_code'], 'HP-KH001')
+        # Khách hàng 2 vào màn hình tra cứu của nhân viên -> bị chặn redirect về home
+        client_customer2 = Client()
+        client_customer2.force_login(self.customer2)
+        res2 = client_customer2.get(reverse('health:staff_lookup'))
+        self.assertEqual(res2.status_code, 302)
 
-    # -------------------------------------------------------------------------
-    # TEST 6: TIỆN ÍCH ĐỒNG BỘ LỰC MASSAGE SANG FORM ĐẶT LỊCH
-    # -------------------------------------------------------------------------
-    def test_sync_pressure_to_booking_api(self):
-        """
-        Kiểm tra API /health/api/sync-pressure/ trả về lực massage mong muốn
-        để auto-fill vào form Đặt lịch hẹn Module 1.
-        """
-        UserHealthProfile.objects.create(
-            user=self.customer,
-            health_code='HP-KH0055',
-            massage_pressure='Lực mạnh',
-            focus_areas=['Vai gáy', 'Thắt lưng'],
-            pain_level=8
-        )
-
-        res = self.client_customer.get(reverse('health:api_sync_pressure'))
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data['preferred_pressure'], 'Lực mạnh')
-        self.assertIn('Vai gáy', res.data['focus_areas'])
+        # Nhân viên trực xem hồ sơ chi tiết KTV của Khách hàng 1 -> 200 OK
+        res3 = self.client_staff.get(reverse('health:staff_detail', kwargs={'user_id': self.customer.id}) + '?view=ktv')
+        self.assertEqual(res3.status_code, 200)
+        self.assertContains(res3, 'Nguyễn Thị Hoa')
 
     # -------------------------------------------------------------------------
     # TEST 7: KIỂM TRA CÁC GIAO DIỆN WEB (DJANGO VIEWS & TEMPLATES)
@@ -309,6 +270,86 @@ class HealthProfileModelAndAPITest(TestCase):
         res_staff_lookup = web_client_staff.get(reverse('health:staff_lookup'))
         self.assertEqual(res_staff_lookup.status_code, 200)
 
-        # 4. Trang chi tiết cho Staff
-        res_staff_detail = web_client_staff.get(reverse('health:staff_detail', kwargs={'user_id': self.customer.id}))
+        # 4. Trang chi tiết cho Staff (Chuyển hướng đồng bộ sang 3-tab detail view của Staff)
+        res_staff_detail = web_client_staff.get(reverse('health:staff_detail', kwargs={'user_id': self.customer.id}), follow=True)
         self.assertEqual(res_staff_detail.status_code, 200)
+
+        # 5. Giao diện chuyên sâu KTV (Figma Node 279:1633)
+        res_ktv = web_client_staff.get(reverse('health:staff_detail', kwargs={'user_id': self.customer.id}) + '?view=ktv')
+        self.assertEqual(res_ktv.status_code, 200)
+
+    # -------------------------------------------------------------------------
+    # TEST 8: PHÂN TRANG 7 HỒ SƠ/TRANG & LOẠI BỎ BADGE "CA TRỰC" TRÊN STAFF LOOKUP
+    # -------------------------------------------------------------------------
+    def test_staff_lookup_pagination_and_compact_layout(self):
+        """
+        Kiểm tra:
+        - Bảng tra cứu Staff hiển thị tối đa 7 hồ sơ mỗi trang và phân trang chính xác
+        - Giữ nguyên tham số ?q= và ?alert= trên liên kết phân trang
+        - Không còn nút/badge "Ca trực:" ở thanh tiêu đề
+        - Trả về bmi_short_label gọn cho giao diện bảng
+        """
+        for idx in range(1, 10):
+            u = User.objects.create_user(
+                username=f'paging_kh_{idx}',
+                phone=f'091100000{idx}',
+                email=f'paging_{idx}@chamspa.vn',
+                name=f'Khách Phân Trang {idx}',
+                password='Password123!',
+                is_staff=False,
+            )
+            UserHealthProfile.objects.update_or_create(
+                user=u,
+                defaults={
+                    'height_cm': 165.0,
+                    'weight_kg': 55.0,
+                    'blood_pressure': 'Bình thường',
+                    'massage_pressure': 'Lực vừa',
+                    'pain_level': 4,
+                }
+            )
+
+        web_client_staff = Client()
+        web_client_staff.force_login(self.staff_user)
+
+        # Trang 1: 7 hồ sơ (tổng 11 gồm customer, customer2 auto-sync + 9 khách mới)
+        res_p1 = web_client_staff.get(reverse('health:staff_lookup'))
+        self.assertEqual(res_p1.status_code, 200)
+        self.assertEqual(len(res_p1.context['page_obj']), 7)
+        self.assertEqual(res_p1.context['page_obj'].paginator.num_pages, 2)
+        self.assertEqual(res_p1.context['total_profiles'], 11)
+
+        html_p1 = res_p1.content.decode('utf-8')
+        self.assertNotIn('Ca trực:', html_p1)
+        self.assertNotIn('<th>Cập nhật</th>', html_p1)
+        self.assertNotIn('>Cảnh báo KTV</th>', html_p1)
+        self.assertNotIn('{%', html_p1)
+        self.assertNotIn('{{', html_p1)
+        self.assertIn('<colgroup>', html_p1)
+        self.assertIn('<th>Khách hàng</th>', html_p1)
+        self.assertIn('Cân đối', html_p1)
+        self.assertIn('text-center', html_p1)
+        self.assertIn('page=2', html_p1)
+
+        # Trang 2: 4 hồ sơ còn lại
+        res_p2 = web_client_staff.get(reverse('health:staff_lookup') + '?page=2')
+        self.assertEqual(res_p2.status_code, 200)
+        self.assertEqual(len(res_p2.context['page_obj']), 4)
+
+        # Tìm kiếm kèm phân trang vẫn giữ nguyên q= (9 khớp -> 7 trang 1, 2 trang 2)
+        res_q = web_client_staff.get(reverse('health:staff_lookup'), {'q': 'Khách Phân Trang'})
+        self.assertEqual(res_q.status_code, 200)
+        self.assertEqual(len(res_q.context['page_obj']), 7)
+        self.assertIn('q=Kh%C3%A1ch%20Ph%C3%A2n%20Trang&amp;page=2', res_q.content.decode('utf-8'))
+
+        res_q_p2 = web_client_staff.get(reverse('health:staff_lookup'), {'q': 'Khách Phân Trang', 'page': 2})
+        self.assertEqual(res_q_p2.status_code, 200)
+        self.assertEqual(len(res_q_p2.context['page_obj']), 2)
+
+        # Tab Thông tin cá nhân trên chi tiết khách hàng đã bỏ khối "GHI CHÚ CHĂM SÓC"
+        res_detail_info = web_client_staff.get(
+            reverse('accounts:admin_customer_detail', kwargs={'pk': self.customer.id}) + '?tab=info'
+        )
+        self.assertEqual(res_detail_info.status_code, 200)
+        self.assertNotIn('GHI CHÚ CHĂM SÓC', res_detail_info.content.decode('utf-8'))
+

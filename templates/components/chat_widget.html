@@ -45,23 +45,24 @@
         </div>
     </div>
 
-    <!-- Quick action prompts (Câu hỏi gợi ý nhanh) -->
-    <div class="px-3 py-2 bg-white border-top d-flex gap-2 flex-wrap" style="font-size: 12px;">
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 border-0" 
-                style="background-color: var(--cham-card-bg); font-size: 11.5px;" 
-                onclick="sendWidgetQuickPrompt('Tư vấn gói trị liệu');">
-            Tư vấn gói trị liệu
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 border-0" 
-                style="background-color: var(--cham-card-bg); font-size: 11.5px;" 
-                onclick="sendWidgetQuickPrompt('Bảng giá dịch vụ');">
-            Bảng giá dịch vụ
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 border-0" 
-                style="background-color: var(--cham-card-bg); font-size: 11.5px;" 
-                onclick="handleWidgetRequestStaff();">
-            👩‍💼 Gặp nhân viên
-        </button>
+    <!-- Khối chọn câu hỏi FAQ theo kịch bản (đồng bộ 100% từ Admin FAQ) -->
+<div id="chamFaqBlocksPanel">
+        <div class="cham-faq-header">
+            <button type="button" id="chamFaqToggleBtn" class="cham-faq-toggle-btn" onclick="toggleWidgetFaqPanel();">
+                <span>📋 Kịch bản FAQ</span>
+                <span id="chamFaqCountBadge" style="opacity: 0.85;">(...)</span>
+                <span id="chamFaqChevron">▾</span>
+            </button>
+            <button type="button" class="cham-staff-quick-btn" onclick="handleWidgetRequestStaff();">
+                👩‍💼 Gặp nhân viên
+            </button>
+        </div>
+        <div id="chamFaqBlocksBody">
+            <div id="chamFaqCatFilter"></div>
+            <div id="chamFaqBlocksList">
+                <div class="text-muted text-center py-2" style="font-size: 11.5px;">Đang tải kịch bản hỏi đáp...</div>
+            </div>
+        </div>
     </div>
 
     <!-- Chat Footer -->
@@ -98,6 +99,145 @@ document.addEventListener('DOMContentLoaded', function () {
     let hasLoadedHistory = false;
 
     // Bật/tắt cửa sổ Chat
+    let widgetFaqBlocks = [];
+    let activeWidgetFaqCat = 'Tất cả';
+    let isFaqBlocksLoaded = false;
+    let pendingFaqId = null;
+
+    if (input) {
+        input.addEventListener('input', function () {
+            pendingFaqId = null;
+        });
+    }
+
+    function setWidgetFaqPanelCollapsed(collapsed) {
+        const bodyEl = document.getElementById('chamFaqBlocksBody');
+        const chevronEl = document.getElementById('chamFaqChevron');
+        if (!bodyEl || !chevronEl) return;
+        if (collapsed) {
+            bodyEl.classList.add('is-collapsed');
+            chevronEl.textContent = '▴';
+        } else {
+            bodyEl.classList.remove('is-collapsed');
+            chevronEl.textContent = '▾';
+        }
+    }
+
+    window.toggleWidgetFaqPanel = function () {
+        const bodyEl = document.getElementById('chamFaqBlocksBody');
+        if (!bodyEl) return;
+        const willCollapse = !bodyEl.classList.contains('is-collapsed');
+        setWidgetFaqPanelCollapsed(willCollapse);
+        if (!willCollapse) {
+            loadWidgetFaqBlocks(true);
+        }
+    };
+
+    window.filterWidgetFaqCat = function (cat) {
+        activeWidgetFaqCat = cat;
+        renderWidgetFaqPanel();
+    };
+
+    function renderWidgetFaqPanel(categoriesFromServer) {
+        const catContainer = document.getElementById('chamFaqCatFilter');
+        const listContainer = document.getElementById('chamFaqBlocksList');
+        const countBadge = document.getElementById('chamFaqCountBadge');
+        if (!catContainer || !listContainer) return;
+
+        if (countBadge) {
+            countBadge.textContent = '(' + widgetFaqBlocks.length + ')';
+        }
+
+        const uniqueCats = categoriesFromServer && categoriesFromServer.length
+            ? categoriesFromServer
+            : Array.from(new Set(widgetFaqBlocks.map(b => b.category || 'Chung')));
+
+        if (activeWidgetFaqCat !== 'Tất cả' && !uniqueCats.includes(activeWidgetFaqCat)) {
+            activeWidgetFaqCat = 'Tất cả';
+        }
+
+        catContainer.innerHTML = '';
+        ['Tất cả'].concat(uniqueCats).forEach(function (cat) {
+            const pill = document.createElement('button');
+            pill.type = 'button';
+            pill.className = 'cham-faq-cat-pill' + (activeWidgetFaqCat === cat ? ' active' : '');
+            pill.textContent = cat;
+            pill.addEventListener('click', function () {
+                window.filterWidgetFaqCat(cat);
+            });
+            catContainer.appendChild(pill);
+        });
+
+        const filtered = activeWidgetFaqCat === 'Tất cả'
+            ? widgetFaqBlocks
+            : widgetFaqBlocks.filter(b => (b.category || 'Chung') === activeWidgetFaqCat);
+
+        listContainer.innerHTML = '';
+        if (!filtered.length) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'text-muted text-center py-2';
+            emptyDiv.style.fontSize = '11.5px';
+            emptyDiv.textContent = 'Chưa có kịch bản FAQ đang hoạt động.';
+            listContainer.appendChild(emptyDiv);
+            return;
+        }
+
+        filtered.forEach(function (block) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'cham-faq-block-btn';
+            btn.dataset.faqId = block.id;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'cham-faq-block-content';
+
+            const tagSpan = document.createElement('span');
+            tagSpan.className = 'cham-faq-block-tag';
+            tagSpan.textContent = block.category || 'Tư vấn';
+
+            const qSpan = document.createElement('span');
+            qSpan.className = 'cham-faq-block-question';
+            qSpan.textContent = block.question;
+
+            contentDiv.appendChild(tagSpan);
+            contentDiv.appendChild(qSpan);
+
+            const arrowSpan = document.createElement('span');
+            arrowSpan.className = 'cham-faq-block-arrow';
+            arrowSpan.textContent = '›';
+
+            btn.appendChild(contentDiv);
+            btn.appendChild(arrowSpan);
+
+            btn.addEventListener('click', function () {
+                window.sendWidgetFaqBlock(block.id, block.question);
+            });
+
+            listContainer.appendChild(btn);
+        });
+    }
+
+    function loadWidgetFaqBlocks(forceReload) {
+        if (isFaqBlocksLoaded && !forceReload) return;
+        fetch('/chatbox/api/chat/faq-blocks/?_t=' + Date.now(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.status === 'success') {
+                widgetFaqBlocks = data.blocks || [];
+                isFaqBlocksLoaded = true;
+                renderWidgetFaqPanel(data.categories || []);
+            }
+        })
+        .catch(() => {
+            const listContainer = document.getElementById('chamFaqBlocksList');
+            if (listContainer && !widgetFaqBlocks.length) {
+                listContainer.innerHTML = '<div class="text-muted text-center py-2" style="font-size:11.5px;">Không tải được danh sách FAQ. Quý khách có thể nhập câu hỏi trực tiếp bên dưới.</div>';
+            }
+        });
+    }
+
     if (fab && win) {
         fab.addEventListener('click', function () {
             if (win.style.display === 'flex') {
@@ -105,6 +245,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 win.style.display = 'flex';
                 input.focus();
+                loadWidgetFaqBlocks(true);
 
                 // NẾU LÀ KHÁCH HÀNG ĐÃ ĐĂNG NHẬP: Tải lịch sử tin nhắn lưu trữ từ CSDL
                 if (IS_USER_LOGGED_IN && !hasLoadedHistory) {
@@ -211,7 +352,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     'X-CSRFToken': getCookie('csrftoken'),
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({ message: text, conversation_id: activeConvId })
+                body: JSON.stringify({
+                    message: text,
+                    faq_id: pendingFaqId,
+                    conversation_id: activeConvId
+                })
             })
             .then(res => res.json())
             .then(data => {
@@ -299,10 +444,24 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(err => console.error(err));
     };
 
+    window.sendWidgetFaqBlock = function (faqId, questionText) {
+        pendingFaqId = faqId;
+        input.value = questionText;
+        setWidgetFaqPanelCollapsed(true);
+        form.dispatchEvent(new Event('submit', { cancelable: true }));
+    };
+
     window.sendWidgetQuickPrompt = function (text) {
+        pendingFaqId = null;
         input.value = text;
         form.dispatchEvent(new Event('submit', { cancelable: true }));
     };
+
+    if (form) {
+        form.addEventListener('submit', function () {
+            pendingFaqId = null;
+        });
+    }
 
     // =========================================================================
     // 5. POLLING TỰ ĐỘNG CẬP NHẬT PHẢN HỒI CỦA NHÂN VIÊN

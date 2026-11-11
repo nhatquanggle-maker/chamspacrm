@@ -97,6 +97,7 @@ def booking_view(request):
         'services_data': services_data,
         'today': today,
         'today_str': today.strftime('%Y-%m-%d'),
+        'now_time_str': timezone.localtime().strftime('%H:%M'),
         'initial_user': initial_user,
         'time_slots': time_slots,
         'selected_service_id': selected_service_id,
@@ -153,6 +154,14 @@ def my_appointments_view(request):
     Khớp 100% Figma Node 166:563 (Quản lý lịch cá nhân)
     Tích hợp Modal Dời lịch (Node 172:3086) và Modal Hủy lịch (Node 172:3088)
     """
+    user = request.user
+    user_phone = (user.phone or '').replace(' ', '').replace('.', '').replace('-', '').strip()
+    if user_phone and len(user_phone) >= 9:
+        Appointment.objects.filter(
+            user__isnull=True,
+            customer_phone__icontains=user_phone[-9:]
+        ).update(user=user)
+
     appointments = Appointment.objects.filter(user=request.user)\
         .select_related('voucher')\
         .prefetch_related('details__service')\
@@ -187,6 +196,17 @@ def my_appointments_view(request):
     return render(request, 'appointment/my_appointments.html', context)
 
 
+def _parse_optional_filter_date(raw_date):
+    """Chuyển chuỗi query ?date= sang date; mặc định None để không chọn sẵn ngày."""
+    date_str = (raw_date or '').strip()
+    if not date_str or date_str.lower() == 'all':
+        return None
+    try:
+        return datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return None
+
+
 @login_required
 def staff_appointments_view(request):
     """
@@ -213,21 +233,12 @@ def staff_appointments_view(request):
     today = timezone.localdate()
 
     # 2. Xử lý tham số bộ lọc từ query string
-    date_param = request.GET.get('date', '').strip()
+    date_param = request.GET.get('date', '')
     slot_param = request.GET.get('time_slot', '').strip()
     status_param = request.GET.get('status', '').strip()
     search_param = request.GET.get('search', '').strip() or request.GET.get('q', '').strip()
 
-    selected_date = None
-    if date_param:
-        if date_param.lower() != 'all':
-            try:
-                selected_date = datetime.strptime(date_param, '%Y-%m-%d').date()
-            except ValueError:
-                selected_date = today
-    else:
-        # Mặc định lấy ngày hôm nay
-        selected_date = today
+    selected_date = _parse_optional_filter_date(date_param)
 
     # 3. Lọc danh sách lịch hẹn
     qs = Appointment.objects.select_related('voucher', 'user').prefetch_related('details__service')
@@ -255,7 +266,8 @@ def staff_appointments_view(request):
             Q(customer_phone__icontains=search_param)
         )
 
-    appointments = list(qs.order_by('time_slot', '-created_at'))
+    order_fields = ('time_slot', '-created_at') if selected_date else ('-appointment_date', 'time_slot', '-created_at')
+    appointments = list(qs.order_by(*order_fields))
 
     # 4. Thống kê theo ngày đã chọn
     all_day_qs = Appointment.objects.filter(appointment_date=selected_date) if selected_date else Appointment.objects.all()
@@ -361,6 +373,7 @@ def staff_appointments_view(request):
         'services': services,
         'time_slots': time_slots,
         'today_str': today.strftime('%Y-%m-%d'),
+        'now_time_str': timezone.localtime().strftime('%H:%M'),
         'tiers': tiers,
     }
     return render(request, 'appointment/staff_appointments.html', context)
@@ -386,20 +399,11 @@ def admin_appointments_view(request):
 
     # 2. Xử lý các tham số lọc từ GET request
     search_param = (request.GET.get('search') or request.GET.get('q') or '').strip()
-    date_param = request.GET.get('date')
+    date_param = request.GET.get('date', '')
     slot_param = (request.GET.get('time_slot') or '').strip()
     status_param = (request.GET.get('status') or '').strip()
 
-    # Xử lý ngày chọn (Mặc định hôm nay nếu không chỉ định)
-    if date_param:
-        try:
-            selected_date = datetime.strptime(date_param, '%Y-%m-%d').date()
-        except ValueError:
-            selected_date = today
-    elif date_param == '':
-        selected_date = None
-    else:
-        selected_date = today
+    selected_date = _parse_optional_filter_date(date_param)
 
     # 3. Lọc danh sách lịch hẹn
     qs = Appointment.objects.select_related('voucher', 'user__membership__tier').prefetch_related('details__service')
@@ -429,7 +433,8 @@ def admin_appointments_view(request):
             Q(customer_phone__icontains=search_param)
         )
 
-    appointments = list(qs.order_by('time_slot', '-created_at'))
+    order_fields = ('time_slot', '-created_at') if selected_date else ('-appointment_date', 'time_slot', '-created_at')
+    appointments = list(qs.order_by(*order_fields))
 
     # 4. Tính toán 3 thẻ chỉ số Operational Metrics (Admin KPIs)
     today_count = Appointment.objects.filter(appointment_date=today).count()
@@ -573,6 +578,7 @@ def admin_appointments_view(request):
         'services': services,
         'time_slots': time_slots,
         'today_str': today.strftime('%Y-%m-%d'),
+        'now_time_str': timezone.localtime().strftime('%H:%M'),
     }
     return render(request, 'appointment/admin_appointments.html', context)
 

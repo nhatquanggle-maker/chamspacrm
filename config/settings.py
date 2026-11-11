@@ -38,13 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Thư viện
-    'rest_framework',
-
     # App Database chung
     'core',
 
-    #10 Module
+    # Modules nghiệp vụ
     'accounts',
     'appointment',
     'chatbox',
@@ -52,7 +49,6 @@ INSTALLED_APPS = [
     'services',
     'membership',
     'feedbacks',
-    'payments',
     'marketing',
     'dashboard',
 ]
@@ -156,17 +152,3 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
-# Django REST Framework Configuration (Cấu hình chuẩn API cho 10 Modules)
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    ],
-}

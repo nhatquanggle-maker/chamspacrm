@@ -1,230 +1,10 @@
 {% extends "layouts/public_layout.html" %}
 {% load static %}
 
+{% block body_class %}page-chatbox-customer-chat{% endblock %}
+
 {% block title %}Trò chuyện trực tuyến & Tư vấn dịch vụ | Cham Spa & Massage Đà Nẵng{% endblock %}
 
-{% block extra_css %}
-<style>
-/* ==========================================================================
-   CHAM SPA CRM - GIAO DIỆN CHAT DÀNH CHO KHÁCH HÀNG (UC-2.1 & UC-2.2)
-   Thành viên phụ trách: Thảo Ngọc
-   ========================================================================== */
-
-.customer-chat-wrapper {
-    max-width: 960px;
-    margin: 40px auto;
-    background-color: #FFFFFF;
-    border-radius: 20px;
-    border: 1px solid var(--cham-border-subtle);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-    display: flex;
-    height: 720px;
-}
-
-/* Sidebar giới thiệu */
-.customer-chat-intro {
-    width: 320px;
-    background: linear-gradient(180deg, var(--cham-header-bg) 0%, #1A0D08 100%);
-    color: #FFFFFF;
-    padding: 32px 24px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.intro-brand-logo {
-    height: 48px;
-    margin-bottom: 20px;
-}
-
-.intro-feature-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-    font-size: 13px;
-    color: var(--cham-bg);
-}
-
-.intro-feature-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: rgba(208, 181, 129, 0.15);
-    color: var(--cham-gold);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-}
-
-/* Khung trò chuyện chính */
-.customer-chat-main {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    background-color: #FAF7F0;
-}
-
-.cust-chat-header {
-    height: 72px;
-    background-color: #FFFFFF;
-    border-bottom: 1px solid var(--cham-border-subtle);
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.cust-chat-stream {
-    flex-grow: 1;
-    padding: 24px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.cust-bubble-wrapper {
-    display: flex;
-    flex-direction: column;
-    max-width: 80%;
-}
-
-.cust-bubble-wrapper.from-customer {
-    align-self: flex-end;
-}
-
-.cust-bubble-wrapper.from-bot,
-.cust-bubble-wrapper.from-staff {
-    align-self: flex-start;
-}
-
-.cust-bubble {
-    padding: 12px 18px;
-    border-radius: 18px;
-    font-size: 14px;
-    line-height: 1.55;
-    word-break: break-word;
-}
-
-.from-customer .cust-bubble {
-    background-color: var(--cham-red);
-    color: #FFFFFF;
-    border-bottom-right-radius: 4px;
-    box-shadow: 0 4px 12px rgba(120, 26, 36, 0.25);
-}
-
-.from-staff .cust-bubble {
-    background-color: #FFFFFF;
-    color: var(--cham-dark);
-    border: 1px solid var(--cham-border-subtle);
-    border-bottom-left-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.from-bot .cust-bubble {
-    background-color: #FFFFFF;
-    color: var(--cham-dark);
-    border: 1px solid var(--cham-gold);
-    border-bottom-left-radius: 4px;
-}
-
-.cust-sender-name {
-    font-size: 11.5px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.from-customer .cust-sender-name {
-    color: var(--cham-muted);
-    text-align: right;
-}
-
-.from-staff .cust-sender-name {
-    color: var(--cham-red);
-}
-
-.from-bot .cust-sender-name {
-    color: #9E7430;
-}
-
-/* Quick prompt chips */
-.cust-quick-prompts {
-    display: flex;
-    gap: 8px;
-    padding: 10px 24px;
-    background-color: #FAF7F0;
-    overflow-x: auto;
-    border-top: 1px solid #EFEAE1;
-}
-
-.cust-prompt-chip {
-    background-color: #FFFFFF;
-    border: 1px solid #D5CBB9;
-    border-radius: 20px;
-    padding: 6px 14px;
-    font-size: 12.5px;
-    color: var(--cham-dark);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s;
-}
-
-.cust-prompt-chip:hover {
-    background-color: var(--cham-red-light);
-    border-color: var(--cham-red);
-    color: var(--cham-red);
-}
-
-/* Footer Input */
-.cust-chat-footer {
-    padding: 16px 24px;
-    background-color: #FFFFFF;
-    border-top: 1px solid var(--cham-border-subtle);
-}
-
-.cust-chat-form {
-    display: flex;
-    gap: 12px;
-}
-
-.cust-chat-input {
-    flex-grow: 1;
-    border: 1px solid #D5CBB9;
-    border-radius: 24px;
-    padding: 10px 20px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.cust-chat-input:focus {
-    border-color: var(--cham-red);
-}
-
-.btn-cust-send {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    background-color: var(--cham-red);
-    color: #FFFFFF;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-cust-send:hover {
-    background-color: var(--cham-red-dark);
-}
-</style>
-{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -302,23 +82,48 @@
                 </div>
             </div>
 
-            <!-- Thanh gợi ý câu hỏi nhanh (FAQ Chips) -->
-            <div id="custQuickPrompts" class="cust-quick-prompts">
-                <button type="button" class="cust-prompt-chip" onclick="sendQuickPrompt('Bảng giá dịch vụ tại Cham Spa?')">
-                    💰 Bảng giá dịch vụ
-                </button>
-                <button type="button" class="cust-prompt-chip" onclick="sendQuickPrompt('Giờ mở cửa đón khách?')">
-                    ⏰ Giờ mở cửa
-                </button>
-                <button type="button" class="cust-prompt-chip" onclick="sendQuickPrompt('Địa chỉ Cham Spa ở đâu?')">
-                    📍 Địa chỉ chi nhánh
-                </button>
-                <button type="button" class="cust-prompt-chip" onclick="sendQuickPrompt('Quy trình dời hoặc hủy lịch hẹn?')">
-                    🔄 Dời / Hủy lịch hẹn
-                </button>
-                <button type="button" class="cust-prompt-chip" onclick="handleRequestStaff()">
-                    👩‍💼 Gặp nhân viên tư vấn
-                </button>
+            <!-- Khối chọn câu hỏi FAQ theo kịch bản (đồng bộ từ Admin FAQ) -->
+            <div id="custFaqPanel">
+                <div class="cust-faq-topbar">
+                    <button type="button" class="cust-faq-toggle" onclick="toggleCustFaqPanel()">
+                        <span>📋 Chọn kịch bản hỏi đáp (FAQ)</span>
+                        <span style="opacity: 0.85;">({{ quick_faqs|length }})</span>
+                        <span id="custFaqChevron">▾</span>
+                    </button>
+                    <button type="button" class="cust-faq-staff-btn" onclick="handleRequestStaff()">
+                        👩‍💼 Gặp nhân viên tư vấn
+                    </button>
+                </div>
+                <div id="custFaqBody">
+                    <div id="custFaqCatBar">
+                        <button type="button" class="cust-faq-cat-pill active" onclick="filterCustFaqCat('Tất cả', this)">
+                            Tất cả
+                        </button>
+                        {% for cat in faq_categories %}
+                        <button type="button" class="cust-faq-cat-pill" data-cat="{{ cat }}" onclick="filterCustFaqCat(this.getAttribute('data-cat'), this)">
+                            {{ cat }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <div id="custFaqBlocksGrid">
+                        {% for faq in quick_faqs %}
+                        <button type="button"
+                                class="cust-faq-block"
+                                data-faq-id="{{ faq.id }}"
+                                data-faq-cat="{{ faq.category|default:'Chung' }}"
+                                data-faq-question="{{ faq.question }}"
+                                onclick="sendFaqBlockFromBtn(this)">
+                            <div class="cust-faq-block-meta">
+                                <span class="cust-faq-block-cat">{{ faq.category|default:"Tư vấn" }}</span>
+                                <span class="cust-faq-block-q">{{ faq.question }}</span>
+                            </div>
+                            <span class="cust-faq-block-arrow">›</span>
+                        </button>
+                        {% empty %}
+                        <div class="text-muted small py-2">Chưa có kịch bản FAQ đang hoạt động.</div>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
 
             <!-- Khung nhập tin nhắn -->
@@ -349,10 +154,61 @@ let customerPollingTimer = null;
 const IS_AUTHENTICATED = {% if user.is_authenticated %}true{% else %}false{% endif %};
 const USER_NAME = "{{ user.name|default:user.username|escapejs }}";
 
+let pendingCustFaqId = null;
+
+function toggleCustFaqPanel() {
+    const bodyEl = document.getElementById('custFaqBody');
+    const chevEl = document.getElementById('custFaqChevron');
+    if (!bodyEl || !chevEl) return;
+    const willCollapse = !bodyEl.classList.contains('is-collapsed');
+    bodyEl.classList.toggle('is-collapsed', willCollapse);
+    chevEl.textContent = willCollapse ? '▴' : '▾';
+}
+
+function filterCustFaqCat(cat, btnEl) {
+    document.querySelectorAll('#custFaqCatBar .cust-faq-cat-pill').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    if (btnEl) btnEl.classList.add('active');
+
+    document.querySelectorAll('#custFaqBlocksGrid .cust-faq-block').forEach(card => {
+        const cardCat = card.getAttribute('data-faq-cat') || 'Chung';
+        card.style.display = (cat === 'Tất cả' || cardCat === cat) ? 'flex' : 'none';
+    });
+}
+
+function sendFaqBlock(faqId, text) {
+    pendingCustFaqId = faqId;
+    const inputEl = document.getElementById('custChatInput');
+    if (inputEl) inputEl.value = text;
+    try {
+        handleCustomerSendMessage();
+    } finally {
+        pendingCustFaqId = null;
+    }
+}
+
+function sendFaqBlockFromBtn(btnEl) {
+    if (!btnEl) return;
+    const faqId = parseInt(btnEl.getAttribute('data-faq-id'), 10);
+    const questionText = btnEl.getAttribute('data-faq-question') || '';
+    sendFaqBlock(Number.isNaN(faqId) ? null : faqId, questionText);
+}
+
 function sendQuickPrompt(text) {
+    pendingCustFaqId = null;
     document.getElementById('custChatInput').value = text;
     handleCustomerSendMessage();
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const inputEl = document.getElementById('custChatInput');
+    if (inputEl) {
+        inputEl.addEventListener('input', function () {
+            pendingCustFaqId = null;
+        });
+    }
+});
 
 function handleCustomerSendMessage(e) {
     if (e) e.preventDefault();
@@ -384,6 +240,8 @@ function handleCustomerSendMessage(e) {
     }
 
     // 3. Nếu đang chat với Bot tự động (UC-2.1)
+    const reqFaqId = pendingCustFaqId;
+    pendingCustFaqId = null;
     fetch('/chatbox/api/chat/bot-reply/', {
         method: 'POST',
         headers: {
@@ -391,7 +249,7 @@ function handleCustomerSendMessage(e) {
             'X-CSRFToken': getCookie('csrftoken'),
             'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify({ message: text, conversation_id: conversationId })
+        body: JSON.stringify({ message: text, faq_id: reqFaqId, conversation_id: conversationId })
     })
     .then(res => res.json())
     .then(data => {

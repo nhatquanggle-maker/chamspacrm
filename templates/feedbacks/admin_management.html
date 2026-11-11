@@ -1,0 +1,1043 @@
+{% extends base_layout %}
+{% load static %}
+
+{% block body_class %}page-feedbacks-admin-management{% endblock %}
+
+{% block title %}Quản lý Đánh giá & Khiếu nại | Cham Spa & Massage Workspace{% endblock %}
+
+{% block admin_content %}
+
+<div class="container-fluid px-3 py-2">
+    <!-- 1. TIÊU ĐỀ CHÍNH -->
+    <div class="mb-2">
+        <h1 class="md-page-title">
+            {% if active_tab == 'complaints' %}Quản lý Khiếu nại{% else %}Quản lý Đánh giá{% endif %}
+        </h1>
+        <p class="md-page-subtitle">
+            {% if active_tab == 'complaints' %}
+            {% if request.user.is_superuser %}
+            Tiếp nhận, phân công và phản hồi sự cố trong SLA vận hành.
+            {% else %}
+            Tiếp nhận xử lý và phản hồi sự cố dịch vụ theo chuẩn SLA vận hành.
+            {% endif %}
+            {% else %}
+            Tiếp nhận đánh giá từ khách hàng, phản hồi dịch vụ công khai và duyệt hiển thị.
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- =====================================================================
+         2. TABS CHUYỂN ĐỔI CHÍNH: QUẢN LÝ ĐÁNH GIÁ VS QUẢN LÝ KHIẾU NẠI
+         ===================================================================== -->
+    <div class="md-nav-tabs">
+        <a href="?tab=feedbacks" class="md-nav-link {% if active_tab != 'complaints' %}active{% endif %}">
+            <i class="bi bi-star"></i>
+            <span>Quản lý Đánh giá</span>
+        </a>
+        <a href="?tab=complaints" class="md-nav-link {% if active_tab == 'complaints' %}active{% endif %}">
+            <i class="bi bi-shield-exclamation"></i>
+            <span>Quản lý Khiếu nại</span>
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show border-0 shadow-sm" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- =====================================================================
+         TAB 1: QUẢN LÝ ĐÁNH GIÁ (FIGMA NODE 217-7569)
+         ===================================================================== -->
+    {% if active_tab != 'complaints' %}
+    <div>
+        <!-- 4 Thẻ KPI Metrics Đánh giá -->
+        <div class="row g-3 mb-4">
+            <!-- Metric 1: Điểm trung bình -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon-box">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <div>
+                        <div class="kpi-label">Điểm trung bình</div>
+                        <div class="kpi-value">
+                            {{ avg_rating }} <span class="fs-6 fw-normal text-muted">/ 5.0</span>
+                        </div>
+                        <div class="text-warning small" style="font-size: 11.5px;">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
+                                class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
+                                class="bi bi-star-half"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric 2: Đánh giá tháng này -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon-box">
+                        <i class="bi bi-chat-square-text"></i>
+                    </div>
+                    <div>
+                        <div class="kpi-label">Đánh giá tháng này</div>
+                        <div class="kpi-value">{{ monthly_feedbacks_count|default:total_feedbacks }}</div>
+                        <div class="kpi-subtext">đánh giá</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric 3: Chờ phản hồi -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon-box">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div>
+                        <div class="kpi-label">Chờ phản hồi</div>
+                        <div class="kpi-value" style="color: #B45309;">{{ waiting_feedbacks_count }}</div>
+                        <div class="kpi-subtext">đánh giá</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric 4: Tỷ lệ đã duyệt -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon-box">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div>
+                        <div class="kpi-label">Tỷ lệ đã duyệt</div>
+                        <div class="kpi-value" style="color: #047857;">{{ approval_rate }}%</div>
+                        <div class="kpi-subtext">Hiển thị công khai</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Master - Detail Workspace 2 cột -->
+        <div class="row g-3">
+            <!-- Cột trái: Master List Danh sách đánh giá (40%) -->
+            <div class="col-12 col-lg-5 col-xl-4">
+                <div class="master-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h6 fw-bold mb-0 text-dark">Danh sách đánh giá</h2>
+                        <span class="small fw-semibold" style="color: var(--cham-red); font-size: 12px;">• {{ total_feedbacks }} đánh giá</span>
+                    </div>
+
+                    <!-- Ô tìm kiếm -->
+                    <form method="GET" class="mb-2">
+                        <input type="hidden" name="tab" value="feedbacks">
+                        <input type="hidden" name="rating_tab" value="{{ rating_tab }}">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i
+                                    class="bi bi-search"></i></span>
+                            <input type="text" name="q" class="form-control border-start-0 ps-0"
+                                placeholder="Tìm mã đánh giá, tên khách, số điện thoại..." value="{{ fb_search }}">
+                        </div>
+                    </form>
+
+                    <!-- Filter pills -->
+                    <div class="filter-pills">
+                        <a href="?tab=feedbacks&rating_tab=all{% if fb_search %}&q={{ fb_search }}{% endif %}"
+                            class="filter-pill {% if rating_tab == 'all' or not rating_tab %}active{% endif %}">
+                            Tất cả
+                        </a>
+                        <a href="?tab=feedbacks&rating_tab=5{% if fb_search %}&q={{ fb_search }}{% endif %}"
+                            class="filter-pill {% if rating_tab == '5' %}active{% endif %}">
+                            5 sao
+                        </a>
+                        <a href="?tab=feedbacks&rating_tab=low{% if fb_search %}&q={{ fb_search }}{% endif %}"
+                            class="filter-pill {% if rating_tab == 'low' %}active{% endif %}">
+                            1-3 sao
+                        </a>
+                        <a href="?tab=feedbacks&rating_tab=waiting{% if fb_search %}&q={{ fb_search }}{% endif %}"
+                            class="filter-pill {% if rating_tab == 'waiting' %}active{% endif %}">
+                            Chờ phản hồi
+                        </a>
+                    </div>
+
+                    <!-- Danh sách items -->
+                    <div class="master-item-list" id="feedbackMasterList">
+                        {% for fb in feedbacks %}
+                        <div class="master-item-card {% if selected_feedback.id == fb.id %}active{% endif %}" id="fbCard{{ fb.id }}" style="cursor: pointer;" onclick="window.location.href='?tab=feedbacks&fb_id={{ fb.id }}&rating_tab={{ rating_tab }}{% if fb_search %}&q={{ fb_search|urlencode }}{% endif %}{% if feedbacks.number %}&page={{ feedbacks.number }}{% endif %}'">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <span class="fw-bold text-dark" style="font-size: 13.5px;">{{ fb.customer.name|default:fb.customer.username }}</span>
+                                {% if fb.status == 'Đã ẩn' %}
+                                <span class="status-dot-hidden">• Đã ẩn</span>
+                                {% elif fb.status == 'Đã phản hồi' %}
+                                <span class="status-dot-replied">• Đã phản hồi</span>
+                                {% else %}
+                                <span class="status-dot-pending">• Chờ phản hồi</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="d-flex align-items-center gap-1 text-warning mb-1" style="font-size: 11.5px;">
+                                {% for i in "12345" %}
+                                {% if forloop.counter <= fb.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star text-muted opacity-50"></i>{% endif %}
+                                {% endfor %}
+                                <span class="text-dark fw-bold ms-1" style="font-size: 11.5px;">{{ fb.rating }}/5</span>
+                            </div>
+
+                            <div class="text-dark text-truncate mb-2" style="font-size: 12.5px;"
+                                title="{{ fb.comment }}">
+                                {{ fb.comment|default:"Trải nghiệm dịch vụ tuyệt vời!" }}
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top"
+                                onclick="event.stopPropagation()">
+                                <form method="POST" action="{% url 'feedbacks:admin_management' %}" class="form-check form-switch mb-0">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="toggle_feedback_status">
+                                    <input type="hidden" name="feedback_id" value="{{ fb.id }}">
+                                    <input type="hidden" name="selected_fb_id" value="{{ selected_feedback.id|default:'' }}">
+                                    <input type="hidden" name="filter_rating_tab" value="{{ rating_tab }}">
+                                    <input type="hidden" name="filter_q" value="{{ fb_search }}">
+                                    <input type="hidden" name="filter_page" value="{{ feedbacks.number }}">
+                                    <input class="form-check-input" type="checkbox" id="switchFb{{ fb.id }}" {% if fb.status != 'Đã ẩn' %}checked{% endif %} onchange="this.form.submit()">
+                                    <label class="form-check-label small text-muted ms-1" for="switchFb{{ fb.id }}" style="font-size: 11.5px;">
+                                        {% if fb.status == 'Đã ẩn' %}Ẩn{% else %}Hiện{% endif %}
+                                    </label>
+                                </form>
+
+                                <a href="?tab=feedbacks&fb_id={{ fb.id }}&rating_tab={{ rating_tab }}{% if fb_search %}&q={{ fb_search|urlencode }}{% endif %}{% if feedbacks.number %}&page={{ feedbacks.number }}{% endif %}#dtFbReplyInput" class="btn btn-sm btn-outline-secondary py-0.5 px-2" style="font-size: 11px; border-radius: 4px;" onclick="event.stopPropagation()">
+                                    {% if fb.reply %}Xem lại phản hồi{% else %}Phản hồi{% endif %}
+                                </a>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4 text-muted small">
+                            Không tìm thấy đánh giá nào.
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Phân trang master -->
+                    {% if feedbacks.has_other_pages %}
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top"
+                        style="font-size: 11.5px;">
+                        <span class="text-muted">Hiển thị {{ feedbacks.start_index }}-{{ feedbacks.end_index }} trong {{ total_feedbacks }} đánh giá</span>
+                        <div class="d-flex gap-1">
+                            {% if feedbacks.has_previous %}
+                            <a href="?tab=feedbacks&page={{ feedbacks.previous_page_number }}&rating_tab={{ rating_tab }}&q={{ fb_search }}"
+                                class="btn btn-sm btn-outline-secondary py-0.5 px-2">‹</a>
+                            {% endif %}
+                            <span class="btn btn-sm btn-cham-primary py-0.5 px-2">{{ feedbacks.number }}</span>
+                            {% if feedbacks.has_next %}
+                            <a href="?tab=feedbacks&page={{ feedbacks.next_page_number }}&rating_tab={{ rating_tab }}&q={{ fb_search }}"
+                                class="btn btn-sm btn-outline-secondary py-0.5 px-2">›</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Cột phải: Detail Panel Chi tiết Đánh giá (60%) -->
+            <div class="col-12 col-lg-7 col-xl-8">
+                <div class="detail-card" id="feedbackDetailContainer">
+                    {% if selected_feedback %}
+                    <!-- Header Đỏ mận chuẩn Figma 217-7569 -->
+                    <div class="detail-header-red">
+                        <h3 class="detail-header-title" id="dtFbTitle">
+                            Chi tiết Đánh giá
+                        </h3>
+                        <div class="detail-header-time" id="dtFbTime">
+                            <i class="bi bi-clock me-1"></i> {{ selected_feedback.created_at|date:"H:i - d/m/Y" }}
+                        </div>
+                    </div>
+
+                    <div class="detail-body">
+                        <!-- Khách hàng & Dịch vụ -->
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="user-avatar-circle" id="dtFbAvatar">
+                                    {{ selected_feedback.customer.name|default:selected_feedback.customer.username|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-6 text-dark" id="dtFbCustName">{{ selected_feedback.customer.name|default:selected_feedback.customer.username }}</div>
+                                    <div class="text-muted small" id="dtFbCustPhone">{{ selected_feedback.customer.phone|default:selected_feedback.customer.email }}</div>
+                                </div>
+                            </div>
+
+                            <div class="text-end">
+                                <div class="fw-bold font-monospace text-dark" style="font-size: 13.5px;" id="dtFbApptCode">
+                                    {{ selected_feedback.appointment.appointment_code }} — {{ selected_feedback.appointment.details.first.service.name|default:"Massage Trị Liệu Vai Gáy" }}
+                                </div>
+                                <div class="text-muted small" id="dtFbKtv">
+                                    KTV: {{ selected_feedback.appointment.details.first.gender|default:"Chuyên viên" }} ({{ selected_feedback.appointment.details.first.massage_pressure|default:"Lực vừa" }})
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nhận xét chi tiết của khách -->
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-2" id="dtFbRatingStars">
+                                <div class="text-warning">
+                                    {% for i in "12345" %}
+                                    {% if forloop.counter <= selected_feedback.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star text-muted opacity-50"></i>{% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span class="fw-bold text-dark small" id="dtFbRatingValue">{{ selected_feedback.rating }}/5</span>
+                            </div>
+
+                            <p class="mb-2 text-dark" style="font-size: 14.5px; line-height: 1.5;" id="dtFbComment">
+                                {{ selected_feedback.comment|default:"Trải nghiệm dịch vụ tuyệt vời! Không gian sạch sẽ, nhân viên chu đáo."|linebreaksbr }}
+                            </p>
+
+                            {% if selected_feedback.tags %}
+                            <div class="mb-2" id="dtFbTagsBox">
+                                {% for t in selected_feedback.tags %}
+                                <span class="badge bg-light text-secondary border me-1" style="font-size: 11px;">{{ t }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            {% if selected_feedback.attached_media %}
+                            <div class="d-flex gap-2 mt-2" id="dtFbMediaBox">
+                                {% for m in selected_feedback.attached_media %}
+                                <img src="{{ m }}" class="rounded border"
+                                    style="width: 54px; height: 54px; object-fit: cover; cursor: pointer;"
+                                    onclick="viewFullImage('{{ m }}')" title="Xem ảnh">
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                            <!-- Switch Duyệt / Hiển thị công khai -->
+                            <div class="p-3 mb-4 rounded" style="background: #FAF7F0; border: 1px solid var(--cham-border);">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <span class="fw-bold text-dark" style="font-size: 13.5px;">Trạng thái hiển thị công khai:</span>
+                                        <span class="fw-bold ms-2" id="dtFbStatusLabel" style="color: {% if selected_feedback.status == 'Đã ẩn' %}#6B7280{% else %}#047857{% endif %}; font-size: 13.5px;">
+                                            {% if selected_feedback.status == 'Đã ẩn' %}Đang ẩn (Không công khai){% else %}Đã duyệt / Hiển thị{% endif %}
+                                        </span>
+                                    </div>
+                                    <form method="POST" action="{% url 'feedbacks:admin_management' %}" class="form-check form-switch mb-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="toggle_feedback_status">
+                                        <input type="hidden" name="feedback_id" value="{{ selected_feedback.id }}">
+                                        <input type="hidden" name="filter_rating_tab" value="{{ rating_tab }}">
+                                        <input type="hidden" name="filter_q" value="{{ fb_search }}">
+                                        <input type="hidden" name="filter_page" value="{{ feedbacks.number }}">
+                                        <input class="form-check-input" type="checkbox" id="switchDetailFb" {% if selected_feedback.status != 'Đã ẩn' %}checked{% endif %} onchange="this.form.submit()">
+                                    </form>
+                                </div>
+                                <div class="text-muted small mt-1" style="font-size: 12px;">
+                                    Bật để hiển thị đánh giá này trên trang dịch vụ của Khách hàng.
+                                </div>
+                            </div>
+
+                            <!-- Form Soạn câu trả lời công khai từ Spa -->
+                            <form method="POST" action="{% url 'feedbacks:admin_management' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reply_feedback">
+                                <input type="hidden" name="feedback_id" value="{{ selected_feedback.id }}">
+                                <input type="hidden" name="filter_rating_tab" value="{{ rating_tab }}">
+                                <input type="hidden" name="filter_q" value="{{ fb_search }}">
+                                <input type="hidden" name="filter_page" value="{{ feedbacks.number }}">
+                                <label for="dtFbReplyInput" class="form-label fw-bold text-dark mb-1" style="font-size: 13.5px;">
+                                    Câu trả lời công khai từ Spa *
+                                </label>
+
+                                <div class="mini-toolbar">
+                                    <button type="button" class="toolbar-btn" onclick="insertFormatting('**', '**')"><strong>B</strong></button>
+                                    <button type="button" class="toolbar-btn" onclick="insertFormatting('*', '*')"><em>I</em></button>
+                                    <button type="button" class="toolbar-btn" onclick="insertFormatting('<u>', '</u>')"><u>U</u></button>
+                                    <button type="button" class="toolbar-btn" onclick="insertFormatting('• ', '')"><i class="bi bi-list-ul"></i></button>
+                                    <button type="button" class="toolbar-btn" onclick="insertFormatting('https://', '')"><i class="bi bi-link-45deg"></i></button>
+                                </div>
+
+                                <textarea class="form-control" id="dtFbReplyInput" name="reply" rows="4" minlength="2" required style="font-size: 13.5px;" placeholder="Nhập câu trả lời công khai từ Spa... (Ví dụ: Cham Spa cảm ơn quý khách đã trải nghiệm dịch vụ ạ!)" oninput="updateCharCount(this)">{{ selected_feedback.reply|default:'' }}</textarea>
+
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="text-muted small" style="font-size: 11.5px;" id="charCountLabel">
+                                        {{ selected_feedback.reply|default:''|length }}/2.000 ký tự
+                                    </span>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm px-3" onclick="clearReplyInput()">
+                                            Xóa nhập / Hủy
+                                        </button>
+                                        <button type="submit" class="btn btn-cham-primary btn-sm px-3 d-inline-flex align-items-center gap-1.5" id="btnSubmitDetailReply">
+                                            <i class="bi bi-send-fill" style="font-size: 11.5px;"></i>
+                                            <span>Gửi phản hồi công khai</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-star fs-1 text-secondary opacity-50 mb-2"></i>
+                        <h5 class="fw-bold">Chưa chọn đánh giá</h5>
+                        <p class="small">Vui lòng chọn một đánh giá từ danh sách bên trái để xem chi tiết và phản hồi.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- =====================================================================
+         TAB 2: QUẢN LÝ KHIẾU NẠI (FIGMA NODE 217-6127)
+         ===================================================================== -->
+    {% if active_tab == 'complaints' %}
+    <div>
+        <!-- 4 Thẻ KPI Metrics Khiếu nại -->
+        <div class="row g-3 mb-4">
+            <!-- Metric 1: Tổng khiếu nại -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon-box">
+                        <i class="bi bi-ticket-perforated"></i>
+                    </div>
+                    <div>
+                        <div class="kpi-label">Tổng khiếu nại</div>
+                        <div class="kpi-value">{{ total_complaints }} Ticket</div>
+                        <div class="kpi-subtext">Toàn bộ ticket</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric 2: Chờ phân công / Chờ tiếp nhận -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon-box" style="color: #B45309;">
+                        <i class="bi bi-person-plus"></i>
+                    </div>
+                    <div>
+                        <div class="kpi-label">{% if request.user.is_superuser %}Chờ phân công{% else %}Chờ tiếp nhận{% endif %}</div>
+                        <div class="kpi-value" style="color: #B45309;">{{ pending_assign_count }} Ticket</div>
+                        <div class="kpi-subtext">{% if request.user.is_superuser %}Chưa giao CSKH{% else %}Chưa có người nhận{% endif %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric 3: Đang xử lý -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon-box" style="color: #1D4ED8;">
+                        <i class="bi bi-telephone"></i>
+                    </div>
+                    <div>
+                        <div class="kpi-label">Đang xử lý</div>
+                        <div class="kpi-value" style="color: #1D4ED8;">{{ processing_count }} Ticket</div>
+                        <div class="kpi-subtext">Đang chăm sóc</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric 4: Đã xử lý -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon-box" style="color: #047857;">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                    <div>
+                        <div class="kpi-label">Đã xử lý</div>
+                        <div class="kpi-value" style="color: #047857;">{{ resolved_complaints_count }} Ticket</div>
+                        <div class="kpi-subtext">Đã hoàn tất</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Master - Detail Workspace 2 cột -->
+        <div class="row g-3">
+            <!-- Cột trái: Master List Danh sách khiếu nại (40%) -->
+            <div class="col-12 col-lg-5 col-xl-4">
+                <div class="master-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h6 fw-bold mb-0 text-dark">Danh sách khiếu nại</h2>
+                        <span class="small fw-semibold text-muted" style="font-size: 12px;">{{ total_complaints }}
+                            ticket</span>
+                    </div>
+
+                    <!-- Ô tìm kiếm -->
+                    <form method="GET" class="mb-2">
+                        <input type="hidden" name="tab" value="complaints">
+                        <input type="hidden" name="comp_tab" value="{{ comp_tab }}">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i
+                                    class="bi bi-search"></i></span>
+                            <input type="text" name="comp_q" class="form-control border-start-0 ps-0"
+                                placeholder="Tìm mã ticket, tên, SĐT..." value="{{ comp_search }}">
+                        </div>
+                    </form>
+
+                    <!-- Filter pills -->
+                    <div class="filter-pills">
+                        <a href="?tab=complaints&comp_tab=all{% if comp_search %}&comp_q={{ comp_search }}{% endif %}"
+                            class="filter-pill {% if comp_tab == 'all' or not comp_tab %}active{% endif %}">
+                            Tất cả
+                        </a>
+                        <a href="?tab=complaints&comp_tab=pending_assign{% if comp_search %}&comp_q={{ comp_search }}{% endif %}"
+                            class="filter-pill {% if comp_tab == 'pending_assign' %}active{% endif %}">
+                            {% if request.user.is_superuser %}Chờ phân công{% else %}Chờ tiếp nhận{% endif %}
+                        </a>
+                        <a href="?tab=complaints&comp_tab=processing{% if comp_search %}&comp_q={{ comp_search }}{% endif %}"
+                            class="filter-pill {% if comp_tab == 'processing' %}active{% endif %}">
+                            Đang xử lý
+                        </a>
+                        <a href="?tab=complaints&comp_tab=resolved{% if comp_search %}&comp_q={{ comp_search }}{% endif %}"
+                            class="filter-pill {% if comp_tab == 'resolved' %}active{% endif %}">
+                            Hoàn tất
+                        </a>
+                    </div>
+
+                    <!-- Dropdown CSKH filter -->
+                    <div class="mb-3">
+                        <form method="GET" id="formStaffFilter">
+                            <input type="hidden" name="tab" value="complaints">
+                            <input type="hidden" name="comp_tab" value="{{ comp_tab }}">
+                            <select name="staff_id" class="form-select form-select-sm" onchange="this.form.submit()"
+                                style="font-size: 12px;">
+                                <option value="all">Tất cả nhân viên CSKH</option>
+                                {% for s in staff_list %}
+                                <option value="{{ s.id }}" {% if staff_filter == s.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ s.name|default:s.username }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+
+                    <!-- Danh sách ticket items -->
+                    <div class="master-item-list" id="complaintMasterList">
+                        {% for c in complaints %}
+                        <div class="master-item-card {% if selected_complaint.id == c.id %}active{% endif %}" id="compCard{{ c.id }}" style="cursor: pointer;" onclick="window.location.href='?tab=complaints&comp_id={{ c.id }}&comp_tab={{ comp_tab }}&staff_id={{ staff_filter }}{% if comp_search %}&comp_q={{ comp_search|urlencode }}{% endif %}{% if complaints.number %}&comp_page={{ complaints.number }}{% endif %}'">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <span class="fw-bold text-dark" style="font-size: 13px;">
+                                    {{ c.customer.name|default:c.customer.username }}
+                                </span>
+                                {% if c.status == 'Chờ phân công' %}
+                                <span class="status-dot-pending">Chờ phân công</span>
+                                {% elif c.status == 'Đang xử lý' %}
+                                <span class="status-dot-processing">Đang xử lý</span>
+                                {% elif c.status == 'Đã xử lý' %}
+                                <span class="status-dot-resolved">Đã xử lý</span>
+                                {% else %}
+                                <span class="status-dot-hidden">{{ c.status }}</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="text-secondary small text-truncate mb-1" style="font-size: 12px;">
+                                {{ c.description|truncatewords:8 }}
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top"
+                                style="font-size: 11px;">
+                                <span class="text-muted">
+                                    {% if c.assigned_staff %}
+                                    {{ c.assigned_staff.name|default:c.assigned_staff.username }}
+                                    {% else %}
+                                    Chưa phân công
+                                    {% endif %}
+                                </span>
+                                <span class="text-muted">{{ c.created_at|date:"H:i · d/m" }}</span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4 text-muted small">
+                            Không có ticket khiếu nại nào.
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Phân trang master complaints -->
+                    {% if complaints.has_other_pages %}
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top"
+                        style="font-size: 11.5px;">
+                        <span class="text-muted">Hiển thị {{ complaints.start_index }}-{{ complaints.end_index }} trong
+                            {{ total_complaints }} ticket</span>
+                        <div class="d-flex gap-1">
+                            {% if complaints.has_previous %}
+                            <a href="?tab=complaints&comp_page={{ complaints.previous_page_number }}&comp_tab={{ comp_tab }}&staff_id={{ staff_filter }}&comp_q={{ comp_search }}"
+                                class="btn btn-sm btn-outline-secondary py-0.5 px-2">‹</a>
+                            {% endif %}
+                            <span class="btn btn-sm btn-cham-primary py-0.5 px-2">{{ complaints.number }}</span>
+                            {% if complaints.has_next %}
+                            <a href="?tab=complaints&comp_page={{ complaints.next_page_number }}&comp_tab={{ comp_tab }}&staff_id={{ staff_filter }}&comp_q={{ comp_search }}"
+                                class="btn btn-sm btn-outline-secondary py-0.5 px-2">›</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Cột phải: Detail Panel Chi tiết Khiếu nại -->
+            <div class="col-12 col-lg-7 col-xl-8">
+                <div class="detail-card" id="complaintDetailContainer">
+                    {% if selected_complaint %}
+                    <div class="p-4">
+                        <!-- Tiêu đề Ticket gọn & Trạng thái -->
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                            <h3 class="h5 fw-bold text-dark mb-0" id="dtCompHeader">
+                                {{ selected_complaint.customer.name|default:selected_complaint.customer.username }}
+                            </h3>
+                            <span class="badge rounded-pill px-2.5 py-1" id="dtCompStatusBadge"
+                                style="font-size: 12px; {% if selected_complaint.status == 'Đã xử lý' %}background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0;{% elif selected_complaint.status == 'Đang xử lý' %}background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE;{% elif selected_complaint.status == 'Chờ liên hệ lại' %}background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE;{% elif selected_complaint.status == 'Đã từ chối' %}background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5;{% else %}background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D;{% endif %}">
+                                {{ selected_complaint.status }}
+                            </span>
+                        </div>
+
+                        <div class="text-muted small mb-3" style="font-size: 12px;" id="dtCompReceivedMeta">
+                            Nhận lúc {{ selected_complaint.created_at|date:"H:i · d/m/Y" }}
+                        </div>
+
+                        <!-- Stepper 4 bước trực quan (không lặp số) -->
+                        <div class="stepper-container" id="dtCompStepper">
+                            <div class="step-item completed">
+                                <div class="step-circle"><i class="bi bi-check-lg"></i></div>
+                                <span>Tiếp nhận</span>
+                            </div>
+                            <span class="step-arrow">›</span>
+
+                            <div class="step-item {% if selected_complaint.assigned_staff or selected_complaint.status == 'Đã xử lý' %}completed{% else %}active{% endif %}">
+                                <div class="step-circle">{% if selected_complaint.assigned_staff or selected_complaint.status == 'Đã xử lý' %}<i class="bi bi-check-lg"></i>{% else %}2{% endif %}</div>
+                                <span>Phân công</span>
+                            </div>
+                            <span class="step-arrow">›</span>
+
+                            <div class="step-item {% if selected_complaint.status == 'Đã xử lý' %}completed{% elif selected_complaint.status == 'Đang xử lý' or selected_complaint.status == 'Chờ liên hệ lại' or selected_complaint.assigned_staff %}active{% endif %}">
+                                <div class="step-circle">{% if selected_complaint.status == 'Đã xử lý' %}<i class="bi bi-check-lg"></i>{% else %}3{% endif %}</div>
+                                <span>Đang xử lý</span>
+                            </div>
+                            <span class="step-arrow">›</span>
+
+                            <div class="step-item {% if selected_complaint.status == 'Đã xử lý' %}completed{% endif %}">
+                                <div class="step-circle">{% if selected_complaint.status == 'Đã xử lý' %}<i class="bi bi-check-lg"></i>{% else %}4{% endif %}</div>
+                                <span>Hoàn tất</span>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin sự cố & Minh chứng (tinh gọn) -->
+                        <div class="p-3 mb-3 rounded" style="background: #FAF7F0; border: 1px solid var(--cham-border);">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                <div class="comp-meta-chips" id="dtCompPhoneAppt">
+                                    <span class="comp-meta-chip fw-semibold text-dark">
+                                        <i class="bi bi-telephone text-muted"></i> {{ selected_complaint.customer.phone|default:selected_complaint.customer.email }}
+                                    </span>
+                                    <span class="text-muted">·</span>
+                                    <span class="comp-meta-chip">
+                                        <i class="bi bi-calendar2-check text-muted"></i>
+                                        <span class="font-monospace fw-semibold text-dark">{{ selected_complaint.appointment.appointment_code }}</span>
+                                    </span>
+                                </div>
+                                <span class="badge rounded-pill" style="background: #EFE6D5; color: #5C3D2E; font-weight: 600; font-size: 11.5px;" id="dtCompService">
+                                    {{ selected_complaint.appointment.details.first.service.name|default:"Massage Trị Liệu Vai Gáy" }}
+                                </span>
+                            </div>
+
+                            <div class="comp-issue-quote" id="dtCompDesc">
+                                {{ selected_complaint.description }}
+                            </div>
+
+                            <div class="small text-muted mt-2 {% if not selected_complaint.desired_resolution %}d-none{% endif %}" id="dtCompResolutionGoal">
+                                <i class="bi bi-heart text-danger me-1"></i>Mong muốn: <strong class="text-dark" id="dtCompResolutionGoalText">{{ selected_complaint.desired_resolution|default:'' }}</strong>
+                            </div>
+
+                            <div id="dtCompProofsContainer" class="mt-2 {% if not selected_complaint.attached_proofs %}d-none{% endif %}">
+                                <div class="small text-muted mb-1" style="font-size: 11.5px;" id="dtCompProofsCount">
+                                    Minh chứng ({% if selected_complaint.attached_proofs %}{{ selected_complaint.attached_proofs|length }}{% else %}0{% endif %})
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap" id="dtCompProofsBox">
+                                    {% if selected_complaint.attached_proofs %}
+                                    {% for p in selected_complaint.attached_proofs %}
+                                    <img src="{{ p }}" class="rounded border"
+                                        style="width: 52px; height: 52px; object-fit: cover; cursor: pointer;"
+                                        onclick="viewFullImage('{{ p }}')" title="Xem bằng chứng">
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if selected_complaint.status == 'Đã xử lý' or selected_complaint.status == 'Đã từ chối' %}
+                        <!-- =========================================================================
+                             KHIẾU NẠI ĐÃ HOÀN TẤT & ĐƯỢC KHÓA (ADMIN & STAFF CHỈ XEM TÓM TẮT)
+                             ========================================================================= -->
+                        <div class="action-header-banner">
+                            <i class="bi bi-lock-fill"></i>
+                            <span>Hồ sơ khiếu nại đã khóa</span>
+                        </div>
+                        <div class="action-body-box">
+                            {% if selected_complaint.assigned_staff %}
+                            <div id="dtStaffAssignmentInfo" class="mb-3">
+                                <div class="px-3 py-2 rounded border d-flex justify-content-between align-items-center gap-2" style="background: #EFF6FF; border-color: #BFDBFE !important;" id="dtStaffAssignedAlert">
+                                    <div class="small text-dark">
+                                        <i class="bi bi-person-check-fill text-primary me-1"></i>
+                                        Phụ trách: <strong class="text-primary" id="dtStaffAssignedName">{{ selected_complaint.assigned_staff.name|default:selected_complaint.assigned_staff.username }}</strong>
+                                        {% if selected_complaint.assigned_staff_id == request.user.id %}
+                                        <span class="badge bg-success ms-1">Bạn</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if selected_complaint.status == 'Đã xử lý' %}
+                            <div id="dtStaffResolvedBox" class="mb-2 px-3 py-3 rounded border" style="background: #ECFDF5; border-color: #A7F3D0 !important;">
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                    <span class="fw-bold text-success small">
+                                        <i class="bi bi-lock-fill me-1"></i> Đã hoàn tất xử lý &amp; khóa
+                                    </span>
+                                    <span id="dtStaffVoucherBadge" class="badge bg-white text-danger border border-danger-subtle font-monospace {% if not selected_complaint.compensated_voucher %}d-none{% endif %}">
+                                        <i class="bi bi-ticket-perforated-fill me-1"></i><span id="dtStaffVoucherCode">{{ selected_complaint.compensated_voucher.voucher_code|default:'' }}</span>
+                                    </span>
+                                </div>
+                                <div class="small text-dark mb-2" id="dtStaffResolvedNote">{{ selected_complaint.resolution_note|default:'Đã giải quyết xong.' }}</div>
+                                <div class="small text-muted border-top pt-2" style="border-color: #A7F3D0 !important; font-size: 11.5px;">
+                                    <i class="bi bi-shield-lock me-1"></i>Khiếu nại ở trạng thái <strong>Đã xử lý</strong> đã được khóa, không thể chỉnh sửa hoặc cấp lại voucher.
+                                </div>
+                            </div>
+                            {% else %}
+                            <div id="dtCompRejectedBox" class="mb-2 px-3 py-3 rounded border" style="background: #FEF2F2; border-color: #FECACA !important;">
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                    <span class="fw-bold text-danger small">
+                                        <i class="bi bi-lock-fill me-1"></i> Đã từ chối &amp; khóa
+                                    </span>
+                                </div>
+                                <div class="small text-dark mb-2">{{ selected_complaint.resolution_note|default:'Khiếu nại đã bị từ chối tiếp nhận.' }}</div>
+                                <div class="small text-muted border-top pt-2" style="border-color: #FECACA !important; font-size: 11.5px;">
+                                    <i class="bi bi-shield-lock me-1"></i>Khiếu nại ở trạng thái <strong>Đã từ chối</strong> đã được khóa và không thể chỉnh sửa thêm.
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {% elif request.user.is_superuser %}
+                        <!-- =========================================================================
+                             DÀNH RIÊNG QUẢN LÝ (ADMIN): PHÂN CÔNG NHÂN VIÊN CSKH PHỤ TRÁCH
+                             ========================================================================= -->
+                        <div class="action-header-banner">
+                            <i class="bi bi-person-gear"></i>
+                            <span>Phân công xử lý</span>
+                        </div>
+                        <div class="action-body-box">
+                            <form id="formAssignStaff" method="POST" action="{% url 'feedbacks:admin_management' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="complaint_id" value="{{ selected_complaint.id }}">
+                                <input type="hidden" name="reject_reason" id="rejectReasonInput" value="">
+                                <input type="hidden" name="filter_comp_tab" value="{{ comp_tab }}">
+                                <input type="hidden" name="filter_staff_id" value="{{ staff_filter }}">
+                                <input type="hidden" name="filter_comp_q" value="{{ comp_search }}">
+                                <input type="hidden" name="filter_comp_page" value="{{ complaints.number }}">
+                                <div class="mb-3">
+                                    <label for="assignStaffSelect" class="form-label small fw-bold text-dark mb-1">
+                                        Nhân viên phụ trách *
+                                    </label>
+                                    <select class="form-select form-select-sm" id="assignStaffSelect" name="assigned_staff_id" required>
+                                        <option value="">-- Chọn nhân viên CSKH --</option>
+                                        {% for s in staff_list %}
+                                        <option value="{{ s.id }}" {% if selected_complaint.assigned_staff_id == s.id %}selected{% endif %}>
+                                            {{ s.name|default:s.username }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="assignNoteInput" class="form-label small fw-bold text-dark mb-1">
+                                        Ghi chú chỉ đạo
+                                    </label>
+                                    <textarea class="form-control form-control-sm" id="assignNoteInput" name="instruction_note" rows="2" placeholder="VD: Gọi khách kiểm tra lại thông tin hóa đơn...">{{ selected_complaint.resolution_note|default:'' }}</textarea>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <button type="submit" name="action" value="reject_complaint" formnovalidate onclick="return prepareRejectComplaint()" class="btn btn-outline-danger btn-sm px-3" id="btnRejectComplaint">
+                                        Từ chối
+                                    </button>
+                                    <button type="submit" name="action" value="assign_complaint" class="btn btn-cham-primary btn-sm px-4 d-inline-flex align-items-center gap-1.5" id="btnSubmitAssign">
+                                        <i class="bi bi-person-check-fill" style="font-size: 12px;"></i>
+                                        <span>Xác nhận phân công</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        {% else %}
+                        <!-- =========================================================================
+                             DÀNH RIÊNG NHÂN VIÊN (STAFF): TIẾP NHẬN XỬ LÝ & XÁC NHẬN KHI XỬ LÝ XONG
+                             (TUYỆT ĐỐI KHÔNG CÓ QUYỀN PHÂN CÔNG CHO NGƯỜI KHÁC)
+                             ========================================================================= -->
+                        <div class="action-header-banner">
+                            <i class="bi bi-headset"></i>
+                            <span>Xử lý khiếu nại</span>
+                        </div>
+                        <div class="action-body-box">
+                            <!-- Khối Trạng thái Tiếp nhận (gọn 1 dòng) -->
+                            <div id="dtStaffAssignmentInfo" class="mb-3">
+                                {% if not selected_complaint.assigned_staff %}
+                                <div class="px-3 py-2 rounded border d-flex justify-content-between align-items-center gap-2" style="background: #FFFBEB; border-color: #FCD34D !important;" id="dtStaffTakeAlert">
+                                    <span class="small fw-semibold text-dark">
+                                        <i class="bi bi-exclamation-circle-fill text-warning me-1"></i> Chưa có người phụ trách
+                                    </span>
+                                    <form method="POST" action="{% url 'feedbacks:admin_management' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="take_complaint">
+                                        <input type="hidden" name="complaint_id" value="{{ selected_complaint.id }}">
+                                        <input type="hidden" name="filter_comp_tab" value="{{ comp_tab }}">
+                                        <input type="hidden" name="filter_staff_id" value="{{ staff_filter }}">
+                                        <input type="hidden" name="filter_comp_q" value="{{ comp_search }}">
+                                        <input type="hidden" name="filter_comp_page" value="{{ complaints.number }}">
+                                        <button type="submit" class="btn btn-cham-primary btn-sm px-3 d-inline-flex align-items-center gap-1" id="btnTakeTicket">
+                                            <i class="bi bi-hand-index-thumb"></i>
+                                            <span>Tiếp nhận ngay</span>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% else %}
+                                <div class="px-3 py-2 rounded border d-flex justify-content-between align-items-center gap-2" style="background: #EFF6FF; border-color: #BFDBFE !important;" id="dtStaffAssignedAlert">
+                                    <div class="small text-dark">
+                                        <i class="bi bi-person-check-fill text-primary me-1"></i>
+                                        Phụ trách: <strong class="text-primary" id="dtStaffAssignedName">{{ selected_complaint.assigned_staff.name|default:selected_complaint.assigned_staff.username }}</strong>
+                                        {% if selected_complaint.assigned_staff_id == request.user.id %}
+                                        <span class="badge bg-success ms-1">Bạn</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if selected_complaint.status != 'Đã xử lý' and selected_complaint.assigned_staff_id != request.user.id %}
+                                    <form method="POST" action="{% url 'feedbacks:admin_management' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="take_complaint">
+                                        <input type="hidden" name="complaint_id" value="{{ selected_complaint.id }}">
+                                        <input type="hidden" name="filter_comp_tab" value="{{ comp_tab }}">
+                                        <input type="hidden" name="filter_staff_id" value="{{ staff_filter }}">
+                                        <input type="hidden" name="filter_comp_q" value="{{ comp_search }}">
+                                        <input type="hidden" name="filter_comp_page" value="{{ complaints.number }}">
+                                        <button type="submit" class="btn btn-cham-outline btn-sm py-0.5 px-2" style="font-size: 12px;">
+                                            Nhận xử lý
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Nếu đã xử lý xong thì hiển thị tóm tắt gọn -->
+                            <div id="dtStaffResolvedBox" class="{% if selected_complaint.status != 'Đã xử lý' %}d-none{% endif %} mb-3 px-3 py-2.5 rounded border" style="background: #ECFDF5; border-color: #A7F3D0 !important;">
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                    <span class="fw-bold text-success small">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Đã hoàn tất xử lý
+                                    </span>
+                                    <span id="dtStaffVoucherBadge" class="badge bg-white text-danger border border-danger-subtle font-monospace {% if not selected_complaint.compensated_voucher %}d-none{% endif %}">
+                                        <i class="bi bi-ticket-perforated-fill me-1"></i><span id="dtStaffVoucherCode">{{ selected_complaint.compensated_voucher.voucher_code|default:'' }}</span>
+                                    </span>
+                                </div>
+                                <div class="small text-dark" id="dtStaffResolvedNote">{{ selected_complaint.resolution_note|default:'Đã giải quyết xong.' }}</div>
+                            </div>
+
+                            <!-- Form Cập nhật & Xác nhận hoàn tất xử lý -->
+                            <form id="formStaffResolve" method="POST" action="{% url 'feedbacks:admin_management' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="resolve_complaint">
+                                <input type="hidden" name="complaint_id" value="{{ selected_complaint.id }}">
+                                <input type="hidden" name="discount_type" value="FIXED">
+                                <input type="hidden" name="filter_comp_tab" value="{{ comp_tab }}">
+                                <input type="hidden" name="filter_staff_id" value="{{ staff_filter }}">
+                                <input type="hidden" name="filter_comp_q" value="{{ comp_search }}">
+                                <input type="hidden" name="filter_comp_page" value="{{ complaints.number }}">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-dark mb-1.5">
+                                        Trạng thái *
+                                    </label>
+                                    <input type="hidden" id="staffStatusSelect" name="status" value="{% if selected_complaint.status == 'Đã xử lý' %}Đã xử lý{% elif selected_complaint.status == 'Chờ liên hệ lại' %}Chờ liên hệ lại{% else %}Đang xử lý{% endif %}">
+                                    <div class="comp-status-chips" id="staffStatusChips">
+                                        <button type="button" class="comp-status-chip {% if selected_complaint.status != 'Đã xử lý' and selected_complaint.status != 'Chờ liên hệ lại' %}active{% endif %}" data-status="Đang xử lý" onclick="selectComplaintStatus('Đang xử lý')">
+                                            <span class="chip-dot"></span> Đang xử lý
+                                        </button>
+                                        <button type="button" class="comp-status-chip {% if selected_complaint.status == 'Chờ liên hệ lại' %}active{% endif %}" data-status="Chờ liên hệ lại" onclick="selectComplaintStatus('Chờ liên hệ lại')">
+                                            <span class="chip-dot"></span> Chờ liên hệ lại
+                                        </button>
+                                        <button type="button" class="comp-status-chip {% if selected_complaint.status == 'Đã xử lý' %}active{% endif %}" data-status="Đã xử lý" onclick="selectComplaintStatus('Đã xử lý')">
+                                            <i class="bi bi-check-circle-fill" style="font-size: 12px;"></i> Đã xử lý
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label for="staffResolutionNote" class="form-label small fw-bold text-dark mb-0">
+                                            Kết quả xử lý *
+                                        </label>
+                                        <span class="text-muted" style="font-size: 11px;">Hiển thị cho khách hàng</span>
+                                    </div>
+                                    <textarea class="form-control form-control-sm" id="staffResolutionNote" name="resolution_note" rows="2" minlength="2" required placeholder="VD: Đã gọi xin lỗi khách và thống nhất phương án hỗ trợ...">{{ selected_complaint.resolution_note|default:'' }}</textarea>
+                                </div>
+
+                                <!-- Tặng Voucher đền bù -->
+                                <div class="px-3 py-2 mb-3 rounded border bg-white">
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" id="switchIssueVoucher" name="issue_voucher" value="true" onchange="toggleVoucherFields(this.checked)">
+                                        <label class="form-check-label small fw-bold text-dark" for="switchIssueVoucher">
+                                            <i class="bi bi-gift text-danger me-1"></i> Tặng Voucher đền bù
+                                        </label>
+                                    </div>
+                                    <div id="voucherOptionsBox" class="d-none mt-2 pt-2 border-top">
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label class="form-label small text-muted mb-0.5">Mệnh giá</label>
+                                                <select class="form-select form-select-sm" id="voucherAmountSelect" name="discount_value">
+                                                    <option value="50000">50.000đ</option>
+                                                    <option value="100000" selected>100.000đ</option>
+                                                    <option value="200000">200.000đ</option>
+                                                    <option value="500000">500.000đ</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label small text-muted mb-0.5">Hạn dùng</label>
+                                                <select class="form-select form-select-sm" id="voucherExpirySelect" name="expiry_days">
+                                                    <option value="15">15 ngày</option>
+                                                    <option value="30" selected>30 ngày</option>
+                                                    <option value="60">60 ngày</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <button type="submit" class="btn btn-cham-primary btn-sm px-4 d-inline-flex align-items-center gap-1.5" id="btnSubmitStaffResolve">
+                                        <i class="bi bi-check2-circle" style="font-size: 14px;"></i>
+                                        <span id="btnStaffResolveLabel">{% if selected_complaint.status == 'Đã xử lý' %}Xác nhận đã xử lý xong{% else %}Lưu cập nhật{% endif %}</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        {% endif %}
+
+                        <div id="dtCompAuditTrail">
+                            <div class="audit-item">
+                                {{ selected_complaint.created_at|date:"H:i · d/m" }} — {{ selected_complaint.customer.name|default:selected_complaint.customer.username }} gửi ticket.
+                            </div>
+                            {% if selected_complaint.assigned_staff %}
+                            <div class="audit-item">
+                                Phụ trách: {{ selected_complaint.assigned_staff.name|default:selected_complaint.assigned_staff.username }}
+                            </div>
+                            {% endif %}
+                            {% if selected_complaint.resolution_note %}
+                            <div class="audit-item">
+                                Kết quả: {{ selected_complaint.resolution_note }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-ticket-detailed fs-1 text-secondary opacity-50 mb-2"></i>
+                        <h5 class="fw-bold">Chưa chọn ticket khiếu nại</h5>
+                        <p class="small">Chọn một ticket bên trái để xem chi tiết.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Lightbox xem ảnh bằng chứng / trải nghiệm -->
+<div class="modal fade" id="modalViewImage" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-transparent border-0 text-center">
+            <div class="position-relative d-inline-block">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2"
+                    data-bs-dismiss="modal"></button>
+                <img src="" id="fullImagePreview" class="img-fluid rounded shadow-lg"
+                    style="max-height: 85vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     VANILLA JAVASCRIPT: TƯƠNG TÁC UI (KHÔNG DÙNG FETCH API)
+     ========================================================================== -->
+<script>
+    // 1. Phóng to ảnh
+    function viewFullImage(url) {
+        document.getElementById('fullImagePreview').src = url;
+        const modal = new bootstrap.Modal(document.getElementById('modalViewImage'));
+        modal.show();
+    }
+
+    // 2. Chèn định dạng Textarea
+    function insertFormatting(prefix, suffix) {
+        const textarea = document.getElementById('dtFbReplyInput');
+        if (!textarea) return;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        const selectedText = text.substring(start, end);
+        const replacement = prefix + selectedText + suffix;
+        textarea.value = text.substring(0, start) + replacement + text.substring(end);
+        textarea.focus();
+        textarea.setSelectionRange(start + prefix.length, end + prefix.length);
+        updateCharCount(textarea);
+    }
+
+    function updateCharCount(el) {
+        const count = el.value.length;
+        const label = document.getElementById('charCountLabel');
+        if (label) label.textContent = `${count}/2.000 ký tự`;
+    }
+
+    function clearReplyInput() {
+        const textarea = document.getElementById('dtFbReplyInput');
+        if (textarea) {
+            textarea.value = '';
+            updateCharCount(textarea);
+        }
+    }
+
+    // 3. Chọn chip trạng thái xử lý khiếu nại
+    function selectComplaintStatus(statusVal) {
+        const input = document.getElementById('staffStatusSelect');
+        if (input) input.value = statusVal;
+
+        document.querySelectorAll('#staffStatusChips .comp-status-chip').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.status === statusVal);
+        });
+
+        const labelEl = document.getElementById('btnStaffResolveLabel');
+        if (labelEl) {
+            labelEl.textContent = statusVal === 'Đã xử lý' ? 'Xác nhận đã xử lý xong' : 'Lưu cập nhật';
+        }
+    }
+
+    // 4. Bật/tắt tùy chọn Voucher đền bù
+    function toggleVoucherFields(isChecked) {
+        const box = document.getElementById('voucherOptionsBox');
+        if (box) {
+            if (isChecked) box.classList.remove('d-none');
+            else box.classList.add('d-none');
+        }
+    }
+
+    // 5. Hỏi lý do từ chối trước khi submit form từ chối (Dành riêng Quản lý)
+    function prepareRejectComplaint() {
+        const reason = prompt('Nhập lý do từ chối khiếu nại này:');
+        if (reason === null) return false;
+        const hiddenReason = document.getElementById('rejectReasonInput');
+        if (hiddenReason) hiddenReason.value = reason.trim();
+        return true;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.location.hash === '#dtFbReplyInput') {
+            const replyEl = document.getElementById('dtFbReplyInput');
+            if (replyEl) replyEl.focus();
+        }
+    });
+</script>
+{% endblock %}

@@ -1,554 +1,14 @@
 {% extends "layouts/admin_layout.html" %}
 {% load static %}
 
+{% block body_class %}page-services-service-admin{% endblock %}
+
 {% block title %}Quản lý Danh mục Dịch vụ | Quản trị Cham Spa & Massage Đà Nẵng{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* =========================================================================
-       CSS TÙY BIẾN CHO GIAO DIỆN QUẢN TRỊ DỊCH VỤ (FIGMA HÌNH 23)
-       Tác giả: Minh Khánh (MOD-03)
-       ========================================================================= */
-
-    :root {
-        --cham-primary-red: #781A24;
-        --cham-red-hover: #5d131b;
-        --cham-bg-cream: #F4EFE3;
-        --cham-wood-dark: #3D271D;
-        --cham-gold-accent: #D0B581;
-        --cham-border-color: #E2D9CC;
-    }
-
-    .admin-service-page-wrapper {
-        padding: 10px 0 60px;
-    }
-
-    /* 1. Breadcrumb */
-    .admin-service-breadcrumb {
-        font-size: 13px;
-        color: #8C7B72;
-        margin-bottom: 8px;
-    }
-
-    .admin-service-breadcrumb a {
-        color: #8C7B72;
-        text-decoration: none;
-    }
-
-    .admin-service-breadcrumb a:hover {
-        color: var(--cham-primary-red);
-    }
-
-    .admin-service-breadcrumb-current {
-        color: var(--cham-primary-red);
-        font-weight: 600;
-    }
-
-    /* 2. Top Title Bar */
-    .admin-service-header-row {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 16px;
-    }
-
-    .admin-service-page-title {
-        font-family: var(--font-serif, 'Lora', serif);
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--cham-primary-red);
-        margin-bottom: 4px;
-    }
-
-    .admin-service-page-desc {
-        font-size: 14px;
-        color: #6C757D;
-        margin-bottom: 0;
-    }
-
-    .btn-add-new-service {
-        background-color: var(--cham-primary-red);
-        color: #FFFFFF;
-        border: 1px solid var(--cham-primary-red);
-        border-radius: 10px;
-        padding: 10px 20px;
-        font-size: 14px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .btn-add-new-service:hover {
-        background-color: var(--cham-red-hover);
-        color: #FFFFFF;
-    }
-
-    /* 3. 4 KPI Summary Cards (Figma Hình 23) */
-    .admin-kpi-card {
-        background: #FFFFFF;
-        border-radius: 16px;
-        padding: 20px 24px;
-        border: 1px solid rgba(208, 181, 129, 0.3);
-        box-shadow: 0 4px 14px rgba(61, 39, 29, 0.04);
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        height: 100%;
-        transition: all 0.2s ease;
-    }
-
-    .admin-kpi-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(120, 26, 36, 0.08);
-    }
-
-    .admin-kpi-icon-box {
-        width: 52px;
-        height: 52px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        flex-shrink: 0;
-    }
-
-    .kpi-icon-brown { background-color: #F6EDE6; color: #8A4B2D; }
-    .kpi-icon-green { background-color: #E8F5E9; color: #2E7D32; }
-    .kpi-icon-gray  { background-color: #F1EFEA; color: #757575; }
-    .kpi-icon-gold  { background-color: #FFF8E1; color: #E68A00; }
-
-    .admin-kpi-number {
-        font-family: var(--font-serif, 'Lora', serif);
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--cham-wood-dark);
-        line-height: 1.1;
-        margin-bottom: 4px;
-    }
-
-    .admin-kpi-label {
-        font-size: 13px;
-        color: #7A6B63;
-        font-weight: 600;
-    }
-
-    /* 4. Controls & Filter Bar */
-    .admin-controls-card {
-        background: #FFFFFF;
-        border-radius: 16px;
-        padding: 16px 20px;
-        border: 1px solid rgba(208, 181, 129, 0.3);
-        margin-top: 24px;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 14px;
-    }
-
-    .admin-search-input-box {
-        position: relative;
-        min-width: 280px;
-        flex-grow: 1;
-        max-width: 360px;
-    }
-
-    .admin-search-input-box i {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #9E8F85;
-    }
-
-    .admin-search-input {
-        width: 100%;
-        border-radius: 10px;
-        border: 1px solid var(--cham-border-color);
-        padding: 8px 14px 8px 38px;
-        font-size: 13.5px;
-        outline: none;
-        background-color: #FAFAF8;
-    }
-
-    .admin-search-input:focus {
-        border-color: var(--cham-primary-red);
-        background-color: #FFFFFF;
-    }
-
-    .admin-filter-select {
-        border-radius: 10px;
-        border: 1px solid var(--cham-border-color);
-        padding: 8px 14px;
-        font-size: 13.5px;
-        color: var(--cham-wood-dark);
-        outline: none;
-        background-color: #FFFFFF;
-        cursor: pointer;
-    }
-
-    .btn-admin-export-excel {
-        background-color: #FFFFFF;
-        border: 1px solid var(--cham-border-color);
-        border-radius: 10px;
-        padding: 8px 16px;
-        font-size: 13.5px;
-        font-weight: 600;
-        color: #4A3E38;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .btn-admin-export-excel:hover {
-        border-color: #2E7D32;
-        color: #2E7D32;
-        background-color: #F1F8F2;
-    }
-
-    /* 5. Master Data Table (Figma Hình 23) */
-    .admin-table-container {
-        background: #FFFFFF;
-        border-radius: 16px;
-        overflow: hidden;
-        border: 1px solid rgba(208, 181, 129, 0.35);
-        box-shadow: 0 4px 16px rgba(61, 39, 29, 0.04);
-    }
-
-    .table-service-custom {
-        margin-bottom: 0;
-        vertical-align: middle;
-    }
-
-    .table-service-custom thead th {
-        background-color: var(--cham-primary-red);
-        color: #FFFFFF;
-        font-family: var(--font-body, 'Cabin', sans-serif);
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        padding: 14px 16px;
-        border: none;
-        white-space: nowrap;
-    }
-
-    .table-service-custom tbody td {
-        padding: 14px 16px;
-        border-bottom: 1px solid #F0EAE1;
-        font-size: 14px;
-        color: var(--cham-wood-dark);
-        background-color: #FFFFFF;
-    }
-
-    .table-service-custom tbody tr:hover td {
-        background-color: #FDFBF7;
-    }
-
-    .table-thumb-box {
-        width: 48px;
-        height: 48px;
-        border-radius: 10px;
-        overflow: hidden;
-        background-color: #EFE9DE;
-        flex-shrink: 0;
-    }
-
-    .table-thumb-box img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .table-service-name {
-        font-weight: 700;
-        color: var(--cham-wood-dark);
-        font-size: 14.5px;
-        margin-bottom: 2px;
-    }
-
-    .table-service-subtext {
-        font-size: 11.5px;
-        color: #9E8F85;
-    }
-
-    .table-category-badge {
-        display: inline-block;
-        padding: 3px 10px;
-        border-radius: 999px;
-        border: 1px solid var(--cham-border-color);
-        background-color: #FFFDF9;
-        font-size: 11px;
-        font-weight: 600;
-        color: #7A5B46;
-    }
-
-    /* Status dot */
-    .status-dot-active {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        color: #2E7D32;
-        font-weight: 600;
-        font-size: 13px;
-        white-space: nowrap;
-    }
-
-    .status-dot-active::before {
-        content: '';
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background-color: #2E7D32;
-        display: inline-block;
-        flex-shrink: 0;
-    }
-
-    .status-dot-inactive {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        color: #757575;
-        font-weight: 600;
-        font-size: 13px;
-        white-space: nowrap;
-    }
-
-    .status-dot-inactive::before {
-        content: '';
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background-color: #BDBDBD;
-        display: inline-block;
-        flex-shrink: 0;
-    }
-
-    /* Actions */
-    .btn-table-edit {
-        background-color: #FFF8E1;
-        border: 1px solid #FFE082;
-        color: #8D6E14;
-        border-radius: 8px;
-        padding: 5px 10px;
-        font-size: 12.5px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-table-edit:hover {
-        background-color: #FFE082;
-        color: #5D400B;
-    }
-
-    .btn-table-delete {
-        background-color: #FFEBEE;
-        border: 1px solid #FFCDD2;
-        color: #C62828;
-        border-radius: 8px;
-        padding: 5px 8px;
-        font-size: 12.5px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-table-delete:hover {
-        background-color: #FFCDD2;
-        color: #B71C1C;
-    }
-
-    /* Table Footer & Pagination */
-    .admin-table-footer {
-        padding: 14px 20px;
-        background-color: #FFFFFF;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-top: 1px solid #F0EAE1;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .admin-table-selection-info {
-        font-size: 13px;
-        color: #7A6B63;
-    }
-
-    .admin-pagination-pill {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .admin-page-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        border: 1px solid var(--cham-border-color);
-        background-color: #FFFFFF;
-        color: #4A3E38;
-        font-size: 13px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-decoration: none;
-    }
-
-    .admin-page-btn.active {
-        background-color: var(--cham-primary-red);
-        border-color: var(--cham-primary-red);
-        color: #FFFFFF;
-    }
-
-    /* Tabs Bar */
-    .admin-nav-tabs {
-        border-bottom: 2px solid #EFE9DE;
-        margin-top: 24px;
-        display: flex;
-        gap: 24px;
-    }
-
-    .admin-tab-item {
-        padding: 10px 4px;
-        font-size: 15px;
-        font-weight: 700;
-        color: #8C7B72;
-        border-bottom: 3px solid transparent;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-
-    .admin-tab-item.active {
-        color: var(--cham-primary-red);
-        border-bottom-color: var(--cham-primary-red);
-    }
-
-    /* Hiệu ứng rung nhẹ khi bị lỗi trùng lặp (Figma Node 216-2853) */
-    @keyframes shakeInvalid {
-        0%, 100% { transform: translateX(0); }
-        20%, 60% { transform: translateX(-6px); }
-        40%, 80% { transform: translateX(6px); }
-    }
-    .animate-shake {
-        animation: shakeInvalid 0.4s ease-in-out;
-    }
-
-    /* Khung chọn nhanh ảnh mẫu Thumbnail chuẩn Figma */
-    .thumb-sample-grid {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr);
-        gap: 8px;
-    }
-    .thumb-sample-item {
-        height: 52px;
-        border-radius: 8px;
-        overflow: hidden;
-        cursor: pointer;
-        border: 2px solid transparent;
-        background-color: #EFE9DE;
-        transition: all 0.2s ease;
-    }
-    .thumb-sample-item:hover, .thumb-sample-item.selected {
-        border-color: var(--cham-primary-red);
-        transform: scale(1.05);
-        box-shadow: 0 4px 10px rgba(120, 26, 36, 0.2);
-    }
-    .thumb-sample-item img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    /* =========================================================================
-       FIX LỖI NỀN XÁM BACKDROP BOOTSTRAP VÀ CHUẨN HÓA GIAO DIỆN MODAL FIGMA
-       ========================================================================= */
-    .modal {
-        z-index: 1060 !important;
-    }
-    .modal-backdrop {
-        z-index: 1050 !important;
-    }
-
-    /* Khung Modal chuẩn nhận diện thương hiệu Cham Spa */
-    .cham-modal-content {
-        background-color: #FFFFFF !important;
-        border-radius: 20px !important;
-        border: none !important;
-        box-shadow: 0 25px 70px rgba(61, 39, 29, 0.35) !important;
-        overflow: hidden !important;
-    }
-
-    .cham-modal-header {
-        background-color: var(--cham-primary-red) !important;
-        color: #FFFFFF !important;
-        padding: 16px 24px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        border-bottom: 2px solid var(--cham-gold-accent) !important;
-    }
-
-    .cham-modal-header-title {
-        font-family: var(--font-serif, 'Lora', serif) !important;
-        font-size: 18px !important;
-        font-weight: 700 !important;
-        color: #FFFFFF !important;
-        display: flex !important;
-        align-items: center !important;
-        gap: 10px !important;
-        letter-spacing: 0.5px !important;
-    }
-
-    .cham-modal-close-btn {
-        background: rgba(255, 255, 255, 0.15) !important;
-        border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        color: #FFFFFF !important;
-        width: 32px !important;
-        height: 32px !important;
-        border-radius: 50% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        font-size: 14px !important;
-        cursor: pointer !important;
-        transition: all 0.2s ease !important;
-        padding: 0 !important;
-    }
-
-    .cham-modal-close-btn:hover {
-        background: rgba(255, 255, 255, 0.35) !important;
-        color: #FFFFFF !important;
-        transform: rotate(90deg) !important;
-    }
-</style>
-{% endblock %}
 
 {% block admin_content %}
 <div class="admin-service-page-wrapper">
-    <!-- 1. Breadcrumbs -->
-    <div class="admin-service-breadcrumb">
-        <a href="{% url 'dashboard:admin' %}">Hệ thống</a>
-        <span class="mx-1">/</span>
-        <span class="admin-service-breadcrumb-current">Quản lý Danh mục dịch vụ</span>
-    </div>
-
-    <!-- 2. Page Header Bar -->
+    <!-- 1. Page Header Bar -->
     <div class="admin-service-header-row">
         <div>
             <h1 class="admin-service-page-title">Quản lý Dịch vụ</h1>
@@ -562,6 +22,17 @@
             </button>
         </div>
     </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show rounded-3 border-0 shadow-sm mb-2" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <!-- 3. KPI Summary Cards (Figma Hình 23) -->
     <div class="row g-3">
@@ -642,7 +113,6 @@
                     <thead>
                         <tr>
                             <th width="40"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)"></th>
-                            <th width="90" style="white-space: nowrap;">Mã DV</th>
                             <th width="80">Ảnh Thumbnail</th>
                             <th>Tên Dịch vụ</th>
                             <th style="white-space: nowrap;">Danh mục</th>
@@ -656,7 +126,6 @@
                         {% for svc in services %}
                         <tr id="serviceRow_{{ svc.id }}" data-id="{{ svc.id }}" data-name="{{ svc.name }}" data-cat-id="{{ svc.category_id }}" data-status="{{ svc.status }}">
                             <td><input type="checkbox" class="service-row-chk" value="{{ svc.id }}" onchange="updateSelectedCount()"></td>
-                            <td class="fw-bold text-muted" style="white-space: nowrap;">#DVO{{ svc.id|stringformat:"02d" }}</td>
                             <td>
                                 <div class="table-thumb-box">
                                     <img src="{{ svc.thumbnail_url|default:'/static/images/treatment_1.png' }}" alt="{{ svc.name }}">
@@ -678,12 +147,17 @@
                             <td id="statusCell_{{ svc.id }}" style="white-space: nowrap;">
                                 <div class="d-flex align-items-center gap-2 flex-nowrap" style="white-space: nowrap;">
                                     <!-- Nút gạt ẩn / hiện đặt ngay bên cạnh chữ -->
-                                    <div class="form-check form-switch m-0" title="Bật/Tắt hiển thị dịch vụ">
-                                        <input class="form-check-input" type="checkbox" id="toggleSwitch_{{ svc.id }}"
-                                               {% if svc.status == 'Hoạt động' %}checked{% endif %}
-                                               onchange="toggleServiceStatusAPI({{ svc.id }}, this)"
-                                               style="cursor: pointer; accent-color: var(--cham-primary-red); width: 2.2em; height: 1.15em;">
-                                    </div>
+                                    <form method="POST" action="{% url 'services:service_admin' %}" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="toggle_service">
+                                        <input type="hidden" name="service_id" value="{{ svc.id }}">
+                                        <div class="form-check form-switch m-0" title="Bật/Tắt hiển thị dịch vụ">
+                                            <input class="form-check-input" type="checkbox" id="toggleSwitch_{{ svc.id }}"
+                                                   {% if svc.status == 'Hoạt động' %}checked{% endif %}
+                                                   onchange="this.form.submit()"
+                                                   style="cursor: pointer; accent-color: var(--cham-primary-red); width: 2.2em; height: 1.15em;">
+                                        </div>
+                                    </form>
                                     <span id="statusBadge_{{ svc.id }}" style="white-space: nowrap;">
                                         {% if svc.status == 'Hoạt động' %}
                                         <span class="status-dot-active">Đang hoạt động</span>
@@ -701,7 +175,7 @@
                                     </button>
 
                                     <!-- Nút Xóa (Mở Modal Xác nhận Xóa - Figma Node 216-2320) -->
-                                    <button type="button" class="btn-table-delete" onclick="openDeleteServiceModal({{ svc.id }}, '{{ svc.name|escapejs }}', '#DVO{{ svc.id|stringformat:'02d' }}')" title="Xóa dịch vụ">
+                                    <button type="button" class="btn-table-delete" onclick="openDeleteServiceModal({{ svc.id }}, '{{ svc.name|escapejs }}')" title="Xóa dịch vụ">
                                         <i class="bi bi-trash3"></i>
                                     </button>
                                 </div>
@@ -743,8 +217,10 @@
                 </button>
             </div>
 
-            <form id="serviceFormSubmit" onsubmit="handleSaveService(event)">
-                <input type="hidden" id="formServiceId" value="">
+            <form id="serviceFormSubmit" method="POST" action="{% url 'services:service_admin' %}" onsubmit="handleSaveService(event)">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_service">
+                <input type="hidden" id="formServiceId" name="service_id" value="">
 
                 <div class="modal-body p-4">
                     <!-- KHUNG CẢNH BÁO TRÙNG LẶP DỊCH VỤ (FIGMA NODE 216-2853) -->
@@ -765,7 +241,7 @@
                         <!-- Tên dịch vụ -->
                         <div class="col-md-8">
                             <label class="form-label fw-bold small text-dark">Tên dịch vụ <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="formServiceName" required
+                            <input type="text" class="form-control" id="formServiceName" name="name" required
                                    placeholder="Ví dụ: Massage Body Trị Liệu Vai Gáy" oninput="onServiceNameInput(this.value)">
                             <div class="invalid-feedback d-none" id="formServiceNameFeedback">
                                 <i class="bi bi-exclamation-circle-fill me-1"></i> <span id="formServiceNameFeedbackText">Tên dịch vụ đã tồn tại trong hệ thống!</span>
@@ -775,7 +251,7 @@
                         <!-- Danh mục -->
                         <div class="col-md-4">
                             <label class="form-label fw-bold small text-dark">Danh mục <span class="text-danger">*</span></label>
-                            <select class="form-select" id="formServiceCategory" required>
+                            <select class="form-select" id="formServiceCategory" name="category_id" required>
                                 {% for c in categories %}
                                 <option value="{{ c.id }}">{{ c.name }}</option>
                                 {% endfor %}
@@ -785,13 +261,13 @@
                         <!-- Slug -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-dark">Đường dẫn thân thiện (Slug)</label>
-                            <input type="text" class="form-control" id="formServiceSlug" placeholder="massage-body-tri-lieu">
+                            <input type="text" class="form-control" id="formServiceSlug" name="slug" placeholder="massage-body-tri-lieu">
                         </div>
 
                         <!-- Trạng thái -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-dark">Trạng thái hiển thị</label>
-                            <select class="form-select" id="formServiceStatus">
+                            <select class="form-select" id="formServiceStatus" name="status">
                                 <option value="Hoạt động">Hoạt động (Hiển thị trên website)</option>
                                 <option value="Ngừng hoạt động">Ngừng hoạt động (Tạm ẩn)</option>
                             </select>
@@ -804,7 +280,7 @@
                                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-bold" id="formServicePricePreview">0 VNĐ</span>
                             </div>
                             <div class="input-group">
-                                <input type="number" class="form-control" id="formServicePrice" required min="1000" step="10000" placeholder="Ví dụ: 550000" oninput="onServicePriceInput(this.value)">
+                                <input type="number" class="form-control" id="formServicePrice" name="price_vnd" required min="1" step="1" placeholder="Ví dụ: 550000" oninput="onServicePriceInput(this.value)">
                                 <span class="input-group-text">VNĐ</span>
                             </div>
                         </div>
@@ -812,7 +288,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-dark">Thời lượng (Phút) <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="number" class="form-control" id="formServiceDuration" required min="15" step="15" placeholder="Ví dụ: 60">
+                                <input type="number" class="form-control" id="formServiceDuration" name="duration_minutes" required min="1" step="1" placeholder="Ví dụ: 60">
                                 <span class="input-group-text">phút</span>
                             </div>
                             <div class="d-flex gap-1 mt-1">
@@ -855,7 +331,7 @@
                             </div>
 
                             <div class="input-group">
-                                <input type="text" class="form-control" id="formServiceThumbnail"
+                                <input type="text" class="form-control" id="formServiceThumbnail" name="thumbnail_url"
                                        placeholder="Chọn một trong các ảnh mẫu ở trên hoặc dán URL..." oninput="previewThumbnail()">
                                 <button type="button" class="btn btn-outline-secondary" onclick="previewThumbnail()">Xem thử</button>
                             </div>
@@ -867,7 +343,7 @@
                         <!-- Mô tả chi tiết -->
                         <div class="col-12">
                             <label class="form-label fw-bold small text-dark">Mô tả chi tiết liệu trình & công dụng</label>
-                            <textarea class="form-control" id="formServiceDesc" rows="3"
+                            <textarea class="form-control" id="formServiceDesc" name="description" rows="3"
                                       placeholder="Mô tả các bước liệu pháp, thảo dược ứng dụng và lợi ích sức khỏe..."></textarea>
                         </div>
                     </div>
@@ -890,26 +366,30 @@
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
         <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
-            <input type="hidden" id="deleteTargetServiceId" value="">
-            <div class="modal-body p-4 text-center">
-                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 72px; height: 72px; background-color: #FDEDEC; color: #E74C3C;">
-                    <i class="bi bi-trash3-fill fs-1"></i>
+            <form method="POST" action="{% url 'services:service_admin' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_service">
+                <input type="hidden" id="deleteTargetServiceId" name="service_id" value="">
+                <div class="modal-body p-4 text-center">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 72px; height: 72px; background-color: #FDEDEC; color: #E74C3C;">
+                        <i class="bi bi-trash3-fill fs-1"></i>
+                    </div>
+                    <h4 class="font-serif fw-bold text-dark mb-2" id="deleteConfirmModalLabel">Xác nhận xóa dịch vụ</h4>
+                    <p class="text-muted small mb-3">
+                        Bạn có chắc chắn muốn xóa dịch vụ <strong id="deleteTargetServiceName" class="text-dark"></strong>?
+                    </p>
+                    <div class="alert alert-warning text-start d-flex align-items-center gap-2 p-2 rounded-3 small mb-0 border-0" style="background-color: #FFF8E7; color: #8A6D3B;">
+                        <i class="bi bi-info-circle-fill flex-shrink-0 fs-5 text-warning"></i>
+                        <span>Hành động này sẽ gỡ dịch vụ khỏi danh sách trên hệ thống. Dữ liệu các lịch hẹn đã hoàn thành trước đó vẫn được bảo toàn an toàn trong lịch sử đối soát.</span>
+                    </div>
                 </div>
-                <h4 class="font-serif fw-bold text-dark mb-2" id="deleteConfirmModalLabel">Xác nhận xóa dịch vụ</h4>
-                <p class="text-muted small mb-3">
-                    Bạn có chắc chắn muốn xóa dịch vụ <strong id="deleteTargetServiceName" class="text-dark"></strong> (<span id="deleteTargetServiceCode" class="text-muted font-monospace"></span>)?
-                </p>
-                <div class="alert alert-warning text-start d-flex align-items-center gap-2 p-2 rounded-3 small mb-0 border-0" style="background-color: #FFF8E7; color: #8A6D3B;">
-                    <i class="bi bi-info-circle-fill flex-shrink-0 fs-5 text-warning"></i>
-                    <span>Hành động này sẽ gỡ dịch vụ khỏi danh sách trên hệ thống. Dữ liệu các lịch hẹn đã hoàn thành trước đó vẫn được bảo toàn an toàn trong lịch sử đối soát.</span>
+                <div class="modal-footer bg-light px-4 py-3 border-0 d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold" id="btnConfirmDeleteAction" style="background-color: #DC3545; border-color: #DC3545;">
+                        <i class="bi bi-trash3 me-1"></i> Xác nhận xóa
+                    </button>
                 </div>
-            </div>
-            <div class="modal-footer bg-light px-4 py-3 border-0 d-flex justify-content-center gap-2">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy bỏ</button>
-                <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" id="btnConfirmDeleteAction" onclick="executeDeleteService()" style="background-color: #DC3545; border-color: #DC3545;">
-                    <i class="bi bi-trash3 me-1"></i> Xác nhận xóa
-                </button>
-            </div>
+            </form>
         </div>
     </div>
 </div>
@@ -1043,60 +523,6 @@
         document.getElementById('visibleRowsCount').textContent = visibleCount;
     }
 
-    // Toggle switch đổi trạng thái trực tiếp bằng REST API không tải lại trang
-    function toggleServiceStatusAPI(serviceId, checkboxEl) {
-        fetch(`/services/api/admin/services/${serviceId}/toggle-status/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showToast(data.message);
-                const statusBadge = document.getElementById(`statusBadge_${serviceId}`);
-                const row = document.getElementById(`serviceRow_${serviceId}`);
-                if (data.is_active) {
-                    if (statusBadge) statusBadge.innerHTML = '<span class="status-dot-active">Đang hoạt động</span>';
-                    if (row) row.setAttribute('data-status', 'Hoạt động');
-                    if (checkboxEl) checkboxEl.checked = true;
-                } else {
-                    if (statusBadge) statusBadge.innerHTML = '<span class="status-dot-inactive">Đang ẩn / Khóa</span>';
-                    if (row) row.setAttribute('data-status', 'Ngừng hoạt động');
-                    if (checkboxEl) checkboxEl.checked = false;
-                }
-                updateKPICounters();
-            } else {
-                showToast(data.error || 'Lỗi cập nhật trạng thái', false);
-                checkboxEl.checked = !checkboxEl.checked;
-            }
-        })
-        .catch(err => {
-            showToast('Lỗi kết nối máy chủ', false);
-            checkboxEl.checked = !checkboxEl.checked;
-        });
-    }
-
-    // Cập nhật lại số lượng KPI trên thẻ
-    function updateKPICounters() {
-        const rows = document.querySelectorAll('#adminServicesTableBody tr');
-        let total = rows.length;
-        let active = 0;
-        let inactive = 0;
-
-        rows.forEach(r => {
-            const st = r.getAttribute('data-status');
-            if (st === 'Hoạt động') active++;
-            else inactive++;
-        });
-
-        document.getElementById('kpiTotalServices').textContent = total;
-        document.getElementById('kpiActiveServices').textContent = active;
-        document.getElementById('kpiInactiveServices').textContent = inactive;
-    }
-
     // Mở Modal Thêm mới dịch vụ (Figma Node 216-1890)
     function openServiceCreateModal() {
         hideDuplicateAlert();
@@ -1140,32 +566,31 @@
         if (serviceModalObj) serviceModalObj.show();
     }
 
-    // Mở Modal Chỉnh sửa dịch vụ
+    // Mở Modal Chỉnh sửa dịch vụ từ dữ liệu trang (Form POST)
     function openServiceEditModal(serviceId) {
         hideDuplicateAlert();
-        fetch(`/services/api/admin/services/${serviceId}/`)
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('serviceFormModalTitle').innerHTML = '<i class="bi bi-pencil-square"></i> CẬP NHẬT DỊCH VỤ SPA';
-                document.getElementById('formServiceId').value = data.id;
-                document.getElementById('formServiceName').value = data.name;
-                document.getElementById('formServiceCategory').value = data.category?.id || data.category_id;
-                document.getElementById('formServiceSlug').value = data.slug;
-                document.getElementById('formServicePrice').value = parseInt(data.price_vnd);
-                document.getElementById('formServicePricePreview').textContent = (data.formatted_price || parseInt(data.price_vnd).toLocaleString('vi-VN') + ' VNĐ');
-                document.getElementById('formServiceDuration').value = data.duration_minutes;
-                document.getElementById('formServiceStatus').value = data.status;
-                document.getElementById('formServiceThumbnail').value = data.thumbnail_url || '';
-                document.getElementById('formServiceDesc').value = data.description || '';
+        const data = servicesAdminList.find(s => Number(s.id) === Number(serviceId));
+        if (!data) {
+            showToast('Không tìm thấy thông tin dịch vụ', false);
+            return;
+        }
 
-                previewThumbnail();
-                highlightSampleThumb(data.thumbnail_url);
+        document.getElementById('serviceFormModalTitle').innerHTML = '<i class="bi bi-pencil-square"></i> CẬP NHẬT DỊCH VỤ SPA';
+        document.getElementById('formServiceId').value = data.id;
+        document.getElementById('formServiceName').value = data.name;
+        document.getElementById('formServiceCategory').value = data.category_id;
+        document.getElementById('formServiceSlug').value = data.slug;
+        document.getElementById('formServicePrice').value = parseInt(data.price_vnd);
+        document.getElementById('formServicePricePreview').textContent = (data.formatted_price || parseInt(data.price_vnd).toLocaleString('vi-VN') + ' VNĐ');
+        document.getElementById('formServiceDuration').value = data.duration_minutes;
+        document.getElementById('formServiceStatus').value = data.status;
+        document.getElementById('formServiceThumbnail').value = data.thumbnail_url || '';
+        document.getElementById('formServiceDesc').value = data.description || '';
 
-                if (serviceModalObj) serviceModalObj.show();
-            })
-            .catch(err => {
-                showToast('Không tải được thông tin dịch vụ', false);
-            });
+        previewThumbnail();
+        highlightSampleThumb(data.thumbnail_url);
+
+        if (serviceModalObj) serviceModalObj.show();
     }
 
     // Chọn nhanh ảnh mẫu trong Form thêm/sửa
@@ -1209,83 +634,29 @@
         autoGenerateSlug(val);
     }
 
-    // Xử lý Lưu dịch vụ (Thêm hoặc Sửa) qua API có kiểm tra Trùng lặp (Figma Node 216-2853)
+    // Xử lý kiểm tra trùng tên trước khi submit Form POST (Figma Node 216-2853)
     function handleSaveService(event) {
-        event.preventDefault();
         hideDuplicateAlert();
 
         const sId = document.getElementById('formServiceId').value;
         const nameVal = document.getElementById('formServiceName').value.trim();
 
-        // 1. Kiểm tra trùng tên sơ bộ ngay tại Client để phản hồi tức thì
-        if (!sId) {
-            const dup = servicesAdminList.find(s => s.name.toLowerCase() === nameVal.toLowerCase());
-            if (dup) {
-                showDuplicateWarning(nameVal, dup.category_name);
-                return;
-            }
-        } else {
-            const dup = servicesAdminList.find(s => s.id !== parseInt(sId) && s.name.toLowerCase() === nameVal.toLowerCase());
-            if (dup) {
-                showDuplicateWarning(nameVal, dup.category_name);
-                return;
-            }
+        const dup = !sId
+            ? servicesAdminList.find(s => s.name.toLowerCase() === nameVal.toLowerCase())
+            : servicesAdminList.find(s => s.id !== parseInt(sId) && s.name.toLowerCase() === nameVal.toLowerCase());
+
+        if (dup) {
+            event.preventDefault();
+            showDuplicateWarning(nameVal, dup.category_name);
+            return false;
         }
 
         const saveBtn = document.getElementById('btnSubmitService');
-        const origHtml = saveBtn.innerHTML;
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang lưu...';
-
-        const payload = {
-            name: nameVal,
-            category_id: parseInt(document.getElementById('formServiceCategory').value),
-            slug: document.getElementById('formServiceSlug').value.trim(),
-            price_vnd: parseFloat(document.getElementById('formServicePrice').value),
-            duration_minutes: parseInt(document.getElementById('formServiceDuration').value),
-            status: document.getElementById('formServiceStatus').value,
-            thumbnail_url: document.getElementById('formServiceThumbnail').value.trim(),
-            description: document.getElementById('formServiceDesc').value.trim()
-        };
-
-        const isUpdate = Boolean(sId);
-        const url = isUpdate ? `/services/api/admin/services/${sId}/` : '/services/api/admin/services/';
-        const method = isUpdate ? 'PUT' : 'POST';
-
-        fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify(payload)
-        })
-        .then(res => res.json().then(data => ({ ok: res.ok, status: res.status, body: data })))
-        .then(result => {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = origHtml;
-
-            const data = result.body;
-            if (result.ok && data.status === 'success') {
-                showToast(data.message, true);
-                if (serviceModalObj) serviceModalObj.hide();
-                setTimeout(() => window.location.reload(), 600);
-            } else if (data.code === 'DUPLICATE_SERVICE_NAME' || (data.errors && data.errors.name)) {
-                // Xử lý Giao diện khi Dịch vụ Trùng lặp (Figma Node 216-2853)
-                const catSelect = document.getElementById('formServiceCategory');
-                const catName = catSelect.options[catSelect.selectedIndex]?.text || 'danh mục';
-                showDuplicateWarning(nameVal, catName, data.message);
-            } else {
-                let errMsg = data.message || 'Lỗi lưu dịch vụ';
-                if (data.errors) errMsg += ': ' + JSON.stringify(data.errors);
-                showToast(errMsg, false);
-            }
-        })
-        .catch(err => {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = origHtml;
-            showToast('Lỗi kết nối máy chủ', false);
-        });
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang lưu...';
+        }
+        return true;
     }
 
     // Hiển thị giao diện cảnh báo trùng lặp (Figma Node 216-2853)
@@ -1347,67 +718,12 @@
         }
     }
 
-    // Mở Modal Xác nhận Xóa dịch vụ (Figma Node 216-2320)
-    function openDeleteServiceModal(serviceId, serviceName, serviceCode) {
+    // Mở Modal Xác nhận Xóa dịch vụ
+    function openDeleteServiceModal(serviceId, serviceName) {
         document.getElementById('deleteTargetServiceId').value = serviceId;
         document.getElementById('deleteTargetServiceName').textContent = serviceName;
-        document.getElementById('deleteTargetServiceCode').textContent = serviceCode;
 
         if (deleteModalObj) deleteModalObj.show();
-    }
-
-    // Thực thi Xóa dịch vụ qua REST API (Figma Node 216-2320)
-    function executeDeleteService() {
-        const serviceId = document.getElementById('deleteTargetServiceId').value;
-        if (!serviceId) return;
-
-        const delBtn = document.getElementById('btnConfirmDeleteAction');
-        const origHtml = delBtn.innerHTML;
-        delBtn.disabled = true;
-        delBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xóa...';
-
-        fetch(`/services/api/admin/services/${serviceId}/`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            delBtn.disabled = false;
-            delBtn.innerHTML = origHtml;
-            if (deleteModalObj) deleteModalObj.hide();
-
-            if (data.status === 'success') {
-                showToast(data.message, true);
-                const row = document.getElementById(`serviceRow_${serviceId}`);
-                if (data.action === 'deleted') {
-                    if (row) {
-                        row.style.transition = 'all 0.4s ease';
-                        row.style.opacity = '0';
-                        row.style.transform = 'scale(0.95)';
-                        setTimeout(() => row.remove(), 400);
-                    }
-                } else {
-                    const statusBadge = document.getElementById(`statusBadge_${serviceId}`);
-                    if (statusBadge) {
-                        statusBadge.innerHTML = '<span class="status-dot-inactive">Đang ẩn / Khóa</span>';
-                    }
-                    if (row) row.setAttribute('data-status', 'Ngừng hoạt động');
-                    const sw = document.getElementById(`toggleSwitch_${serviceId}`);
-                    if (sw) sw.checked = false;
-                }
-                updateKPICounters();
-            } else {
-                showToast(data.error || 'Lỗi xóa dịch vụ', false);
-            }
-        })
-        .catch(err => {
-            delBtn.disabled = false;
-            delBtn.innerHTML = origHtml;
-            if (deleteModalObj) deleteModalObj.hide();
-            showToast('Lỗi kết nối khi xóa dịch vụ', false);
-        });
     }
 
     // Auto slugify helper
@@ -1443,21 +759,6 @@
     function updateSelectedCount() {
         const cnt = document.querySelectorAll('.service-row-chk:checked').length;
         document.getElementById('selectedRowsCount').textContent = cnt;
-    }
-
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
     }
 </script>
 {% endblock %}

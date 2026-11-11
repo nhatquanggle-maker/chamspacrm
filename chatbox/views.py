@@ -29,6 +29,22 @@ def is_staff_or_superuser(user):
 
 
 @login_required
+def chatbox_index_view(request):
+    """
+    Tự động phân luồng theo vai trò người dùng:
+      - Quản lý / Quản trị viên (is_superuser): Điều hướng sang Admin Monitor (Figma Node 502:2005)
+      - Nhân viên (is_staff): Điều hướng sang Staff Inbox Livechat (Figma Node 207:1040)
+      - Khách hàng (Customer): Điều hướng sang Chatbot tư vấn khách hàng
+    """
+    if request.user.is_superuser:
+        return redirect('chatbox:admin_monitor')
+    elif request.user.is_staff:
+        return redirect('chatbox:inbox')
+    else:
+        return redirect('chatbox:customer_chat')
+
+
+@login_required
 def livechat_staff_view(request):
     """
     [UC-2.2 & Figma Node 207:1040]
@@ -94,14 +110,14 @@ def livechat_staff_view(request):
 def admin_livechat_monitor_view(request):
     """
     [Figma Node 502:2005 - ADMIN · Quản lý Live Chat & Giám sát phiên tư vấn (UC-2.2)]
-    Dành riêng cho Quản trị viên (Admin / is_superuser=True):
+    Dành riêng cho Quản trị viên (Admin / is_staff=True hoặc is_superuser=True):
       - Cột 1: Danh sách hội thoại phân tab (Chưa tiếp nhận, Đang tư vấn, Đã kết thúc)
       - Cột 2: Khung giám sát & Can thiệp chat (Mode Giám sát vs Mode Can thiệp, Tiếp quản, Chuyển nhân viên)
-      - Cột 3: Thông tin chi tiết khách hàng (Hạng VIP, Tổng chi tiêu, Lưu ý sức khỏe) & Giám sát SLA
+      - Nút nhỏ xem chi tiết khách hàng chuẩn phân hệ quản trị
     """
-    if not request.user.is_superuser:
-        messages.error(request, "Quyền truy cập bị từ chối: Màn hình Giám sát phiên tư vấn chỉ dành riêng cho Quản lý.")
-        return redirect('chatbox:inbox')
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, "Quyền truy cập bị từ chối: Màn hình Giám sát phiên tư vấn chỉ dành cho Quản trị viên.")
+        return redirect('home')
 
     # Lấy danh sách hội thoại theo 3 tab
     waiting_conversations = (
@@ -127,6 +143,13 @@ def admin_livechat_monitor_view(request):
 
     if not active_conv:
         active_conv = processing_conversations.first() or waiting_conversations.first() or closed_conversations.first()
+
+    initial_tab = 'processing'
+    if active_conv:
+        if active_conv.status == 'Đang chờ':
+            initial_tab = 'waiting'
+        elif active_conv.status == 'Kết thúc':
+            initial_tab = 'closed'
 
     # Dữ liệu khách hàng cho Cột 3
     customer_info = None
@@ -175,6 +198,7 @@ def admin_livechat_monitor_view(request):
     context = {
         'page_title': 'Quản lý Boxchat | Giám sát phiên tư vấn',
         'active_tab': 'monitor',
+        'initial_tab': initial_tab,
         'waiting_conversations': waiting_conversations,
         'processing_conversations': processing_conversations,
         'closed_conversations': closed_conversations,
@@ -196,16 +220,16 @@ def admin_livechat_monitor_view(request):
 def faq_management_view(request):
     """
     [UC-2.3 & Figma Node 211:3459] Màn hình Quản lý kịch bản Chatbot (FAQ).
-    NGHIÊM CẤM NHÂN VIÊN: CHỈ DUY NHẤT QUẢN LÝ (Admin / is_superuser=True) MỚI ĐƯỢC PHÉP TRUY CẬP.
+    Chỉ tài khoản Quản trị viên (Admin / is_staff=True hoặc is_superuser=True) mới có quyền truy cập.
     Hỗ trợ:
       - Tìm kiếm theo từ khóa hoặc câu hỏi
       - Lọc theo danh mục (Pills thống kê số lượng)
       - Xuất dữ liệu CSV
       - Thêm/Sửa/Xóa và Toggle Trạng thái hoạt động
     """
-    if not request.user.is_superuser:
-        messages.error(request, "Quyền truy cập bị từ chối: Chỉ Quản lý (Admin) mới có quyền quản lý kịch bản Chatbot FAQ.")
-        return redirect('chatbox:inbox')
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, "Quyền truy cập bị từ chối: Chỉ tài khoản Quản trị viên mới được phép quản lý kịch bản Chatbot FAQ.")
+        return redirect('home')
 
     faqs = FAQ.objects.all().order_by('-created_at')
     
@@ -255,9 +279,18 @@ def customer_chat_view(request):
     """
     [UC-2.1 & UC-2.2] Giao diện trang Chatbot & Trò chuyện trực tuyến dành cho Khách hàng.
     """
-    quick_faqs = FAQ.objects.filter(status='Active')[:4]
+    quick_faqs = list(FAQ.objects.filter(status='Active').order_by('category', 'id'))
+    faq_categories = []
+    seen_cats = set()
+    for faq in quick_faqs:
+        cat = (faq.category or 'Chung').strip() or 'Chung'
+        if cat not in seen_cats:
+            seen_cats.add(cat)
+            faq_categories.append(cat)
+
     context = {
         'page_title': 'Trò chuyện tư vấn cùng Cham Spa & Massage',
         'quick_faqs': quick_faqs,
+        'faq_categories': faq_categories,
     }
     return render(request, 'chatbox/customer_chat.html', context)

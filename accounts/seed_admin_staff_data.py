@@ -2,7 +2,7 @@
 Seed data chuẩn xác 100% theo thiết kế Figma Node 221:3117:
 - Admin - Danh sách tài khoản nhân viên
 - Chức vụ: Lễ tân / CSKH, Kỹ thuật viên (KTV), Thu ngân, Quản lý ca
-- Trạng thái: Hoạt động, Nghỉ phép, Tạm khóa
+- Trạng thái: Hoạt động, Tạm khóa
 """
 import os
 import sys
@@ -74,7 +74,7 @@ def run_seed():
             'display_phone': '0913 730 522',
             'email': 'phong.tran@chamspa.vn',
             'position': 'Thu ngân',
-            'status': 'Nghỉ phép',
+            'status': 'Hoạt động',
             'is_active': True,
             'gender': 'Nam',
             'birthday': date(1997, 2, 18),
@@ -120,7 +120,7 @@ def run_seed():
         ('Nguyễn Đức Thắng', '0905223344', 'thang.nguyen@chamspa.vn', 'Kỹ thuật viên (KTV)', 'Hoạt động', True, 'Nam'),
         ('Bùi Quỳnh Nga', '0906334455', 'nga.bui@chamspa.vn', 'Thu ngân', 'Hoạt động', True, 'Nữ'),
         ('Trịnh Gia Bảo', '0907445566', 'bao.trinh@chamspa.vn', 'Quản lý ca', 'Hoạt động', True, 'Nam'),
-        ('Đinh Phương Thảo', '0908556677', 'thao.dinh@chamspa.vn', 'Kỹ thuật viên (KTV)', 'Nghỉ phép', True, 'Nữ'),
+        ('Đinh Phương Thảo', '0908556677', 'thao.dinh@chamspa.vn', 'Kỹ thuật viên (KTV)', 'Hoạt động', True, 'Nữ'),
         ('Phan Văn Toàn', '0909667788', 'toan.phan@chamspa.vn', 'Kỹ thuật viên (KTV)', 'Hoạt động', True, 'Nam'),
         ('Vũ Thùy Chi', '0910778899', 'chi.vu@chamspa.vn', 'Lễ tân / CSKH', 'Hoạt động', True, 'Nữ'),
         ('Cao Minh Nhật', '0911889900', 'nhat.cao@chamspa.vn', 'Kỹ thuật viên (KTV)', 'Hoạt động', True, 'Nam'),

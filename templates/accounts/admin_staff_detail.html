@@ -1,0 +1,88 @@
+{% extends "layouts/admin_layout.html" %}
+{% load static %}
+
+{% block title %}Chi tiết Nhân viên - {{ staff.name|default:staff.username }} | Cham Spa{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="font-family: 'Lora', serif; color: var(--cham-red, #781A24);">
+                Thông tin Nhân viên
+            </h2>
+            <p class="text-muted mb-0">Hồ sơ công tác và lịch hẹn phụ trách</p>
+        </div>
+        <a href="{% url 'accounts:admin_staff_list' %}" class="btn btn-cham-outline">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="border: 1px solid #EFE4CD !important;">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
+                         style="width: 60px; height: 60px; background: #781A24; font-size: 20px;">
+                        {{ staff.initials|default:"NV" }}
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-1" style="color: #171311;">{{ staff.name|default:staff.username }}</h4>
+                        <span class="badge {% if staff.is_active %}badge-status-active{% else %}badge-status-locked{% endif %}">
+                            {{ staff.work_status }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="small text-muted mb-2">Số điện thoại</div>
+                <div class="fw-semibold mb-3">{{ staff.phone|default:"Chưa cập nhật" }}</div>
+
+                <div class="small text-muted mb-2">Email</div>
+                <div class="fw-semibold mb-3">{{ staff.email|default:"Chưa cập nhật" }}</div>
+
+                <div class="small text-muted mb-2">Vai trò</div>
+                <div class="fw-semibold mb-3">{{ staff.position }}</div>
+
+                <div class="small text-muted mb-2">Tổng lịch hẹn hệ thống</div>
+                <div class="fw-bold fs-5" style="color: #781A24;">{{ total_assigned }} lịch hẹn</div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="table-container-card p-4 h-100">
+                <h5 class="fw-bold mb-3" style="font-family: 'Lora', serif; color: #781A24;">
+                    Lịch hẹn gần đây
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Mã lịch hẹn</th>
+                                <th>Khách hàng</th>
+                                <th>Ngày hẹn</th>
+                                <th>Khung giờ</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appt in assigned_appointments %}
+                            <tr>
+                                <td class="fw-bold" style="color: #781A24;">{{ appt.appointment_code }}</td>
+                                <td>{{ appt.customer_name }}</td>
+                                <td>{{ appt.appointment_date|date:"d/m/Y" }}</td>
+                                <td>{{ appt.time_slot }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ appt.get_status_display }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">Chưa có dữ liệu lịch hẹn.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

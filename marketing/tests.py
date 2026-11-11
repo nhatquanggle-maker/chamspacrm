@@ -424,3 +424,341 @@ class MarketingModuleTestCase(TestCase):
         self.assertNotContains(admin_notif_resp, 'Làm mới')
         admin_mkt_html = Path(settings.BASE_DIR, 'templates', 'marketing', 'admin_marketing.html').read_text(encoding='utf-8')
         self.assertNotIn('Làm mới', admin_mkt_html)
+
+    def test_admin_promotions_full_crud_and_existing_voucher_selection(self):
+        """[UC-7.4] Admin Thêm/Xem/Sửa/Xóa Khuyến mãi và chọn gắn Voucher hiện có."""
+        url = reverse('marketing:admin_promotions')
+
+        # Tạo thêm 1 voucher độc lập và 1 voucher cá nhân để kiểm tra gắn/gỡ
+        free_voucher = Voucher.objects.create(
+            voucher_code='FREEVOUCH50',
+            promotion=None,
+            discount_type='FIXED',
+            discount_value=Decimal('50000.00'),
+            min_order_amount=Decimal('200000.00'),
+            status='Khả dụng',
+            expiry_date=timezone.now() + timedelta(days=20),
+        )
+        personal_voucher = Voucher.objects.create(
+            voucher_code='PRIVSPEC100',
+            promotion=None,
+            customer=self.customer,
+            discount_type='FIXED',
+            discount_value=Decimal('100000.00'),
+            min_order_amount=Decimal('0.00'),
+            status='Khả dụng',
+            expiry_date=timezone.now() + timedelta(days=20),
+        )
+
+        # Non-superuser bị chặn sửa Promotion
+        self.client.force_login(self.staff)
+        resp_forbidden = self.client.post(url, {
+            'action': 'update_promotion',
+            'promotion_id': self.promo.id,
+            'promotion_code': 'HACK',
+            'title': 'Hacked',
+        })
+        self.assertEqual(resp_forbidden.status_code, 403)
+
+        # 1. Admin tạo chương trình khuyến mãi mới và chọn sẵn 2 voucher hiện có
+        self.client.force_login(self.admin)
+        create_resp = self.client.post(url, {
+            'action': 'create_promotion',
+            'promotion_code': 'AUTUMN2026',
+            'title': 'Ưu đãi Thu Vàng',
+            'conditions_desc': 'Áp dụng liệu trình thảo dược',
+            'valid_from': '2026-10-01',
+            'valid_until': '2026-12-31',
+            'status': 'Đang hoạt động',
+            'voucher_ids': [str(free_voucher.id), str(self.voucher_fixed.id)],
+        })
+        self.assertEqual(create_resp.status_code, 302)
+        new_promo = Promotion.objects.get(promotion_code='AUTUMN2026')
+        free_voucher.refresh_from_db()
+        self.voucher_fixed.refresh_from_db()
+        self.assertEqual(free_voucher.promotion_id, new_promo.id)
+        self.assertEqual(self.voucher_fixed.promotion_id, new_promo.id)
+
+        # 2. Kiểm tra GET trang Admin Promotions (có nút Xem/Sửa/Xóa & JSON dữ liệu modal + không chứa Làm mới)
+        page_resp = self.client.get(url)
+        self.assertEqual(page_resp.status_code, 200)
+        self.assertNotContains(page_resp, 'Làm mới')
+        self.assertIn(str(new_promo.id), page_resp.context['promo_map'])
+        promo_payload = page_resp.context['promo_map'][str(new_promo.id)]
+        self.assertEqual(set(promo_payload['voucher_ids']), {free_voucher.id, self.voucher_fixed.id})
+        self.assertContains(page_resp, f'openViewPromoModal({new_promo.id})')
+        self.assertContains(page_resp, f'openEditPromoModal({new_promo.id})')
+
+        # 3. Kiểm tra validation ngày kết thúc < ngày bắt đầu & trùng mã khi sửa
+        bad_date_resp = self.client.post(url, {
+            'action': 'update_promotion',
+            'promotion_id': new_promo.id,
+            'promotion_code': 'AUTUMN2026',
+            'title': 'Ưu đãi Thu Vàng',
+            'valid_from': '2026-12-31',
+            'valid_until': '2026-10-01',
+            'status': 'Đang hoạt động',
+        })
+        self.assertEqual(bad_date_resp.status_code, 302)
+        new_promo.refresh_from_db()
+        self.assertEqual(timezone.localtime(new_promo.valid_from).month, 10)
+
+        dup_code_resp = self.client.post(url, {
+            'action': 'update_promotion',
+            'promotion_id': new_promo.id,
+            'promotion_code': self.promo.promotion_code,
+            'title': 'Trùng mã',
+            'status': 'Đang hoạt động',
+        })
+        self.assertEqual(dup_code_resp.status_code, 302)
+        new_promo.refresh_from_db()
+        self.assertEqual(new_promo.promotion_code, 'AUTUMN2026')
+
+        # 4. Sửa khuyến mãi: đổi thông tin, giữ free_voucher, bỏ voucher_fixed, gắn thêm personal_voucher
+        edit_resp = self.client.post(url, {
+            'action': 'update_promotion',
+            'promotion_id': new_promo.id,
+            'promotion_code': 'AUTUMN26VIP',
+            'title': 'Ưu đãi Thu Vàng VIP',
+            'conditions_desc': 'Áp dụng cuối tuần và ngày lễ',
+            'valid_from': '2026-10-05',
+            'valid_until': '2026-12-20',
+            'status': 'Sắp diễn ra',
+            'voucher_ids': [str(free_voucher.id), str(personal_voucher.id)],
+        })
+        self.assertEqual(edit_resp.status_code, 302)
+        new_promo.refresh_from_db()
+        free_voucher.refresh_from_db()
+        self.voucher_fixed.refresh_from_db()
+        personal_voucher.refresh_from_db()
+
+        self.assertEqual(new_promo.promotion_code, 'AUTUMN26VIP')
+        self.assertEqual(new_promo.title, 'Ưu đãi Thu Vàng VIP')
+        self.assertEqual(new_promo.status, 'Sắp diễn ra')
+        self.assertEqual(free_voucher.promotion_id, new_promo.id)
+        self.assertEqual(personal_voucher.promotion_id, new_promo.id)
+        self.assertIsNone(self.voucher_fixed.promotion_id)
+
+        # 5. Kiểm tra trang công khai /marketing/ chỉ hiển thị voucher chung, không lộ voucher cá nhân
+        pub_resp = self.client.get(reverse('marketing:promotions'))
+        self.assertEqual(pub_resp.status_code, 200)
+        matched_promo = [p for p in pub_resp.context['promotions'] if p.id == new_promo.id][0]
+        pub_codes = [v.voucher_code for v in matched_promo.public_vouchers]
+        self.assertIn('FREEVOUCH50', pub_codes)
+        self.assertNotIn('PRIVSPEC100', pub_codes)
+
+    def test_admin_vouchers_full_crud_and_validation(self):
+        """[UC-7.4] Admin Thêm/Xem/Sửa/Xóa Mã Voucher và đồng bộ trạng thái sử dụng."""
+        url = reverse('marketing:admin_promotions')
+        future_expiry = (timezone.now() + timedelta(days=45)).strftime('%Y-%m-%dT%H:%M')
+        past_expiry = (timezone.now() - timedelta(days=5)).strftime('%Y-%m-%dT%H:%M')
+
+        # Non-superuser bị chặn sửa Voucher
+        self.client.force_login(self.staff)
+        forbidden = self.client.post(url, {
+            'action': 'update_voucher',
+            'voucher_id': self.voucher_percent.id,
+            'voucher_code': 'HACKVOUCH',
+            'discount_type': 'FIXED',
+            'discount_value': '10000',
+            'expiry_date': future_expiry,
+        })
+        self.assertEqual(forbidden.status_code, 403)
+
+        # Admin xem danh sách và payload Xem/Sửa
+        self.client.force_login(self.admin)
+        get_resp = self.client.get(f"{url}?subtab=vouchers")
+        self.assertEqual(get_resp.status_code, 200)
+        self.assertIn(str(self.voucher_percent.id), get_resp.context['voucher_map'])
+        self.assertContains(get_resp, f'openViewVoucherModal({self.voucher_percent.id})')
+        self.assertContains(get_resp, f'openEditVoucherModal({self.voucher_percent.id})')
+
+        # Sửa voucher % -> FIXED, đổi mã, gắn khách hàng và chuyển sang Đã dùng
+        edit_resp = self.client.post(url, {
+            'action': 'update_voucher',
+            'voucher_id': self.voucher_percent.id,
+            'voucher_code': 'CHAMFIXED250',
+            'promotion_id': '',
+            'discount_type': 'FIXED',
+            'discount_value': '250000',
+            'max_discount_amount': '999999',
+            'min_order_amount': '800000',
+            'expiry_date': future_expiry,
+            'status': 'Đã dùng',
+            'customer_id': str(self.customer.id),
+        })
+        self.assertEqual(edit_resp.status_code, 302)
+        self.voucher_percent.refresh_from_db()
+        self.assertEqual(self.voucher_percent.voucher_code, 'CHAMFIXED250')
+        self.assertIsNone(self.voucher_percent.promotion_id)
+        self.assertEqual(self.voucher_percent.discount_type, 'FIXED')
+        self.assertEqual(self.voucher_percent.discount_value, Decimal('250000.00'))
+        self.assertIsNone(self.voucher_percent.max_discount_amount)
+        self.assertEqual(self.voucher_percent.min_order_amount, Decimal('800000.00'))
+        self.assertEqual(self.voucher_percent.status, 'Đã dùng')
+        self.assertEqual(self.voucher_percent.customer_id, self.customer.id)
+        self.assertIsNotNone(self.voucher_percent.used_at)
+
+        # Sửa lại thành Hết hạn với ngày quá khứ (cho phép giữ trạng thái Hết hạn)
+        expired_edit = self.client.post(url, {
+            'action': 'update_voucher',
+            'voucher_id': self.voucher_percent.id,
+            'voucher_code': 'CHAMFIXED250',
+            'discount_type': 'FIXED',
+            'discount_value': '250000',
+            'min_order_amount': '800000',
+            'expiry_date': past_expiry,
+            'status': 'Hết hạn',
+        })
+        self.assertEqual(expired_edit.status_code, 302)
+        self.voucher_percent.refresh_from_db()
+        self.assertEqual(self.voucher_percent.status, 'Hết hạn')
+
+        # Không cho chuyển lại Khả dụng nếu expiry vẫn ở quá khứ
+        bad_reactivate = self.client.post(url, {
+            'action': 'update_voucher',
+            'voucher_id': self.voucher_percent.id,
+            'voucher_code': 'CHAMFIXED250',
+            'discount_type': 'FIXED',
+            'discount_value': '250000',
+            'min_order_amount': '800000',
+            'expiry_date': past_expiry,
+            'status': 'Khả dụng',
+        })
+        self.assertEqual(bad_reactivate.status_code, 302)
+        self.voucher_percent.refresh_from_db()
+        self.assertEqual(self.voucher_percent.status, 'Hết hạn')
+
+        # Gia hạn và chuyển lại Khả dụng -> xóa used_at
+        reactivate_ok = self.client.post(url, {
+            'action': 'update_voucher',
+            'voucher_id': self.voucher_percent.id,
+            'voucher_code': 'CHAMFIXED250',
+            'discount_type': 'PERCENT',
+            'discount_value': '15',
+            'max_discount_amount': '120000',
+            'min_order_amount': '500000',
+            'expiry_date': future_expiry,
+            'status': 'Khả dụng',
+        })
+        self.assertEqual(reactivate_ok.status_code, 302)
+        self.voucher_percent.refresh_from_db()
+        self.assertEqual(self.voucher_percent.status, 'Khả dụng')
+        self.assertIsNone(self.voucher_percent.used_at)
+        self.assertEqual(self.voucher_percent.max_discount_amount, Decimal('120000.00'))
+
+    def test_admin_notifications_full_crud_all_targets(self):
+        """[UC-7.3] Admin Thêm/Xem/Sửa/Xóa Thông báo cho khách hàng, nhân viên và cá nhân."""
+        url = reverse('marketing:admin_notifications')
+        User.objects.create_user(
+            username='customer_two',
+            phone='0905999004',
+            email='cus2@gmail.com',
+            name='Khách Hai',
+            password='TestPassword123!',
+        )
+
+        # Non-superuser bị chặn update_notification
+        self.client.force_login(self.staff)
+        forbidden = self.client.post(url, {
+            'action': 'update_notification',
+            'notification_id': 1,
+            'title': 'Hack',
+            'content': 'Hack',
+        })
+        self.assertEqual(forbidden.status_code, 403)
+
+        # 1. Admin phát thông báo tới toàn bộ khách hàng (2 khách) ở trạng thái Chờ gửi
+        self.client.force_login(self.admin)
+        self.client.post(url, {
+            'action': 'create_notification',
+            'title': 'Thông báo bảo trì tối nay',
+            'content': 'Hệ thống bảo trì từ 23:00 đến 23:30.',
+            'target_type': 'all_customers',
+            'delivery_channels': 'Web & Email',
+            'status': 'Chờ gửi',
+        })
+        batch_qs = Notification.objects.filter(title='Thông báo bảo trì tối nay')
+        self.assertEqual(batch_qs.count(), 2)
+        self.assertTrue(all(n.status == 'Chờ gửi' for n in batch_qs))
+
+        # 2. Admin tạo thêm thông báo gửi Staff (all_staff) và gửi 1 cá nhân (single_user)
+        self.client.post(url, {
+            'action': 'create_notification',
+            'title': 'Họp giao ban KTV',
+            'content': 'Có mặt đúng 08:30 tại phòng họp tầng 2.',
+            'target_type': 'all_staff',
+            'delivery_channels': 'In-App',
+            'status': 'Đã gửi',
+        })
+        self.client.post(url, {
+            'action': 'create_notification',
+            'title': 'Quà sinh nhật riêng',
+            'content': 'Chúc mừng sinh nhật quý khách Lê Nhật Quang.',
+            'target_type': 'single_user',
+            'user_id': str(self.customer.id),
+            'promotion_id': str(self.promo.id),
+            'delivery_channels': 'Web',
+            'status': 'Đã gửi',
+        })
+
+        # 3. Trang Admin Notifications hiển thị đủ cả 3 đợt cùng nút Xem/Sửa/Xóa
+        list_resp = self.client.get(url)
+        self.assertEqual(list_resp.status_code, 200)
+        self.assertNotContains(list_resp, 'Làm mới')
+        titles = {n.title: n for n in list_resp.context['notifications']}
+        self.assertIn('Thông báo bảo trì tối nay', titles)
+        self.assertIn('Họp giao ban KTV', titles)
+        self.assertIn('Quà sinh nhật riêng', titles)
+
+        rep_broadcast = titles['Thông báo bảo trì tối nay']
+        self.assertEqual(rep_broadcast.recipient_count, 2)
+        self.assertContains(list_resp, f'openViewNotifModal({rep_broadcast.id})')
+        self.assertContains(list_resp, f'openEditNotifModal({rep_broadcast.id})')
+
+        # 4. Sửa đợt thông báo chung -> đồng bộ toàn bộ bản ghi trong đợt và chuyển Đã gửi
+        self.client.post(url, {
+            'action': 'update_notification',
+            'notification_id': rep_broadcast.id,
+            'scope': 'broadcast',
+            'title': 'Lịch nâng cấp hệ thống (Đã cập nhật)',
+            'content': 'Hệ thống đã hoàn tất nâng cấp lúc 23:15.',
+            'delivery_channels': 'Toàn bộ (In-App, SMS, Email)',
+            'promotion_id': str(self.promo.id),
+            'status': 'Đã gửi',
+        })
+        updated_qs = Notification.objects.filter(title='Lịch nâng cấp hệ thống (Đã cập nhật)')
+        self.assertEqual(updated_qs.count(), 2)
+        self.assertTrue(all(n.status == 'Đã gửi' and n.promotion_id == self.promo.id for n in updated_qs))
+
+        # 5. Xóa đợt thông báo Staff
+        rep_staff = titles['Họp giao ban KTV']
+        self.client.post(url, {
+            'action': 'delete_notification',
+            'notification_id': rep_staff.id,
+            'scope': 'broadcast',
+        })
+        self.assertEqual(Notification.objects.filter(title='Họp giao ban KTV').count(), 0)
+
+        # 6. Sửa và xóa thông báo cá nhân (scope='single')
+        rep_single = titles['Quà sinh nhật riêng']
+        self.client.post(url, {
+            'action': 'update_notification',
+            'notification_id': rep_single.id,
+            'scope': 'single',
+            'title': 'Quà sinh nhật VIP',
+            'content': 'Tặng bạn gói xông hơi miễn phí.',
+            'delivery_channels': 'Web & Email',
+            'promotion_id': '',
+            'status': 'Đã gửi',
+        })
+        rep_single.refresh_from_db()
+        self.assertEqual(rep_single.title, 'Quà sinh nhật VIP')
+        self.assertIsNone(rep_single.promotion_id)
+
+        self.client.post(url, {
+            'action': 'delete_notification',
+            'notification_id': rep_single.id,
+            'scope': 'single',
+        })
+        self.assertFalse(Notification.objects.filter(id=rep_single.id).exists())

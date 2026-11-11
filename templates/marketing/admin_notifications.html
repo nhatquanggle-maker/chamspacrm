@@ -3,7 +3,7 @@
 
 {% block body_class %}page-marketing-admin-notifications{% endblock %}
 
-{% block title %}Quản lý Thông báo Khách hàng | Cham Spa Admin Workspace{% endblock %}
+{% block title %}Quản lý Thông báo | Cham Spa Admin Workspace{% endblock %}
 
 
 {% block admin_content %}
@@ -11,8 +11,8 @@
     <!-- 1. Header -->
     <div class="admin-mkt-header">
         <div>
-            <h1 class="admin-mkt-title">Quản Lý Thông Báo Khách Hàng</h1>
-            <p class="text-muted mb-0" style="font-size: 13.5px;">Soạn và phát hành thông báo chung đến toàn bộ khách hàng của Cham Spa.</p>
+            <h1 class="admin-mkt-title">Quản Lý Thông Báo</h1>
+            <p class="text-muted mb-0" style="font-size: 13.5px;">Soạn, xem chi tiết, chỉnh sửa và thu hồi các thông báo phát hành tới khách hàng hoặc nhân sự Cham Spa.</p>
         </div>
         <div class="d-flex align-items-center gap-2">
             <button type="button" class="btn px-4 py-2" data-bs-toggle="modal" data-bs-target="#modalCreateNotification" style="background-color: #781A24; color: #FFFFFF; font-weight: 700; border-radius: 999px; font-size: 13.5px; box-shadow: 0 4px 12px rgba(120, 26, 36, 0.25);">
@@ -24,7 +24,7 @@
     {% if messages %}
     <div class="mb-3">
         {% for msg in messages %}
-        <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show rounded-3 border-0 shadow-sm mb-2" role="alert">
+        <div class="alert alert-{% if 'error' in msg.tags %}danger{% else %}{{ msg.tags|default:'info' }}{% endif %} alert-dismissible fade show rounded-3 border-0 shadow-sm mb-2" role="alert">
             {{ msg }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
         </div>
@@ -32,15 +32,15 @@
     </div>
     {% endif %}
 
-    <!-- 2. Bảng Lịch Sử Thông Báo Chung Đã Phát Hành -->
+    <!-- 2. Bảng Lịch Sử Thông Báo Đã Phát Hành -->
     <div class="cham-table-card">
         <div class="cham-table-card-header">
             <div>
                 <h5 class="font-serif fw-bold mb-1" style="color: #781A24; font-size: 17px;">
                     <i class="bi bi-send-check-fill me-2" style="color: #D0B581;"></i>
-                    Lịch Sử Thông Báo Đã Phát Hành
+                    Danh Sách Thông Báo Đã Phát Hành
                 </h5>
-                <div class="text-muted" style="font-size: 12.5px;">Quản lý và theo dõi các thông báo chung đã gửi đến toàn bộ khách hàng.</div>
+                <div class="text-muted" style="font-size: 12.5px;">Quản lý và theo dõi các thông báo đã phát hành tới khách hàng và nhân sự.</div>
             </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <form method="GET" class="d-flex align-items-center gap-2">
@@ -53,7 +53,7 @@
                     </div>
                 </form>
                 <span class="badge" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #D0B581; font-size: 12px;">
-                    Hiển thị {{ notifications.object_list|length }} / {{ total_broadcasts }} thông báo
+                    Hiển thị {{ notifications.object_list|length }} / {{ total_broadcasts }} đợt
                 </span>
             </div>
         </div>
@@ -62,7 +62,8 @@
             <table class="table cham-table mb-0 align-middle">
                 <thead>
                     <tr>
-                        <th>Tiêu đề & Nội dung</th>
+                        <th>Tiêu đề &amp; Nội dung</th>
+                        <th>Đối tượng nhận</th>
                         <th>Kênh gửi</th>
                         <th>Trạng thái</th>
                         <th>Thời gian phát</th>
@@ -72,7 +73,7 @@
                 <tbody id="notificationTableBody">
                     {% for notif in notifications %}
                         <tr id="notif-row-{{ notif.id }}">
-                            <td style="max-width: 440px;">
+                            <td style="max-width: 360px;">
                                 <div class="fw-bold text-dark mb-1" style="font-size: 13.5px;">{{ notif.title }}</div>
                                 <div class="text-muted text-truncate" style="font-size: 12.5px;" title="{{ notif.content }}">
                                     {{ notif.content }}
@@ -85,36 +86,55 @@
                                     </div>
                                 {% endif %}
                             </td>
+                            <td style="font-size: 12.5px;">
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                                    {{ notif.target_summary }}
+                                </span>
+                            </td>
                             <td>
                                 <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 11px;">
                                     <i class="bi bi-app-indicator me-1 text-danger"></i>{{ notif.delivery_channels|default:"In-App" }}
                                 </span>
                             </td>
                             <td>
-                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 11.5px;">
-                                    <i class="bi bi-check2-all me-1"></i>{{ notif.status|default:"Đã gửi" }}
-                                </span>
+                                {% if notif.status == 'Chờ gửi' %}
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1" style="font-size: 11.5px;">
+                                        <i class="bi bi-clock me-1"></i>Chờ gửi
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 11.5px;">
+                                        <i class="bi bi-check2-all me-1"></i>{{ notif.status|default:"Đã gửi" }}
+                                    </span>
+                                {% endif %}
                             </td>
-                            <td style="font-size: 12.5px; color: #716761;">
+                            <td style="font-size: 12.5px; color: #716761; white-space: nowrap;">
                                 {{ notif.created_at|date:"d/m/Y H:i" }}
                             </td>
-                            <td class="text-end">
-                                <form method="POST" action="{% url 'marketing:admin_notifications' %}" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thông báo này khỏi lịch sử gửi khách hàng?')">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="delete_notification">
-                                    <input type="hidden" name="notification_id" value="{{ notif.id }}">
-                                    <input type="hidden" name="scope" value="broadcast">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa thông báo">
-                                        <i class="bi bi-trash"></i>
+                            <td class="text-end" style="white-space: nowrap;">
+                                <div class="d-inline-flex align-items-center justify-content-end gap-1 flex-nowrap">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openViewNotifModal({{ notif.id }})" title="Xem chi tiết thông báo">
+                                        <i class="bi bi-eye"></i>
                                     </button>
-                                </form>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditNotifModal({{ notif.id }})" title="Chỉnh sửa thông báo">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <form method="POST" action="{% url 'marketing:admin_notifications' %}" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thông báo này khỏi hệ thống?')">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_notification">
+                                        <input type="hidden" name="notification_id" value="{{ notif.id }}">
+                                        <input type="hidden" name="scope" value="{{ notif.notif_scope|default:'broadcast' }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa thông báo">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">
+                            <td colspan="6" class="text-center py-5 text-muted">
                                 <i class="bi bi-bell-slash fs-1 d-block mb-2" style="color: #D0B581;"></i>
-                                Chưa có thông báo chung nào được phát hành tới khách hàng.
+                                Chưa có thông báo nào được phát hành từ trang Quản trị.
                             </td>
                         </tr>
                     {% endfor %}
@@ -132,17 +152,17 @@
                     <ul class="pagination pagination-sm mb-0">
                         {% if notifications.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?q={{ search_kw }}&page={{ notifications.previous_page_number }}" style="color: #781A24;">&laquo; Trước</a>
+                                <a class="page-link" href="?q={{ search_kw|urlencode }}&page={{ notifications.previous_page_number }}" style="color: #781A24;">&laquo; Trước</a>
                             </li>
                         {% endif %}
                         {% for num in notifications.paginator.page_range %}
                             <li class="page-item {% if notifications.number == num %}active{% endif %}">
-                                <a class="page-link" href="?q={{ search_kw }}&page={{ num }}" style="{% if notifications.number == num %}background-color: #781A24; border-color: #781A24;{% else %}color: #781A24;{% endif %}">{{ num }}</a>
+                                <a class="page-link" href="?q={{ search_kw|urlencode }}&page={{ num }}" style="{% if notifications.number == num %}background-color: #781A24; border-color: #781A24;{% else %}color: #781A24;{% endif %}">{{ num }}</a>
                             </li>
                         {% endfor %}
                         {% if notifications.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?q={{ search_kw }}&page={{ notifications.next_page_number }}" style="color: #781A24;">Sau &raquo;</a>
+                                <a class="page-link" href="?q={{ search_kw|urlencode }}&page={{ notifications.next_page_number }}" style="color: #781A24;">Sau &raquo;</a>
                             </li>
                         {% endif %}
                     </ul>
@@ -151,9 +171,11 @@
         {% endif %}
     </div>
 </div>
+{% endblock admin_content %}
 
+{% block admin_modals %}
 <!-- =========================================================================
-     MODAL: SOẠN & PHÁT THÔNG BÁO CHUNG GỬI KHÁCH HÀNG
+     MODAL 1: SOẠN & PHÁT THÔNG BÁO MỚI
      ========================================================================= -->
 <div class="modal fade" id="modalCreateNotification" tabindex="-1" aria-labelledby="modalCreateNotificationTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -161,7 +183,7 @@
             <div class="modal-header" style="background: linear-gradient(135deg, #781A24 0%, #5C121B 100%); color: #FFFFFF; border-bottom: 1px solid #D0B581;">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-bell-fill" style="color: #D0B581; font-size: 20px;"></i>
-                    <h5 class="modal-title font-serif fw-bold mb-0" id="modalCreateNotificationTitle" style="font-size: 18px;">Soạn Thông Báo Gửi Khách Hàng</h5>
+                    <h5 class="modal-title font-serif fw-bold mb-0" id="modalCreateNotificationTitle" style="font-size: 18px;">Soạn Thông Báo Mới</h5>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -169,49 +191,71 @@
             <form id="formCreateNotification" method="POST" action="{% url 'marketing:admin_notifications' %}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="create_notification">
-                <input type="hidden" name="target_type" value="all_customers">
                 <div class="modal-body p-4" style="background-color: #FAF7EF;">
                     <div class="row g-3">
-                        <!-- 1. Tiêu đề thông báo -->
-                        <div class="col-12">
-                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Tiêu đề thông báo <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="notifInputTitle" name="title" placeholder="Ví dụ: Ưu đãi tri ân khách hàng Cham Spa..." required style="border-color: #D0B581; border-radius: 10px;">
-                        </div>
-
-                        <!-- 2. Đối tượng nhận cố định toàn bộ khách hàng -->
                         <div class="col-md-6">
-                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Đối tượng nhận</label>
-                            <div class="form-control d-flex align-items-center gap-2" style="background-color: #FFFFFF; border-color: #D0B581; border-radius: 10px; color: #781A24; font-weight: 600;">
-                                <i class="bi bi-people-fill"></i>
-                                <span>Toàn bộ khách hàng Cham Spa</span>
-                            </div>
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Đối tượng nhận <span class="text-danger">*</span></label>
+                            <select class="form-select" id="notifTargetType" name="target_type" onchange="toggleTargetUserSelect(this.value)" style="border-color: #D0B581; border-radius: 10px;">
+                                <option value="all_customers" selected>Toàn bộ khách hàng Cham Spa</option>
+                                <option value="all_staff">Toàn bộ nhân viên nội bộ</option>
+                                <option value="all_users">Toàn bộ người dùng hệ thống</option>
+                                <option value="single_user">Gửi một tài khoản cụ thể</option>
+                            </select>
                         </div>
 
-                        <!-- 3. Kênh gửi -->
-                        <div class="col-md-6" id="channelContainer">
+                        <div class="col-md-6" id="divSelectNotifUser" style="display: none;">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Chọn người nhận <span class="text-danger">*</span></label>
+                            <select class="form-select" id="notifUserId" name="user_id" style="border-color: #D0B581; border-radius: 10px;">
+                                <option value="">-- Chọn tài khoản --</option>
+                                <optgroup label="Khách hàng">
+                                    {% for c in customers %}
+                                        <option value="{{ c.id }}">{{ c.name|default:c.username }} ({{ c.phone|default:c.email }})</option>
+                                    {% endfor %}
+                                </optgroup>
+                                <optgroup label="Nhân viên">
+                                    {% for s in staffs %}
+                                        <option value="{{ s.id }}">{{ s.name|default:s.username }} (Nhân viên)</option>
+                                    {% endfor %}
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Kênh phân phối</label>
                             <select class="form-select" id="notifDeliveryChannel" name="delivery_channels" style="border-color: #D0B581; border-radius: 10px;">
                                 <option value="In-App">Thông báo hệ thống (Mặc định)</option>
+                                <option value="Web">Hệ thống Web</option>
                                 <option value="Web & Email">Thông báo hệ thống + Email</option>
                                 <option value="Toàn bộ (In-App, SMS, Email)">Toàn bộ (Hệ thống + SMS + Email)</option>
                             </select>
                         </div>
 
-                        <!-- 4. Đính kèm Khuyến mãi (Optional) -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Trạng thái phát hành</label>
+                            <select class="form-select" id="notifCreateStatus" name="status" style="border-color: #D0B581; border-radius: 10px;">
+                                <option value="Đã gửi" selected>Đã gửi (Phát ngay)</option>
+                                <option value="Chờ gửi">Chờ gửi (Lưu nháp)</option>
+                            </select>
+                        </div>
+
                         <div class="col-12">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Đính kèm chương trình khuyến mãi (Tùy chọn)</label>
                             <select class="form-select" id="notifPromotionId" name="promotion_id" style="border-color: #D0B581; border-radius: 10px;">
                                 <option value="">-- Không đính kèm khuyến mãi --</option>
                                 {% for promo in promotions %}
-                                    <option value="{{ promo.id }}">{{ promo.title }}</option>
+                                    <option value="{{ promo.id }}">{{ promo.promotion_code }} - {{ promo.title }} ({{ promo.status }})</option>
                                 {% endfor %}
                             </select>
                         </div>
 
-                        <!-- 5. Nội dung thông báo -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Tiêu đề thông báo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="notifInputTitle" name="title" placeholder="Ví dụ: Ưu đãi tri ân khách hàng Cham Spa..." required style="border-color: #D0B581; border-radius: 10px;">
+                        </div>
+
                         <div class="col-12">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Nội dung thông báo chi tiết <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="notifInputContent" name="content" rows="4" placeholder="Nhập nội dung thông báo chung gửi đến khách hàng..." required style="border-color: #D0B581; border-radius: 10px;"></textarea>
+                            <textarea class="form-control" id="notifInputContent" name="content" rows="4" placeholder="Nhập nội dung thông báo chi tiết..." required style="border-color: #D0B581; border-radius: 10px;"></textarea>
                         </div>
                     </div>
                 </div>
@@ -226,4 +270,215 @@
         </div>
     </div>
 </div>
-{% endblock %}
+
+<!-- =========================================================================
+     MODAL 2: XEM CHI TIẾT THÔNG BÁO
+     ========================================================================= -->
+<div class="modal fade" id="modalViewNotification" tabindex="-1" aria-labelledby="modalViewNotificationTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border: 1px solid #D0B581; border-radius: 18px; overflow: hidden; box-shadow: 0 16px 40px rgba(46, 29, 23, 0.25);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #781A24 0%, #5C121B 100%); color: #FFFFFF; border-bottom: 1px solid #D0B581;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-eye-fill" style="color: #D0B581; font-size: 20px;"></i>
+                    <h5 class="modal-title font-serif fw-bold mb-0" id="modalViewNotificationTitle" style="font-size: 18px;">Chi Tiết Thông Báo</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" style="background-color: #FAF7EF;">
+                <div class="bg-white rounded-3 p-3 border" style="border-color: #E8E2D9 !important;">
+                    <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-3 pb-2 border-bottom">
+                        <div>
+                            <span class="badge mb-1" id="viewNotifCode" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #D0B581; font-family: monospace;"></span>
+                            <h5 class="font-serif fw-bold mb-0" id="viewNotifTitle" style="color: #2E1D17;"></h5>
+                        </div>
+                        <span class="badge px-3 py-2" id="viewNotifStatusBadge"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="text-muted mb-1" style="font-size: 12px;">Nội dung thông báo</div>
+                        <div class="p-3 rounded-3" id="viewNotifContent" style="background-color: #FAF7EF; border: 1px solid #E8E2D9; font-size: 13.5px; white-space: pre-line;"></div>
+                    </div>
+
+                    <div class="row g-3" style="font-size: 13px;">
+                        <div class="col-md-6">
+                            <div class="text-muted" style="font-size: 12px;">Đối tượng nhận</div>
+                            <div class="fw-semibold" id="viewNotifTarget"></div>
+                            <div class="text-muted mt-1" id="viewNotifRecipients" style="font-size: 11.5px;"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted" style="font-size: 12px;">Kênh phân phối</div>
+                            <div class="fw-semibold" id="viewNotifChannel"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted" style="font-size: 12px;">Chương trình khuyến mãi đính kèm</div>
+                            <div class="fw-semibold" id="viewNotifPromo"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted" style="font-size: 12px;">Thời gian phát</div>
+                            <div class="fw-semibold" id="viewNotifCreatedAt"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
+                <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Đóng</button>
+                <button type="button" class="btn px-4 py-2" id="btnViewNotifToEdit" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 700;">
+                    <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 3: CHỈNH SỬA THÔNG BÁO
+     ========================================================================= -->
+<div class="modal fade" id="modalEditNotification" tabindex="-1" aria-labelledby="modalEditNotificationTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border: 1px solid #D0B581; border-radius: 18px; overflow: hidden; box-shadow: 0 16px 40px rgba(46, 29, 23, 0.25);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #781A24 0%, #5C121B 100%); color: #FFFFFF; border-bottom: 1px solid #D0B581;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-pencil-square" style="color: #D0B581; font-size: 20px;"></i>
+                    <h5 class="modal-title font-serif fw-bold mb-0" id="modalEditNotificationTitle" style="font-size: 18px;">Chỉnh Sửa Thông Báo</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="formEditNotification" method="POST" action="{% url 'marketing:admin_notifications' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_notification">
+                <input type="hidden" name="notification_id" id="editNotifId">
+                <input type="hidden" name="scope" id="editNotifScope" value="broadcast">
+                <div class="modal-body p-4" style="background-color: #FAF7EF;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Phạm vi người nhận</label>
+                            <div class="form-control bg-white" id="editNotifTargetInfo" style="border-color: #D0B581; border-radius: 10px; color: #781A24; font-weight: 600;"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Trạng thái phát hành</label>
+                            <select class="form-select" id="editNotifStatus" name="status" style="border-color: #D0B581; border-radius: 10px;">
+                                <option value="Đã gửi">Đã gửi</option>
+                                <option value="Chờ gửi">Chờ gửi</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Kênh phân phối</label>
+                            <select class="form-select" id="editNotifChannel" name="delivery_channels" style="border-color: #D0B581; border-radius: 10px;">
+                                <option value="In-App">Thông báo hệ thống (In-App)</option>
+                                <option value="Web">Hệ thống Web</option>
+                                <option value="Web & Email">Thông báo hệ thống + Email</option>
+                                <option value="Toàn bộ (In-App, SMS, Email)">Toàn bộ (Hệ thống + SMS + Email)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Đính kèm khuyến mãi</label>
+                            <select class="form-select" id="editNotifPromotionId" name="promotion_id" style="border-color: #D0B581; border-radius: 10px;">
+                                <option value="">-- Không đính kèm khuyến mãi --</option>
+                                {% for promo in promotions %}
+                                    <option value="{{ promo.id }}">{{ promo.promotion_code }} - {{ promo.title }} ({{ promo.status }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Tiêu đề thông báo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editNotifTitle" name="title" required style="border-color: #D0B581; border-radius: 10px;">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Nội dung chi tiết <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="editNotifContent" name="content" rows="4" required style="border-color: #D0B581; border-radius: 10px;"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Hủy</button>
+                    <button type="submit" class="btn px-4 py-2" id="btnSubmitEditNotif" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 700;">
+                        <i class="bi bi-save me-1"></i>Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock admin_modals %}
+
+{% block extra_js %}
+{{ notif_map|json_script:"notif-data-json" }}
+<script>
+    const NOTIF_DATA = JSON.parse(document.getElementById('notif-data-json')?.textContent || '{}');
+    let currentViewNotifId = null;
+
+    function toggleTargetUserSelect(val) {
+        const div = document.getElementById('divSelectNotifUser');
+        const userSelect = document.getElementById('notifUserId');
+        if (!div || !userSelect) return;
+        const isSingle = (val === 'single_user');
+        div.style.display = isSingle ? 'block' : 'none';
+        userSelect.required = isSingle;
+    }
+
+    function openViewNotifModal(notifId) {
+        const data = NOTIF_DATA[String(notifId)];
+        if (!data) return;
+        currentViewNotifId = notifId;
+
+        document.getElementById('viewNotifCode').textContent = data.notification_code || `#${data.id}`;
+        document.getElementById('viewNotifTitle').textContent = data.title;
+        document.getElementById('viewNotifContent').textContent = data.content;
+        document.getElementById('viewNotifTarget').textContent = data.target_summary;
+        document.getElementById('viewNotifRecipients').textContent = (data.recipient_count > 1 && data.recipient_preview)
+            ? `Người nhận tiêu biểu: ${data.recipient_preview}`
+            : '';
+        document.getElementById('viewNotifChannel').textContent = data.delivery_channels || 'In-App';
+        document.getElementById('viewNotifPromo').textContent = data.promotion_title || 'Không đính kèm';
+        document.getElementById('viewNotifCreatedAt').textContent = data.created_at_display || '---';
+
+        const statusBadge = document.getElementById('viewNotifStatusBadge');
+        statusBadge.textContent = data.status || 'Đã gửi';
+        statusBadge.className = data.status === 'Chờ gửi'
+            ? 'badge px-3 py-2 bg-warning-subtle text-warning-emphasis border border-warning-subtle'
+            : 'badge px-3 py-2 bg-success-subtle text-success border border-success-subtle';
+
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalViewNotification')).show();
+    }
+
+    function openEditNotifModal(notifId) {
+        const data = NOTIF_DATA[String(notifId)];
+        if (!data) return;
+
+        document.getElementById('editNotifId').value = data.id;
+        document.getElementById('editNotifScope').value = data.scope || 'broadcast';
+        document.getElementById('editNotifTargetInfo').textContent = data.target_summary || 'Toàn bộ khách hàng';
+        document.getElementById('editNotifTitle').value = data.title || '';
+        document.getElementById('editNotifContent').value = data.content || '';
+        document.getElementById('editNotifStatus').value = data.status || 'Đã gửi';
+        document.getElementById('editNotifPromotionId').value = data.promotion_id || '';
+
+        const chSelect = document.getElementById('editNotifChannel');
+        const chVal = data.delivery_channels || 'In-App';
+        const hasOption = Array.from(chSelect.options).some(opt => opt.value === chVal);
+        if (!hasOption) {
+            const opt = document.createElement('option');
+            opt.value = chVal;
+            opt.textContent = chVal;
+            chSelect.appendChild(opt);
+        }
+        chSelect.value = chVal;
+
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditNotification')).show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('btnViewNotifToEdit')?.addEventListener('click', function() {
+            const viewModal = bootstrap.Modal.getInstance(document.getElementById('modalViewNotification'));
+            if (viewModal) viewModal.hide();
+            if (currentViewNotifId !== null) openEditNotifModal(currentViewNotifId);
+        });
+    });
+</script>
+{% endblock extra_js %}

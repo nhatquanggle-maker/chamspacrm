@@ -12,14 +12,14 @@
     <div class="admin-mkt-header">
         <div>
             <h1 class="admin-mkt-title">Quản Lý Khuyến Mãi & Mã Voucher</h1>
-            <p class="text-muted mb-0" style="font-size: 13.5px;">Thiết lập các chương trình ưu đãi và phát hành mã voucher chiết khấu linh hoạt cho khách hàng.</p>
+            <p class="text-muted mb-0" style="font-size: 13.5px;">Thiết lập các chương trình ưu đãi, gắn mã voucher hiện có và quản lý kho voucher chiết khấu cho khách hàng.</p>
         </div>
     </div>
 
     {% if messages %}
     <div class="mb-3">
         {% for msg in messages %}
-        <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show rounded-3 border-0 shadow-sm mb-2" role="alert">
+        <div class="alert alert-{% if 'error' in msg.tags %}danger{% else %}{{ msg.tags|default:'info' }}{% endif %} alert-dismissible fade show rounded-3 border-0 shadow-sm mb-2" role="alert">
             {{ msg }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
         </div>
@@ -41,7 +41,7 @@
 
     <!-- =====================================================================
          SUB-TAB 1: CHƯƠNG TRÌNH KHUYẾN MÃI (UC-7.4)
-         Thiết lập chiến dịch hiển thị Card gradient trên trang khách hàng
+         Thêm / Xem / Sửa / Xóa & Chọn gắn Voucher hiện có
          ===================================================================== -->
     <div id="adminTabContentPromotions" style="display: {% if active_subtab == 'promotions' %}block{% else %}none{% endif %};">
         <div class="cham-table-card">
@@ -51,7 +51,7 @@
                         <i class="bi bi-percent me-2" style="color: #D0B581;"></i>
                         Danh Sách Chương Trình Khuyến Mãi
                     </h5>
-                    <div class="text-muted" style="font-size: 12.5px;">Thiết lập các chiến dịch ưu đãi hiển thị nổi bật trên trang khách hàng.</div>
+                    <div class="text-muted" style="font-size: 12.5px;">Thiết lập các chiến dịch ưu đãi hiển thị nổi bật trên trang khách hàng và liên kết mã voucher.</div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalCreatePromotion" style="background-color: #781A24; color: #FFFFFF; font-weight: 700; border-radius: 999px;">
@@ -64,10 +64,10 @@
                 <table class="table cham-table mb-0 align-middle">
                     <thead>
                         <tr>
-                            <th>Tiêu đề chiến dịch</th>
+                            <th>Chương trình &amp; Mã</th>
                             <th>Điều kiện áp dụng</th>
                             <th>Thời hạn</th>
-                            <th>Số Voucher</th>
+                            <th>Voucher đính kèm</th>
                             <th>Trạng thái</th>
                             <th class="text-end">Thao tác</th>
                         </tr>
@@ -77,25 +77,38 @@
                             <tr id="promo-row-{{ promo.id }}">
                                 <td>
                                     <div class="fw-bold text-dark" style="font-size: 13.5px;">{{ promo.title }}</div>
+                                    <span class="badge mt-1" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #D0B581; font-family: monospace; font-size: 11px;">
+                                        {{ promo.promotion_code }}
+                                    </span>
                                 </td>
-                                <td style="font-size: 12.5px; color: #716761; max-width: 250px;">
+                                <td style="font-size: 12.5px; color: #716761; max-width: 240px;">
                                     {{ promo.conditions_desc|default:"Áp dụng chung toàn bộ dịch vụ" }}
                                 </td>
-                                <td style="font-size: 12px;">
+                                <td style="font-size: 12px; white-space: nowrap;">
                                     <div>Từ: <strong>{{ promo.valid_from|date:"d/m/Y"|default:"---" }}</strong></div>
                                     <div>Đến: <strong>{{ promo.valid_until|date:"d/m/Y"|default:"Vô thời hạn" }}</strong></div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1">
-                                        {{ promo.total_vouchers }} voucher
-                                    </span>
+                                    <div class="d-flex flex-wrap align-items-center gap-1" style="max-width: 220px;">
+                                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1">
+                                            {{ promo.total_vouchers }} voucher
+                                        </span>
+                                        {% for pv in promo.vouchers.all|slice:":2" %}
+                                            <span class="badge" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #E2D1B3; font-family: monospace; font-size: 10.5px;">
+                                                {{ pv.voucher_code }}
+                                            </span>
+                                        {% endfor %}
+                                        {% if promo.total_vouchers > 2 %}
+                                            <span class="text-muted" style="font-size: 11px;">+{{ promo.total_vouchers|add:"-2" }}</span>
+                                        {% endif %}
+                                    </div>
                                 </td>
                                 <td>
                                     <form method="POST" action="{% url 'marketing:admin_promotions' %}" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="toggle_promotion">
                                         <input type="hidden" name="promotion_id" value="{{ promo.id }}">
-                                        <button type="submit" class="btn btn-sm border-0 p-0" title="Nhấn để đổi trạng thái">
+                                        <button type="submit" class="btn btn-sm border-0 p-0" title="Nhấn để đổi nhanh trạng thái">
                                             {% if promo.status == 'Đang hoạt động' %}
                                                 <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
                                                     <i class="bi bi-check-circle me-1"></i>Đang hoạt động
@@ -112,15 +125,23 @@
                                         </button>
                                     </form>
                                 </td>
-                                <td class="text-end">
-                                    <form method="POST" action="{% url 'marketing:admin_promotions' %}" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa chiến dịch khuyến mãi này? Toàn bộ voucher liên quan cũng sẽ bị ảnh hưởng.')">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="delete_promotion">
-                                        <input type="hidden" name="promotion_id" value="{{ promo.id }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa chương trình">
-                                            <i class="bi bi-trash"></i>
+                                <td class="text-end" style="white-space: nowrap;">
+                                    <div class="d-inline-flex align-items-center justify-content-end gap-1 flex-nowrap">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openViewPromoModal({{ promo.id }})" title="Xem chi tiết chương trình">
+                                            <i class="bi bi-eye"></i>
                                         </button>
-                                    </form>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditPromoModal({{ promo.id }})" title="Chỉnh sửa &amp; chọn voucher">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <form method="POST" action="{% url 'marketing:admin_promotions' %}" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa chiến dịch khuyến mãi này? Các voucher đang gắn sẽ chuyển về độc lập.')">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete_promotion">
+                                            <input type="hidden" name="promotion_id" value="{{ promo.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa chương trình">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         {% empty %}
@@ -138,8 +159,8 @@
     </div>
 
     <!-- =====================================================================
-         SUB-TAB 2: QUẢN LÝ MÃ VOUCHER (HỢP ĐỒNG API 17 TRONG README)
-         Phát hành Voucher linh hoạt (% có mức trần hoặc cố định VNĐ, đơn tối thiểu)
+         SUB-TAB 2: QUẢN LÝ MÃ VOUCHER (UC-7.4)
+         Thêm / Xem / Sửa / Xóa Voucher
          ===================================================================== -->
     <div id="adminTabContentVouchers" style="display: {% if active_subtab == 'vouchers' %}block{% else %}none{% endif %};">
         <div class="cham-table-card">
@@ -147,9 +168,9 @@
                 <div>
                     <h5 class="font-serif fw-bold mb-1" style="color: #781A24; font-size: 17px;">
                         <i class="bi bi-ticket-perforated-fill me-2" style="color: #D0B581;"></i>
-                        Kho Mã Voucher Khuyến Mãi & Tri Ân
+                        Kho Mã Voucher Khuyến Mãi &amp; Tri Ân
                     </h5>
-                    <div class="text-muted" style="font-size: 12.5px;">Phát hành mã giảm giá theo phần trăm (có mức giảm tối đa) hoặc giảm tiền mặt cố định.</div>
+                    <div class="text-muted" style="font-size: 12.5px;">Phát hành, xem, chỉnh sửa và thu hồi mã giảm giá theo phần trăm (có mức giảm tối đa) hoặc tiền mặt cố định.</div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalCreateVoucher" style="background-color: #781A24; color: #FFFFFF; font-weight: 700; border-radius: 999px;">
@@ -185,9 +206,18 @@
                                             <i class="bi bi-copy"></i>
                                         </button>
                                     </div>
+                                    {% if voucher.promotion %}
+                                        <div class="text-muted mt-1" style="font-size: 11px;">
+                                            <i class="bi bi-megaphone me-1"></i>{{ voucher.promotion.promotion_code }}
+                                        </div>
+                                    {% elif voucher.complaint %}
+                                        <div class="text-muted mt-1" style="font-size: 11px;">
+                                            <i class="bi bi-shield-check me-1"></i>Đền bù #{{ voucher.complaint.complaint_code }}
+                                        </div>
+                                    {% endif %}
                                 </td>
                                 <td>
-                                    {% if voucher.discount_type == 'PERCENT' %}
+                                    {% if voucher.discount_type == 'PERCENT' or voucher.discount_type == 'Phần trăm' %}
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
                                             Giảm theo %
                                         </span>
@@ -198,7 +228,7 @@
                                     {% endif %}
                                 </td>
                                 <td class="fw-bold" style="color: #781A24;">
-                                    {% if voucher.discount_type == 'PERCENT' %}
+                                    {% if voucher.discount_type == 'PERCENT' or voucher.discount_type == 'Phần trăm' %}
                                         {{ voucher.discount_value|floatformat:0 }}%
                                     {% else %}
                                         {{ voucher.discount_value|floatformat:0 }} VNĐ
@@ -214,7 +244,7 @@
                                 <td>
                                     <span>{{ voucher.min_order_amount|floatformat:0|default:"0" }} VNĐ</span>
                                 </td>
-                                <td style="font-size: 12.5px;">
+                                <td style="font-size: 12.5px; white-space: nowrap;">
                                     {{ voucher.expiry_date|date:"d/m/Y H:i" }}
                                 </td>
                                 <td>
@@ -235,15 +265,23 @@
                                         <span class="badge bg-secondary-subtle text-secondary px-2 py-1">Hết hạn</span>
                                     {% endif %}
                                 </td>
-                                <td class="text-end">
-                                    <form method="POST" action="{% url 'marketing:admin_promotions' %}" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mã Voucher này?')">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="delete_voucher">
-                                        <input type="hidden" name="voucher_id" value="{{ voucher.id }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa voucher">
-                                            <i class="bi bi-trash"></i>
+                                <td class="text-end" style="white-space: nowrap;">
+                                    <div class="d-inline-flex align-items-center justify-content-end gap-1 flex-nowrap">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openViewVoucherModal({{ voucher.id }})" title="Xem chi tiết voucher">
+                                            <i class="bi bi-eye"></i>
                                         </button>
-                                    </form>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditVoucherModal({{ voucher.id }})" title="Chỉnh sửa voucher">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <form method="POST" action="{% url 'marketing:admin_promotions' %}" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mã Voucher này?')">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete_voucher">
+                                            <input type="hidden" name="voucher_id" value="{{ voucher.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa voucher">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         {% empty %}
@@ -289,11 +327,16 @@
     </div>
 </div>
 
+<!-- Container Toast Thông Báo Admin -->
+<div class="admin-toast-container" id="adminToastContainer"></div>
+{% endblock admin_content %}
+
+{% block admin_modals %}
 <!-- =========================================================================
-     MODAL 1: TẠO CHƯƠNG TRÌNH KHUYẾN MÃI (UC-7.4)
+     MODAL 1: TẠO CHƯƠNG TRÌNH KHUYẾN MÃI (CHO PHÉP CHỌN VOUCHER HIỆN CÓ)
      ========================================================================= -->
 <div class="modal fade" id="modalCreatePromotion" tabindex="-1" aria-labelledby="modalCreatePromotionTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content" style="border: 1px solid #D0B581; border-radius: 18px; overflow: hidden; box-shadow: 0 16px 40px rgba(46, 29, 23, 0.25);">
             <div class="modal-header" style="background: linear-gradient(135deg, #781A24 0%, #5C121B 100%); color: #FFFFFF; border-bottom: 1px solid #D0B581;">
                 <div class="d-flex align-items-center gap-2">
@@ -320,21 +363,56 @@
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Điều kiện áp dụng</label>
                             <textarea class="form-control" id="promoConditions" name="conditions_desc" rows="2" placeholder="VD: Áp dụng từ thứ 2 đến thứ 6 cho dịch vụ Massage Body..." style="border-color: #D0B581; border-radius: 10px;"></textarea>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Ngày bắt đầu</label>
                             <input type="date" class="form-control" id="promoValidFrom" name="valid_from" style="border-color: #D0B581; border-radius: 10px;">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Ngày kết thúc</label>
                             <input type="date" class="form-control" id="promoValidUntil" name="valid_until" style="border-color: #D0B581; border-radius: 10px;">
                         </div>
-                        <div class="col-12">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Trạng thái ban đầu</label>
                             <select class="form-select" id="promoStatus" name="status" style="border-color: #D0B581; border-radius: 10px;">
                                 <option value="Đang hoạt động" selected>Đang hoạt động</option>
                                 <option value="Sắp diễn ra">Sắp diễn ra</option>
                                 <option value="Hết hạn">Hết hạn</option>
                             </select>
+                        </div>
+
+                        <!-- Chọn các Voucher hiện có gắn vào chương trình -->
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                                <label class="form-label fw-bold mb-0" style="color: #2E1D17; font-size: 13.5px;">
+                                    <i class="bi bi-ticket-perforated me-1" style="color: #781A24;"></i>
+                                    Chọn Voucher hiện có áp dụng cho chương trình (Tùy chọn)
+                                </label>
+                                <span class="badge bg-light text-dark border" id="createPromoVoucherCount">Đã chọn: 0</span>
+                            </div>
+                            <input type="text" class="form-control form-control-sm mb-2" id="createPromoVoucherSearch" placeholder="Tìm nhanh theo mã voucher hoặc chương trình..." style="border-color: #D0B581; border-radius: 8px;">
+                            <div id="createPromoVoucherList" class="border rounded-3 bg-white p-2" style="max-height: 195px; overflow-y: auto; border-color: #D0B581 !important;">
+                                {% for v in all_vouchers %}
+                                    <label class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-2 border-bottom voucher-pick-item" style="cursor: pointer;" data-search="{{ v.voucher_code|lower }} {{ v.discount_summary_label|lower }} {% if v.promotion %}{{ v.promotion.title|lower }} {{ v.promotion.promotion_code|lower }}{% endif %}">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <input type="checkbox" class="form-check-input mt-0 create-promo-voucher-cb" name="voucher_ids" value="{{ v.id }}">
+                                            <div>
+                                                <span class="fw-bold" style="font-family: monospace; color: #781A24;">{{ v.voucher_code }}</span>
+                                                <span class="text-muted ms-1" style="font-size: 12px;">· {{ v.discount_summary_label }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                            {% if v.promotion %}
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style="font-size: 10.5px;">Đang thuộc: {{ v.promotion.promotion_code }}</span>
+                                            {% else %}
+                                                <span class="badge bg-light text-muted border" style="font-size: 10.5px;">Chưa gắn KM</span>
+                                            {% endif %}
+                                            <span class="badge {% if v.status == 'Khả dụng' %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %}" style="font-size: 10.5px;">{{ v.status }}</span>
+                                        </div>
+                                    </label>
+                                {% empty %}
+                                    <div class="text-center text-muted py-3" style="font-size: 12.5px;">Hiện chưa có mã Voucher nào trong hệ thống.</div>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -351,8 +429,155 @@
 </div>
 
 <!-- =========================================================================
-     MODAL 2: PHÁT HÀNH VOUCHER (HỢP ĐỒNG API 17 TRONG README)
-     Endpoint: POST /api/admin/vouchers/create/
+     MODAL 2: XEM CHI TIẾT CHƯƠNG TRÌNH KHUYẾN MÃI
+     ========================================================================= -->
+<div class="modal fade" id="modalViewPromotion" tabindex="-1" aria-labelledby="modalViewPromotionTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border: 1px solid #D0B581; border-radius: 18px; overflow: hidden; box-shadow: 0 16px 40px rgba(46, 29, 23, 0.25);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #781A24 0%, #5C121B 100%); color: #FFFFFF; border-bottom: 1px solid #D0B581;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-eye-fill" style="color: #D0B581; font-size: 20px;"></i>
+                    <h5 class="modal-title font-serif fw-bold mb-0" id="modalViewPromotionTitle" style="font-size: 18px;">Chi Tiết Chương Trình Khuyến Mãi</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" style="background-color: #FAF7EF;">
+                <div class="bg-white rounded-3 p-3 border mb-3" style="border-color: #E8E2D9 !important;">
+                    <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-2">
+                        <div>
+                            <span class="badge mb-1" id="viewPromoCode" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #D0B581; font-family: monospace;"></span>
+                            <h5 class="font-serif fw-bold mb-0" id="viewPromoTitle" style="color: #2E1D17;"></h5>
+                        </div>
+                        <span class="badge px-3 py-2" id="viewPromoStatusBadge"></span>
+                    </div>
+                    <p class="text-muted mb-3" id="viewPromoConditions" style="font-size: 13.5px; white-space: pre-line;"></p>
+                    <div class="row g-2" style="font-size: 13px;">
+                        <div class="col-md-4"><span class="text-muted">Bắt đầu:</span> <strong id="viewPromoValidFrom"></strong></div>
+                        <div class="col-md-4"><span class="text-muted">Kết thúc:</span> <strong id="viewPromoValidUntil"></strong></div>
+                        <div class="col-md-4"><span class="text-muted">Ngày tạo:</span> <strong id="viewPromoCreatedAt"></strong></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3 p-3 border" style="border-color: #E8E2D9 !important;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0" style="color: #781A24; font-size: 14px;">
+                            <i class="bi bi-ticket-perforated-fill me-1" style="color: #D0B581;"></i>
+                            Danh sách Voucher đính kèm
+                        </h6>
+                        <span class="badge bg-info-subtle text-info-emphasis" id="viewPromoVoucherCount"></span>
+                    </div>
+                    <div id="viewPromoVoucherList" style="max-height: 220px; overflow-y: auto;"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
+                <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Đóng</button>
+                <button type="button" class="btn px-4 py-2" id="btnViewPromoToEdit" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 700;">
+                    <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 3: SỬA CHƯƠNG TRÌNH KHUYẾN MÃI (CHỌN / BỎ CHỌN VOUCHER HIỆN CÓ)
+     ========================================================================= -->
+<div class="modal fade" id="modalEditPromotion" tabindex="-1" aria-labelledby="modalEditPromotionTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border: 1px solid #D0B581; border-radius: 18px; overflow: hidden; box-shadow: 0 16px 40px rgba(46, 29, 23, 0.25);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #781A24 0%, #5C121B 100%); color: #FFFFFF; border-bottom: 1px solid #D0B581;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-pencil-square" style="color: #D0B581; font-size: 20px;"></i>
+                    <h5 class="modal-title font-serif fw-bold mb-0" id="modalEditPromotionTitle" style="font-size: 18px;">Chỉnh Sửa Chương Trình Khuyến Mãi</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="formEditPromotion" method="POST" action="{% url 'marketing:admin_promotions' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_promotion">
+                <input type="hidden" name="promotion_id" id="editPromoId">
+                <div class="modal-body p-4" style="background-color: #FAF7EF;">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Mã chiến dịch <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editPromoCode" name="promotion_code" required style="text-transform: uppercase; border-color: #D0B581; border-radius: 10px;">
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Tiêu đề chương trình <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editPromoTitle" name="title" required style="border-color: #D0B581; border-radius: 10px;">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Điều kiện áp dụng</label>
+                            <textarea class="form-control" id="editPromoConditions" name="conditions_desc" rows="2" style="border-color: #D0B581; border-radius: 10px;"></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Ngày bắt đầu</label>
+                            <input type="date" class="form-control" id="editPromoValidFrom" name="valid_from" style="border-color: #D0B581; border-radius: 10px;">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Ngày kết thúc</label>
+                            <input type="date" class="form-control" id="editPromoValidUntil" name="valid_until" style="border-color: #D0B581; border-radius: 10px;">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Trạng thái</label>
+                            <select class="form-select" id="editPromoStatus" name="status" style="border-color: #D0B581; border-radius: 10px;">
+                                <option value="Đang hoạt động">Đang hoạt động</option>
+                                <option value="Sắp diễn ra">Sắp diễn ra</option>
+                                <option value="Hết hạn">Hết hạn</option>
+                            </select>
+                        </div>
+
+                        <!-- Chọn / bỏ chọn Voucher hiện có -->
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                                <label class="form-label fw-bold mb-0" style="color: #2E1D17; font-size: 13.5px;">
+                                    <i class="bi bi-ticket-perforated me-1" style="color: #781A24;"></i>
+                                    Voucher đính kèm chương trình (Chọn thêm hoặc bỏ chọn)
+                                </label>
+                                <span class="badge bg-light text-dark border" id="editPromoVoucherCount">Đã chọn: 0</span>
+                            </div>
+                            <input type="text" class="form-control form-control-sm mb-2" id="editPromoVoucherSearch" placeholder="Tìm nhanh theo mã voucher hoặc chương trình..." style="border-color: #D0B581; border-radius: 8px;">
+                            <div id="editPromoVoucherList" class="border rounded-3 bg-white p-2" style="max-height: 195px; overflow-y: auto; border-color: #D0B581 !important;">
+                                {% for v in all_vouchers %}
+                                    <label class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-2 border-bottom voucher-pick-item" style="cursor: pointer;" data-search="{{ v.voucher_code|lower }} {{ v.discount_summary_label|lower }} {% if v.promotion %}{{ v.promotion.title|lower }} {{ v.promotion.promotion_code|lower }}{% endif %}">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <input type="checkbox" class="form-check-input mt-0 edit-promo-voucher-cb" name="voucher_ids" value="{{ v.id }}">
+                                            <div>
+                                                <span class="fw-bold" style="font-family: monospace; color: #781A24;">{{ v.voucher_code }}</span>
+                                                <span class="text-muted ms-1" style="font-size: 12px;">· {{ v.discount_summary_label }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                            {% if v.promotion %}
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style="font-size: 10.5px;">Đang thuộc: {{ v.promotion.promotion_code }}</span>
+                                            {% else %}
+                                                <span class="badge bg-light text-muted border" style="font-size: 10.5px;">Chưa gắn KM</span>
+                                            {% endif %}
+                                            <span class="badge {% if v.status == 'Khả dụng' %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %}" style="font-size: 10.5px;">{{ v.status }}</span>
+                                        </div>
+                                    </label>
+                                {% empty %}
+                                    <div class="text-center text-muted py-3" style="font-size: 12.5px;">Hiện chưa có mã Voucher nào trong hệ thống.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Hủy</button>
+                    <button type="submit" class="btn px-4 py-2" id="btnSubmitEditPromo" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 700;">
+                        <i class="bi bi-save me-1"></i>Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 4: PHÁT HÀNH VOUCHER MỚI
      ========================================================================= -->
 <div class="modal fade" id="modalCreateVoucher" tabindex="-1" aria-labelledby="modalCreateVoucherTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -370,69 +595,61 @@
                 <input type="hidden" name="action" value="create_voucher">
                 <div class="modal-body p-4" style="background-color: #FAF7EF;">
                     <div class="row g-3">
-                        <!-- 1. Mã Voucher & Auto-Gen -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Mã Voucher <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="vouchCode" name="voucher_code" placeholder="VD: CHAMSPA20" required style="text-transform: uppercase; font-family: monospace; font-weight: 700; border-color: #D0B581; border-top-left-radius: 10px; border-bottom-left-radius: 10px;">
-                                <button class="btn btn-outline-secondary" type="button" onclick="autoGenerateVoucherCode()" title="Tự động sinh mã ngẫu nhiên" style="border-color: #D0B581; border-top-right-radius: 10px; border-bottom-right-radius: 10px;">
+                                <button class="btn btn-outline-secondary" type="button" onclick="autoGenerateVoucherCode('vouchCode')" title="Tự động sinh mã ngẫu nhiên" style="border-color: #D0B581; border-top-right-radius: 10px; border-bottom-right-radius: 10px;">
                                     <i class="bi bi-magic"></i> Sinh mã
                                 </button>
                             </div>
                         </div>
 
-                        <!-- 2. Gắn vào Chương trình Khuyến mãi -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Thuộc chiến dịch khuyến mãi</label>
                             <select class="form-select" id="vouchPromoId" name="promotion_id" style="border-color: #D0B581; border-radius: 10px;">
                                 <option value="">-- Voucher độc lập --</option>
                                 {% for promo in promotions %}
-                                    <option value="{{ promo.id }}">{{ promo.title }}</option>
+                                    <option value="{{ promo.id }}">{{ promo.promotion_code }} - {{ promo.title }}</option>
                                 {% endfor %}
                             </select>
                         </div>
 
-                        <!-- 3. Loại hình giảm giá (% hoặc VNĐ) -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Hình thức giảm giá <span class="text-danger">*</span></label>
                             <select class="form-select" id="vouchDiscountType" name="discount_type" onchange="toggleVoucherTypeFields(this.value)" style="border-color: #D0B581; border-radius: 10px;">
-                                <option value="PERCENT" selected>Giảm theo phần trăm (%) - Bắt buộc có mức trần</option>
+                                <option value="PERCENT" selected>Giảm theo phần trăm (%) - Hỗ trợ mức trần</option>
                                 <option value="FIXED">Giảm tiền mặt cố định (VNĐ)</option>
                             </select>
                         </div>
 
-                        <!-- 4. Giá trị giảm -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;" id="lblDiscountValue">Giá trị giảm (%) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="vouchDiscountValue" name="discount_value" placeholder="VD: 20" min="1" max="100" required style="border-color: #D0B581; border-radius: 10px;">
+                            <input type="number" step="any" class="form-control" id="vouchDiscountValue" name="discount_value" placeholder="VD: 20" min="1" max="100" required style="border-color: #D0B581; border-radius: 10px;">
                         </div>
 
-                        <!-- 5. Trần giảm tối đa (Áp dụng khi PERCENT) -->
                         <div class="col-md-6" id="maxDiscountContainer">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Mức giảm tối đa (VNĐ)</label>
-                            <input type="number" class="form-control" id="vouchMaxDiscount" name="max_discount_amount" placeholder="VD: 150000" min="0" style="border-color: #D0B581; border-radius: 10px;">
+                            <input type="number" step="any" class="form-control" id="vouchMaxDiscount" name="max_discount_amount" placeholder="VD: 150000" min="0" style="border-color: #D0B581; border-radius: 10px;">
                             <div class="form-text" style="font-size: 11.5px; color: #716761;">Khuyến nghị khi giảm theo % để bảo vệ biên lợi nhuận của Spa.</div>
                         </div>
 
-                        <!-- 6. Giá trị đơn hàng tối thiểu -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Đơn hàng tối thiểu (VNĐ)</label>
-                            <input type="number" class="form-control" id="vouchMinOrder" name="min_order_amount" placeholder="VD: 500000" min="0" value="0" style="border-color: #D0B581; border-radius: 10px;">
+                            <input type="number" step="any" class="form-control" id="vouchMinOrder" name="min_order_amount" placeholder="VD: 500000" min="0" value="0" style="border-color: #D0B581; border-radius: 10px;">
                         </div>
 
-                        <!-- 7. Hạn sử dụng -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Hạn sử dụng <span class="text-danger">*</span></label>
                             <input type="datetime-local" class="form-control" id="vouchExpiryDate" name="expiry_date" required style="border-color: #D0B581; border-radius: 10px;">
                         </div>
 
-                        <!-- 8. Gán riêng khách hàng -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Đối tượng áp dụng</label>
                             <select class="form-select" id="vouchCustomerId" name="customer_id" style="border-color: #D0B581; border-radius: 10px;">
-                                <option value="">🌐 Áp dụng toàn bộ khách hàng</option>
+                                <option value="">Áp dụng toàn bộ khách hàng</option>
                                 {% for cus in customers %}
-                                    <option value="{{ cus.id }}">👤 {{ cus.name|default:cus.username }} ({{ cus.phone|default:cus.email }})</option>
+                                    <option value="{{ cus.id }}">{{ cus.name|default:cus.username }} ({{ cus.phone|default:cus.email }})</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -450,11 +667,187 @@
     </div>
 </div>
 
-<!-- Container Toast Thông Báo Admin -->
-<div class="admin-toast-container" id="adminToastContainer"></div>
+<!-- =========================================================================
+     MODAL 5: XEM CHI TIẾT MÃ VOUCHER
+     ========================================================================= -->
+<div class="modal fade" id="modalViewVoucher" tabindex="-1" aria-labelledby="modalViewVoucherTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border: 1px solid #D0B581; border-radius: 18px; overflow: hidden; box-shadow: 0 16px 40px rgba(46, 29, 23, 0.25);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #781A24 0%, #5C121B 100%); color: #FFFFFF; border-bottom: 1px solid #D0B581;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-ticket-detailed-fill" style="color: #D0B581; font-size: 20px;"></i>
+                    <h5 class="modal-title font-serif fw-bold mb-0" id="modalViewVoucherTitle" style="font-size: 18px;">Chi Tiết Mã Voucher</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" style="background-color: #FAF7EF;">
+                <div class="bg-white rounded-3 p-3 border" style="border-color: #E8E2D9 !important;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 pb-2 border-bottom">
+                        <div>
+                            <div class="text-muted" style="font-size: 12px;">Mã Voucher</div>
+                            <div class="fs-4 fw-bold" id="viewVouchCode" style="font-family: monospace; color: #781A24;"></div>
+                        </div>
+                        <span class="badge px-3 py-2" id="viewVouchStatusBadge"></span>
+                    </div>
+                    <div class="row g-3" style="font-size: 13.5px;">
+                        <div class="col-md-6">
+                            <div class="text-muted" style="font-size: 12px;">Hình thức giảm giá</div>
+                            <div class="fw-semibold" id="viewVouchType"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted" style="font-size: 12px;">Mức ưu đãi</div>
+                            <div class="fw-bold" id="viewVouchDiscount" style="color: #781A24;"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted" style="font-size: 12px;">Trần giảm tối đa</div>
+                            <div class="fw-semibold" id="viewVouchMaxDiscount"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted" style="font-size: 12px;">Đơn tối thiểu</div>
+                            <div class="fw-semibold" id="viewVouchMinOrder"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted" style="font-size: 12px;">Chương trình khuyến mãi</div>
+                            <div class="fw-semibold" id="viewVouchPromo"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted" style="font-size: 12px;">Đối tượng áp dụng</div>
+                            <div class="fw-semibold" id="viewVouchCustomer"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted" style="font-size: 12px;">Hạn sử dụng</div>
+                            <div class="fw-semibold" id="viewVouchExpiry"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted" style="font-size: 12px;">Thời điểm đã dùng</div>
+                            <div class="fw-semibold" id="viewVouchUsedAt"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted" style="font-size: 12px;">Ngày phát hành</div>
+                            <div class="fw-semibold" id="viewVouchCreatedAt"></div>
+                        </div>
+                        <div class="col-12 d-none" id="viewVouchComplaintWrap">
+                            <div class="text-muted" style="font-size: 12px;">Phiếu khiếu nại đền bù</div>
+                            <div class="fw-semibold text-danger" id="viewVouchComplaint"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
+                <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Đóng</button>
+                <button type="button" class="btn px-4 py-2" id="btnViewVouchToEdit" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 700;">
+                    <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- =========================================================================
+     MODAL 6: CHỈNH SỬA MÃ VOUCHER
+     ========================================================================= -->
+<div class="modal fade" id="modalEditVoucher" tabindex="-1" aria-labelledby="modalEditVoucherTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border: 1px solid #D0B581; border-radius: 18px; overflow: hidden; box-shadow: 0 16px 40px rgba(46, 29, 23, 0.25);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #781A24 0%, #5C121B 100%); color: #FFFFFF; border-bottom: 1px solid #D0B581;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-pencil-square" style="color: #D0B581; font-size: 20px;"></i>
+                    <h5 class="modal-title font-serif fw-bold mb-0" id="modalEditVoucherTitle" style="font-size: 18px;">Chỉnh Sửa Mã Voucher</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="formEditVoucher" method="POST" action="{% url 'marketing:admin_promotions' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_voucher">
+                <input type="hidden" name="voucher_id" id="editVouchId">
+                <div class="modal-body p-4" style="background-color: #FAF7EF;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Mã Voucher <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editVouchCode" name="voucher_code" required style="text-transform: uppercase; font-family: monospace; font-weight: 700; border-color: #D0B581; border-radius: 10px;">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Thuộc chiến dịch khuyến mãi</label>
+                            <select class="form-select" id="editVouchPromoId" name="promotion_id" style="border-color: #D0B581; border-radius: 10px;">
+                                <option value="">-- Voucher độc lập --</option>
+                                {% for promo in promotions %}
+                                    <option value="{{ promo.id }}">{{ promo.promotion_code }} - {{ promo.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Hình thức giảm giá <span class="text-danger">*</span></label>
+                            <select class="form-select" id="editVouchDiscountType" name="discount_type" onchange="toggleEditVoucherTypeFields(this.value)" style="border-color: #D0B581; border-radius: 10px;">
+                                <option value="PERCENT">Giảm theo phần trăm (%) - Hỗ trợ mức trần</option>
+                                <option value="FIXED">Giảm tiền mặt cố định (VNĐ)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;" id="lblEditDiscountValue">Giá trị giảm (%) <span class="text-danger">*</span></label>
+                            <input type="number" step="any" class="form-control" id="editVouchDiscountValue" name="discount_value" min="1" required style="border-color: #D0B581; border-radius: 10px;">
+                        </div>
+
+                        <div class="col-md-6" id="editMaxDiscountContainer">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Mức giảm tối đa (VNĐ)</label>
+                            <input type="number" step="any" class="form-control" id="editVouchMaxDiscount" name="max_discount_amount" placeholder="VD: 150000" min="0" style="border-color: #D0B581; border-radius: 10px;">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Đơn hàng tối thiểu (VNĐ)</label>
+                            <input type="number" step="any" class="form-control" id="editVouchMinOrder" name="min_order_amount" min="0" value="0" style="border-color: #D0B581; border-radius: 10px;">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Hạn sử dụng <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="editVouchExpiryDate" name="expiry_date" required style="border-color: #D0B581; border-radius: 10px;">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Trạng thái mã</label>
+                            <select class="form-select" id="editVouchStatus" name="status" style="border-color: #D0B581; border-radius: 10px;">
+                                <option value="Khả dụng">Khả dụng</option>
+                                <option value="Đã dùng">Đã dùng</option>
+                                <option value="Hết hạn">Hết hạn</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="color: #2E1D17; font-size: 13.5px;">Đối tượng áp dụng</label>
+                            <select class="form-select" id="editVouchCustomerId" name="customer_id" style="border-color: #D0B581; border-radius: 10px;">
+                                <option value="">Toàn bộ khách hàng</option>
+                                {% for cus in customers %}
+                                    <option value="{{ cus.id }}">{{ cus.name|default:cus.username }} ({{ cus.phone|default:cus.email }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Hủy</button>
+                    <button type="submit" class="btn px-4 py-2" id="btnSubmitEditVoucher" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 700;">
+                        <i class="bi bi-save me-1"></i>Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock admin_modals %}
+
+{% block extra_js %}
+{{ promo_map|json_script:"promo-data-json" }}
+{{ voucher_map|json_script:"voucher-data-json" }}
 <script>
-    // 1. Chuyển đổi giữa 2 Sub-Tab: Chương trình Khuyến mãi vs Quản lý Mã Voucher
+    const PROMO_DATA = JSON.parse(document.getElementById('promo-data-json')?.textContent || '{}');
+    const VOUCHER_DATA = JSON.parse(document.getElementById('voucher-data-json')?.textContent || '{}');
+    let currentViewPromoId = null;
+    let currentViewVoucherId = null;
+
     function switchPromoSubTab(tabName, btnElem) {
         document.querySelectorAll('.admin-mkt-nav-btn').forEach(b => b.classList.remove('active'));
         btnElem.classList.add('active');
@@ -462,13 +855,11 @@
         document.getElementById('adminTabContentPromotions').style.display = (tabName === 'promotions') ? 'block' : 'none';
         document.getElementById('adminTabContentVouchers').style.display = (tabName === 'vouchers') ? 'block' : 'none';
 
-        // Cập nhật URL query mà không reload trang
         const url = new URL(window.location);
         url.searchParams.set('subtab', tabName);
         window.history.replaceState({}, '', url);
     }
 
-    // 2. Hiển thị Toast thông báo trạng thái
     function showAdminToast(msg, isSuccess = true) {
         const toastBox = document.getElementById('adminToastContainer');
         if (!toastBox) return;
@@ -481,10 +872,11 @@
         toast.innerHTML = `
             <div class="d-flex align-items-center gap-2">
                 <i class="bi bi-${isSuccess ? 'check-circle-fill text-success' : 'exclamation-triangle-fill text-danger'} fs-5"></i>
-                <div style="font-size: 13.5px; font-weight: 600;">${msg}</div>
+                <div style="font-size: 13.5px; font-weight: 600;"></div>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         `;
+        toast.querySelector('div > div').textContent = msg;
         toastBox.appendChild(toast);
         setTimeout(() => {
             toast.classList.remove('show');
@@ -492,21 +884,21 @@
         }, 3500);
     }
 
-    // 3. Tự động sinh mã Voucher ngẫu nhiên
-    function autoGenerateVoucherCode() {
+    function autoGenerateVoucherCode(inputId = 'vouchCode') {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let code = 'CHAM';
         for (let i = 0; i < 6; i++) {
             code += chars.charAt(Math.floor(Math.random() * chars.length));
         }
-        document.getElementById('vouchCode').value = code;
+        const target = document.getElementById(inputId);
+        if (target) target.value = code;
     }
 
-    // 4. Toggle trường mức trần khi đổi hình thức giảm giá (% vs VNĐ)
-    function toggleVoucherTypeFields(type) {
-        const maxContainer = document.getElementById('maxDiscountContainer');
-        const lbl = document.getElementById('lblDiscountValue');
-        const inputVal = document.getElementById('vouchDiscountValue');
+    function toggleFieldsForVoucherModal(type, maxContainerId, labelId, inputId) {
+        const maxContainer = document.getElementById(maxContainerId);
+        const lbl = document.getElementById(labelId);
+        const inputVal = document.getElementById(inputId);
+        if (!maxContainer || !lbl || !inputVal) return;
 
         if (type === 'PERCENT') {
             maxContainer.style.display = 'block';
@@ -521,7 +913,184 @@
         }
     }
 
-    // Thiết lập ngày giờ mặc định cho Hạn dùng Voucher (+30 ngày)
+    function toggleVoucherTypeFields(type) {
+        toggleFieldsForVoucherModal(type, 'maxDiscountContainer', 'lblDiscountValue', 'vouchDiscountValue');
+    }
+
+    function toggleEditVoucherTypeFields(type) {
+        toggleFieldsForVoucherModal(type, 'editMaxDiscountContainer', 'lblEditDiscountValue', 'editVouchDiscountValue');
+    }
+
+    function updateChecklistCount(checkboxClass, countBadgeId) {
+        const checked = document.querySelectorAll('.' + checkboxClass + ':checked').length;
+        const badge = document.getElementById(countBadgeId);
+        if (badge) badge.textContent = `Đã chọn: ${checked}`;
+    }
+
+    function bindVoucherChecklist(searchInputId, listId, checkboxClass, countBadgeId) {
+        const searchEl = document.getElementById(searchInputId);
+        const listEl = document.getElementById(listId);
+        if (searchEl && listEl) {
+            searchEl.addEventListener('input', function() {
+                const kw = (this.value || '').trim().toLowerCase();
+                listEl.querySelectorAll('.voucher-pick-item').forEach(item => {
+                    const hay = item.getAttribute('data-search') || '';
+                    item.style.display = (!kw || hay.includes(kw)) ? 'flex' : 'none';
+                });
+            });
+        }
+        document.querySelectorAll('.' + checkboxClass).forEach(cb => {
+            cb.addEventListener('change', () => updateChecklistCount(checkboxClass, countBadgeId));
+        });
+        updateChecklistCount(checkboxClass, countBadgeId);
+    }
+
+    function applyStatusBadgeStyle(badgeEl, status) {
+        badgeEl.textContent = status || '';
+        if (status === 'Đang hoạt động' || status === 'Khả dụng') {
+            badgeEl.className = 'badge px-3 py-2 bg-success-subtle text-success border border-success-subtle';
+        } else if (status === 'Sắp diễn ra') {
+            badgeEl.className = 'badge px-3 py-2 bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+        } else if (status === 'Đã dùng') {
+            badgeEl.className = 'badge px-3 py-2 bg-info-subtle text-info border border-info-subtle';
+        } else {
+            badgeEl.className = 'badge px-3 py-2 bg-secondary-subtle text-secondary border border-secondary-subtle';
+        }
+    }
+
+    function openViewPromoModal(promoId) {
+        const data = PROMO_DATA[String(promoId)];
+        if (!data) return;
+        currentViewPromoId = promoId;
+
+        document.getElementById('viewPromoCode').textContent = data.promotion_code;
+        document.getElementById('viewPromoTitle').textContent = data.title;
+        applyStatusBadgeStyle(document.getElementById('viewPromoStatusBadge'), data.status);
+        document.getElementById('viewPromoConditions').textContent = data.conditions_desc || 'Áp dụng chung toàn bộ dịch vụ.';
+        document.getElementById('viewPromoValidFrom').textContent = data.valid_from_display || '---';
+        document.getElementById('viewPromoValidUntil').textContent = data.valid_until_display || 'Vô thời hạn';
+        document.getElementById('viewPromoCreatedAt').textContent = data.created_at_display || '---';
+
+        const vouchers = data.vouchers || [];
+        document.getElementById('viewPromoVoucherCount').textContent = `${vouchers.length} voucher`;
+        const listBox = document.getElementById('viewPromoVoucherList');
+        listBox.replaceChildren();
+
+        if (!vouchers.length) {
+            const empty = document.createElement('div');
+            empty.className = 'text-muted text-center py-3';
+            empty.style.fontSize = '13px';
+            empty.textContent = 'Chưa gắn mã voucher nào cho chương trình này.';
+            listBox.appendChild(empty);
+        } else {
+            vouchers.forEach(v => {
+                const row = document.createElement('div');
+                row.className = 'd-flex justify-content-between align-items-center py-2 border-bottom gap-2 flex-wrap';
+
+                const left = document.createElement('div');
+                const codeSpan = document.createElement('span');
+                codeSpan.className = 'badge me-2';
+                codeSpan.style.cssText = 'background-color: #FAF7EF; color: #781A24; border: 1px solid #D0B581; font-family: monospace;';
+                codeSpan.textContent = v.voucher_code;
+                const descSpan = document.createElement('span');
+                descSpan.className = 'fw-semibold text-dark';
+                descSpan.style.fontSize = '13px';
+                descSpan.textContent = v.discount_label;
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'text-muted mt-1';
+                metaDiv.style.fontSize = '11.5px';
+                metaDiv.textContent = `Đối tượng: ${v.target_label} · Hạn: ${v.expiry_display}`;
+                left.append(codeSpan, descSpan, metaDiv);
+
+                const statusSpan = document.createElement('span');
+                statusSpan.className = v.status === 'Khả dụng'
+                    ? 'badge bg-success-subtle text-success'
+                    : 'badge bg-secondary-subtle text-secondary';
+                statusSpan.textContent = v.status;
+
+                row.append(left, statusSpan);
+                listBox.appendChild(row);
+            });
+        }
+
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalViewPromotion')).show();
+    }
+
+    function openEditPromoModal(promoId) {
+        const data = PROMO_DATA[String(promoId)];
+        if (!data) return;
+
+        document.getElementById('editPromoId').value = data.id;
+        document.getElementById('editPromoCode').value = data.promotion_code;
+        document.getElementById('editPromoTitle').value = data.title;
+        document.getElementById('editPromoConditions').value = data.conditions_desc || '';
+        document.getElementById('editPromoValidFrom').value = data.valid_from || '';
+        document.getElementById('editPromoValidUntil').value = data.valid_until || '';
+        document.getElementById('editPromoStatus').value = data.status || 'Đang hoạt động';
+
+        const selectedIds = new Set((data.voucher_ids || []).map(String));
+        document.querySelectorAll('.edit-promo-voucher-cb').forEach(cb => {
+            cb.checked = selectedIds.has(String(cb.value));
+        });
+        const searchEl = document.getElementById('editPromoVoucherSearch');
+        if (searchEl) {
+            searchEl.value = '';
+            document.querySelectorAll('#editPromoVoucherList .voucher-pick-item').forEach(item => {
+                item.style.display = 'flex';
+            });
+        }
+        updateChecklistCount('edit-promo-voucher-cb', 'editPromoVoucherCount');
+
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditPromotion')).show();
+    }
+
+    function openViewVoucherModal(voucherId) {
+        const data = VOUCHER_DATA[String(voucherId)];
+        if (!data) return;
+        currentViewVoucherId = voucherId;
+
+        document.getElementById('viewVouchCode').textContent = data.voucher_code;
+        applyStatusBadgeStyle(document.getElementById('viewVouchStatusBadge'), data.status);
+        document.getElementById('viewVouchType').textContent = data.discount_type_label;
+        document.getElementById('viewVouchDiscount').textContent = data.discount_display;
+        document.getElementById('viewVouchMaxDiscount').textContent = data.max_discount_display;
+        document.getElementById('viewVouchMinOrder').textContent = data.min_order_display;
+        document.getElementById('viewVouchPromo').textContent = data.promotion_title;
+        document.getElementById('viewVouchCustomer').textContent = data.customer_label;
+        document.getElementById('viewVouchExpiry').textContent = data.expiry_display;
+        document.getElementById('viewVouchUsedAt').textContent = data.used_at_display;
+        document.getElementById('viewVouchCreatedAt').textContent = data.created_at_display;
+
+        const compWrap = document.getElementById('viewVouchComplaintWrap');
+        if (data.complaint_code) {
+            document.getElementById('viewVouchComplaint').textContent = data.complaint_code;
+            compWrap.classList.remove('d-none');
+        } else {
+            compWrap.classList.add('d-none');
+        }
+
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalViewVoucher')).show();
+    }
+
+    function openEditVoucherModal(voucherId) {
+        const data = VOUCHER_DATA[String(voucherId)];
+        if (!data) return;
+
+        document.getElementById('editVouchId').value = data.id;
+        document.getElementById('editVouchCode').value = data.voucher_code;
+        document.getElementById('editVouchPromoId').value = data.promotion_id || '';
+        document.getElementById('editVouchDiscountType').value = data.discount_type || 'FIXED';
+        toggleEditVoucherTypeFields(data.discount_type || 'FIXED');
+        document.getElementById('editVouchDiscountValue').value = data.discount_value || '';
+        document.getElementById('editVouchMaxDiscount').value = data.max_discount_amount || '';
+        document.getElementById('editVouchMinOrder').value = data.min_order_amount || '0';
+        document.getElementById('editVouchExpiryDate').value = data.expiry_date || '';
+        document.getElementById('editVouchStatus').value = data.status || 'Khả dụng';
+        document.getElementById('editVouchCustomerId').value = data.customer_id || '';
+
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditVoucher')).show();
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const expiryInput = document.getElementById('vouchExpiryDate');
         if (expiryInput) {
@@ -529,6 +1098,21 @@
             tmr.setDate(tmr.getDate() + 30);
             expiryInput.value = tmr.toISOString().slice(0, 16);
         }
+
+        bindVoucherChecklist('createPromoVoucherSearch', 'createPromoVoucherList', 'create-promo-voucher-cb', 'createPromoVoucherCount');
+        bindVoucherChecklist('editPromoVoucherSearch', 'editPromoVoucherList', 'edit-promo-voucher-cb', 'editPromoVoucherCount');
+
+        document.getElementById('btnViewPromoToEdit')?.addEventListener('click', function() {
+            const viewModal = bootstrap.Modal.getInstance(document.getElementById('modalViewPromotion'));
+            if (viewModal) viewModal.hide();
+            if (currentViewPromoId !== null) openEditPromoModal(currentViewPromoId);
+        });
+
+        document.getElementById('btnViewVouchToEdit')?.addEventListener('click', function() {
+            const viewModal = bootstrap.Modal.getInstance(document.getElementById('modalViewVoucher'));
+            if (viewModal) viewModal.hide();
+            if (currentViewVoucherId !== null) openEditVoucherModal(currentViewVoucherId);
+        });
     });
 </script>
-{% endblock %}
+{% endblock extra_js %}

@@ -61,6 +61,16 @@
                                     <i class="bi bi-calendar-range"></i>
                                     <span>Hạn áp dụng: <strong>{{ promo.valid_until|date:"d/m/Y"|default:"Không giới hạn" }}</strong></span>
                                 </div>
+                                {% if promo.public_vouchers %}
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                        <span class="text-muted" style="font-size: 12px;"><i class="bi bi-ticket-perforated me-1 text-danger"></i>Mã áp dụng:</span>
+                                        {% for pv in promo.public_vouchers %}
+                                            <a href="{% url 'appointment:booking' %}?voucher={{ pv.voucher_code|urlencode }}" class="badge text-decoration-none" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #D0B581; font-family: monospace; font-size: 11.5px;">
+                                                {{ pv.voucher_code }}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                             <div>
                                 <a href="{% url 'appointment:booking' %}" class="btn-claim-promo">

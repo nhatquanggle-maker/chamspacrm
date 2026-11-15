@@ -58,65 +58,11 @@ def get_base_layout_for_user(user):
 @ensure_csrf_cookie
 def promotions_view(request):
     """
-    [UC-7.2] TRANG ƯU ĐÃI & KHO VOUCHER (DÀNH CHO KHÁCH HÀNG & CỘNG ĐỒNG)
-    Giao diện 2 Tab chuẩn Figma:
-      - Tab 1: Chương trình Khuyến mãi (Thẻ Card CSS gradient hoàng gia Cham Spa).
-      - Tab 2: Ví Voucher (Kho voucher với nút sao chép mã tiện lợi, hiển thị mức giảm, đơn tối thiểu, hạn dùng).
+    Giao diện Ưu đãi & Kho Voucher cho khách hàng đã được tích hợp tập trung
+    vào Tab 'Ví Voucher' trong trang Thẻ hội viên & Tích điểm (membership:my_card).
+    Chuyển hướng trực tiếp để tránh trùng lặp giao diện theo yêu cầu.
     """
-    user = request.user
-    base_layout = get_base_layout_for_user(user)
-
-    # 1. Danh sách Chương trình khuyến mãi (Lọc đang hoạt động hoặc sắp diễn ra)
-    promotions = list(
-        Promotion.objects.filter(
-            Q(status='Đang hoạt động') | Q(status='Sắp diễn ra')
-        ).order_by('-created_at')
-    )
-
-    # 2. Danh sách Voucher
-    now = timezone.now()
-    if user.is_authenticated:
-        # Lấy voucher khả dụng: gồm voucher toàn hệ thống (customer=None) hoặc gán cho chính user
-        available_vouchers = list(
-            Voucher.objects.filter(
-                Q(customer__isnull=True) | Q(customer=user),
-                status='Khả dụng',
-                expiry_date__gte=now,
-            ).select_related('promotion').order_by('expiry_date')
-        )
-
-        # Voucher đã sử dụng hoặc hết hạn của user
-        history_vouchers = Voucher.objects.filter(
-            Q(customer=user),
-            Q(status__in=['Đã dùng', 'Hết hạn']) | Q(expiry_date__lt=now),
-        ).select_related('promotion').order_by('-created_at')[:10]
-    else:
-        available_vouchers = list(
-            Voucher.objects.filter(
-                customer__isnull=True,
-                status='Khả dụng',
-                expiry_date__gte=now,
-            ).select_related('promotion').order_by('expiry_date')
-        )
-        history_vouchers = []
-
-    public_vouchers_by_promo = {}
-    for v in available_vouchers:
-        if v.promotion_id and v.customer_id is None:
-            public_vouchers_by_promo.setdefault(v.promotion_id, []).append(v)
-    for promo in promotions:
-        promo.public_vouchers = public_vouchers_by_promo.get(promo.id, [])
-
-    context = {
-        'base_layout': base_layout,
-        'promotions': promotions,
-        'available_vouchers': available_vouchers,
-        'history_vouchers': history_vouchers,
-        'total_promotions': len(promotions),
-        'total_vouchers': len(available_vouchers),
-        'active_tab': request.GET.get('tab', 'promotions'),
-    }
-    return render(request, 'marketing/promotions.html', context)
+    return redirect(f"{reverse('membership:my_card')}?tab=vouchers")
 
 
 @login_required
@@ -835,7 +781,7 @@ def admin_promotions_view(request):
         if request.method == 'POST':
             raise PermissionDenied("Bạn không có quyền quản trị khuyến mãi.")
         messages.error(request, "Bạn không có quyền truy cập vào khu vực Quản trị Khuyến mãi.")
-        return redirect('marketing:promotions')
+        return redirect(f"{reverse('membership:my_card')}?tab=vouchers")
 
     if request.method == 'POST':
         return _handle_admin_promotions_post(request)

@@ -375,6 +375,8 @@ def staff_appointments_view(request):
         'today_str': today.strftime('%Y-%m-%d'),
         'now_time_str': timezone.localtime().strftime('%H:%M'),
         'tiers': tiers,
+        'base_layout': 'layouts/staff_layout.html',
+        'is_admin': False,
     }
     return render(request, 'appointment/staff_appointments.html', context)
 
@@ -566,6 +568,9 @@ def admin_appointments_view(request):
     services = Service.objects.filter(status='Hoạt động').order_by('id')
     time_slots = ['09:00', '10:00', '10:30', '11:30', '13:00', '14:00', '15:30', '16:00', '16:30', '17:00', '17:30', '19:00', '20:00']
 
+    from core.models import Tier
+    tiers = Tier.objects.all().order_by('min_points')
+
     context = {
         'appointments': appointments,
         'metrics': metrics,
@@ -579,6 +584,9 @@ def admin_appointments_view(request):
         'time_slots': time_slots,
         'today_str': today.strftime('%Y-%m-%d'),
         'now_time_str': timezone.localtime().strftime('%H:%M'),
+        'tiers': tiers,
+        'base_layout': 'layouts/admin_layout.html',
+        'is_admin': True,
     }
     return render(request, 'appointment/admin_appointments.html', context)
 

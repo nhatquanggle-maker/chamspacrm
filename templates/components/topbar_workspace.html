@@ -1,14 +1,8 @@
 {% load static %}
 <!-- Workspace Topbar (Figma 772:2 & 760:751 - Height 70px) -->
 <header class="workspace-topbar">
-    <!-- Global search (Figma 520px) -->
-    <div class="workspace-search-box">
-        <i class="bi bi-search workspace-search-icon"></i>
-        <input type="text" class="form-control" placeholder="Tìm kiếm mã lịch hẹn, khách hàng, số điện thoại...">
-    </div>
-
-    <!-- Account Controls -->
-    <div class="d-flex align-items-center gap-3">
+    <!-- Account Controls (Đẩy sát về bên phải khi đã bỏ thanh tìm kiếm) -->
+    <div class="d-flex align-items-center gap-3 ms-auto">
         <!-- Nút Xem Website -->
         <a href="{% url 'home' %}" class="btn-workspace-view-web text-decoration-none" title="Xem giao diện Website khách hàng">
             <i class="bi bi-globe2"></i>

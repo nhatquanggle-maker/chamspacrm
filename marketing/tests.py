@@ -144,14 +144,13 @@ class MarketingModuleTestCase(TestCase):
         self.assertTemplateUsed(response, 'marketing/notifications.html')
 
     def test_uc_7_2_promotions_and_vouchers_view(self):
-        """[UC-7.2] Kiểm tra Trang Ưu đãi 2 tab: Khuyến mãi & Ví Voucher"""
+        """[UC-7.2] Kiểm tra URL /marketing/ chuyển hướng trực tiếp đến tab Ví Voucher tại Thẻ hội viên"""
         url = reverse('marketing:promotions')
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'marketing/promotions.html')
-        self.assertIn('promotions', response.context)
-        self.assertIn('available_vouchers', response.context)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('membership:my_card'), response.url)
+        self.assertIn('tab=vouchers', response.url)
 
     def test_uc_7_3_admin_notification_post_bulk_and_delete(self):
         """[UC-7.3] Kiểm tra Admin gửi thông báo hàng loạt & xóa broadcast qua Form POST (non-superuser bị 403)"""
@@ -539,13 +538,10 @@ class MarketingModuleTestCase(TestCase):
         self.assertEqual(personal_voucher.promotion_id, new_promo.id)
         self.assertIsNone(self.voucher_fixed.promotion_id)
 
-        # 5. Kiểm tra trang công khai /marketing/ chỉ hiển thị voucher chung, không lộ voucher cá nhân
+        # 5. Kiểm tra URL /marketing/ chuyển hướng về tab Ví Voucher của Thẻ hội viên
         pub_resp = self.client.get(reverse('marketing:promotions'))
-        self.assertEqual(pub_resp.status_code, 200)
-        matched_promo = [p for p in pub_resp.context['promotions'] if p.id == new_promo.id][0]
-        pub_codes = [v.voucher_code for v in matched_promo.public_vouchers]
-        self.assertIn('FREEVOUCH50', pub_codes)
-        self.assertNotIn('PRIVSPEC100', pub_codes)
+        self.assertEqual(pub_resp.status_code, 302)
+        self.assertIn(reverse('membership:my_card'), pub_resp.url)
 
     def test_admin_vouchers_full_crud_and_validation(self):
         """[UC-7.4] Admin Thêm/Xem/Sửa/Xóa Mã Voucher và đồng bộ trạng thái sử dụng."""

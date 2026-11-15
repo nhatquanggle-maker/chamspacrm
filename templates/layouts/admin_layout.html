@@ -16,6 +16,7 @@
                 {% endblock %}
                 <div class="workspace-content">
                     {% block admin_content %}{% endblock %}
+                    {% block staff_content %}{% endblock %}
                     {% block content %}{% endblock %}
                 </div>
             </div>
@@ -25,6 +26,7 @@
 
 <!-- Khối chứa Modal toàn cục cấp Root (Nằm ngoài overflow-hidden và stacking context) -->
 {% block admin_modals %}{% endblock %}
+{% block staff_modals %}{% endblock %}
 
 <script>
     // Tự động nhận diện ?tab= để chuyển hướng sang màn hình chuyên trách của Admin

@@ -107,7 +107,7 @@ _CATEGORY_METADATA = {
         'color': '#781A24',
         'badge_class': 'badge text-white px-2 py-1',
         'badge_style': 'background-color: #781A24; font-size: 11px;',
-        'action_url_name': 'marketing:promotions',
+        'action_url_name': 'membership:my_card',
         'action_query': '?tab=vouchers',
         'action_label': 'Xem ví Voucher',
     },

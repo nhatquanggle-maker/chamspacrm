@@ -1,4 +1,4 @@
-{% extends "layouts/staff_layout.html" %}
+{% extends base_layout|default:"layouts/staff_layout.html" %}
 {% load static %}
 
 {% block body_class %}page-appointment-staff-appointments{% endblock %}
@@ -6,59 +6,65 @@
 {% block title %}Lịch hẹn hôm nay | Cham Spa & Massage Staff Workspace{% endblock %}
 
 {% block staff_content %}
-<div class="staff-schedule-container pb-5">
+{% block schedule_main_content %}
+<div class="staff-schedule-container admin-schedule-container pb-5" style="max-width: 1360px; margin: 0 auto; padding-left: 20px; padding-right: 20px;">
     <!-- 1. PAGE HEADING (Figma Node 110:4969) -->
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        {% block schedule_heading %}
         <div>
             <!-- Title & Subtitle -->
             <h1 class="staff-page-title mb-1">Lịch hẹn hôm nay</h1>
             <p class="staff-page-subtitle mb-0">Tiếp nhận khách, cập nhật trạng thái và phối hợp KTV theo ca.</p>
         </div>
+        {% endblock %}
 
         <!-- Action Button: Đặt lịch tại quầy -->
         <div>
             <button type="button" class="btn btn-cham-primary d-inline-flex align-items-center gap-2 px-3 py-2"
-                data-bs-toggle="modal" data-bs-target="#modalStaffQuickCreate">
+                data-bs-toggle="modal" data-bs-target="#modalAppointmentQuickCreate">
                 <i class="bi bi-plus-lg fs-6"></i>
                 <span class="fw-semibold">Đặt lịch tại quầy</span>
             </button>
         </div>
     </div>
 
-    <!-- 2. SCHEDULE FILTERS (Figma Node 110:4969) -->
-    <div class="staff-filter-card mb-4">
-        <form method="GET" action="{% url 'appointment:staff_appointments' %}" id="staffFilterForm"
+    <!-- 2. METRICS (Admin override) -->
+    {% block schedule_metrics %}{% endblock %}
+
+    <!-- 3. SCHEDULE FILTERS (Figma Node 110:4969) -->
+    <div class="staff-filter-card admin-filter-card mb-4">
+        <form method="GET" action="{% block schedule_filter_action %}{% url 'appointment:staff_appointments' %}{% endblock %}" id="staffFilterForm"
             class="row g-3 align-items-end">
             <!-- Filter: Tìm lịch hẹn -->
             <div class="col-12 col-md-6 col-xl-4">
-                <label class="staff-filter-label mb-1">
+                <label class="admin-filter-label staff-filter-label mb-1">
                     <i class="bi bi-search me-1 text-gold"></i> TÌM LỊCH HẸN
                 </label>
-                <div class="staff-input-wrapper">
-                    <i class="bi bi-search staff-input-icon"></i>
-                    <input type="text" name="search" id="filterSearchInput" class="form-control staff-filter-input"
+                <div class="admin-input-wrapper staff-input-wrapper">
+                    <i class="bi bi-search admin-input-icon staff-input-icon"></i>
+                    <input type="text" name="search" id="filterSearchInput" class="form-control admin-filter-input staff-filter-input"
                         placeholder="Tên khách / SĐT / Mã đơn" value="{{ search_query }}">
                 </div>
             </div>
 
             <!-- Filter: Ngày đặt lịch -->
             <div class="col-6 col-md-3 col-xl-2">
-                <label class="staff-filter-label mb-1">
+                <label class="admin-filter-label staff-filter-label mb-1">
                     <i class="bi bi-calendar3 me-1 text-gold"></i> NGÀY ĐẶT LỊCH
                 </label>
-                <div class="staff-input-wrapper">
-                    <input type="date" name="date" id="filterDateInput" class="form-control staff-filter-input"
+                <div class="admin-input-wrapper staff-input-wrapper">
+                    <input type="date" name="date" id="filterDateInput" class="form-control admin-filter-input staff-filter-input"
                         value="{{ selected_date }}">
                 </div>
             </div>
 
             <!-- Filter: Khung giờ -->
             <div class="col-6 col-md-3 col-xl-2">
-                <label class="staff-filter-label mb-1">
+                <label class="admin-filter-label staff-filter-label mb-1">
                     <i class="bi bi-clock me-1 text-gold"></i> KHUNG GIỜ
                 </label>
-                <div class="staff-input-wrapper">
-                    <select name="time_slot" id="filterSlotSelect" class="form-select staff-filter-input">
+                <div class="admin-input-wrapper staff-input-wrapper">
+                    <select name="time_slot" id="filterSlotSelect" class="form-select admin-filter-input staff-filter-input">
                         <option value="" {% if not selected_slot %}selected{% endif %}>Tất cả khung giờ</option>
                         {% for slot in time_slots %}
                         <option value="{{ slot }}" {% if selected_slot == slot %}selected{% endif %}>{{ slot }}</option>
@@ -69,11 +75,11 @@
 
             <!-- Filter: Trạng thái -->
             <div class="col-12 col-md-6 col-xl-2">
-                <label class="staff-filter-label mb-1">
+                <label class="admin-filter-label staff-filter-label mb-1">
                     <i class="bi bi-funnel me-1 text-gold"></i> TRẠNG THÁI
                 </label>
-                <div class="staff-input-wrapper">
-                    <select name="status" id="filterStatusSelect" class="form-select staff-filter-input">
+                <div class="admin-input-wrapper staff-input-wrapper">
+                    <select name="status" id="filterStatusSelect" class="form-select admin-filter-input staff-filter-input">
                         <option value="" {% if not selected_status %}selected{% endif %}>Tất cả trạng thái</option>
                         <option value="Hold" {% if selected_status == 'Hold' or selected_status == 'Pending' %}selected{% endif %}>Chờ xác nhận</option>
                         <option value="Confirmed" {% if selected_status == 'Confirmed' %}selected{% endif %}>Đã xác nhận</option>
@@ -86,7 +92,7 @@
             <!-- Filter Button: Áp dụng -->
             <div class="col-12 col-md-6 col-xl-2 d-flex">
                 <button type="submit"
-                    class="btn btn-cham-primary flex-grow-1 py-2 d-inline-flex align-items-center justify-content-center gap-1">
+                    class="btn btn-cham-primary w-100 py-2 d-inline-flex align-items-center justify-content-center gap-1 text-nowrap">
                     <i class="bi bi-check2"></i>
                     <span>Áp dụng</span>
                 </button>
@@ -94,18 +100,21 @@
         </form>
     </div>
 
-    <!-- 3. APPOINTMENT SCHEDULE TABLE (Figma Node 110:4969) -->
-    <div class="staff-schedule-card">
-        <!-- Card Header: Title & Counts -->
-        <div class="staff-schedule-header d-flex flex-wrap align-items-center justify-content-between px-4 py-3 gap-2">
+    <!-- 4. APPOINTMENT SCHEDULE TABLE (Figma Node 110:4969) -->
+    <div class="staff-schedule-card admin-schedule-card">
+        <!-- Card Header: Title, Dates, Counts & Loyalty Hint -->
+        <div class="staff-schedule-header admin-schedule-header d-flex flex-wrap align-items-center justify-content-between px-4 py-3 gap-2">
             <div class="d-flex align-items-center gap-3">
                 <h3 class="schedule-title mb-0">Lịch vận hành trong ngày</h3>
                 <span class="schedule-date-badge">
                     <i class="bi bi-calendar-event me-1"></i> {{ selected_date_display }}
                 </span>
             </div>
-            <div class="schedule-count-badge">
-                <span id="totalDayCountBadge">{{ counts.total_day }}</span> lịch · <span id="visibleCountBadge">{{ counts.visible }}</span> đang hiển thị
+            <div class="d-flex align-items-center gap-3">
+                <div class="schedule-count-badge">
+                    <span id="totalDayCountBadge">{{ counts.total_day }}</span> lịch · <span id="visibleCountBadge">{{ counts.visible }}</span> đang hiển thị
+                </div>
+                {% block schedule_loyalty_hint %}{% endblock %}
             </div>
         </div>
 
@@ -114,48 +123,33 @@
             <table class="table table-schedule align-middle mb-0" id="appointmentsTable">
                 <thead>
                     <tr>
-                        <th class="text-nowrap">Mã đơn</th>
-                        <th class="text-nowrap">Giờ</th>
-                        <th class="text-nowrap">Khách hàng</th>
-                        <th class="text-nowrap">Điện thoại</th>
-                        <th class="text-nowrap">Dịch vụ</th>
-                        <th class="text-nowrap">Trạng thái</th>
-                        <th class="text-end text-nowrap pe-4">Cập nhật</th>
+                        <th class="text-nowrap" style="min-width: 140px;">Mã đơn</th>
+                        <th class="text-nowrap" style="min-width: 200px;">Khách hàng</th>
+                        <th class="text-nowrap" style="min-width: 240px;">Dịch vụ</th>
+                        <th class="text-nowrap" style="min-width: 140px;">Trạng thái</th>
+                        <th class="text-end text-nowrap pe-4" style="min-width: 160px;">Cập nhật</th>
                     </tr>
                 </thead>
                 <tbody id="appointmentsTableBody">
                     {% for appt in appointments %}
                     <tr class="appointment-row" id="row-{{ appt.id }}" data-id="{{ appt.id }}"
-                        data-status="{{ appt.status }}" data-slot="{{ appt.time_slot }}">
-                        <!-- Mã đơn -->
+                        data-status="{{ appt.status }}" data-slot="{{ appt.time_slot }}" data-phone="{{ appt.customer_phone }}" data-date="{{ appt.appointment_date|date:'d/m/Y' }}">
+                        <!-- 1. Mã đơn -->
                         <td class="text-nowrap">
                             <span class="code-col">{{ appt.appointment_code }}</span>
                         </td>
 
-                        <!-- Giờ -->
-                        <td class="text-nowrap">
-                            <span class="time-col d-block">{{ appt.time_slot }}</span>
-                            {% if not selected_date %}
-                                <small class="text-muted">{{ appt.appointment_date|date:"d/m/Y" }}</small>
-                            {% endif %}
-                        </td>
-
-                        <!-- Khách hàng -->
+                        <!-- 2. Khách hàng -->
                         <td class="text-nowrap">
                             <span class="customer-name">{{ appt.customer_name }}</span>
                         </td>
 
-                        <!-- Điện thoại -->
-                        <td class="text-nowrap">
-                            <span class="phone-col">{{ appt.customer_phone }}</span>
+                        <!-- 3. Dịch vụ -->
+                        <td>
+                            <span class="service-col text-dark" style="font-size: 13px;">{{ appt.service_summary }}</span>
                         </td>
 
-                        <!-- Dịch vụ -->
-                        <td class="text-nowrap">
-                            <span class="service-col">{{ appt.service_summary }}</span>
-                        </td>
-
-                        <!-- Trạng thái (Badge chuẩn Figma) -->
+                        <!-- 4. Trạng thái (Badge chuẩn Figma) -->
                         <td class="text-nowrap">
                             <div class="status-cell" id="status-cell-{{ appt.id }}">
                                 <span class="staff-badge-status {{ appt.status_class }}"
@@ -166,7 +160,7 @@
                             </div>
                         </td>
 
-                        <!-- Cập nhật (Action buttons chuẩn Figma) -->
+                        <!-- 5. Cập nhật (Action buttons chuẩn Figma) -->
                         <td class="text-end text-nowrap pe-4">
                             <div class="action-buttons-group d-inline-flex align-items-center gap-1"
                                 id="actions-{{ appt.id }}">
@@ -207,7 +201,7 @@
                     </tr>
                     {% empty %}
                     <tr id="noAppointmentsRow">
-                        <td colspan="7" class="text-center py-5">
+                        <td colspan="5" class="text-center py-5">
                             <div class="empty-state">
                                 <i class="bi bi-calendar-x fs-1 text-gold mb-2 d-block"></i>
                                 <div class="fw-semibold text-dark fs-6 mb-1">Không có lịch hẹn nào phù hợp bộ lọc</div>
@@ -260,13 +254,13 @@
 <!-- ========================================================================= -->
 <!-- 4. MODAL: ĐẶT LỊCH NHANH TẠI QUẦY (QUICK CREATE - UC-1.5 STEP 4)           -->
 <!-- ========================================================================= -->
-<div class="modal fade" id="modalStaffQuickCreate" tabindex="-1" aria-labelledby="modalStaffQuickCreateLabel"
+<div class="modal fade" id="modalAppointmentQuickCreate" tabindex="-1" aria-labelledby="modalAppointmentQuickCreateLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content staff-modal-content">
-            <div class="modal-header staff-modal-header border-0 pb-0">
+        <div class="modal-content staff-modal-content admin-modal-content">
+            <div class="modal-header staff-modal-header admin-modal-header border-0 pb-0">
                 <div>
-                    <h5 class="modal-title font-lora fw-bold" style="color: #781A24;" id="modalStaffQuickCreateLabel">
+                    <h5 class="modal-title font-lora fw-bold" style="color: #781A24;" id="modalAppointmentQuickCreateLabel">
                         <i class="bi bi-person-plus-fill me-2 text-gold"></i>Tiếp nhận đặt lịch tại quầy
                     </h5>
                     <p class="text-muted small mb-0">Tạo nhanh lịch hẹn cho khách vãng lai hoặc tiếp nhận trực tiếp.</p>
@@ -535,7 +529,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // 1. Chuyển Modals ra document.body để tránh z-index backdrop conflict
-        ['modalStaffQuickCreate', 'modalAppointmentDetail'].forEach(id => {
+        ['modalAppointmentQuickCreate', 'modalStaffQuickCreate', 'modalAppointmentDetail'].forEach(id => {
             const el = document.getElementById(id);
             if (el && el.parentElement !== document.body) {
                 document.body.appendChild(el);
@@ -557,7 +551,7 @@
             let visibleCount = 0;
 
             rows.forEach(row => {
-                const rowText = row.innerText.toLowerCase();
+                const rowText = (row.innerText + ' ' + (row.getAttribute('data-phone') || '')).toLowerCase();
                 const rowSlot = row.getAttribute('data-slot') || '';
                 const rowStatus = row.getAttribute('data-status') || '';
 
@@ -593,7 +587,7 @@
         // 3. Xử lý Quick Create Form
         const qcDateInput = document.getElementById('qcDate');
         const qcSlotSelect = document.getElementById('qcSlot');
-        const qcModalEl = document.getElementById('modalStaffQuickCreate');
+        const qcModalEl = document.getElementById('modalAppointmentQuickCreate') || document.getElementById('modalStaffQuickCreate');
 
         function getEffectiveTodayAndNow() {
             const todayMinStr = "{{ today_str }}";
@@ -687,7 +681,7 @@
                     const data = await res.json();
                     if (res.ok && data.status === 'success') {
                         showToast('success', data.message || 'Tạo lịch hẹn thành công!');
-                        const modalEl = document.getElementById('modalStaffQuickCreate');
+                        const modalEl = document.getElementById('modalAppointmentQuickCreate') || document.getElementById('modalStaffQuickCreate');
                         const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                         modalInstance.hide();
                         qcForm.reset();
@@ -1065,4 +1059,5 @@
         return cookieValue;
     }
 </script>
-{% endblock %}
+{% endblock schedule_main_content %}
+{% endblock staff_content %}

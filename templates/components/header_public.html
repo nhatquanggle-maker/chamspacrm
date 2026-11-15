@@ -26,12 +26,8 @@
             </a>
         </div>
 
-        <!-- Top Right: Search & Dynamic Profile / Auth Buttons -->
+        <!-- Top Right: Dynamic Profile / Auth Buttons (đã bỏ icon kính lúp) -->
         <div class="top-right">
-            <button class="header-search-btn" title="Tìm kiếm" type="button" aria-label="Tìm kiếm">
-                <i class="bi bi-search"></i>
-            </button>
-
             {% if user.is_authenticated %}
                 <!-- Bell icon with Dropdown for Customer / Logged-in User (Figma 777:440) -->
                 <div class="cham-notif-dropdown-wrapper position-relative me-1">

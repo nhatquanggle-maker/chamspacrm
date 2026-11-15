@@ -4041,17 +4041,23 @@ body.page-appointment-admin-appointments .bg-gold-light { background-color: #FEF
 
 body.page-appointment-admin-appointments .bg-mint-light { background-color: #EAF5EF !important; }
 
-/* Bộ lọc chuẩn Staff */
+/* Bộ lọc chuẩn Staff & Admin kế thừa dùng chung (Figma Node 110:4969) */
 
-body.page-appointment-admin-appointments .admin-filter-card {
+body.page-appointment-admin-appointments .admin-filter-card,
+body.page-appointment-admin-appointments .staff-filter-card,
+body.page-appointment-staff-appointments .staff-filter-card,
+body.page-appointment-staff-appointments .admin-filter-card {
     background-color: #FFFFFF !important;
     border: 1px solid #D0B581 !important;
-    border-radius: 12px !important;
-    padding: 18px 22px !important;
-    box-shadow: 0 2px 8px rgba(120, 26, 36, 0.04) !important;
+    border-radius: 16px !important;
+    padding: 16px 20px !important;
+    box-shadow: 0 2px 10px rgba(120, 26, 36, 0.04) !important;
 }
 
-body.page-appointment-admin-appointments .admin-filter-label {
+body.page-appointment-admin-appointments .admin-filter-label,
+body.page-appointment-admin-appointments .staff-filter-label,
+body.page-appointment-staff-appointments .staff-filter-label,
+body.page-appointment-staff-appointments .admin-filter-label {
     font-size: 11px !important;
     font-weight: 700 !important;
     letter-spacing: 0.5px !important;
@@ -4059,72 +4065,104 @@ body.page-appointment-admin-appointments .admin-filter-label {
     text-transform: uppercase !important;
 }
 
-body.page-appointment-admin-appointments .admin-input-wrapper { position: relative !important; }
+body.page-appointment-admin-appointments .admin-input-wrapper,
+body.page-appointment-admin-appointments .staff-input-wrapper,
+body.page-appointment-staff-appointments .staff-input-wrapper,
+body.page-appointment-staff-appointments .admin-input-wrapper {
+    position: relative !important;
+}
 
-body.page-appointment-admin-appointments .admin-filter-input {
+body.page-appointment-admin-appointments .admin-filter-input,
+body.page-appointment-admin-appointments .staff-filter-input,
+body.page-appointment-staff-appointments .staff-filter-input,
+body.page-appointment-staff-appointments .admin-filter-input {
     background-color: #FFFFFF !important;
     border: 1px solid #E9DCC0 !important;
-    border-radius: 6px !important;
-    font-size: 13px !important;
+    border-radius: 8px !important;
+    font-size: 13.5px !important;
     color: #2E1D17 !important;
-    padding: 7px 12px !important;
-    height: 38px !important;
+    padding: 8px 12px !important;
 }
 
-body.page-appointment-admin-appointments .admin-filter-input:focus {
+body.page-appointment-admin-appointments .admin-filter-input:focus,
+body.page-appointment-admin-appointments .staff-filter-input:focus,
+body.page-appointment-staff-appointments .staff-filter-input:focus,
+body.page-appointment-staff-appointments .admin-filter-input:focus {
     border-color: #781A24 !important;
-    box-shadow: 0 0 0 2px rgba(120, 26, 36, 0.1) !important;
+    box-shadow: 0 0 0 3px rgba(120, 26, 36, 0.1) !important;
 }
 
-body.page-appointment-admin-appointments .admin-input-icon {
+body.page-appointment-admin-appointments .admin-input-icon,
+body.page-appointment-admin-appointments .staff-input-icon,
+body.page-appointment-staff-appointments .staff-input-icon,
+body.page-appointment-staff-appointments .admin-input-icon {
     position: absolute !important;
     right: 12px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
     color: #8C7E77 !important;
     pointer-events: none !important;
-    font-size: 13px !important;
+    font-size: 14px !important;
 }
 
 /* Bảng lịch hẹn chuẩn Staff (Figma Node 110:4969) */
 
-body.page-appointment-admin-appointments .admin-schedule-card {
-    background-color: #FFFFFF !important;
-    border: 1px solid #D0B581 !important;
-    border-radius: 12px !important;
-    overflow: hidden !important;
-    box-shadow: 0 3px 12px rgba(120, 26, 36, 0.04) !important;
+body.page-appointment-admin-appointments .admin-schedule-container,
+body.page-appointment-staff-appointments .staff-schedule-container {
+    max-width: 1360px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
 }
 
-body.page-appointment-admin-appointments .admin-schedule-header {
+body.page-appointment-admin-appointments .admin-schedule-card,
+body.page-appointment-admin-appointments .staff-schedule-card,
+body.page-appointment-staff-appointments .staff-schedule-card,
+body.page-appointment-staff-appointments .admin-schedule-card {
+    background-color: #FFFFFF !important;
+    border: 1px solid #D0B581 !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 16px rgba(120, 26, 36, 0.04) !important;
+}
+
+body.page-appointment-admin-appointments .admin-schedule-header,
+body.page-appointment-admin-appointments .staff-schedule-header,
+body.page-appointment-staff-appointments .staff-schedule-header,
+body.page-appointment-staff-appointments .admin-schedule-header {
     border-bottom: 1px solid #E9DCC0 !important;
     background-color: #FFFFFF !important;
 }
 
-body.page-appointment-admin-appointments .schedule-title {
-    font-size: 16px !important;
+body.page-appointment-admin-appointments .schedule-title,
+body.page-appointment-staff-appointments .schedule-title {
+    font-family: 'Lora', Georgia, serif !important;
+    font-size: 18px !important;
     font-weight: 700 !important;
     color: #2E1D17 !important;
 }
 
-body.page-appointment-admin-appointments .schedule-date-badge {
+body.page-appointment-admin-appointments .schedule-date-badge,
+body.page-appointment-staff-appointments .schedule-date-badge {
     background-color: #FAF7EF !important;
     border: 1px solid #E9DCC0 !important;
     border-radius: 20px !important;
-    padding: 3px 12px !important;
+    padding: 4px 12px !important;
     font-size: 12.5px !important;
     font-weight: 600 !important;
     color: #781A24 !important;
 }
 
-body.page-appointment-admin-appointments .schedule-count-badge {
+body.page-appointment-admin-appointments .schedule-count-badge,
+body.page-appointment-staff-appointments .schedule-count-badge {
     background-color: #FAF7EF !important;
     border: 1px solid #E9DCC0 !important;
     border-radius: 20px !important;
-    padding: 3px 12px !important;
+    padding: 4px 12px !important;
     font-size: 12.5px !important;
     font-weight: 600 !important;
-    color: #4A3E39 !important;
+    color: #781A24 !important;
 }
 
 /* Bảng dữ liệu */
@@ -4159,12 +4197,12 @@ body.page-appointment-admin-appointments .table-schedule tbody td {
 
 body.page-appointment-admin-appointments .table-schedule thead th:first-child,
 body.page-appointment-admin-appointments .table-schedule tbody td:first-child {
-    padding-left: 16px !important;
+    padding-left: 24px !important;
 }
 
 body.page-appointment-admin-appointments .table-schedule thead th:last-child,
 body.page-appointment-admin-appointments .table-schedule tbody td:last-child {
-    padding-right: 16px !important;
+    padding-right: 24px !important;
 }
 
 body.page-appointment-admin-appointments .appointment-row:hover {
@@ -6943,12 +6981,12 @@ body.page-appointment-staff-appointments .table-schedule tbody td {
 
 body.page-appointment-staff-appointments .table-schedule thead th:first-child,
 body.page-appointment-staff-appointments .table-schedule tbody td:first-child {
-        padding-left: 16px !important;
+        padding-left: 24px !important;
     }
 
 body.page-appointment-staff-appointments .table-schedule thead th:last-child,
 body.page-appointment-staff-appointments .table-schedule tbody td:last-child {
-        padding-right: 16px !important;
+        padding-right: 24px !important;
     }
 
 body.page-appointment-staff-appointments .appointment-row:hover {

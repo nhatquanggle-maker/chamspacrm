@@ -491,7 +491,7 @@
 
       <div class="vietqr-center-box">
         <div class="vietqr-img-wrapper">
-          <img id="modalQrImg" src="" alt="Mã VietQR Chuyển khoản" onerror="this.src='https://api.vietqr.io/image/970422-0946020526-compact2.jpg?amount=500000&addInfo=CHAMSPA&accountName=CHAM%20SPA%20MASSAGE'">
+          <img id="modalQrImg" src="/static/images/vietqr_nhatquang_acb.jpg" alt="Mã VietQR Chuyển khoản" onerror="this.src='/static/images/vietqr_nhatquang_acb.jpg'">
         </div>
         <div style="font-size: 12.5px; color: #716761; margin-top: 8px;">
           Mở ứng dụng ngân hàng bất kỳ để quét mã QR thanh toán nhanh
@@ -501,18 +501,18 @@
       <div class="vietqr-info-list">
         <div class="vietqr-info-row">
           <span class="lbl">Ngân hàng thụ hưởng:</span>
-          <span class="val">MB Bank (Quân Đội)</span>
+          <span class="val">ACB (Ngân hàng Á Châu)</span>
         </div>
         <div class="vietqr-info-row">
           <span class="lbl">Số tài khoản:</span>
           <span class="val">
-            <span id="modalAccNum">0946 020 526</span>
-            <button type="button" class="btn-copy-chip" onclick="navigator.clipboard.writeText('0946020526'); alert('Đã sao chép số tài khoản: 0946020526');">Sao chép</button>
+            <span id="modalAccNum">38854257</span>
+            <button type="button" class="btn-copy-chip" onclick="navigator.clipboard.writeText('38854257'); alert('Đã sao chép số tài khoản: 38854257');">Sao chép</button>
           </span>
         </div>
         <div class="vietqr-info-row">
           <span class="lbl">Chủ tài khoản:</span>
-          <span class="val">CHAM SPA MASSAGE</span>
+          <span class="val">LE NHAT QUANG</span>
         </div>
         <div class="vietqr-info-row">
           <span class="lbl">Nội dung chuyển khoản:</span>
@@ -1286,9 +1286,13 @@
     els.modalAmountDisplay.textContent = formatMoney(amount);
     els.modalTransferMemo.textContent = memo;
 
-    // Link ảnh VietQR tự động sinh
-    const qrUrl = `https://api.vietqr.io/image/970422-0946020526-compact2.jpg?amount=${amount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent('CHAM SPA MASSAGE')}`;
+    // Link ảnh VietQR tự động sinh theo số tiền và mã lịch hẹn (Ngân hàng ACB - LE NHAT QUANG)
+    const dynamicQr = `https://img.vietqr.io/image/ACB-38854257-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent('LE NHAT QUANG')}`;
+    const qrUrl = appData.vietqr_url || dynamicQr;
     els.modalQrImg.src = qrUrl;
+    els.modalQrImg.onerror = () => {
+      els.modalQrImg.src = '/static/images/vietqr_nhatquang_acb.jpg';
+    };
 
     els.btnCopyMemo.onclick = () => {
       navigator.clipboard.writeText(memo);

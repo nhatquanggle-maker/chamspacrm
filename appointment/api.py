@@ -713,8 +713,8 @@ def appointment_create_api(request):
     clean_code_num = appointment.appointment_code.replace('#', '')
     qr_memo = f"CHAMSPA {clean_code_num}"
     vietqr_url = (
-        f"https://img.vietqr.io/image/MB-0946020526-compact2.png"
-        f"?amount={int(final_total)}&addInfo={qr_memo}&accountName=CHAM%20SPA%20MASSAGE"
+        f"https://img.vietqr.io/image/ACB-38854257-compact2.png"
+        f"?amount={int(final_total)}&addInfo={qr_memo}&accountName=LE%20NHAT%20QUANG"
     )
     d = appointment.appointment_date
     date_display = f"{WEEKDAY_NAMES.get(d.weekday(), '')}, ngày {d.day:02d}/{d.month:02d}/{d.year}"
@@ -739,9 +739,9 @@ def appointment_create_api(request):
         'total_guests': appointment.total_guests,
         'vietqr_url': vietqr_url,
         'bank_info': {
-            'bank_name': 'MB BANK',
-            'account_number': '0946 020 526',
-            'account_name': 'CHAM SPA MASSAGE',
+            'bank_name': 'ACB (Ngân hàng Á Châu)',
+            'account_number': '38854257',
+            'account_name': 'LE NHAT QUANG',
             'amount': int(final_total),
             'memo': qr_memo,
         },

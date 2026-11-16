@@ -27,4 +27,3 @@ class ChamSpaErrorFallbackMiddleware:
         if settings.DEBUG or isinstance(exception, (PermissionDenied, Http404)):
             return None
         return render(request, '404.html', status=500)
-

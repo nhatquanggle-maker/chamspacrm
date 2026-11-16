@@ -12,17 +12,17 @@ Mục đích:
 """
 
 from decimal import Decimal
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Q
 from django.contrib import messages
 from django.utils import timezone
 
 # Tuyệt đối chỉ import model từ core.models (Không tạo model mới)
-from core.models import Tier, Membership, MembershipPoint, Notification, User, Appointment, Voucher
+from core.models import Tier, Membership, MembershipPoint, Appointment, Voucher
 
 
 @login_required

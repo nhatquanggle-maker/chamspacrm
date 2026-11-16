@@ -15,7 +15,7 @@ Mục đích:
 
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -842,7 +842,6 @@ def admin_promotions_view(request):
 
 
 # Alias tương thích ngược
-admin_marketing_view = admin_notifications_view
 
 
 @login_required

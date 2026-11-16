@@ -16,10 +16,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Min, Max, Count
+from django.db.models import Count
 from django.utils.text import slugify
 
-from core.models import Category, Service, ServiceImage, Feedback
+from core.models import Category, Service, Feedback
 
 
 def service_list_view(request):

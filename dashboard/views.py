@@ -19,9 +19,9 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.db.models import Sum, Count, Avg, Q
+from django.db.models import Q, Sum
 
-from core.models import Appointment, Invoice, Membership, Feedback, Service, Tier
+from core.models import Appointment, Invoice
 from .services import (
     resolve_time_period,
     get_dashboard_kpis,

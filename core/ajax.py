@@ -7,10 +7,6 @@ def is_staff_or_admin(user):
     return bool(user and user.is_authenticated and (user.is_staff or user.is_superuser))
 
 
-def is_admin(user):
-    return bool(user and user.is_authenticated and user.is_superuser)
-
-
 def json_error(message, status=400, **extra):
     payload = {'error': message}
     payload.update(extra)
@@ -53,14 +49,4 @@ def require_staff_json(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped
 
-
-def require_admin_json(view_func):
-    @wraps(view_func)
-    def _wrapped(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return json_error('Vui lòng đăng nhập để tiếp tục.', status=401)
-        if not is_admin(request.user):
-            return json_error('Chỉ Quản trị viên mới có quyền thực hiện.', status=403)
-        return view_func(request, *args, **kwargs)
-    return _wrapped
 

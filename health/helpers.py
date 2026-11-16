@@ -1,4 +1,3 @@
-import json
 from decimal import Decimal, InvalidOperation
 from django.utils import timezone
 from core.models import UserHealthProfile
@@ -21,32 +20,8 @@ def format_metric_value(val):
     return str(int(f)) if f.is_integer() else f"{f:.1f}".rstrip('0').rstrip('.')
 
 
-def parse_conditions_list(raw_conditions):
-    """Chuẩn hóa danh sách bệnh lý từ list, JSON string hoặc chuỗi phân tách dấu phẩy."""
-    if not raw_conditions:
-        return []
-    if isinstance(raw_conditions, list):
-        return [str(c).strip() for c in raw_conditions if len(str(c).strip()) > 1]
-    if isinstance(raw_conditions, str):
-        raw_str = raw_conditions.strip()
-        if len(raw_str) <= 1:
-            return []
-        try:
-            parsed = json.loads(raw_str)
-            if isinstance(parsed, list):
-                return [str(c).strip() for c in parsed if len(str(c).strip()) > 1]
-            if isinstance(parsed, str) and len(parsed.strip()) > 1:
-                return [parsed.strip()]
-        except Exception:
-            pass
-        if ',' in raw_str:
-            return [c.strip() for c in raw_str.split(',') if len(c.strip()) > 1]
-        return [raw_str]
-    val = str(raw_conditions).strip()
-    return [val] if len(val) > 1 else []
-
-
 def compute_bmi(height_cm, weight_kg):
+    """Tính chỉ số BMI từ chiều cao (cm) và cân nặng (kg)."""
     if height_cm and weight_kg and float(height_cm) > 0:
         height_m = float(height_cm) / 100.0
         return round(float(weight_kg) / (height_m * height_m), 1)
@@ -54,6 +29,7 @@ def compute_bmi(height_cm, weight_kg):
 
 
 def get_bmi_meta(bmi_val):
+    """Phân loại chỉ số BMI theo thể trạng chuẩn."""
     if bmi_val is None:
         return "Chưa xác định", "Chưa đo", "bg-secondary"
     if bmi_val < 18.5:
@@ -65,29 +41,8 @@ def get_bmi_meta(bmi_val):
     return "Thể trạng béo phì (Cần lưu ý)", "Béo phì", "bg-danger"
 
 
-def get_pain_meta(level):
-    if level is None:
-        return "Chưa khảo sát", "#6c757d"
-    if level <= 3:
-        return "Đau nhẹ / Ê ẩm thoáng qua", "#2E7D32"
-    if level <= 6:
-        return "Đau vừa / Căng cơ do áp lực công việc", "#F57F17"
-    if level <= 8:
-        return "Đau nhiều / Khó chịu, hạn chế vận động", "#E65100"
-    return "Đau dữ dội / Co thắt cơ cấp tính", "#781A24"
-
-
-def get_health_alerts(obj):
-    alerts = []
-    if obj.blood_pressure == 'Cao':
-        alerts.append({"type": "danger", "title": "Huyết áp cao", "desc": "Tránh ấn mạnh huyệt vùng đầu cổ, tránh tắm nước quá nóng."})
-    elif obj.blood_pressure == 'Thấp':
-        alerts.append({"type": "warning", "title": "Huyết áp thấp", "desc": "Giữ ấm cơ thể, chuyển tư thế nhẹ nhàng, tránh xông hơi lâu."})
-    return alerts
-
-
 def build_health_summary(health):
-    """Tạo chuỗi tóm tắt thể trạng ngắn gọn cho livechat/monitor (chỉ gồm huyết áp, lực, yêu cầu riêng)."""
+    """Tạo chuỗi tóm tắt thể trạng ngắn gọn cho livechat/monitor (huyết áp, lực massage, yêu cầu riêng)."""
     health_notes = []
     if health:
         if health.blood_pressure:
@@ -100,11 +55,9 @@ def build_health_summary(health):
 
 
 def serialize_health_profile(obj):
-    """Chuyển UserHealthProfile thành dict đầy đủ các trường tính toán BMI, pain, alert."""
+    """Chuyển UserHealthProfile thành dict phục vụ giao diện xem và chỉnh sửa hồ sơ."""
     bmi_val = compute_bmi(obj.height_cm, obj.weight_kg)
     bmi_cls, bmi_short, bmi_badge = get_bmi_meta(bmi_val)
-    pain_sev, pain_color = get_pain_meta(obj.pain_level)
-    alerts = get_health_alerts(obj)
     return {
         'id': obj.id,
         'health_code': obj.health_code,
@@ -120,7 +73,6 @@ def serialize_health_profile(obj):
         'focus_areas': obj.focus_areas or [],
         'massage_pressure': obj.massage_pressure,
         'pain_level': obj.pain_level,
-        # Clear legacy condition/allergy fields so removed categories cannot be queried or stored.
         'special_requests': obj.special_requests or '',
         'recovery_goals': obj.recovery_goals or [],
         'created_at': obj.created_at.isoformat() if obj.created_at else None,
@@ -128,10 +80,6 @@ def serialize_health_profile(obj):
         'bmi_classification': bmi_cls,
         'bmi_short_label': bmi_short,
         'bmi_badge_class': bmi_badge,
-        'pain_severity': pain_sev,
-        'pain_color': pain_color,
-        'has_medical_alert': len(alerts) > 0,
-        'alert_details': alerts,
         'formatted_updated_at': obj.created_at.strftime('%d/%m/%Y %H:%M') if obj.created_at else '',
     }
 
@@ -213,4 +161,3 @@ def validate_health_payload(data):
         'special_requests': (data.get('special_requests') or '').strip(),
         'recovery_goals': _clean_list('recovery_goals'),
     }, None
-

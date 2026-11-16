@@ -9,9 +9,9 @@ from django.urls import reverse
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
-from django.db.models import Q, Avg, Sum
+from django.db.models import Q, Avg
 from django.utils import timezone
-from datetime import timedelta, datetime
+from datetime import timedelta
 from decimal import Decimal
 from .forms import (
     LoginForm,
@@ -23,7 +23,7 @@ from .forms import (
     parse_optional_date,
     sync_user_phone_username,
 )
-from core.models import User, UserProfile, UserHealthProfile, Tier, Membership, MembershipPoint, Appointment, Feedback
+from core.models import User, UserProfile, UserHealthProfile, Tier, Membership, Appointment
 import os
 
 
@@ -92,38 +92,55 @@ def logout_view(request):
 
 def forgot_password_view(request):
     """
-    Xử lý Quên mật khẩu & Gửi link đặt lại mật khẩu an toàn
-    Khớp 100% Figma: Node 188:27987
+    Xử lý Quên & Đặt lại mật khẩu tối giản (2 bước tại cùng giao diện):
+    Bước 1: Người dùng nhập email đã đăng ký trong hệ thống.
+    Bước 2: Hệ thống kiểm tra email tồn tại -> Lập tức hiển thị form nhập mật khẩu mới.
     """
     if request.user.is_authenticated:
         return redirect('home')
 
-    reset_link_generated = None
+    step = 'input_email'
+    verified_email = ''
+    reset_form = None
 
     if request.method == 'POST':
-        form = ForgotPasswordForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            user = User.objects.get(email=email)
+        action_step = request.POST.get('step', 'input_email')
 
-            # Tạo token an toàn theo chuẩn Django Auth
-            token = default_token_generator.make_token(user)
-            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-            reset_url = request.build_absolute_uri(
-                reverse('accounts:reset_password_confirm', kwargs={'uidb64': uidb64, 'token': token})
-            )
-            reset_link_generated = reset_url
+        if action_step == 'set_password':
+            # Bước 2: Người dùng gửi mật khẩu mới
+            verified_email = request.POST.get('email', '').strip().lower()
+            user = User.objects.filter(email=verified_email).first()
 
-            messages.success(
-                request,
-                f"Đường dẫn khôi phục mật khẩu đã được tạo thành công cho email {email}!"
-            )
+            if not user:
+                messages.error(request, "Email không hợp lệ hoặc không tồn tại trong hệ thống.")
+                return redirect('accounts:forgot_password')
+
+            reset_form = ResetPasswordForm(request.POST)
+            if reset_form.is_valid():
+                new_password = reset_form.cleaned_data['new_password']
+                user.set_password(new_password)
+                user.save()
+                messages.success(request, "Đặt lại mật khẩu thành công! Quý khách vui lòng đăng nhập với mật khẩu mới.")
+                return redirect('accounts:login')
+            else:
+                step = 'set_password'
+                form = ForgotPasswordForm(initial={'email': verified_email})
+        else:
+            # Bước 1: Người dùng nhập email để xác thực
+            form = ForgotPasswordForm(request.POST)
+            if form.is_valid():
+                verified_email = form.cleaned_data['email']
+                step = 'set_password'
+                reset_form = ResetPasswordForm()
+                messages.info(request, f"Đã xác thực tài khoản {verified_email}. Vui lòng nhập mật khẩu mới bên dưới.")
     else:
         form = ForgotPasswordForm()
 
     return render(request, 'accounts/forgot_password.html', {
         'form': form,
-        'reset_link_generated': reset_link_generated,
+        'step': step,
+        'verified_email': verified_email,
+        'reset_form': reset_form,
     })
 
 

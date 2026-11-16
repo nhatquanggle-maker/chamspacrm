@@ -33,4 +33,3 @@ if settings.DEBUG:
 urlpatterns += [
     re_path(r'^.*$', views.custom_404_view, name='catch_all_404'),
 ]
-

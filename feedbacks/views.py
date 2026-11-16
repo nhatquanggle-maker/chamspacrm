@@ -23,7 +23,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
@@ -33,7 +33,6 @@ from core.models import (
     Feedback,
     Complaint,
     Appointment,
-    AppointmentDetail,
     Notification,
     Voucher,
     User,

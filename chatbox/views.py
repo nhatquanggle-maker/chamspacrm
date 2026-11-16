@@ -10,15 +10,14 @@ Triển khai giao diện chuẩn Figma Node 207:1040:
 ================================================================================
 """
 
-from datetime import date
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Q
 
 from core.models import (
-    FAQ, Conversation, ConversationMessage, User, Service, Voucher,
+    FAQ, Conversation, User, Service, Voucher,
     Membership, UserHealthProfile
 )
 from health.helpers import build_health_summary

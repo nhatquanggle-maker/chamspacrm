@@ -9,8 +9,6 @@ Triển khai giao diện chuẩn Figma:
 ================================================================================
 """
 
-import json
-from datetime import datetime
 from urllib.parse import quote, urlencode
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse

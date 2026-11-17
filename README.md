@@ -183,9 +183,62 @@ flowchart TD
 
 ---
 
-### 2. Tổng hợp 10 phân hệ đã hoàn thiện
+### 2. Bảng Ma trận 46 Use Cases toàn hệ thống (Use Case Matrix)
 
-#### ✅ MOD-01: Đặt lịch & Quản lý Lịch hẹn (`appointment`)
+Hệ thống ChamSPA CRM được thiết kế và hiện thực hóa với quy mô **46 Use Cases nghiệp vụ chuyên sâu**, bao phủ trọn vẹn 10 phân hệ chức năng và 4 nhóm tác nhân (Khách vãng lai, Khách hàng thành viên, Nhân viên ca trực, Quản trị viên):
+
+| STT | Mã Use Case | Tên Chức năng / Use Case nghiệp vụ | Phân hệ | Tác nhân thực thi | Tuyến URL / Endpoint kỹ thuật | Trạng thái |
+| :---: | :---: | :--- | :---: | :---: | :--- | :---: |
+| **01** | `UC_AUTH_REG` | Đăng ký tài khoản Khách hàng mới (xác thực SĐT duy nhất & email `@gmail.com`) | **MOD-05** | Guest | `/accounts/register/` | Hoàn thành |
+| **02** | `UC_AUTH_LOGIN` | Đăng nhập đa năng (Username / Email / SĐT) & Điều hướng phân quyền tự động | **MOD-05** | All Roles | `/accounts/login/` | Hoàn thành |
+| **03** | `UC_AUTH_RESET` | Quên & Thiết lập lại mật khẩu an toàn qua Token (`PasswordResetTokenGenerator`) | **MOD-05** | Guest, Customer | `/accounts/forgot-password/` | Hoàn thành |
+| **04** | `UC_PROFILE_MGT` | Quản lý Hồ sơ cá nhân, cập nhật Avatar & Đổi mật khẩu tài khoản | **MOD-05** | Customer, Staff, Admin | `/accounts/profile/` | Hoàn thành |
+| **05** | `UC_CUSTOMER_360` | Quản trị Khách hàng 360 (Xem chi tiết 3 Tab, Lịch sử dịch vụ, Khóa mềm `is_active`) | **MOD-05** | Staff, Admin | `/accounts/admin/customers/` | Hoàn thành |
+| **06** | `UC_STAFF_MGT` | Quản lý Nhân sự Spa (Thêm mới, Cấp mật khẩu, Phân ca trực, Chặn tự khóa tài khoản) | **MOD-05** | Admin | `/accounts/admin/staff/` | Hoàn thành |
+| **07** | `UC_SERVICE_CATALOG`| Tra cứu & Lọc Danh sách Dịch vụ công khai (Đa tiêu chí: danh mục, giá, thời lượng) | **MOD-03** | Guest, Customer | `/services/` | Hoàn thành |
+| **08** | `UC_SERVICE_DETAIL` | Xem Chi tiết Gói Dịch vụ (Gallery ảnh, quy trình 4 bước, review hợp lệ) | **MOD-03** | Guest, Customer | `/services/detail/<slug>/` | Hoàn thành |
+| **09** | `UC_SERVICE_MGT` | Quản trị Danh mục & Bảng giá Spa (3 Thẻ KPI, Modal Thêm/Sửa, Bật/Tắt hoạt động) | **MOD-03** | Staff, Admin | `/services/admin/` | Hoàn thành |
+| **10** | `UC_SERVICE_API` | Cung cấp JSON API dịch vụ phục vụ bộ lọc thời gian thực và Wizard Đặt lịch | **MOD-03** | Hệ thống | `/services/api/` | Hoàn thành |
+| **11** | `UC_HEALTH_SURVEY` | Khảo sát & Cập nhật Hồ sơ Sức khỏe cá nhân (Tính BMI tự động, chọn vùng đau SVG) | **MOD-08** | Customer | `/health/update/` | Hoàn thành |
+| **12** | `UC_HEALTH_ALERT` | Thuật toán Phân tích Cảnh báo An toàn Y tế (Thai kỳ, Tim mạch, Huyết áp, Cột sống) | **MOD-08** | Hệ thống | `health/helpers.py` | Hoàn thành |
+| **13** | `UC_HEALTH_LOOKUP` | Tra cứu Hồ sơ Sức khỏe khách hàng & Tạo nhanh khách mới tại quầy cho Staff | **MOD-08** | Staff, Admin | `/health/staff/` | Hoàn thành |
+| **14** | `UC_HEALTH_PRINT_KTV`| Xuất & In Phiếu Kỹ thuật viên (KTV) chuẩn hóa trước ca trị liệu | **MOD-08** | Staff, Admin | `/health/staff/<user_id>/` | Hoàn thành |
+| **15** | `UC_BOOKING_WIZARD`| Đặt lịch hẹn Spa trực tuyến Wizard 3 bước (Customer-only, chọn chi nhánh, ngày/slot) | **MOD-01** | Customer | `/appointment/booking/` | Hoàn thành |
+| **16** | `UC_SLOT_VALIDATION`| Thuật toán Kiểm soát Slot trống (Tối đa 10 khách/giờ/chi nhánh, khóa giờ quá khứ) | **MOD-01** | Hệ thống | `/appointment/api/available-slots/` | Hoàn thành |
+| **17** | `UC_DIGITAL_PASS` | Xem Vé trải nghiệm Digital Pass điện tử có mã định danh và thông tin xác nhận | **MOD-01** | Customer | `/appointment/success/<code>/` | Hoàn thành |
+| **18** | `UC_MY_APPOINTMENTS`| Quản lý Lịch hẹn của tôi (Phân chia 4 Tab: Tất cả, Sắp tới, Hoàn thành, Đã hủy) | **MOD-01** | Customer | `/appointment/my-appointments/` | Hoàn thành |
+| **19** | `UC_RESCHEDULE` | Dời lịch hẹn trực tuyến (Kiểm tra slot trống & khung giờ tương lai) | **MOD-01** | Customer | `/appointment/api/<pk>/reschedule/` | Hoàn thành |
+| **20** | `UC_CANCEL_REFUND` | Hủy lịch hẹn có lý do hủy & số tài khoản hoàn tiền, hoàn lại Voucher | **MOD-01** | Customer | `/appointment/api/<pk>/cancel/` | Hoàn thành |
+| **21** | `UC_STAFF_DISPATCH`| Điều phối Lịch tại quầy, Tạo nhanh Walk-in & Chuyển 6 trạng thái vòng đời lịch hẹn | **MOD-01** | Staff, Admin | `/appointment/staff/` | Hoàn thành |
+| **22** | `UC_EXPORT_CSV` | Xuất file CSV danh sách lịch hẹn mã hóa chuẩn UTF-8-BOM | **MOD-01** | Admin | `/appointment/admin/export/` | Hoàn thành |
+| **23** | `UC_VIETQR_GEN` | Sinh mã QR VietQR động theo số tiền thực thu và cú pháp `CHAMSPA <MÃ_LỊCH>` | **MOD-09** | Customer, Staff | `Modal VietQR / Static` | Hoàn thành |
+| **24** | `UC_PAYMENT_CONFIRM`| Khách hàng xác nhận chuyển khoản VietQR hoặc chọn thanh toán tại quầy | **MOD-09** | Customer | `/appointment/api/<pk>/confirm-payment/` | Hoàn thành |
+| **25** | `UC_STAFF_CASHIER` | Thao tác Thu ngân quầy: Chuyển đổi phương thức thanh toán & Cập nhật thu tiền | **MOD-09** | Staff, Admin | `/appointment/api/<pk>/update-payment/` | Hoàn thành |
+| **26** | `UC_INVOICE_SYNC` | Đồng bộ hóa trạng thái Hóa đơn tự động qua vòng đời Lịch hẹn (Hold -> Confirmed) | **MOD-09** | Hệ thống | `core/models.py` | Hoàn thành |
+| **27** | `UC_BOT_FAQ` | Tương tác Bot FAQ tự động trên Widget nổi (Stateless cho Guest, lưu CSDL cho Customer) | **MOD-02** | Guest, Customer | `/chatbox/customer/` | Hoàn thành |
+| **28** | `UC_CHAT_TRANSFER` | Yêu cầu gặp nhân viên tư vấn & Chuyển phiên chat sang trạng thái Chờ tiếp nhận | **MOD-02** | Customer | `/chatbox/api/conversations/transfer/` | Hoàn thành |
+| **29** | `UC_STAFF_LIVECHAT`| Bàn làm việc Staff Livechat Console: Tiếp nhận phiên, Khóa 1-1, Gửi thẻ Dịch vụ/Voucher| **MOD-02** | Staff | `/chatbox/livechat/` | Hoàn thành |
+| **30** | `UC_ADMIN_MONITOR` | Admin Livechat Monitor: Giám sát toàn bộ hội thoại, Xem thẻ VIP/Sức khỏe, Tiếp quản | **MOD-02** | Admin | `/chatbox/admin/monitor/` | Hoàn thành |
+| **31** | `UC_FAQ_MANAGEMENT`| Quản trị Kịch bản câu hỏi thường gặp FAQ & Xuất file CSV kịch bản hỏi đáp | **MOD-02** | Admin | `/chatbox/admin/faqs/` | Hoàn thành |
+| **32** | `UC_SERENITY_PASS` | Xem Thẻ điện tử Serenity VIP Pass 4 hạng & Thanh tiến trình thăng hạng tích điểm | **MOD-06** | Customer | `/membership/` | Hoàn thành |
+| **33** | `UC_POINT_SIGNAL` | Django Signal: Tự động tích điểm (10.000đ = 1đ) & Tự động nâng hạng thẻ VIP | **MOD-06** | Hệ thống | `membership/signals.py` | Hoàn thành |
+| **34** | `UC_MEMBERSHIP_ACTION`| Tra cứu Thẻ Hội viên & Bàn điều chỉnh điểm/hạng thẻ tại quầy cho Nhân viên | **MOD-06** | Staff, Admin | `/membership/staff/` | Hoàn thành |
+| **35** | `UC_POINT_HISTORY` | Quản lý Lịch sử Biến động Điểm thưởng và Quyền lợi VIP tương ứng | **MOD-06** | Customer, Staff | `/membership/` | Hoàn thành |
+| **36** | `UC_FEEDBACK_CREATE`| Gửi Đánh giá 1-5 sao kèm Tags cảm nhận & Tải lên tối đa 3 ảnh minh họa (lịch Completed)| **MOD-04** | Customer | `/feedbacks/` | Hoàn thành |
+| **37** | `UC_COMPLAINT_CREATE`| Gửi Khiếu nại dịch vụ có minh chứng đính kèm (Lịch Completed) | **MOD-04** | Customer | `/feedbacks/` | Hoàn thành |
+| **38** | `UC_FEEDBACK_MGT` | Không gian Master-Detail Quản lý Phản hồi: Thống kê KPI, Ẩn/Hiện, Trả lời công khai | **MOD-04** | Staff, Admin | `/feedbacks/admin/` | Hoàn thành |
+| **39** | `UC_COMPLAINT_RESOLVE`| Phân quyền Xử lý Khiếu nại 4 bước & Cấp Voucher đền bù (`DENBU-...`) liên kết | **MOD-04** | Staff, Admin | `/feedbacks/admin/` | Hoàn thành |
+| **40** | `UC_PROMOTION_VIEW` | Trang Ưu đãi & Chiến dịch Khuyến mãi công khai (Thẻ Gradient tương tác) | **MOD-07** | Guest, Customer | `/marketing/` | Hoàn thành |
+| **41** | `UC_VOUCHER_WALLET` | Ví Voucher cá nhân: Tra cứu mã khả dụng, Điều kiện áp dụng (PERCENT kèm trần / FIXED) | **MOD-07** | Customer | `/marketing/` | Hoàn thành |
+| **42** | `UC_NOTIFICATION_BELL`| Chuông Thông báo Dropdown đa vai trò & Bảng tin Timeline ca trực / cá nhân | **MOD-07** | All Logged-in | `/marketing/notifications/` | Hoàn thành |
+| **43** | `UC_BROADCAST_ADMIN`| Quản trị Khuyến mãi, Phát hành Voucher hàng loạt & Broadcast Thông báo hệ thống | **MOD-07** | Admin | `/marketing/admin/promotions/` | Hoàn thành |
+| **44** | `UC_STAFF_DASHBOARD`| Dashboard Ca trực cho Nhân viên: 4 Thẻ KPI ca trực & Danh sách phục vụ trong ngày | **MOD-10** | Staff | `/dashboard/staff/` | Hoàn thành |
+| **45** | `UC_ADMIN_DASHBOARD`| Admin Dashboard Quản trị cấp cao: 4 Thẻ KPI tăng trưởng & 6 Biểu đồ Chart.js | **MOD-10** | Admin | `/dashboard/admin/` | Hoàn thành |
+| **46** | `UC_EXPORT_CLIENT` | Xuất Báo cáo Client-side: Excel đa sheet (SheetJS) & Xuất PDF trực tiếp (html2pdf) | **MOD-10** | Admin | `/dashboard/admin/` | Hoàn thành |
+
+### 3. Chi tiết chức năng 10 phân hệ nghiệp vụ (MOD-01 đến MOD-10)
+
+#### ✅ MOD-01: Đặt lịch & Quản lý Lịch hẹn (`appointment`) *(8 Use Cases: UC-15 -> UC-22)*
 * **Đặt lịch trực tuyến (Customer-only):** Giao diện Wizard (`/appointment/booking/`) cho phép chọn chi nhánh, ngày & khung giờ còn trống (giới hạn **tối đa 10 khách/khung giờ/ngày/chi nhánh** và tự khóa các khung giờ đã qua so với giờ hiện tại), cấu hình số lượng khách (Nam/Nữ), chọn dịch vụ & lực massage từng người (`Nhẹ`, `Vừa`, `Mạnh`), kiểm tra & áp dụng Voucher (`/appointment/api/apply-voucher/`). Đặt lịch hoàn tất tạo đồng thời `Appointment` (`Hold`), `AppointmentDetail`, `Invoice` (`Chờ xác nhận`) và mở modal hiển thị mã QR chuyển khoản (**không dùng webhook tự động**; khách tự bấm xác nhận đã chuyển khoản hoặc chọn thanh toán tại quầy).
 * **Vé trải nghiệm Digital Pass:** Trang `/appointment/success/<appointment_code>/` hiển thị thông tin xác nhận, từng dịch vụ theo khách và trạng thái thanh toán.
 * **Lịch hẹn của tôi (`/appointment/my-appointments/`):** Tự động đồng bộ thêm lịch hẹn trùng SĐT tài khoản; chia **4 tab** (`Tất cả`, `Sắp tới`, `Đã hoàn thành`, `Đã hủy`). Hỗ trợ:
@@ -193,49 +246,49 @@ flowchart TD
   * **Hủy lịch (`/appointment/api/<pk>/cancel/`):** Yêu cầu nhập `cancel_reason` và `refund_account_number`; tự động cập nhật `Invoice` sang `Không hợp lệ` và hoàn lại `Voucher` về trạng thái `Khả dụng`.
 * **Điều phối & Đặt lịch tại quầy cho Staff/Admin (`/appointment/staff/`, `/appointment/admin/`):** Tạo nhanh lịch hẹn cho khách walk-in (`/appointment/api/staff/quick-create/`), lọc theo ngày/khung giờ/trạng thái/từ khóa, chuyển đổi trạng thái xử lý (`Hold` / `Pending` / `Confirmed` / `In_Progress` / `Completed` / `Cancelled`), cập nhật hình thức thanh toán và xuất file **CSV UTF-8-BOM** danh sách lịch hẹn (`/appointment/admin/export/`).
 
-#### ✅ MOD-02: Boxchat Tư vấn & Quản lý FAQ (`chatbox`)
+#### ✅ MOD-02: Boxchat Tư vấn & Quản lý FAQ (`chatbox`) *(5 Use Cases: UC-27 -> UC-31)*
 * **Widget Chat & Trang Khách hàng (`/chatbox/customer/`):** Tự động ẩn với Staff/Admin; khách vãng lai trò chuyện với Bot FAQ hoàn toàn **stateless** (không lưu DB); khách hàng đã đăng nhập được lưu `Conversation` & `ConversationMessage` và tải lại lịch sử cũ.
 * **Chuyển tiếp Nhân viên & Khóa sở hữu 1-1:** Khi khách bấm *"Gặp nhân viên"*, trạng thái chuyển sang `Đang chờ`. Nhân viên tại **Livechat Console (`/chatbox/livechat/`)** bấm tiếp nhận (`accept`) để gắn `staff` và khóa quyền phản hồi tránh xung đột giữa nhiều nhân viên; hỗ trợ gửi nhanh thẻ **Dịch vụ** & **Voucher** ngay trong khung chat, tiếp quản (`takeover`) và đóng phiên (`close`).
 * **Admin Monitor (`/chatbox/admin/monitor/`):** Giám sát 3 tab (`Chờ tiếp nhận`, `Đang xử lý`, `Đã đóng`), xem nhanh thẻ Hội viên + tổng chi tiêu + tóm tắt Hồ sơ Sức khỏe khách hàng, điều chuyển nhân viên (`reassign`), tiếp quản (`takeover`) và gửi tin nhắn can thiệp trực tiếp.
 * **Quản trị kịch bản FAQ (`/chatbox/admin/faqs/`):** Thêm, sửa, xóa, bật/tắt `Active`/`Hidden` các câu hỏi thường gặp thuần text và xuất kịch bản FAQ ra file **CSV** (`/chatbox/api/admin/faqs/export/`).
 
-#### ✅ MOD-03: Quản lý Danh mục & Dịch vụ (`services`)
+#### ✅ MOD-03: Quản lý Danh mục & Dịch vụ (`services`) *(4 Use Cases: UC-07 -> UC-10)*
 * **Danh sách dịch vụ công khai (`/services/` & `GET /services/api/`):** Lọc theo danh mục đang hoạt động, tìm kiếm tên/mô tả, lọc khoảng giá & thời lượng (`30`, `45`, `60`, `75`, `90`, `120` phút), sắp xếp theo đánh giá/giá/mới nhất và phân trang (9 dịch vụ/trang).
 * **Chi tiết dịch vụ (`/services/detail/<slug>/`):** Hiển thị bộ sưu tập ảnh (`ServiceImage`), mô tả 4 bước quy trình trị liệu, danh sách đánh giá hợp lệ (ẩn các đánh giá có `status='Đã ẩn'`) và dịch vụ liên quan.
 * **Quản trị dịch vụ (`/services/admin/`):** Xem 3 thẻ KPI (Tổng, Đang hoạt động, Đang ẩn/khóa), tìm kiếm & lọc nhanh client-side, thêm/sửa dịch vụ (`save_service`), bật/tắt trạng thái (`toggle_service`) và xóa an toàn (`delete_service` — tự chuyển `Ngừng hoạt động` nếu dịch vụ đã từng có trong `AppointmentDetail`). *(Quản trị danh mục `Category` và thêm ảnh `ServiceImage` sử dụng Django Admin `/admin/`).*
 
-#### ✅ MOD-04: Quản lý Đánh giá & Khiếu nại (`feedbacks`)
+#### ✅ MOD-04: Quản lý Đánh giá & Khiếu nại (`feedbacks`) *(4 Use Cases: UC-36 -> UC-39)*
 * **Khách hàng (`/feedbacks/`):** Giao diện 2 tab **Khiếu nại của tôi** & **Đánh giá của tôi**; chỉ cho phép gửi đánh giá 1–5 sao (kèm tag cảm nhận & tối đa 3 ảnh) hoặc gửi khiếu nại (kèm tối đa 3 ảnh minh chứng lưu vào `media/feedbacks/YYYYMM/`) đối với các lịch hẹn đã `Completed`, xử lý qua Form POST.
 * **Staff & Admin Master-Detail (`/feedbacks/admin/`):**
   * **Tab Đánh giá:** 4 KPI (Điểm TB, Tổng đánh giá, Chờ phản hồi, Đã ẩn), lọc theo số sao/trạng thái, nút Ẩn/Hiện đánh giá và Phản hồi công khai lưu rõ `replied_by` & `replied_at`.
   * **Tab Khiếu nại:** Tiếp nhận (`take_complaint`), giải quyết (`resolve_complaint` với `resolution_note` và tùy chọn cấp tự động Voucher đền bù mã `DENBU-...` liên kết `complaint` + thông báo khách). Riêng thao tác **Phân công nhân viên** (`assign_complaint`) và **Từ chối khiếu nại** (`reject_complaint`) được bảo vệ chỉ dành cho **Admin (`is_superuser`)**; khiếu nại `Đã xử lý` hoặc `Đã từ chối` được khóa chỉnh sửa.
 
-#### ✅ MOD-05: Quản lý Tài khoản, Nhân sự & Khách hàng (`accounts`)
+#### ✅ MOD-05: Quản lý Tài khoản, Nhân sự & Khách hàng (`accounts`) *(6 Use Cases: UC-01 -> UC-06)*
 * **Xác thực & Điều hướng:** Đăng ký (`/accounts/register/`), Đăng nhập (`/accounts/login/`) bằng SĐT/Email/Username (tự động chuyển Admin -> `/dashboard/admin/`, Staff -> `/dashboard/staff/`, Customer -> `/`), kiểm tra `is_active`, Đăng xuất (`/accounts/logout/`).
 * **Quên & Đặt lại mật khẩu:** Sử dụng `PasswordResetTokenGenerator`, sinh link đặt lại mật khẩu và hiển thị trực tiếp trên giao diện (`/accounts/forgot-password/`) để thuận tiện kiểm thử không cần SMTP ngoài.
 * **Hồ sơ cá nhân (`/accounts/profile/`):** Kế thừa động layout đúng theo vai trò, cập nhật thông tin cá nhân, upload ảnh đại diện (`media/avatars/`) và đổi mật khẩu.
 * **Quản lý Khách hàng 360 (`/accounts/admin/customers/` & `/accounts/admin/customers/<pk>/`):** Danh sách phân trang 8 khách/trang, tìm kiếm, lọc trạng thái, thêm/sửa khách hàng, khóa/mở khóa mềm (`is_active`) và màn hình chi tiết **3 tab** (`Thông tin cá nhân`, `Hồ sơ Sức khỏe`, `Hội viên & Lịch sử`).
 * **Quản lý Nhân viên (`/accounts/admin/staff/` & `/accounts/admin/staff/<pk>/`):** Chuẩn hóa vai trò `'Staff'`, phân trang 7 nhân viên/trang, thêm/sửa thông tin/cấp lại mật khẩu, khóa/mở khóa mềm và chặn tự khóa chính tài khoản đang đăng nhập.
 
-#### ✅ MOD-06: Quản lý Hội viên VIP & Tích điểm (`membership`)
+#### ✅ MOD-06: Quản lý Hội viên VIP & Tích điểm (`membership`) *(4 Use Cases: UC-32 -> UC-35)*
 * **Cơ cấu 4 hạng thẻ (`Tier`):** `Hạng Đồng` (0 điểm — 0%), `Hạng Bạc` (500 điểm — 5%), `Hạng Vàng` (1.500 điểm — 10%), `Hạng Kim Cương` (3.000 điểm — 15%).
 * **Thẻ Hội viên Khách hàng (`/membership/`):** Gồm 2 tab: **Thẻ hội viên & Tích điểm** (thẻ điện tử *Serenity VIP Pass*, thanh tiến trình thăng hạng, tiến trình mốc 10 triệu VNĐ, bảng so sánh 4 hạng và lịch sử biến động điểm 10 dòng/trang) và **Ví Voucher** (đồng bộ trực tiếp với mã `Voucher` của khách).
 * **Tra cứu & Điều chỉnh tại quầy (`/membership/staff/` & `GET /membership/api/lookup/`):** KPI tổng hội viên/điểm, tìm kiếm theo SĐT/Tên/Email, lọc hạng thẻ, thao tác cộng/trừ điểm thủ công (`ADD`/`DEDUCT`) và điều chỉnh hạng thẻ (`update_tier`).
 * **Signal tự động (`membership/signals.py`):** Khi `Invoice` chuyển sang `Đã thanh toán`, hệ thống tự động tính điểm (**10.000 VNĐ = 1 điểm**), chống cộng trùng theo mã hóa đơn, cập nhật `current_points` & `total_spent`, nâng hạng thẻ tự động khi đủ điểm và gửi thông báo chúc mừng.
 
-#### ✅ MOD-07: Quản lý Thông báo & Khuyến mãi (`marketing`)
+#### ✅ MOD-07: Quản lý Thông báo & Khuyến mãi (`marketing`) *(4 Use Cases: UC-40 -> UC-43)*
 * **Trang Ưu đãi & Ví Voucher (`/marketing/`):** Giao diện 2 tab hiển thị **Chương trình Khuyến mãi** (thẻ card gradient tự tính trạng thái theo `valid_from` / `valid_until`) và **Ví Voucher** (truy cập từ Thông báo khách hàng, hỗ trợ kiểm tra/sao chép mã và chuyển sang đặt lịch kèm `?voucher=CODE`).
 * **Chuông Thông báo & Bảng tin (`/marketing/notifications/` & `/marketing/staff/`):** Dropdown tại biểu tượng chuông (`GET /marketing/api/notifications/dropdown/`) hiển thị tối đa 8 thông báo mới nhất được lọc đúng theo vai trò (`marketing/utils.py`), trang bảng tin timeline phân nhóm danh mục & tìm kiếm (10 tin/trang), cùng 4 tab thông báo nghiệp vụ cho Staff (`Tất cả`, `Khiếu nại`, `Tư vấn`, `Nội bộ`).
 * **Quản trị Thông báo & Khuyến mãi (Admin-only):**
   * `/marketing/admin/notifications/`: Soạn & gửi thông báo đơn lẻ hoặc phát hàng loạt (`all_customers`, `all_staff`, `all_users`) bằng `bulk_create`, xóa chiến dịch thông báo.
   * `/marketing/admin/promotions/`: 2 sub-tab quản lý CRUD Chương trình khuyến mãi và Phát hành/Xóa Mã Voucher (`PERCENT` kèm mức trần `max_discount_amount` hoặc `FIXED`, kèm `min_order_amount` và `expiry_date`), cùng API kiểm tra mã `/marketing/api/vouchers/validate/`.
 
-#### ✅ MOD-08: Quản lý Hồ sơ Sức khỏe 1-1 (`health`)
+#### ✅ MOD-08: Quản lý Hồ sơ Sức khỏe 1-1 (`health`) *(4 Use Cases: UC-11 -> UC-14)*
 * **Khảo sát & Xem Hồ sơ cá nhân (`/health/` & `/health/update/`):** Lưu trữ quan hệ 1-1 (`UserHealthProfile`), tự động tính chỉ số **BMI** & phân loại thể trạng, lưu vùng đau mỏi (`focus_areas`), thanh đánh giá mức độ đau **1–10**, huyết áp, lực massage ưu tiên, bệnh lý nền và dị ứng.
 * **Cảnh báo An toàn Y tế (`health/helpers.py`):** Tự động phân tích dữ liệu sức khỏe để gắn badge cảnh báo cho kỹ thuật viên (huyết áp cao/thấp, thai kỳ, tim mạch, da nhạy cảm, cột sống/thoát vị, giãn tĩnh mạch, phẫu thuật, tiểu đường/bệnh nền, dị ứng).
 * **Tra cứu cho Staff & Phiếu Kỹ thuật viên (`/health/staff/`):** Lọc theo từ khóa và trạng thái cảnh báo (7 hồ sơ/trang), hỗ trợ tạo nhanh khách hàng mới ngay từ màn hình tra cứu, và xem/in **Phiếu Kỹ thuật viên (KTV)** tại `/health/staff/<user_id>/?view=ktv`.
 
-#### ✅ MOD-09: Thanh toán VietQR & Cập nhật Hóa đơn *(Tích hợp — Xác nhận thủ công)*
+#### ✅ MOD-09: Thanh toán VietQR & Cập nhật Hóa đơn *(Tích hợp — Xác nhận thủ công)* *(4 Use Cases: UC-23 -> UC-26)*
 * **Kiến trúc triển khai thực tế:** Thay vì tách thành một Django app riêng biệt, nghiệp vụ MOD-09 được tích hợp liền mạch trên model `Invoice` (`core/models.py`), luồng API đặt lịch & thu ngân (`appointment/api.py`), signal cộng điểm (`membership/signals.py`) và báo cáo giao dịch (`dashboard/services.py`). **Hệ thống không sử dụng webhook ngân hàng tự động**; mọi thay đổi trạng thái thanh toán đều được thực hiện thủ công qua thao tác trên giao diện.
 * **Hiển thị mã QR chuyển khoản VietQR:** Ngay khi tạo lịch thành công, hệ thống sinh hóa đơn `INV-...` (`Chờ xác nhận`) kèm ảnh QR theo số tiền sau giảm giá và nội dung `CHAMSPA <MÃ_LỊCH>` (tài khoản `38854257` - ACB, Chủ TK: LE NHAT QUANG) để khách quét chuyển khoản thủ công.
 * **Cập nhật trạng thái thanh toán thủ công:**
@@ -243,7 +296,7 @@ flowchart TD
   * **Phía Nhân viên / Admin (`/appointment/staff/`, `/appointment/admin/`):** Trong chi tiết lịch hẹn, nhân sự kiểm tra thực tế rồi bấm nút chuyển đổi phương thức (`Chuyển khoản VietQR` ↔ `Tại quầy (Tiền mặt/POS)`) hoặc bấm *"Đã nhận chuyển khoản"* / *"Đã thu tiền tại quầy"* (`POST /appointment/api/<pk>/update-payment/` với `is_paid=true`) để chuyển `Invoice` sang `Đã thanh toán` (chỉ Staff/Admin mới được phép đổi cờ `is_paid`).
   * Khi Staff/Admin đổi trạng thái lịch hẹn sang `Confirmed` / `Completed` / `Cancelled`, hóa đơn cũng được đồng bộ sang `Đã thanh toán` / `Không hợp lệ`. Chỉ sau khi `Invoice` đạt trạng thái `Đã thanh toán`, Django Signal ở MOD-06 mới thực thi cộng điểm tích lũy.
 
-#### ✅ MOD-10: Dashboard KPI & Xuất Báo cáo (`dashboard`)
+#### ✅ MOD-10: Dashboard KPI & Xuất Báo cáo (`dashboard`) *(3 Use Cases: UC-44 -> UC-46)*
 * **Staff Dashboard (`/dashboard/staff/`):** 4 thẻ KPI ca trực hôm nay (tổng lịch, đang thực hiện, đã hoàn thành, doanh thu quầy đã thu) và danh sách lịch hẹn phục vụ trong ngày.
 * **Admin Dashboard (`/dashboard/admin/`):**
   * Bộ lọc kỳ thống kê thời gian thực: `Hôm nay`, `7 ngày qua`, `Tháng này`, `Năm nay`.

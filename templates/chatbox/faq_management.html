@@ -19,10 +19,10 @@
         </div>
 
         <!-- Nút thêm câu hỏi FAQ mới (Figma Node 211:3459) -->
-        <button type="button" class="btn text-white fw-bold px-3 py-2 rounded-3 shadow-sm d-flex align-items-center gap-2" 
-                style="background-color: var(--cham-red); font-size: 14px;"
+        <button type="button" class="btn-cham-primary-btn d-inline-flex align-items-center gap-1.5" 
                 onclick="openCreateFaqModal()">
-            <i class="bi bi-plus-lg"></i> Thêm câu hỏi FAQ mới
+            <i class="bi bi-plus-lg" style="font-size: 11px;"></i>
+            <span>Thêm câu hỏi FAQ mới</span>
         </button>
     </div>
 
@@ -76,15 +76,13 @@
         <!-- PILLS / TABS DANH MỤC NHANH (FIGMA NODE 211:3459) -->
         <div class="d-flex align-items-center gap-2 flex-wrap mb-4" style="font-size: 13px;">
             <a href="{% url 'chatbox:admin_faq' %}" 
-               class="btn btn-sm rounded-pill px-3 py-1 text-decoration-none {% if not selected_category %}fw-bold text-white shadow-sm{% else %}text-dark border bg-light{% endif %}"
-               style="{% if not selected_category %}background-color: var(--cham-red); border-color: var(--cham-red);{% endif %}">
-                Tất cả danh mục · {{ total_faqs }}
+               class="filter-btn {% if not selected_category %}active{% endif %}">
+                Tất cả danh mục ({{ total_faqs }})
             </a>
             {% for cat, count in category_counts.items %}
             <a href="{% url 'chatbox:admin_faq' %}?category={{ cat }}" 
-               class="btn btn-sm rounded-pill px-3 py-1 text-decoration-none {% if selected_category == cat %}fw-bold text-white shadow-sm{% else %}text-dark border bg-light{% endif %}"
-               style="{% if selected_category == cat %}background-color: var(--cham-red); border-color: var(--cham-red);{% endif %}">
-                {{ cat }} · {{ count }}
+               class="filter-btn {% if selected_category == cat %}active{% endif %}">
+                {{ cat }} ({{ count }})
             </a>
             {% endfor %}
         </div>
@@ -97,17 +95,17 @@
                     0 mục đã chọn · Hiển thị 1–{{ faqs|length }} trong {{ total_faqs }} câu hỏi
                 </label>
             </div>
-            <a href="{% url 'chatbox:api_admin_faq_export' %}" class="btn btn-sm btn-outline-secondary rounded-3 d-flex align-items-center gap-1 px-3 py-1" 
-               style="font-size: 12.5px;">
-                <i class="bi bi-download"></i> Xuất dữ liệu
+            <a href="{% url 'chatbox:api_admin_faq_export' %}" class="btn-action-detail d-flex align-items-center gap-1 px-3 py-1.5" 
+               style="font-size: 12.5px; border-radius: 6px;">
+                <i class="bi bi-download"></i> <span>Xuất dữ liệu</span>
             </a>
         </div>
 
         <!-- BẢNG DANH SÁCH FAQ (FIGMA 211:3459) -->
         <div class="table-responsive rounded-3 border">
-            <table class="table table-hover align-middle mb-0" id="faqDataTable">
-                <thead style="background-color: var(--cham-red); color: #FFFFFF;">
-                    <tr style="font-size: 12.5px; font-weight: 600; letter-spacing: 0.5px;">
+            <table class="table cham-table align-middle mb-0" id="faqDataTable">
+                <thead style="background-color: #FAF7EF; border-bottom: 1px solid #E8E2D9;">
+                    <tr style="font-size: 13px; font-weight: 700; letter-spacing: 0.5px; color: #716761; text-transform: uppercase;">
                         <th style="width: 40px;" class="text-center py-3"></th>
                         <th style="width: 110px;" class="py-3">MÃ FAQ</th>
                         <th style="width: 130px;" class="py-3">DANH MỤC</th>
@@ -117,55 +115,42 @@
                         <th style="width: 120px;" class="text-center py-3">THAO TÁC</th>
                     </tr>
                 </thead>
-                <tbody style="font-size: 13.5px;">
+                <tbody style="font-size: 15px;">
                     {% for faq in faqs %}
                     <tr id="faqRow_{{ faq.id }}">
                         <td class="text-center">
                             <input class="form-check-input faq-checkbox" type="checkbox" value="{{ faq.id }}" onchange="updateSelectionCount()">
                         </td>
-                        <td class="fw-bold text-dark" style="font-family: monospace;">
+                        <td class="fw-bold text-dark" style="font-family: monospace; font-size: 14.5px; color: #781A24 !important;">
                             #{{ faq.faq_code }}
                         </td>
                         <td>
-                            <span class="badge py-1 px-2 rounded-pill" style="background-color: #FAF4E6; color: #8A6D3B; border: 1px solid #EFE4CC; font-size: 12px; font-weight: 500;">
+                            <span class="badge py-1 px-2.5 rounded-pill" style="background-color: #FAF4E6; color: #8A6D3B; border: 1px solid #EFE4CC; font-size: 13px; font-weight: 600;">
                                 {{ faq.category }}
                             </span>
                         </td>
-                        <td class="fw-semibold text-dark">
+                        <td class="fw-bold text-dark" style="font-size: 15px;">
                             {{ faq.question }}
                         </td>
-                        <td class="text-muted" style="font-size: 13px;">
+                        <td class="text-muted" style="font-size: 14px;">
                             {{ faq.keywords }}
                         </td>
                         <td class="text-center" id="faqStatusBadge_{{ faq.id }}">
                             {% if faq.status == 'Active' %}
-                            <span class="badge py-1 px-2 rounded-pill" style="background-color: #ECFDF5; color: #065F46; font-size: 12px; font-weight: 500;">
-                                • Kích hoạt
+                            <span class="badge py-1 px-2.5 rounded-pill" style="background-color: #ECFDF5; color: #065F46; font-size: 13px; font-weight: 600;">
+                                Kích hoạt
                             </span>
                             {% else %}
-                            <span class="badge py-1 px-2 rounded-pill" style="background-color: #F3F4F6; color: #4B5563; font-size: 12px; font-weight: 500;">
-                                • Đang ẩn
+                            <span class="badge py-1 px-2.5 rounded-pill" style="background-color: #F3F4F6; color: #4B5563; font-size: 13px; font-weight: 600;">
+                                Đang ẩn
                             </span>
                             {% endif %}
                         </td>
-                        <td class="text-center">
-                            <div class="d-flex align-items-center justify-content-center gap-2">
-                                <!-- Nút Sửa -->
-                                <button type="button" class="btn btn-sm btn-link text-primary p-0" title="Chỉnh sửa câu hỏi" 
-                                        onclick="openEditFaqModal({{ faq.id }})">
-                                    <i class="bi bi-pencil-square fs-6"></i>
-                                </button>
-                                <!-- Nút Toggle Trạng thái Ẩn/Hiện -->
-                                <button type="button" class="btn btn-sm btn-link text-secondary p-0" title="Bật/Tắt hiển thị" 
-                                        onclick="toggleFaqStatus({{ faq.id }})">
-                                    <i class="bi {% if faq.status == 'Active' %}bi-eye-fill text-success{% else %}bi-eye-slash text-muted{% endif %} fs-6" id="eyeIcon_{{ faq.id }}"></i>
-                                </button>
-                                <!-- Nút Xóa -->
-                                <button type="button" class="btn btn-sm btn-link text-danger p-0" title="Xóa câu hỏi" 
-                                        onclick="deleteFaq({{ faq.id }}, '{{ faq.faq_code }}')">
-                                    <i class="bi bi-trash fs-6"></i>
-                                </button>
-                            </div>
+                        <td class="text-center" style="white-space: nowrap;">
+                            <button type="button" class="btn-cham-view-link" title="Chi tiết câu hỏi FAQ" 
+                                    onclick="openEditFaqModal({{ faq.id }})">
+                                Chi tiết
+                            </button>
                         </td>
                     </tr>
                     {% empty %}
@@ -293,13 +278,20 @@
                 </div>
 
                 <!-- Footer Modal -->
-                <div class="modal-footer px-4 py-3 bg-light rounded-bottom-4 d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-3" data-bs-dismiss="modal">
-                        Hủy bỏ
-                    </button>
-                    <button type="submit" class="btn text-white fw-bold px-4 py-2 rounded-3" style="background-color: var(--cham-red);">
-                        ✓ Lưu kịch bản
-                    </button>
+                <div class="modal-footer px-4 py-3 bg-light rounded-bottom-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <button type="button" class="btn btn-outline-danger px-3 py-2 rounded-3" id="btnDeleteFaqInModal" style="display: none; font-size: 13px; font-weight: 600;" onclick="deleteFaqFromModal()">
+                            <i class="bi bi-trash me-1"></i>Xóa câu hỏi
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-3" data-bs-dismiss="modal">
+                            Hủy bỏ
+                        </button>
+                        <button type="submit" class="btn text-white fw-bold px-4 py-2 rounded-3" style="background-color: var(--cham-red);">
+                            Lưu kịch bản
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -352,6 +344,9 @@ document.getElementById('tagInputField').addEventListener('keydown', function(e)
 // MODAL THÊM MỚI / CHỈNH SỬA FAQ
 // =============================================================================
 function openCreateFaqModal() {
+    const delBtn = document.getElementById('btnDeleteFaqInModal');
+    if (delBtn) delBtn.style.display = 'none';
+
     document.getElementById('faqIdInput').value = '';
     document.getElementById('modalFaqCategory').value = '';
     document.getElementById('modalFaqCode').value = 'FAQ-' + Math.floor(1000 + Math.random() * 9000);
@@ -381,10 +376,24 @@ function openEditFaqModal(faqId) {
         renderTags();
 
         document.getElementById('faqEditorModalLabel').textContent = `Chỉnh sửa câu hỏi FAQ [#${data.faq_code}]`;
+        const delBtn = document.getElementById('btnDeleteFaqInModal');
+        if (delBtn) delBtn.style.display = 'inline-block';
+
         const modal = new bootstrap.Modal(document.getElementById('faqEditorModal'));
         modal.show();
     })
     .catch(() => alert('Không thể lấy thông tin câu hỏi FAQ.'));
+}
+
+function deleteFaqFromModal() {
+    const faqId = document.getElementById('faqIdInput').value;
+    const faqCode = document.getElementById('modalFaqCode').value;
+    if (faqId) {
+        const modalEl = document.getElementById('faqEditorModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) modalInstance.hide();
+        deleteFaq(faqId, faqCode);
+    }
 }
 
 function saveFaq(e) {
@@ -444,10 +453,10 @@ function toggleFaqStatus(faqId) {
         const badge = document.getElementById(`faqStatusBadge_${faqId}`);
         const icon = document.getElementById(`eyeIcon_${faqId}`);
         if (data.current_status === 'Active') {
-            badge.innerHTML = '<span class="badge py-1 px-2 rounded-pill" style="background-color: #ECFDF5; color: #065F46; font-size: 12px; font-weight: 500;">• Kích hoạt</span>';
+            badge.innerHTML = '<span class="badge py-1 px-2 rounded-pill" style="background-color: #ECFDF5; color: #065F46; font-size: 12px; font-weight: 500;">Kích hoạt</span>';
             icon.className = 'bi bi-eye-fill text-success fs-6';
         } else {
-            badge.innerHTML = '<span class="badge py-1 px-2 rounded-pill" style="background-color: #F3F4F6; color: #4B5563; font-size: 12px; font-weight: 500;">• Đang ẩn</span>';
+            badge.innerHTML = '<span class="badge py-1 px-2 rounded-pill" style="background-color: #F3F4F6; color: #4B5563; font-size: 12px; font-weight: 500;">Đang ẩn</span>';
             icon.className = 'bi bi-eye-slash text-muted fs-6';
         }
     })

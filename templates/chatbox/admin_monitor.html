@@ -15,20 +15,19 @@
             <h1 class="fw-bold mb-1" style="font-family: var(--font-serif); color: var(--cham-red); font-size: 28px;">
                 Quản lý Boxchat
             </h1>
-            <p class="text-muted mb-0" style="font-size: 13.5px;">Giám sát phiên tư vấn trực tuyến của nhân viên và thiết lập kịch bản Chatbot tự động.</p>
+            <p class="text-muted mb-0" style="font-size: 13.5px;">Giám sát phiên tư vấn trực tuyến của nhân viên và
+                thiết lập kịch bản Chatbot tự động.</p>
         </div>
     </div>
 
     <div class="admin-chatbox-nav">
-        <a href="{% url 'chatbox:admin_monitor' %}"
-           class="admin-chatbox-nav-btn active"
-           title="Giám sát phiên tư vấn Live chat của nhân viên">
+        <a href="{% url 'chatbox:admin_monitor' %}" class="admin-chatbox-nav-btn active"
+            title="Giám sát phiên tư vấn Live chat của nhân viên">
             <i class="bi bi-headset"></i>
             <span>Giám sát Live chat</span>
         </a>
-        <a href="{% url 'chatbox:admin_faq' %}"
-           class="admin-chatbox-nav-btn"
-           title="Quản lý bộ câu hỏi kịch bản Chatbot tự động (FAQ)">
+        <a href="{% url 'chatbox:admin_faq' %}" class="admin-chatbox-nav-btn"
+            title="Quản lý bộ câu hỏi kịch bản Chatbot tự động (FAQ)">
             <i class="bi bi-robot"></i>
             <span>Quản lý kịch bản Chatbot (FAQ)</span>
         </a>
@@ -40,38 +39,38 @@
          Cột 2: Khung giám sát & Can thiệp chat (kèm Nút nhỏ xem chi tiết khách hàng)
          ======================================================================== -->
     <div class="row g-3">
-        <!-- CỘT 1: DANH SÁCH HỘI THOẠI (Col-lg-4 Col-xl-3) -->
-        <div class="col-12 col-md-5 col-lg-4 col-xl-3">
+        <!-- CỘT 1: DANH SÁCH HỘI THOẠI (Col-lg-5 Col-xl-4) -->
+        <div class="col-12 col-md-5 col-lg-5 col-xl-4">
             <div class="card border-0 shadow-sm rounded-4 h-100" style="background-color: #FFFFFF;">
                 <div class="p-3 border-bottom">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h2 class="fw-bold mb-0 text-dark" style="font-size: 16px;">Danh sách hội thoại</h2>
-                        <button class="btn btn-sm btn-link text-muted p-0" title="Tải lại danh sách" onclick="location.reload();">
+                        <h2 class="mb-0"
+                            style="font-family: 'Lora', Georgia, serif; font-size: 18px; font-weight: 700; color: #2E1D17;">
+                            Danh sách hội thoại</h2>
+                        <button class="btn btn-sm btn-link text-muted p-0" title="Tải lại danh sách"
+                            onclick="location.reload();">
                             <i class="bi bi-arrow-repeat fs-6"></i>
                         </button>
                     </div>
 
-                    <!-- 3 Tabs lọc trạng thái -->
-                    <div class="d-flex gap-1 p-1 rounded-3 mb-2" style="background-color: var(--cham-bg); font-size: 12px;">
-                        <button type="button" class="btn btn-sm flex-fill py-1 px-1 rounded-2 border-0 conv-tab-btn" 
-                                data-tab="waiting" onclick="switchConvTab('waiting')">
-                            Chưa tiếp nhận (<span id="waitingCount">{{ waiting_count }}</span>)
+                    <!-- 2 Tabs lọc trạng thái chuẩn: Chờ tiếp nhận & Đang tiếp nhận -->
+                    <div class="queue-tabs d-flex gap-1.5 mb-3 flex-wrap">
+                        <button type="button" class="conv-tab-btn flex-fill text-center" data-tab="waiting"
+                            onclick="switchConvTab('waiting')">
+                            <span>Chờ tiếp nhận</span> <span id="waitingCount">{{ waiting_count }}</span>
                         </button>
-                        <button type="button" class="btn btn-sm flex-fill py-1 px-1 rounded-2 border-0 conv-tab-btn active fw-bold text-white" 
-                                style="background-color: var(--cham-red);" data-tab="processing" onclick="switchConvTab('processing')">
-                            Đang tư vấn (<span id="processingCount">{{ processing_count }}</span>)
-                        </button>
-                        <button type="button" class="btn btn-sm flex-fill py-1 px-1 rounded-2 border-0 conv-tab-btn" 
-                                data-tab="closed" onclick="switchConvTab('closed')">
-                            Đã kết thúc
+                        <button type="button" class="conv-tab-btn active flex-fill text-center" data-tab="processing"
+                            onclick="switchConvTab('processing')">
+                            <span>Đang tiếp nhận</span> <span id="processingCount">{{ processing_count }}</span>
                         </button>
                     </div>
 
                     <!-- Search Input -->
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" id="adminConvSearch" class="form-control bg-light border-start-0" 
-                               placeholder="Tìm tên khách hàng, SĐT..." onkeyup="filterConvCards()">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i
+                                class="bi bi-search"></i></span>
+                        <input type="text" id="adminConvSearch" class="form-control bg-light border-start-0"
+                            placeholder="Tìm tên khách hàng, SĐT..." onkeyup="filterConvCards()">
                     </div>
                 </div>
 
@@ -80,28 +79,29 @@
                     <!-- Danh sách Đang xử lý -->
                     <div id="tabProcessingList" class="conv-tab-pane">
                         {% for conv in processing_conversations %}
-                        <a href="{% url 'chatbox:admin_monitor' %}?conv_id={{ conv.id }}" 
-                           class="text-decoration-none text-dark d-block mb-2 conv-card-link" 
-                           onclick="selectConversation({{ conv.id }}, event)">
-                            <div class="conv-card p-3 rounded-3 cursor-pointer {% if active_conv and active_conv.id == conv.id %}active-card{% endif %}" 
-                                 data-conv-id="{{ conv.id }}" 
-                                 data-name="{{ conv.customer.name|lower }}" 
-                                 data-phone="{{ conv.customer.phone }}"
-                                 style="cursor: pointer;">
+                        <a href="{% url 'chatbox:admin_monitor' %}?conv_id={{ conv.id }}"
+                            class="text-decoration-none text-dark d-block mb-2 conv-card-link"
+                            onclick="selectConversation({{ conv.id }}, event)">
+                            <div class="conv-card p-3 rounded-3 cursor-pointer {% if active_conv and active_conv.id == conv.id %}active-card{% endif %}"
+                                data-conv-id="{{ conv.id }}" data-name="{{ conv.customer.name|lower }}"
+                                data-phone="{{ conv.customer.phone }}" style="cursor: pointer;">
                                 <div class="d-flex align-items-center gap-2 mb-2">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" 
-                                         style="width: 38px; height: 38px; background-color: var(--cham-red); font-size: 13px;">
-                                        {{ conv.customer.name|default:"KH"|slice:":2"|upper }}
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0"
+                                        style="width: 32px; height: 32px; background-color: #781A24; font-size: 12.5px;">
+                                        {{ conv.customer.name|default:"KH"|make_list|first|upper }}
                                     </div>
                                     <div class="flex-grow-1 overflow-hidden">
-                                        <div class="fw-bold text-dark text-truncate" style="font-size: 14.5px;">{{ conv.customer.name }}</div>
-                                        <div class="text-muted" style="font-size: 12px;">+84 {{ conv.customer.phone|slice:"1:" }}</div>
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 13.5px;">{{
+                                            conv.customer.name }}</div>
+                                        <div class="text-muted" style="font-size: 11.5px;">+84 {{
+                                            conv.customer.phone|slice:"1:" }}</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="mb-2">
-                                    <span class="badge py-1 px-2 rounded-pill" style="background-color: #FFF1F2; color: #9F1239; font-size: 11px; font-weight: 500;">
-                                        • Đang chat với Staff: {{ conv.staff.name|default:"Lê Thị Mai" }}
+                                    <span class="badge py-1 px-2 rounded-pill"
+                                        style="background-color: #FFF1F2; color: #9F1239; font-size: 11px; font-weight: 500;">
+                                        Đang chat với Staff: {{ conv.staff.name|default:"Lê Thị Mai" }}
                                     </span>
                                 </div>
 
@@ -114,128 +114,94 @@
                             </div>
                         </a>
                         {% empty %}
-                        <div class="text-center text-muted py-4" style="font-size: 13px;">Không có hội thoại đang tư vấn</div>
+                        <div class="text-center text-muted py-4" style="font-size: 13px;">Không có hội thoại đang tư vấn
+                        </div>
                         {% endfor %}
                     </div>
 
                     <!-- Danh sách Đang chờ tiếp nhận -->
                     <div id="tabWaitingList" class="conv-tab-pane d-none">
                         {% for conv in waiting_conversations %}
-                        <a href="{% url 'chatbox:admin_monitor' %}?conv_id={{ conv.id }}" 
-                           class="text-decoration-none text-dark d-block mb-2 conv-card-link" 
-                           onclick="selectConversation({{ conv.id }}, event)">
-                            <div class="conv-card p-3 rounded-3 cursor-pointer {% if active_conv and active_conv.id == conv.id %}active-card{% endif %}" 
-                                 data-conv-id="{{ conv.id }}" 
-                                 data-name="{{ conv.customer.name|lower }}" 
-                                 data-phone="{{ conv.customer.phone }}"
-                                 style="cursor: pointer;">
+                        <a href="{% url 'chatbox:admin_monitor' %}?conv_id={{ conv.id }}"
+                            class="text-decoration-none text-dark d-block mb-2 conv-card-link"
+                            onclick="selectConversation({{ conv.id }}, event)">
+                            <div class="conv-card p-3 rounded-3 cursor-pointer {% if active_conv and active_conv.id == conv.id %}active-card{% endif %}"
+                                data-conv-id="{{ conv.id }}" data-name="{{ conv.customer.name|lower }}"
+                                data-phone="{{ conv.customer.phone }}" style="cursor: pointer;">
                                 <div class="d-flex align-items-center gap-2 mb-2">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" 
-                                         style="width: 38px; height: 38px; background-color: #FEF3C7; color: #92400E; font-size: 13px;">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                                        style="width: 38px; height: 38px; background-color: #FEF3C7; color: #92400E; font-size: 13px;">
                                         {{ conv.customer.name|default:"KH"|slice:":2"|upper }}
                                     </div>
                                     <div class="flex-grow-1 overflow-hidden">
-                                        <div class="fw-bold text-dark text-truncate" style="font-size: 14.5px;">{{ conv.customer.name }}</div>
-                                        <div class="text-muted" style="font-size: 12px;">+84 {{ conv.customer.phone|slice:"1:" }}</div>
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 14.5px;">{{
+                                            conv.customer.name }}</div>
+                                        <div class="text-muted" style="font-size: 12px;">+84 {{
+                                            conv.customer.phone|slice:"1:" }}</div>
                                     </div>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="badge py-1 px-2 rounded-pill" style="background-color: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 500;">
-                                        • Đang chờ
+                                    <span class="badge py-1 px-2 rounded-pill"
+                                        style="background-color: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 500;">
+                                        Đang chờ
                                     </span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center" style="font-size: 12px;">
-                                    <div class="text-muted text-truncate">Nhu cầu: {{ conv.customer_tag|default:"Tư vấn dịch vụ" }}</div>
+                                    <div class="text-muted text-truncate">Nhu cầu: {{ conv.customer_tag|default:"Tư vấn
+                                        dịch vụ" }}</div>
                                     <div class="text-muted" style="font-size: 11px;">5 phút trước</div>
                                 </div>
                             </div>
                         </a>
                         {% empty %}
-                        <div class="text-center text-muted py-4" style="font-size: 13px;">Không có hội thoại chờ tiếp nhận</div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Danh sách Đã kết thúc -->
-                    <div id="tabClosedList" class="conv-tab-pane d-none">
-                        {% for conv in closed_conversations %}
-                        <a href="{% url 'chatbox:admin_monitor' %}?conv_id={{ conv.id }}" 
-                           class="text-decoration-none text-dark d-block mb-2 conv-card-link" 
-                           onclick="selectConversation({{ conv.id }}, event)">
-                            <div class="conv-card p-3 rounded-3 cursor-pointer {% if active_conv and active_conv.id == conv.id %}active-card{% endif %}" 
-                                 data-conv-id="{{ conv.id }}" 
-                                 data-name="{{ conv.customer.name|lower }}" 
-                                 data-phone="{{ conv.customer.phone }}"
-                                 style="cursor: pointer;">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-muted bg-light border" 
-                                         style="width: 36px; height: 36px; font-size: 12px;">
-                                        {{ conv.customer.name|default:"KH"|slice:":2"|upper }}
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <div class="fw-bold text-secondary" style="font-size: 14px;">{{ conv.customer.name }}</div>
-                                        <div class="text-muted" style="font-size: 11.5px;">Đã đóng phiên</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                        {% empty %}
-                        <div class="text-center text-muted py-4" style="font-size: 13px;">Chưa có hội thoại kết thúc</div>
+                        <div class="text-center text-muted py-4" style="font-size: 13px;">Không có hội thoại chờ tiếp
+                            nhận</div>
                         {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- CỘT 2: KHUNG GIÁM SÁT & CAN THIỆP PHIÊN CHAT (Col-md-7 Col-lg-8 Col-xl-9) -->
-        <div class="col-12 col-md-7 col-lg-8 col-xl-9">
+        <!-- CỘT 2: KHUNG GIÁM SÁT & CAN THIỆP PHIÊN CHAT (Col-md-7 Col-lg-7 Col-xl-8) -->
+        <div class="col-12 col-md-7 col-lg-7 col-xl-8">
             <div class="card border-0 shadow-sm rounded-4 h-100 d-flex flex-column" style="background-color: #FFFFFF;">
                 <!-- Header Khung Chat Giám sát -->
                 <div class="p-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" 
-                             id="monitorCustomerAvatar"
-                             style="width: 44px; height: 44px; background-color: var(--cham-red); font-size: 15px;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
+                            id="monitorCustomerAvatar"
+                            style="width: 44px; height: 44px; background-color: var(--cham-red); font-size: 15px;">
                             {{ active_conv.customer.name|default:"TT"|slice:":2"|upper }}
                         </div>
                         <div>
                             <div class="d-flex align-items-center gap-2">
-                                <div class="fw-bold text-dark" id="monitorCustomerName" style="font-size: 16px;">
+                                <div class="fw-bold" id="monitorCustomerName"
+                                    style="font-family: var(--font-body, 'Cabin', sans-serif); color: #2E1D17; font-size: 16px; font-weight: 700;">
                                     {{ active_conv.customer.name|default:"Trần Trần Thảo Ngọc" }}
                                 </div>
-                                <!-- Nút nhỏ xem thông tin chi tiết khách hàng (Link tới trang chi tiết chuẩn dự án) -->
-                                <a id="btnViewCustomerDetail" 
-                                   href="{% if active_conv %}{% url 'accounts:admin_customer_detail' active_conv.customer.id %}{% else %}#{% endif %}" 
-                                   target="_blank" 
-                                   class="btn btn-sm py-0 px-2 rounded-pill d-inline-flex align-items-center gap-1 shadow-2xs" 
-                                   style="font-size: 11.5px; background-color: #FAF4E6; border: 1px solid #D0B581; color: var(--cham-red); font-weight: 600; text-decoration: none;"
-                                   title="Xem hồ sơ chi tiết khách hàng">
-                                    <i class="bi bi-person-lines-fill"></i> Chi tiết khách hàng
+                                <!-- Nút nhỏ xem thông tin chi tiết khách hàng -->
+                                <a id="btnViewCustomerDetail"
+                                    href="{% if active_conv %}{% url 'accounts:admin_customer_detail' active_conv.customer.id %}{% else %}#{% endif %}"
+                                    target="_blank" class="btn-cham-view-link ms-1"
+                                    title="Xem hồ sơ chi tiết khách hàng">
+                                    Xem hồ sơ
                                 </a>
                             </div>
-                            <div class="d-flex align-items-center gap-1" id="monitorStaffIndicator" style="font-size: 12.5px; color: #10B981;">
+                            <div class="d-flex align-items-center gap-1" id="monitorStaffIndicator"
+                                style="font-size: 12.5px; color: #10B981;">
                                 <i class="bi bi-circle-fill" style="font-size: 7px;"></i>
-                                <span id="monitorStaffName">{% if active_conv.staff %}Nhân viên hỗ trợ: {{ active_conv.staff.name }} (Online){% else %}Chưa có nhân viên tiếp nhận{% endif %}</span>
+                                <span id="monitorStaffName">{% if active_conv.staff %}Nhân viên hỗ trợ: {{
+                                    active_conv.staff.name }} (Online){% else %}Chưa có nhân viên tiếp nhận{% endif
+                                    %}</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 3 Nút tác vụ giám sát theo Figma 502:2005 -->
+                    <!-- Nút tác vụ giám sát -->
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-sm text-white fw-bold px-3 py-1 rounded-3 shadow-sm" 
-                                id="btnAdminTakeover"
-                                style="background-color: var(--cham-red); font-size: 12.5px;"
-                                onclick="adminTakeover()">
-                            ⚡ Can thiệp / Tiếp quản phiên chat
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1 rounded-3" 
-                                style="border-color: var(--cham-red); color: var(--cham-red); font-size: 12.5px;"
-                                data-bs-toggle="modal" data-bs-target="#reassignStaffModal">
-                            Chuyển nhân viên khác
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary px-2 py-1 rounded-3" 
-                                style="font-size: 12.5px;"
-                                onclick="adminCloseConversation()">
-                            Kết thúc hỗ trợ
+                        <button type="button" class="btn-cham-action-cancel" data-bs-toggle="modal"
+                            data-bs-target="#reassignStaffModal">
+                            Chuyển nhân viên
                         </button>
                     </div>
                 </div>
@@ -252,61 +218,83 @@
                 </div>
 
                 <!-- Vùng hiển thị tin nhắn (Chat Log) -->
-                <div class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-3" 
-                     id="adminChatLog" 
-                     style="background-color: #FAF9F6; min-height: 480px; max-height: 560px;">
+                <div class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-3" id="adminChatLog"
+                    style="background-color: #FAF9F6; min-height: 480px; max-height: 560px;">
                     {% for msg in messages_list %}
-                        {% if msg.sender_type == 'Customer' %}
-                        <!-- Tin nhắn khách hàng (Trái) -->
-                        <div class="d-flex align-items-start gap-2 align-self-start" style="max-width: 80%;">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
-                                 style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
-                                {{ active_conv.customer.name|default:"KH"|slice:":2"|upper }}
-                            </div>
-                            <div>
-                                <div class="text-muted small mb-1" style="font-size: 11px;">{{ active_conv.customer.name }} · Khách hàng</div>
-                                <div class="p-3 rounded-4 bg-white shadow-sm border text-dark" 
-                                     style="font-size: 13.5px; line-height: 1.5; border-bottom-left-radius: 4px;">
-                                    {{ msg.content }}
-                                </div>
-                                <div class="text-muted mt-1 text-end" style="font-size: 10px;">{{ msg.created_at|date:"H:i" }}</div>
-                            </div>
+                    {% if msg.sender_type == 'Customer' %}
+                    <!-- Tin nhắn khách hàng (Trái) -->
+                    <div class="chat-msg-row d-flex align-items-start gap-2 align-self-start" style="max-width: 80%;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0"
+                            style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
+                            {{ active_conv.customer.name|default:"KH"|slice:":2"|upper }}
                         </div>
-                        {% elif msg.sender_type == 'Bot' %}
-                        <!-- Tin nhắn Bot AI (Trái) -->
-                        <div class="d-flex align-items-start gap-2 align-self-start" style="max-width: 80%;">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" 
-                                 style="width: 32px; height: 32px; background-color: #FEF3C7; color: #92400E; font-size: 11px;">
-                                <i class="bi bi-robot"></i>
-                            </div>
-                            <div>
-                                <div class="text-muted small mb-1" style="font-size: 11px;">Trợ lý Chatbot AI · Tự động</div>
-                                <div class="p-3 rounded-4 shadow-sm border" 
-                                     style="background-color: #FDFBF7; border-color: #E6D8BF !important; color: #78350F; font-size: 13.5px; line-height: 1.5; border-bottom-left-radius: 4px;">
-                                    {{ msg.content }}
+                        <div>
+                            <div class="text-muted small mb-1" style="font-size: 11px;">{{ active_conv.customer.name }}
+                                · Khách hàng</div>
+                            <div class="p-3 rounded-4 bg-white shadow-sm border text-dark"
+                                style="font-size: 13.5px; line-height: 1.5; border-bottom-left-radius: 4px;">
+                                {% if msg.attachment_url %}
+                                <div class="mb-2">
+                                    <a href="{{ msg.attachment_url }}" target="_blank">
+                                        <img src="{{ msg.attachment_url }}" class="rounded-3 img-fluid shadow-sm"
+                                            style="max-height: 200px; object-fit: cover;">
+                                    </a>
                                 </div>
-                                <div class="text-muted mt-1 text-end" style="font-size: 10px;">{{ msg.created_at|date:"H:i" }}</div>
+                                {% endif %}
+                                {{ msg.content }}
                             </div>
+                            <div class="text-muted mt-1 text-end" style="font-size: 10px;">{{ msg.created_at|date:"H:i"
+                                }}</div>
                         </div>
-                        {% else %}
-                        <!-- Tin nhắn nhân viên / Quản lý (Phải) -->
-                        <div class="d-flex align-items-start gap-2 align-self-end flex-row-reverse" style="max-width: 80%;">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
-                                 style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
-                                {% if msg.sender_name %}{{ msg.sender_name|slice:":2"|upper }}{% elif active_conv.staff %}{{ active_conv.staff.name|slice:":2"|upper }}{% else %}NV{% endif %}
-                            </div>
-                            <div>
-                                <div class="text-muted small mb-1 text-end" style="font-size: 11px;">
-                                    {% if msg.sender_name %}{{ msg.sender_name }}{% elif active_conv.staff %}{{ active_conv.staff.name }}{% else %}Nhân viên tư vấn{% endif %} · Nhân viên hỗ trợ
-                                </div>
-                                <div class="p-3 rounded-4 text-white shadow-sm" 
-                                     style="background-color: var(--cham-red); font-size: 13.5px; line-height: 1.5; border-bottom-right-radius: 4px;">
-                                    {{ msg.content }}
-                                </div>
-                                <div class="text-muted mt-1" style="font-size: 10px;">{{ msg.created_at|date:"H:i" }}</div>
-                            </div>
+                    </div>
+                    {% elif msg.sender_type == 'Bot' %}
+                    <!-- Tin nhắn Bot AI (Trái) -->
+                    <div class="chat-msg-row d-flex align-items-start gap-2 align-self-start" style="max-width: 80%;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0"
+                            style="width: 32px; height: 32px; background-color: #FEF3C7; color: #92400E; font-size: 11px;">
+                            <i class="bi bi-robot"></i>
                         </div>
-                        {% endif %}
+                        <div>
+                            <div class="text-muted small mb-1" style="font-size: 11px;">Trợ lý Chatbot AI · Tự động
+                            </div>
+                            <div class="p-3 rounded-4 shadow-sm border"
+                                style="background-color: #FDFBF7; border-color: #E6D8BF !important; color: #78350F; font-size: 13.5px; line-height: 1.5; border-bottom-left-radius: 4px;">
+                                {{ msg.content }}
+                            </div>
+                            <div class="text-muted mt-1 text-end" style="font-size: 10px;">{{ msg.created_at|date:"H:i"
+                                }}</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Tin nhắn nhân viên / Quản lý (Phải) -->
+                    <div class="chat-msg-row d-flex align-items-start gap-2 align-self-end flex-row-reverse"
+                        style="max-width: 80%;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0"
+                            style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
+                            {% if msg.sender_name %}{{ msg.sender_name|slice:":2"|upper }}{% elif active_conv.staff %}{{
+                            active_conv.staff.name|slice:":2"|upper }}{% else %}NV{% endif %}
+                        </div>
+                        <div>
+                            <div class="text-muted small mb-1 text-end" style="font-size: 11px;">
+                                {% if msg.sender_name %}{{ msg.sender_name }}{% elif active_conv.staff %}{{
+                                active_conv.staff.name }}{% else %}Nhân viên tư vấn{% endif %} · Nhân viên hỗ trợ
+                            </div>
+                            <div class="p-3 rounded-4 text-white shadow-sm"
+                                style="background-color: var(--cham-red); font-size: 13.5px; line-height: 1.5; border-bottom-right-radius: 4px;">
+                                {% if msg.attachment_url %}
+                                <div class="mb-2">
+                                    <a href="{{ msg.attachment_url }}" target="_blank">
+                                        <img src="{{ msg.attachment_url }}" class="rounded-3 img-fluid shadow-sm"
+                                            style="max-height: 200px; object-fit: cover;">
+                                    </a>
+                                </div>
+                                {% endif %}
+                                {{ msg.content }}
+                            </div>
+                            <div class="text-muted mt-1" style="font-size: 10px;">{{ msg.created_at|date:"H:i" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
                     {% empty %}
                     <div class="text-center text-muted my-auto" style="font-size: 13px;">
                         Chưa có tin nhắn trong phiên hội thoại này.
@@ -316,30 +304,26 @@
 
                 <!-- Footer: Chế độ Can thiệp của Admin (Figma Node 502:2005) -->
                 <div class="p-3 border-top" style="background-color: #FFFFFF;">
-                    <!-- 2 Chế độ Radio -->
-                    <div class="d-flex align-items-center gap-4 mb-2" style="font-size: 12.5px;">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="adminInterveneMode" id="modeWatch" value="watch" checked onchange="toggleAdminMode('watch')">
-                            <label class="form-check-label fw-bold text-dark" for="modeWatch">
-                                Mode Giám sát (Chỉ xem)
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="adminInterveneMode" id="modeIntervene" value="intervene" onchange="toggleAdminMode('intervene')">
-                            <label class="form-check-label fw-bold text-danger" for="modeIntervene">
-                                Mode Can thiệp (Nhập tin nhắn với tư cách Admin/Quản lý)
-                            </label>
-                        </div>
+                    <!-- 2 Chế độ: Quan sát & Can thiệp -->
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <button type="button" id="btnModeWatch" class="btn-cham-action-complete"
+                            onclick="toggleAdminMode('watch')">
+                            Quan sát
+                        </button>
+                        <button type="button" id="btnModeIntervene" class="btn-cham-action-cancel"
+                            onclick="toggleAdminMode('intervene')">
+                            Can thiệp
+                        </button>
                     </div>
 
                     <!-- Ô nhập tin nhắn -->
                     <form id="adminSendMsgForm" onsubmit="adminSendMessage(event)">
                         <div class="input-group mb-2">
-                            <input type="text" id="adminMsgInput" class="form-control" 
-                                   placeholder="Nhập tin nhắn chỉ đạo hoặc tư vấn trực tiếp..." 
-                                   disabled style="font-size: 13.5px;">
-                            <button type="submit" id="adminSendBtn" class="btn text-white px-3" 
-                                    style="background-color: var(--cham-red);" disabled>
+                            <input type="text" id="adminMsgInput" class="form-control"
+                                placeholder="Nhập tin nhắn chỉ đạo hoặc tư vấn trực tiếp..." disabled
+                                style="font-size: 13.5px;">
+                            <button type="submit" id="adminSendBtn" class="btn text-white px-3"
+                                style="background-color: var(--cham-red);" disabled>
                                 <i class="bi bi-send-fill"></i> Gửi
                             </button>
                         </div>
@@ -347,16 +331,21 @@
 
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="text-muted" style="font-size: 11.5px;" id="modeHintText">
-                            Chuyển sang Mode Can thiệp để nhập và gửi tin nhắn.
+                            Bấm nút "Can thiệp" để nhập và gửi tin nhắn.
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-0" 
-                                    style="background-color: #F3F4F6; font-size: 12px;" onclick="alert('Tính năng gửi ảnh/video');">
-                                <i class="bi bi-camera-video"></i> Gửi ảnh/video
+                            <!-- Input ẩn để upload file ảnh / video -->
+                            <input type="file" id="adminMediaFileInput" accept="image/*,video/*" style="display: none;"
+                                onchange="handleAdminMediaSelected(this)">
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 border-0"
+                                style="background-color: #F3F4F6; font-size: 12.5px; font-weight: 500;"
+                                onclick="triggerAdminMediaUpload()" title="Tải ảnh hoặc video gửi vào chat">
+                                <i class="bi bi-camera-video me-1"></i> Gửi ảnh/video
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-0" 
-                                    style="background-color: #F3F4F6; font-size: 12px;" onclick="alert('Chọn Voucher ưu đãi');">
-                                <i class="bi bi-ticket-perforated"></i> Gửi Voucher
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 border-0"
+                                style="background-color: #F3F4F6; font-size: 12.5px; font-weight: 500;"
+                                data-bs-toggle="modal" data-bs-target="#adminVoucherModal" title="Chọn Voucher ưu đãi">
+                                <i class="bi bi-ticket-perforated me-1"></i> Gửi Voucher
                             </button>
                         </div>
                     </div>
@@ -372,15 +361,19 @@
 <div class="modal fade" id="reassignStaffModal" tabindex="-1" aria-labelledby="reassignModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header text-white" style="background-color: var(--cham-red); border-top-left-radius: 16px; border-top-right-radius: 16px;">
-                <h5 class="modal-title fw-bold" id="reassignModalLabel" style="font-family: var(--font-serif); font-size: 17px;">
+            <div class="modal-header text-white"
+                style="background-color: var(--cham-red); border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                <h5 class="modal-title fw-bold" id="reassignModalLabel"
+                    style="font-family: var(--font-serif); font-size: 17px;">
                     Chuyển phiên chat cho nhân viên khác
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-toggle="modal" data-bs-target="#reassignStaffModal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-toggle="modal"
+                    data-bs-target="#reassignStaffModal"></button>
             </div>
             <div class="modal-body p-4">
                 <p class="text-muted mb-3" style="font-size: 13.5px;">
-                    Chọn nhân viên tư vấn để tiếp quản cuộc hội thoại của khách hàng <strong id="reassignCustomerName">{{ active_conv.customer.name }}</strong>:
+                    Chọn nhân viên tư vấn để tiếp quản cuộc hội thoại của khách hàng <strong
+                        id="reassignCustomerName">{{ active_conv.customer.name }}</strong>:
                 </p>
                 <div class="mb-3">
                     <label class="form-label fw-bold small">Nhân viên tiếp nhận mới *</label>
@@ -394,8 +387,8 @@
                 </div>
             </div>
             <div class="modal-footer bg-light rounded-bottom-4">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
-                <button type="button" class="btn text-white fw-bold" style="background-color: var(--cham-red);" onclick="confirmReassignStaff()">
+                <button type="button" class="btn-action-cancel" data-bs-dismiss="modal">Hủy bỏ</button>
+                <button type="button" class="btn-action-complete" onclick="confirmReassignStaff()">
                     ✓ Xác nhận chuyển giao
                 </button>
             </div>
@@ -403,182 +396,274 @@
     </div>
 </div>
 
+<!-- ========================================================================
+     MODAL CHỌN GỬI VOUCHER ƯU ĐÃI (ADMIN)
+     ======================================================================== -->
+<div class="modal fade" id="adminVoucherModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header text-white px-4 py-3" style="background-color: var(--cham-red);">
+                <h6 class="modal-title font-serif mb-0 fs-6 fw-bold">
+                    <i class="bi bi-ticket-perforated me-2"></i>Chọn mã Voucher tặng khách hàng
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3" style="max-height: 420px; overflow-y: auto;">
+                <div class="list-group list-group-flush gap-2">
+                    {% if vouchers %}
+                    {% for v in vouchers %}
+                    <div
+                        class="list-group-item list-group-item-action border rounded-3 p-3 d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-danger font-monospace px-2 py-1 fs-6">{{ v.voucher_code }}</span>
+                                <span class="fw-bold text-dark" style="font-size: 14px;">Giảm {{
+                                    v.discount_value|floatformat:0 }}đ</span>
+                            </div>
+                            <div class="small text-muted">Đơn tối thiểu từ {{ v.min_order_amount|floatformat:0 }}đ •
+                                HSD: {{ v.valid_until|date:"d/m/Y"|default:"Vô thời hạn" }}</div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-cham-action-complete"
+                            onclick="adminInsertVoucher('{{ v.voucher_code|escapejs }}', '{{ v.discount_value|floatformat:0 }}')">
+                            Gửi mã
+                        </button>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-ticket-detailed fs-2 d-block mb-2 opacity-50"></i>
+                        Hiện chưa có mã Voucher khả dụng nào trong hệ thống.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-// Biến lưu trạng thái toàn cục
-let currentConvId = {{ active_conv.id|default:"null" }};
+    // Biến lưu trạng thái toàn cục
+    let currentConvId = {{ active_conv.id|default: "null" }};
 
-// Chuyển đổi tab danh sách hội thoại
-function switchConvTab(tabName) {
-    document.querySelectorAll('.conv-tab-btn').forEach(btn => {
-        btn.classList.remove('active', 'fw-bold', 'text-white');
-        btn.style.backgroundColor = 'transparent';
-    });
-    const clickedBtn = document.querySelector(`.conv-tab-btn[data-tab="${tabName}"]`);
-    if (clickedBtn) {
-        clickedBtn.classList.add('active', 'fw-bold', 'text-white');
-        clickedBtn.style.backgroundColor = 'var(--cham-red)';
+    // Chuyển đổi tab danh sách hội thoại chuẩn Image 2
+    function switchConvTab(tabName) {
+        document.querySelectorAll('.conv-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const clickedBtn = document.querySelector(`.conv-tab-btn[data-tab="${tabName}"]`);
+        if (clickedBtn) {
+            clickedBtn.classList.add('active');
+        }
+
+        document.querySelectorAll('.conv-tab-pane').forEach(p => p.classList.add('d-none'));
+        if (tabName === 'processing') document.getElementById('tabProcessingList').classList.remove('d-none');
+        if (tabName === 'waiting') document.getElementById('tabWaitingList').classList.remove('d-none');
     }
 
-    document.querySelectorAll('.conv-tab-pane').forEach(p => p.classList.add('d-none'));
-    if (tabName === 'processing') document.getElementById('tabProcessingList').classList.remove('d-none');
-    if (tabName === 'waiting') document.getElementById('tabWaitingList').classList.remove('d-none');
-    if (tabName === 'closed') document.getElementById('tabClosedList').classList.remove('d-none');
-}
+    // Lọc card theo tên hoặc SĐT
+    function filterConvCards() {
+        const q = document.getElementById('adminConvSearch').value.toLowerCase().trim();
+        document.querySelectorAll('.conv-card').forEach(card => {
+            const name = card.getAttribute('data-name') || '';
+            const phone = card.getAttribute('data-phone') || '';
+            if (name.includes(q) || phone.includes(q)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
 
-// Lọc card theo tên hoặc SĐT
-function filterConvCards() {
-    const q = document.getElementById('adminConvSearch').value.toLowerCase().trim();
-    document.querySelectorAll('.conv-card').forEach(card => {
-        const name = card.getAttribute('data-name') || '';
-        const phone = card.getAttribute('data-phone') || '';
-        if (name.includes(q) || phone.includes(q)) {
-            card.style.display = '';
+    // Bật tắt Chế độ Quan sát vs Chế độ Can thiệp
+    function toggleAdminMode(mode) {
+        const input = document.getElementById('adminMsgInput');
+        const btn = document.getElementById('adminSendBtn');
+        const hint = document.getElementById('modeHintText');
+        const btnWatch = document.getElementById('btnModeWatch');
+        const btnIntervene = document.getElementById('btnModeIntervene');
+
+        if (mode === 'intervene') {
+            if (btnWatch) {
+                btnWatch.classList.remove('btn-cham-action-complete');
+                btnWatch.classList.add('btn-cham-action-cancel');
+            }
+            if (btnIntervene) {
+                btnIntervene.classList.remove('btn-cham-action-cancel');
+                btnIntervene.classList.add('btn-cham-action-complete');
+            }
+            if (input) input.disabled = false;
+            if (btn) btn.disabled = false;
+            if (hint) {
+                hint.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-shield-exclamation"></i> Chế độ can thiệp đang BẬT: Tin nhắn gửi sẽ mang danh nghĩa Quản trị viên Cham Spa.</span>';
+            }
+            if (input) input.focus();
         } else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-// Bật tắt Chế độ Giám sát vs Chế độ Can thiệp
-function toggleAdminMode(mode) {
-    const input = document.getElementById('adminMsgInput');
-    const btn = document.getElementById('adminSendBtn');
-    const hint = document.getElementById('modeHintText');
-    if (mode === 'intervene') {
-        input.disabled = false;
-        btn.disabled = false;
-        hint.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-shield-exclamation"></i> Chế độ can thiệp đang BẬT: Tin nhắn gửi sẽ mang danh nghĩa Quản trị viên Cham Spa.</span>';
-        input.focus();
-    } else {
-        input.disabled = true;
-        btn.disabled = true;
-        hint.textContent = 'Chuyển sang Mode Can thiệp để nhập và gửi tin nhắn.';
-    }
-}
-
-// Chọn cuộc hội thoại để giám sát qua API
-function selectConversation(convId, event) {
-    if (event) {
-        if (!event.ctrlKey && !event.metaKey && event.button === 0) {
-            event.preventDefault();
-        } else {
-            return; // Cho phép mở tab mới khi click chuột giữa hoặc giữ phím Ctrl
+            if (btnWatch) {
+                btnWatch.classList.remove('btn-cham-action-cancel');
+                btnWatch.classList.add('btn-cham-action-complete');
+            }
+            if (btnIntervene) {
+                btnIntervene.classList.remove('btn-cham-action-complete');
+                btnIntervene.classList.add('btn-cham-action-cancel');
+            }
+            if (input) input.disabled = true;
+            if (btn) btn.disabled = true;
+            if (hint) {
+                hint.textContent = 'Bấm nút "Can thiệp" để nhập và gửi tin nhắn.';
+            }
         }
     }
-    if (!convId) return;
-    currentConvId = convId;
 
-    const log = document.getElementById('adminChatLog');
-    if (log) {
-        log.style.opacity = '0.5';
+    // Chọn cuộc hội thoại để giám sát qua API
+    let adminPollingTimer = null;
+
+    function startAdminPolling() {
+        if (adminPollingTimer) clearInterval(adminPollingTimer);
+        adminPollingTimer = setInterval(() => {
+            if (!currentConvId) return;
+            fetch(`/chatbox/api/conversations/${currentConvId}/messages/`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.messages) {
+                        const currentCount = document.querySelectorAll('#adminChatLog .chat-msg-row').length;
+                        if (data.messages.length !== currentCount) {
+                            const custName = document.getElementById('monitorCustomerName')?.textContent || 'Khách hàng';
+                            renderAdminChatLog(data.messages, custName);
+                        }
+                    }
+                })
+                .catch(() => { });
+        }, 2000); // Tự động đồng bộ tin nhắn mỗi 2 giây, không bị delay
     }
 
-    // Active visual card ngay lập tức khi click
-    document.querySelectorAll('.conv-card').forEach(c => {
-        c.classList.remove('active-card');
-        c.style.removeProperty('background-color');
-        c.style.removeProperty('border-color');
-    });
-    const activeC = document.querySelector(`.conv-card[data-conv-id="${convId}"]`);
-    if (activeC) {
-        activeC.classList.add('active-card');
-    }
-
-    fetch(`/chatbox/api/admin/conversations/${convId}/monitor/`)
-    .then(res => {
-        if (!res.ok) {
-            throw new Error(`HTTP error ${res.status}`);
+    function selectConversation(convId, event) {
+        if (event) {
+            if (!event.ctrlKey && !event.metaKey && event.button === 0) {
+                event.preventDefault();
+            } else {
+                return; // Cho phép mở tab mới khi click chuột giữa hoặc giữ phím Ctrl
+            }
         }
-        return res.json();
-    })
-    .then(res => {
-        if (log) log.style.opacity = '1';
-        if (res.status === 'success') {
-            const data = res.conversation;
-            const custName = data.customer ? (data.customer.name || 'Khách hàng') : 'Khách hàng';
-            
-            // Cập nhật Cột 2 Header
-            const custNameEl = document.getElementById('monitorCustomerName');
-            if (custNameEl) custNameEl.textContent = custName;
+        if (!convId) return;
+        currentConvId = convId;
 
-            const avatarEl = document.getElementById('monitorCustomerAvatar');
-            if (avatarEl) avatarEl.textContent = custName.slice(0, 2).toUpperCase();
+        const log = document.getElementById('adminChatLog');
 
-            const staffEl = document.getElementById('monitorStaffName');
-            if (staffEl) {
-                if (data.staff && data.staff.name) {
-                    staffEl.textContent = `Nhân viên hỗ trợ: ${data.staff.name} (Online)`;
-                } else {
-                    staffEl.textContent = 'Chưa có nhân viên tiếp nhận';
+        // Active visual card ngay lập tức khi click
+        document.querySelectorAll('.conv-card').forEach(c => {
+            c.classList.remove('active-card');
+            c.style.removeProperty('background-color');
+            c.style.removeProperty('border-color');
+        });
+        const activeC = document.querySelector(`.conv-card[data-conv-id="${convId}"]`);
+        if (activeC) {
+            activeC.classList.add('active-card');
+        }
+
+        startAdminPolling();
+
+        fetch(`/chatbox/api/admin/conversations/${convId}/monitor/`)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error ${res.status}`);
                 }
-            }
+                return res.json();
+            })
+            .then(res => {
+                if (res.status === 'success') {
+                    const data = res.conversation;
+                    const custName = data.customer ? (data.customer.name || 'Khách hàng') : 'Khách hàng';
 
-            // Cập nhật Nút nhỏ xem chi tiết khách hàng
-            const btnDetail = document.getElementById('btnViewCustomerDetail');
-            if (btnDetail) {
-                if (data.customer && data.customer.id) {
-                    btnDetail.href = `/accounts/admin/customers/${data.customer.id}/`;
-                    btnDetail.classList.remove('d-none');
-                } else {
-                    btnDetail.classList.add('d-none');
+                    // Cập nhật Cột 2 Header
+                    const custNameEl = document.getElementById('monitorCustomerName');
+                    if (custNameEl) custNameEl.textContent = custName;
+
+                    const avatarEl = document.getElementById('monitorCustomerAvatar');
+                    if (avatarEl) avatarEl.textContent = custName.slice(0, 2).toUpperCase();
+
+                    const staffEl = document.getElementById('monitorStaffName');
+                    if (staffEl) {
+                        if (data.staff && data.staff.name) {
+                            staffEl.textContent = `Nhân viên hỗ trợ: ${data.staff.name} (Online)`;
+                        } else {
+                            staffEl.textContent = 'Chưa có nhân viên tiếp nhận';
+                        }
+                    }
+
+                    // Cập nhật Nút nhỏ xem chi tiết khách hàng
+                    const btnDetail = document.getElementById('btnViewCustomerDetail');
+                    if (btnDetail) {
+                        if (data.customer && data.customer.id) {
+                            btnDetail.href = `/accounts/admin/customers/${data.customer.id}/`;
+                            btnDetail.classList.remove('d-none');
+                        } else {
+                            btnDetail.classList.add('d-none');
+                        }
+                    }
+
+                    // Cập nhật tên khách hàng trong modal chuyển giao
+                    const reassignCustEl = document.getElementById('reassignCustomerName');
+                    if (reassignCustEl) reassignCustEl.textContent = custName;
+
+                    // Cập nhật tóm tắt bot
+                    const botSummaryEl = document.getElementById('monitorBotSummary');
+                    if (botSummaryEl) {
+                        botSummaryEl.textContent = data.customer_tag ? `(Nhu cầu: ${data.customer_tag})` : '(Chưa có thông tin tương tác với bot)';
+                    }
+
+                    // Render lại tin nhắn
+                    renderAdminChatLog(data.messages, custName);
+
+                    // Cập nhật URL trình duyệt (pushState) để lưu trạng thái
+                    if (window.history && window.history.pushState) {
+                        const newUrl = new URL(window.location.href);
+                        newUrl.searchParams.set('conv_id', convId);
+                        window.history.pushState({ convId: convId }, '', newUrl.toString());
+                    }
                 }
-            }
+            })
+            .catch(err => {
+                console.warn('Lỗi fetch API monitor, kích hoạt fallback reload trang:', err);
+                window.location.href = `?conv_id=${convId}`;
+            });
+    }
 
-            // Cập nhật tên khách hàng trong modal chuyển giao
-            const reassignCustEl = document.getElementById('reassignCustomerName');
-            if (reassignCustEl) reassignCustEl.textContent = custName;
+    // Render tin nhắn vào log
+    function renderAdminChatLog(messages, customerName) {
+        const log = document.getElementById('adminChatLog');
+        if (!log) return;
+        log.innerHTML = '';
 
-            // Cập nhật tóm tắt bot
-            const botSummaryEl = document.getElementById('monitorBotSummary');
-            if (botSummaryEl) {
-                botSummaryEl.textContent = data.customer_tag ? `(Nhu cầu: ${data.customer_tag})` : '(Chưa có thông tin tương tác với bot)';
-            }
-
-            // Render lại tin nhắn
-            renderAdminChatLog(data.messages, custName);
-
-            // Cập nhật URL trình duyệt (pushState) để lưu trạng thái
-            if (window.history && window.history.pushState) {
-                const newUrl = new URL(window.location.href);
-                newUrl.searchParams.set('conv_id', convId);
-                window.history.pushState({ convId: convId }, '', newUrl.toString());
-            }
-        }
-    })
-    .catch(err => {
-        if (log) log.style.opacity = '1';
-        console.warn('Lỗi fetch API monitor, kích hoạt fallback reload trang:', err);
-        // Fallback: reload với param ?conv_id= để đảm bảo xem được 100%
-        window.location.href = `?conv_id=${convId}`;
-    });
-}
-
-// Render tin nhắn vào log
-function renderAdminChatLog(messages, customerName) {
-    const log = document.getElementById('adminChatLog');
-    if (!log) return;
-    log.innerHTML = '';
-
-    if (!messages || messages.length === 0) {
-        log.innerHTML = `
+        if (!messages || messages.length === 0) {
+            log.innerHTML = `
             <div class="text-center text-muted my-auto py-5" style="font-size: 13.5px;">
                 <i class="bi bi-chat-square-text fs-3 d-block mb-2 text-secondary opacity-50"></i>
                 Chưa có tin nhắn trong phiên hội thoại này.
             </div>
         `;
-        return;
-    }
+            return;
+        }
 
-    const safeName = customerName || 'Khách hàng';
-    messages.forEach(msg => {
-        const isCust = msg.sender_type === 'Customer';
-        const isBot = msg.sender_type === 'Bot';
-        const msgDiv = document.createElement('div');
+        const safeName = customerName || 'Khách hàng';
+        messages.forEach(msg => {
+            const isCust = msg.sender_type === 'Customer';
+            const isBot = msg.sender_type === 'Bot';
+            const msgDiv = document.createElement('div');
 
-        if (isCust) {
-            msgDiv.className = 'd-flex align-items-start gap-2 align-self-start';
-            msgDiv.style.maxWidth = '80%';
-            msgDiv.innerHTML = `
+            let mediaHtml = '';
+            if (msg.attachment_url) {
+                const isVid = (msg.attachment_name && (msg.attachment_name.endsWith('.mp4') || msg.attachment_name.endsWith('.mov') || msg.attachment_name.endsWith('.webm'))) || (msg.message_type === 'FILE' && msg.attachment_url.match(/\.(mp4|mov|webm)$/i));
+                if (isVid) {
+                    mediaHtml = `<div class="mb-2"><video controls class="rounded-3 w-100" style="max-height: 220px;"><source src="${escapeHtml(msg.attachment_url)}"></video></div>`;
+                } else {
+                    mediaHtml = `<div class="mb-2"><a href="${escapeHtml(msg.attachment_url)}" target="_blank"><img src="${escapeHtml(msg.attachment_url)}" class="rounded-3 img-fluid shadow-sm" style="max-height: 200px; object-fit: cover;"></a></div>`;
+                }
+            }
+
+            if (isCust) {
+                msgDiv.className = 'chat-msg-row d-flex align-items-start gap-2 align-self-start';
+                msgDiv.style.maxWidth = '80%';
+                msgDiv.innerHTML = `
                 <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
                      style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
                     ${safeName.slice(0, 2).toUpperCase()}
@@ -587,15 +672,16 @@ function renderAdminChatLog(messages, customerName) {
                     <div class="text-muted small mb-1" style="font-size: 11px;">${safeName} · Khách hàng</div>
                     <div class="p-3 rounded-4 bg-white shadow-sm border text-dark" 
                          style="font-size: 13.5px; line-height: 1.5; border-bottom-left-radius: 4px;">
+                        ${mediaHtml}
                         ${escapeHtml(msg.content)}
                     </div>
                     <div class="text-muted mt-1 text-end" style="font-size: 10px;">${msg.formatted_time || formatTime(msg.created_at)}</div>
                 </div>
             `;
-        } else if (isBot) {
-            msgDiv.className = 'd-flex align-items-start gap-2 align-self-start';
-            msgDiv.style.maxWidth = '80%';
-            msgDiv.innerHTML = `
+            } else if (isBot) {
+                msgDiv.className = 'chat-msg-row d-flex align-items-start gap-2 align-self-start';
+                msgDiv.style.maxWidth = '80%';
+                msgDiv.innerHTML = `
                 <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" 
                      style="width: 32px; height: 32px; background-color: #FEF3C7; color: #92400E; font-size: 11px;">
                     <i class="bi bi-robot"></i>
@@ -609,11 +695,11 @@ function renderAdminChatLog(messages, customerName) {
                     <div class="text-muted mt-1 text-end" style="font-size: 10px;">${msg.formatted_time || formatTime(msg.created_at)}</div>
                 </div>
             `;
-        } else {
-            const staffName = msg.sender_name || 'Nhân viên hỗ trợ';
-            msgDiv.className = 'd-flex align-items-start gap-2 align-self-end flex-row-reverse';
-            msgDiv.style.maxWidth = '80%';
-            msgDiv.innerHTML = `
+            } else {
+                const staffName = msg.sender_name || 'Nhân viên hỗ trợ';
+                msgDiv.className = 'chat-msg-row d-flex align-items-start gap-2 align-self-end flex-row-reverse';
+                msgDiv.style.maxWidth = '80%';
+                msgDiv.innerHTML = `
                 <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
                      style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
                     ${staffName.slice(0, 2).toUpperCase()}
@@ -624,151 +710,284 @@ function renderAdminChatLog(messages, customerName) {
                     </div>
                     <div class="p-3 rounded-4 text-white shadow-sm" 
                          style="background-color: var(--cham-red); font-size: 13.5px; line-height: 1.5; border-bottom-right-radius: 4px;">
+                        ${mediaHtml}
                         ${escapeHtml(msg.content)}
                     </div>
                     <div class="text-muted mt-1" style="font-size: 10px;">${msg.formatted_time || formatTime(msg.created_at)}</div>
                 </div>
             `;
-        }
-        log.appendChild(msgDiv);
-    });
-    log.scrollTop = log.scrollHeight;
-}
+            }
+            log.appendChild(msgDiv);
+        });
+        log.scrollTop = log.scrollHeight;
+    }
 
-// Quản lý gửi tin nhắn can thiệp
-function adminSendMessage(e) {
-    e.preventDefault();
-    const input = document.getElementById('adminMsgInput');
-    const content = input.value.trim();
-    if (!content || !currentConvId) return;
+    // Hàm thêm nhanh tin nhắn Quản lý vào giao diện ngay lập tức (Optimistic UI - không delay)
+    function appendLocalAdminMessage(content, attachmentUrl, attachmentName, isVideo) {
+        const log = document.getElementById('adminChatLog');
+        if (!log) return;
 
-    fetch(`/chatbox/api/admin/conversations/${currentConvId}/messages/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({ content: content })
-    })
-    .then(res => res.json())
-    .then(res => {
-        if (res.status === 'success') {
-            input.value = '';
-            selectConversation(currentConvId);
-        } else {
-            alert(res.error || 'Có lỗi xảy ra khi gửi tin nhắn.');
-        }
-    })
-    .catch(err => alert('Không thể kết nối đến máy chủ.'));
-}
+        const emptyNotice = log.querySelector('.text-center.text-muted');
+        if (emptyNotice) emptyNotice.remove();
 
-// Quản lý Can thiệp / Tiếp quản
-function adminTakeover() {
-    if (!currentConvId) return;
-    if (!confirm('Bạn có chắc chắn muốn can thiệp và trực tiếp tiếp quản cuộc hội thoại này?')) return;
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    fetch(`/chatbox/api/admin/conversations/${currentConvId}/takeover/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        }
-    })
-    .then(res => res.json())
-    .then(res => {
-        alert(res.message);
-        selectConversation(currentConvId);
-    })
-    .catch(() => alert('Lỗi kết nối máy chủ.'));
-}
-
-// Quản lý Chuyển nhân viên khác
-function confirmReassignStaff() {
-    const staffId = document.getElementById('newStaffSelect').value;
-    if (!staffId || !currentConvId) return;
-
-    fetch(`/chatbox/api/admin/conversations/${currentConvId}/reassign/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({ staff_id: staffId })
-    })
-    .then(res => res.json())
-    .then(res => {
-        alert(res.message);
-        const modalEl = document.getElementById('reassignStaffModal');
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        if (modal) modal.hide();
-        selectConversation(currentConvId);
-    })
-    .catch(() => alert('Lỗi kết nối máy chủ.'));
-}
-
-// Quản lý kết thúc hỗ trợ
-function adminCloseConversation() {
-    if (!currentConvId) return;
-    if (!confirm('Đóng phiên tư vấn này?')) return;
-
-    fetch(`/chatbox/api/conversations/${currentConvId}/close/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        }
-    })
-    .then(res => res.json())
-    .then(res => {
-        alert('Đã kết thúc cuộc hội thoại.');
-        location.reload();
-    })
-    .catch(() => alert('Lỗi kết nối máy chủ.'));
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return text.replace(/[&<>"']/g, m => map[m]);
-}
-
-function formatTime(isoStr) {
-    if (!isoStr) return '';
-    const d = new Date(isoStr);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+        let mediaHtml = '';
+        if (attachmentUrl) {
+            if (isVideo) {
+                mediaHtml = `<div class="mb-2"><video controls class="rounded-3 w-100" style="max-height: 220px;"><source src="${escapeHtml(attachmentUrl)}"></video></div>`;
+            } else {
+                mediaHtml = `<div class="mb-2"><a href="${escapeHtml(attachmentUrl)}" target="_blank"><img src="${escapeHtml(attachmentUrl)}" class="rounded-3 img-fluid shadow-sm" style="max-height: 200px; object-fit: cover;"></a></div>`;
             }
         }
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-msg-row d-flex align-items-start gap-2 align-self-end flex-row-reverse';
+        msgDiv.style.maxWidth = '80%';
+        msgDiv.innerHTML = `
+        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
+             style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
+            AD
+        </div>
+        <div>
+            <div class="text-muted small mb-1 text-end" style="font-size: 11px;">
+                Quản trị viên Cham Spa · Can thiệp
+            </div>
+            <div class="p-3 rounded-4 text-white shadow-sm" 
+                 style="background-color: var(--cham-red); font-size: 13.5px; line-height: 1.5; border-bottom-right-radius: 4px;">
+                ${mediaHtml}
+                ${escapeHtml(content)}
+            </div>
+            <div class="text-muted mt-1" style="font-size: 10px;">${timeStr}</div>
+        </div>
+    `;
+        log.appendChild(msgDiv);
+        log.scrollTop = log.scrollHeight;
     }
-    return cookieValue;
-}
 
-// Đảm bảo active trạng thái menu Admin Sidebar & Khởi tạo Tab hội thoại
-document.addEventListener('DOMContentLoaded', function() {
-    const boxchatNav = document.querySelector('.sidebar-nav-item[data-nav-target="Quản lý Boxchat"]');
-    if (boxchatNav) {
-        document.querySelectorAll('.sidebar-nav-item').forEach(el => el.classList.remove('active'));
-        boxchatNav.classList.add('active');
+    // Bấm nút "Gửi ảnh/video" để chọn tệp
+    function triggerAdminMediaUpload() {
+        toggleAdminMode('intervene');
+        const fileInput = document.getElementById('adminMediaFileInput');
+        if (fileInput) fileInput.click();
     }
 
-    // Mở đúng tab chứa hội thoại đang kích hoạt
-    switchConvTab('{{ initial_tab|default:"processing" }}');
+    // Xử lý tải ảnh/video lên máy chủ và gửi tin nhắn
+    async function handleAdminMediaSelected(inputEl) {
+        const file = inputEl.files[0];
+        if (!file) return;
+        if (!currentConvId) {
+            alert('Vui lòng chọn một cuộc hội thoại trước khi gửi ảnh/video.');
+            inputEl.value = '';
+            return;
+        }
+        inputEl.value = '';
+        const hint = document.getElementById('modeHintText');
+        const prevHint = hint ? hint.innerHTML : '';
+        if (hint) {
+            hint.innerHTML = '<span class="text-primary fw-bold"><i class="bi bi-arrow-repeat spinner-border spinner-border-sm me-1"></i> Đang tải tệp lên máy chủ...</span>';
+        }
 
-    // Đánh dấu active cho card hội thoại đang mở
-    if (currentConvId) {
-        const activeC = document.querySelector(`.conv-card[data-conv-id="${currentConvId}"]`);
-        if (activeC) {
-            activeC.classList.add('active-card');
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const uploadRes = await fetch('/chatbox/api/upload-media/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                body: formData
+            });
+            const uploadData = await uploadRes.json();
+            if (!uploadRes.ok || uploadData.status !== 'success') {
+                alert(uploadData.error || 'Tải tệp thất bại.');
+                if (hint) hint.innerHTML = prevHint;
+                return;
+            }
+
+            const isVid = uploadData.message_type === 'FILE' || (uploadData.file_name && uploadData.file_name.match(/\.(mp4|mov|webm)$/i));
+            appendLocalAdminMessage("", uploadData.file_url, uploadData.file_name, isVid);
+
+            const sendRes = await fetch(`/chatbox/api/admin/conversations/${currentConvId}/messages/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    content: "",
+                    attachment_url: uploadData.file_url,
+                    attachment_name: uploadData.file_name,
+                    attachment_size: uploadData.file_size,
+                    message_type: uploadData.message_type
+                })
+            });
+            const sendData = await sendRes.json();
+            if (!sendRes.ok || sendData.status !== 'success') {
+                alert(sendData.error || 'Có lỗi xảy ra khi gửi tin nhắn.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Lỗi kết nối khi tải tệp.');
+        } finally {
+            toggleAdminMode('intervene');
+        }
+    }
+
+    // Chèn mã voucher vào ô chat khi admin chọn trong Modal
+    function adminInsertVoucher(code, val) {
+        toggleAdminMode('intervene');
+        const input = document.getElementById('adminMsgInput');
+        const formattedVal = Number(val).toLocaleString('vi-VN');
+        if (input) {
+            input.value = `Dạ Cham Spa xin gửi tặng quý khách mã Voucher ưu đãi [${code}] giảm trực tiếp ${formattedVal}đ khi trải nghiệm dịch vụ ạ!`;
+            input.focus();
+        }
+        const modalEl = document.getElementById('adminVoucherModal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            if (modal) modal.hide();
+        }
+    }
+
+    // Quản lý gửi tin nhắn can thiệp - Gửi ngay tức thì không delay
+    function adminSendMessage(e) {
+        e.preventDefault();
+        const input = document.getElementById('adminMsgInput');
+        const content = input.value.trim();
+        if (!content || !currentConvId) return;
+
+        // 1. Xóa ô nhập và hiển thị tin nhắn ngay trên khung chat (Không bị delay)
+        input.value = '';
+        input.focus();
+        appendLocalAdminMessage(content);
+
+        // 2. Gửi bất đồng bộ lên server
+        fetch(`/chatbox/api/admin/conversations/${currentConvId}/messages/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ content: content })
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status !== 'success') {
+                    alert(res.error || 'Có lỗi xảy ra khi gửi tin nhắn.');
+                }
+            })
+            .catch(err => alert('Không thể kết nối đến máy chủ.'));
+    }
+
+    // Quản lý Can thiệp / Tiếp quản
+    function adminTakeover() {
+        if (!currentConvId) return;
+        if (!confirm('Bạn có chắc chắn muốn can thiệp và trực tiếp tiếp quản cuộc hội thoại này?')) return;
+
+        fetch(`/chatbox/api/admin/conversations/${currentConvId}/takeover/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+            .then(res => res.json())
+            .then(res => {
+                alert(res.message);
+                selectConversation(currentConvId);
+            })
+            .catch(() => alert('Lỗi kết nối máy chủ.'));
+    }
+
+    // Quản lý Chuyển nhân viên khác
+    function confirmReassignStaff() {
+        const staffId = document.getElementById('newStaffSelect').value;
+        if (!staffId || !currentConvId) return;
+
+        fetch(`/chatbox/api/admin/conversations/${currentConvId}/reassign/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ staff_id: staffId })
+        })
+            .then(res => res.json())
+            .then(res => {
+                alert(res.message);
+                const modalEl = document.getElementById('reassignStaffModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+                selectConversation(currentConvId);
+            })
+            .catch(() => alert('Lỗi kết nối máy chủ.'));
+    }
+
+    // Quản lý kết thúc hỗ trợ
+    function adminCloseConversation() {
+        if (!currentConvId) return;
+        if (!confirm('Đóng phiên tư vấn này?')) return;
+
+        fetch(`/chatbox/api/conversations/${currentConvId}/close/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+            .then(res => res.json())
+            .then(res => {
+                alert('Đã kết thúc cuộc hội thoại.');
+                location.reload();
+            })
+            .catch(() => alert('Lỗi kết nối máy chủ.'));
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function formatTime(isoStr) {
+        if (!isoStr) return '';
+        const d = new Date(isoStr);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Đảm bảo active trạng thái menu Admin Sidebar & Khởi tạo Tab hội thoại
+    document.addEventListener('DOMContentLoaded', function () {
+        const boxchatNav = document.querySelector('.sidebar-nav-item[data-nav-target="Quản lý Boxchat"]');
+        if (boxchatNav) {
+            document.querySelectorAll('.sidebar-nav-item').forEach(el => el.classList.remove('active'));
+            boxchatNav.classList.add('active');
+        }
+
+        // Mở đúng tab chứa hội thoại đang kích hoạt
+        switchConvTab('{{ initial_tab|default:"processing" }}');
+
+        // Đánh dấu active cho card hội thoại đang mở
+        if (currentConvId) {
+            const activeC = document.querySelector(`.conv-card[data-conv-id="${currentConvId}"]`);
+            if (activeC) {
+                activeC.classList.add('active-card');
+            }
+            startAdminPolling();
         }
     }
 });

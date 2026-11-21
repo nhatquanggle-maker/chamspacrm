@@ -51,15 +51,15 @@
             </div>
             <div>
                 {% if appt.status == 'Confirmed' %}
-                    <span class="status-badge status-badge-upcoming">● SẮP TỚI</span>
+                    <span class="status-badge status-badge-upcoming">SẮP TỚI</span>
                 {% elif appt.status == 'Hold' or appt.status == 'Pending' %}
-                    <span class="status-badge status-badge-hold">● CHỜ THANH TOÁN QR</span>
+                    <span class="status-badge status-badge-hold">CHỜ THANH TOÁN QR</span>
                 {% elif appt.status == 'Completed' %}
-                    <span class="status-badge status-badge-completed">● ĐÃ HOÀN THÀNH</span>
+                    <span class="status-badge status-badge-completed">ĐÃ HOÀN THÀNH</span>
                 {% elif appt.status == 'Cancelled' %}
-                    <span class="status-badge status-badge-cancelled">● ĐÃ HỦY</span>
+                    <span class="status-badge status-badge-cancelled">ĐÃ HỦY</span>
                 {% else %}
-                    <span class="status-badge status-badge-hold">● {{ appt.status|upper }}</span>
+                    <span class="status-badge status-badge-hold">{{ appt.status|upper }}</span>
                 {% endif %}
             </div>
         </div>
@@ -752,7 +752,7 @@
                     if (headerLockup) {
                         const badgeContainer = headerLockup.querySelector('div:last-child');
                         if (badgeContainer) {
-                            badgeContainer.innerHTML = `<span class="status-badge status-badge-cancelled">● ĐÃ HỦY</span>`;
+                            badgeContainer.innerHTML = `<span class="status-badge status-badge-cancelled">ĐÃ HỦY</span>`;
                         }
                     }
 

@@ -11,8 +11,8 @@
     <!-- 1. Header -->
     <div class="admin-mkt-header">
         <div>
-            <h1 class="admin-mkt-title">Quản Lý Khuyến Mãi & Mã Voucher</h1>
-            <p class="text-muted mb-0" style="font-size: 13.5px;">Thiết lập các chương trình ưu đãi, gắn mã voucher hiện có và quản lý kho voucher chiết khấu cho khách hàng.</p>
+            <h1 class="admin-mkt-title">Khuyến mãi & Voucher</h1>
+            <p class="text-muted mb-0" style="font-size: 13px;">Quản lý chương trình ưu đãi và kho voucher.</p>
         </div>
     </div>
 
@@ -47,15 +47,13 @@
         <div class="cham-table-card">
             <div class="cham-table-card-header">
                 <div>
-                    <h5 class="font-serif fw-bold mb-1" style="color: #781A24; font-size: 17px;">
-                        <i class="bi bi-percent me-2" style="color: #D0B581;"></i>
-                        Danh Sách Chương Trình Khuyến Mãi
+                    <h5 class="mb-0" style="font-family: 'Lora', Georgia, serif; font-size: 18px; font-weight: 700; color: #2E1D17;">
+                        Chương trình Khuyến mãi
                     </h5>
-                    <div class="text-muted" style="font-size: 12.5px;">Thiết lập các chiến dịch ưu đãi hiển thị nổi bật trên trang khách hàng và liên kết mã voucher.</div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalCreatePromotion" style="background-color: #781A24; color: #FFFFFF; font-weight: 700; border-radius: 999px;">
-                        <i class="bi bi-plus-circle me-1"></i>Tạo chương trình ưu đãi
+                    <button type="button" class="btn-cham-primary-btn" data-bs-toggle="modal" data-bs-target="#modalCreatePromotion">
+                        <span>+ Thêm ưu đãi</span>
                     </button>
                 </div>
             </div>
@@ -64,10 +62,10 @@
                 <table class="table cham-table mb-0 align-middle">
                     <thead>
                         <tr>
-                            <th>Chương trình &amp; Mã</th>
-                            <th>Điều kiện áp dụng</th>
+                            <th>Chương trình</th>
+                            <th>Điều kiện</th>
                             <th>Thời hạn</th>
-                            <th>Voucher đính kèm</th>
+                            <th>Voucher</th>
                             <th>Trạng thái</th>
                             <th class="text-end">Thao tác</th>
                         </tr>
@@ -76,30 +74,28 @@
                         {% for promo in promotions %}
                             <tr id="promo-row-{{ promo.id }}">
                                 <td>
-                                    <div class="fw-bold text-dark" style="font-size: 13.5px;">{{ promo.title }}</div>
-                                    <span class="badge mt-1" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #D0B581; font-family: monospace; font-size: 11px;">
+                                    <div class="fw-bold text-dark" style="font-size: 15px;">{{ promo.title }}</div>
+                                    <span class="badge mt-1" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #D0B581; font-family: monospace; font-size: 12.5px; font-weight: 700;">
                                         {{ promo.promotion_code }}
                                     </span>
                                 </td>
-                                <td style="font-size: 12.5px; color: #716761; max-width: 240px;">
-                                    {{ promo.conditions_desc|default:"Áp dụng chung toàn bộ dịch vụ" }}
+                                <td style="font-size: 14px; color: #716761; max-width: 240px;">
+                                    {{ promo.conditions_desc|default:"Tất cả dịch vụ" }}
                                 </td>
-                                <td style="font-size: 12px; white-space: nowrap;">
-                                    <div>Từ: <strong>{{ promo.valid_from|date:"d/m/Y"|default:"---" }}</strong></div>
-                                    <div>Đến: <strong>{{ promo.valid_until|date:"d/m/Y"|default:"Vô thời hạn" }}</strong></div>
+                                <td style="font-size: 14px; white-space: nowrap;">
+                                    <div class="fw-semibold">{{ promo.valid_from|date:"d/m/Y"|default:"---" }} – {{ promo.valid_until|date:"d/m/Y"|default:"Vô hạn" }}</div>
                                 </td>
                                 <td>
                                     <div class="d-flex flex-wrap align-items-center gap-1" style="max-width: 220px;">
-                                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1">
-                                            {{ promo.total_vouchers }} voucher
-                                        </span>
                                         {% for pv in promo.vouchers.all|slice:":2" %}
-                                            <span class="badge" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #E2D1B3; font-family: monospace; font-size: 10.5px;">
+                                            <span class="badge" style="background-color: #FAF7EF; color: #781A24; border: 1px solid #E2D1B3; font-family: monospace; font-size: 12.5px; font-weight: 600;">
                                                 {{ pv.voucher_code }}
                                             </span>
+                                        {% empty %}
+                                            <span class="text-muted small">-</span>
                                         {% endfor %}
                                         {% if promo.total_vouchers > 2 %}
-                                            <span class="text-muted" style="font-size: 11px;">+{{ promo.total_vouchers|add:"-2" }}</span>
+                                            <span class="text-muted small">+{{ promo.total_vouchers|add:"-2" }}</span>
                                         {% endif %}
                                     </div>
                                 </td>
@@ -110,38 +106,25 @@
                                         <input type="hidden" name="promotion_id" value="{{ promo.id }}">
                                         <button type="submit" class="btn btn-sm border-0 p-0" title="Nhấn để đổi nhanh trạng thái">
                                             {% if promo.status == 'Đang hoạt động' %}
-                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                                                    <i class="bi bi-check-circle me-1"></i>Đang hoạt động
+                                                <span class="badge py-1 px-2.5 rounded-pill" style="background-color: #ECFDF5; color: #065F46; font-size: 13px; font-weight: 600;">
+                                                    Đang chạy
                                                 </span>
                                             {% elif promo.status == 'Sắp diễn ra' %}
-                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">
-                                                    <i class="bi bi-hourglass-split me-1"></i>Sắp diễn ra
+                                                <span class="badge py-1 px-2.5 rounded-pill" style="background-color: #FEF3C7; color: #92400E; font-size: 13px; font-weight: 600;">
+                                                    Sắp diễn ra
                                                 </span>
                                             {% else %}
-                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
-                                                    <i class="bi bi-slash-circle me-1"></i>Hết hạn
+                                                <span class="badge py-1 px-2.5 rounded-pill" style="background-color: #F3F4F6; color: #4B5563; font-size: 13px; font-weight: 600;">
+                                                    Hết hạn
                                                 </span>
                                             {% endif %}
                                         </button>
                                     </form>
                                 </td>
                                 <td class="text-end" style="white-space: nowrap;">
-                                    <div class="d-inline-flex align-items-center justify-content-end gap-1 flex-nowrap">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openViewPromoModal({{ promo.id }})" title="Xem chi tiết chương trình">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditPromoModal({{ promo.id }})" title="Chỉnh sửa &amp; chọn voucher">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <form method="POST" action="{% url 'marketing:admin_promotions' %}" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa chiến dịch khuyến mãi này? Các voucher đang gắn sẽ chuyển về độc lập.')">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="action" value="delete_promotion">
-                                            <input type="hidden" name="promotion_id" value="{{ promo.id }}">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa chương trình">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    <button type="button" class="btn-cham-view-link" onclick="openViewPromoModal({{ promo.id }})" title="Xem chi tiết chương trình">
+                                        Chi tiết
+                                    </button>
                                 </td>
                             </tr>
                         {% empty %}
@@ -166,15 +149,13 @@
         <div class="cham-table-card">
             <div class="cham-table-card-header">
                 <div>
-                    <h5 class="font-serif fw-bold mb-1" style="color: #781A24; font-size: 17px;">
-                        <i class="bi bi-ticket-perforated-fill me-2" style="color: #D0B581;"></i>
-                        Kho Mã Voucher Khuyến Mãi &amp; Tri Ân
+                    <h5 class="mb-0" style="font-family: 'Lora', Georgia, serif; font-size: 18px; font-weight: 700; color: #2E1D17;">
+                        Kho Mã Voucher
                     </h5>
-                    <div class="text-muted" style="font-size: 12.5px;">Phát hành, xem, chỉnh sửa và thu hồi mã giảm giá theo phần trăm (có mức giảm tối đa) hoặc tiền mặt cố định.</div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalCreateVoucher" style="background-color: #781A24; color: #FFFFFF; font-weight: 700; border-radius: 999px;">
-                        <i class="bi bi-plus-circle me-1"></i>Phát hành Voucher mới
+                    <button type="button" class="btn-cham-primary-btn" data-bs-toggle="modal" data-bs-target="#modalCreateVoucher">
+                        <span>+ Thêm Voucher</span>
                     </button>
                 </div>
             </div>
@@ -184,12 +165,12 @@
                     <thead>
                         <tr>
                             <th>Mã Voucher</th>
-                            <th>Hình thức giảm</th>
+                            <th>Hình thức</th>
                             <th>Mức giảm</th>
-                            <th>Trần giảm tối đa</th>
+                            <th>Tối đa</th>
                             <th>Đơn tối thiểu</th>
-                            <th>Hạn sử dụng</th>
-                            <th>Đối tượng áp dụng</th>
+                            <th>Hạn dùng</th>
+                            <th>Đối tượng</th>
                             <th>Trạng thái</th>
                             <th class="text-end">Thao tác</th>
                         </tr>
@@ -266,22 +247,9 @@
                                     {% endif %}
                                 </td>
                                 <td class="text-end" style="white-space: nowrap;">
-                                    <div class="d-inline-flex align-items-center justify-content-end gap-1 flex-nowrap">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openViewVoucherModal({{ voucher.id }})" title="Xem chi tiết voucher">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditVoucherModal({{ voucher.id }})" title="Chỉnh sửa voucher">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <form method="POST" action="{% url 'marketing:admin_promotions' %}" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mã Voucher này?')">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="action" value="delete_voucher">
-                                            <input type="hidden" name="voucher_id" value="{{ voucher.id }}">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa voucher">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    <button type="button" class="btn-cham-view-link" onclick="openViewVoucherModal({{ voucher.id }})" title="Xem chi tiết voucher">
+                                        Chi tiết
+                                    </button>
                                 </td>
                             </tr>
                         {% empty %}
@@ -419,7 +387,7 @@
 
                 <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
                     <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Hủy</button>
-                    <button type="submit" class="btn px-4 py-2" id="btnSubmitPromo" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 700;">
+                    <button type="submit" class="btn px-4 py-2" id="btnSubmitPromo" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 600;">
                         <i class="bi bi-check-circle me-1"></i>Tạo chiến dịch
                     </button>
                 </div>
@@ -469,11 +437,21 @@
                     <div id="viewPromoVoucherList" style="max-height: 220px; overflow-y: auto;"></div>
                 </div>
             </div>
-            <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
-                <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Đóng</button>
-                <button type="button" class="btn px-4 py-2" id="btnViewPromoToEdit" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 700;">
-                    <i class="bi bi-pencil me-1"></i>Chỉnh sửa
-                </button>
+            <div class="modal-footer d-flex justify-content-between align-items-center" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
+                <form method="POST" action="{% url 'marketing:admin_promotions' %}" class="d-inline m-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa chiến dịch khuyến mãi này? Các voucher đang gắn sẽ chuyển về độc lập.')">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_promotion">
+                    <input type="hidden" name="promotion_id" id="viewPromoDeleteId" value="">
+                    <button type="submit" class="btn btn-outline-danger px-3 py-2" style="border-radius: 999px; font-weight: 600; font-size: 13px;">
+                        <i class="bi bi-trash me-1"></i>Xóa chương trình
+                    </button>
+                </form>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Đóng</button>
+                    <button type="button" class="btn px-4 py-2" id="btnViewPromoToEdit" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 600;">
+                        <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -567,7 +545,7 @@
 
                 <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
                     <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Hủy</button>
-                    <button type="submit" class="btn px-4 py-2" id="btnSubmitEditPromo" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 700;">
+                    <button type="submit" class="btn px-4 py-2" id="btnSubmitEditPromo" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 600;">
                         <i class="bi bi-save me-1"></i>Lưu thay đổi
                     </button>
                 </div>
@@ -658,7 +636,7 @@
 
                 <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
                     <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Hủy</button>
-                    <button type="submit" class="btn px-4 py-2" id="btnSubmitVoucher" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 700;">
+                    <button type="submit" class="btn px-4 py-2" id="btnSubmitVoucher" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 600;">
                         <i class="bi bi-ticket-perforated-fill me-1"></i>Phát hành Voucher
                     </button>
                 </div>
@@ -733,11 +711,21 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
-                <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Đóng</button>
-                <button type="button" class="btn px-4 py-2" id="btnViewVouchToEdit" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 700;">
-                    <i class="bi bi-pencil me-1"></i>Chỉnh sửa
-                </button>
+            <div class="modal-footer d-flex justify-content-between align-items-center" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
+                <form method="POST" action="{% url 'marketing:admin_promotions' %}" class="d-inline m-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mã Voucher này?')">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_voucher">
+                    <input type="hidden" name="voucher_id" id="viewVouchDeleteId" value="">
+                    <button type="submit" class="btn btn-outline-danger px-3 py-2" style="border-radius: 999px; font-weight: 600; font-size: 13px;">
+                        <i class="bi bi-trash me-1"></i>Xóa Voucher
+                    </button>
+                </form>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Đóng</button>
+                    <button type="button" class="btn px-4 py-2" id="btnViewVouchToEdit" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 600;">
+                        <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -829,7 +817,7 @@
 
                 <div class="modal-footer" style="background-color: #FAF7EF; border-top: 1px solid #E8E2D9;">
                     <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Hủy</button>
-                    <button type="submit" class="btn px-4 py-2" id="btnSubmitEditVoucher" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 700;">
+                    <button type="submit" class="btn px-4 py-2" id="btnSubmitEditVoucher" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 600;">
                         <i class="bi bi-save me-1"></i>Lưu thay đổi
                     </button>
                 </div>
@@ -963,6 +951,9 @@
         if (!data) return;
         currentViewPromoId = promoId;
 
+        const deleteInput = document.getElementById('viewPromoDeleteId');
+        if (deleteInput) deleteInput.value = promoId;
+
         document.getElementById('viewPromoCode').textContent = data.promotion_code;
         document.getElementById('viewPromoTitle').textContent = data.title;
         applyStatusBadgeStyle(document.getElementById('viewPromoStatusBadge'), data.status);
@@ -1048,6 +1039,9 @@
         const data = VOUCHER_DATA[String(voucherId)];
         if (!data) return;
         currentViewVoucherId = voucherId;
+
+        const deleteInput = document.getElementById('viewVouchDeleteId');
+        if (deleteInput) deleteInput.value = voucherId;
 
         document.getElementById('viewVouchCode').textContent = data.voucher_code;
         applyStatusBadgeStyle(document.getElementById('viewVouchStatusBadge'), data.status);

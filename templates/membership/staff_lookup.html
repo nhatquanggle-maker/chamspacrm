@@ -190,32 +190,30 @@
 
             <!-- Table Dữ Liệu -->
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="border-color: #F0EAE1;">
-                    <thead style="background: #FAF7F0;">
+                <table class="table cham-table align-middle mb-0">
+                    <thead>
                         <tr>
-                            <th style="padding: 14px 16px; font-size: 11.5px; font-weight: 700; color: var(--cham-muted); text-transform: uppercase;">KHÁCH HÀNG</th>
-                            <th style="font-size: 11.5px; font-weight: 700; color: var(--cham-muted); text-transform: uppercase;">HẠNG THẺ</th>
-                            <th style="text-align: center; font-size: 11.5px; font-weight: 700; color: var(--cham-muted); text-transform: uppercase;">CHIẾT KHẤU</th>
-                            <th style="text-align: right; font-size: 11.5px; font-weight: 700; color: var(--cham-muted); text-transform: uppercase;">ĐIỂM HIỆN CÓ</th>
-                            <th style="text-align: right; font-size: 11.5px; font-weight: 700; color: var(--cham-muted); text-transform: uppercase;">TỔNG CHI TIÊU</th>
-                            <th style="text-align: center; width: 180px; font-size: 11.5px; font-weight: 700; color: var(--cham-muted); text-transform: uppercase;">THAO TÁC</th>
+                            <th>KHÁCH HÀNG</th>
+                            <th>HẠNG THẺ</th>
+                            <th style="text-align: center;">CHIẾT KHẤU</th>
+                            <th style="text-align: right;">ĐIỂM HIỆN CÓ</th>
+                            <th style="text-align: right;">TỔNG CHI TIÊU</th>
+                            <th style="text-align: center; width: 140px;">THAO TÁC</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for m in members %}
                         <tr id="member-row-{{ m.id }}">
                             <!-- Cột Khách Hàng -->
-                            <td style="padding: 14px 16px;">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white shadow-sm flex-shrink-0" 
-                                         style="width: 40px; height: 40px; background: linear-gradient(135deg, #781A24 0%, #3D271D 100%); font-size: 14px;">
-                                        {{ m.user.name|default:m.user.username|slice:":2"|upper }}
+                            <td style="padding: 12px 14px;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" 
+                                         style="width: 32px; height: 32px; background-color: #781A24; font-size: 12.5px;">
+                                        {{ m.user.name|default:m.user.username|make_list|first|upper }}
                                     </div>
                                     <div>
-                                        <div class="fw-bold text-dark fs-6">{{ m.user.name }}</div>
-                                        <div class="small text-muted d-flex align-items-center gap-2">
-                                            <span><i class="bi bi-telephone me-1"></i>{{ m.user.phone }}</span>
-                                        </div>
+                                        <div class="fw-bold text-dark" style="font-size: 15px;">{{ m.user.name }}</div>
+                                        <div class="text-muted" style="font-size: 13px;">{{ m.user.phone }}</div>
                                     </div>
                                 </div>
                             </td>
@@ -265,28 +263,11 @@
 
                             <!-- Cột Thao Tác -->
                             <td style="text-align: center;">
-                                <div class="d-flex justify-content-center gap-1">
-                                    <!-- Nút Điều chỉnh điểm -->
-                                    <button type="button" class="btn btn-sm btn-outline-success px-2 py-1" 
-                                            title="Cộng điểm thưởng" 
-                                            onclick="openAdjustPointsModal({{ m.id }}, '{{ m.user.name|escapejs }}', '{{ m.user.phone|escapejs }}', {{ m.current_points }})">
-                                        <i class="bi bi-plus-circle"></i>
-                                    </button>
-
-                                    <!-- Nút Thay đổi hạng thẻ -->
-                                    <button type="button" class="btn btn-sm btn-outline-warning px-2 py-1" 
-                                            title="Đổi hạng thẻ VIP" 
-                                            onclick="openUpdateTierModal({{ m.id }}, '{{ m.user.name|escapejs }}', {{ m.tier.id|default:0 }})">
-                                        <i class="bi bi-award"></i>
-                                    </button>
-
-                                    <!-- Nút Xem hồ sơ 360 -->
-                                    <a href="{% url 'accounts:admin_customer_detail' m.user.id %}?tab=membership" 
-                                       class="btn btn-sm btn-outline-secondary px-2 py-1" 
-                                       title="Xem hồ sơ chi tiết 360">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                </div>
+                                <a href="{% url 'accounts:admin_customer_detail' m.user.id %}?tab=membership" 
+                                   class="btn-cham-view-link" 
+                                   title="Xem hồ sơ chi tiết">
+                                    Xem hồ sơ
+                                </a>
                             </td>
                         </tr>
                         {% empty %}
@@ -347,137 +328,7 @@
 
 {% block admin_modals %}
 <!-- =====================================================================
-     MODAL 1: ĐIỀU CHỈNH ĐIỂM THƯỞNG THỦ CÔNG (MANUAL ADJUST POINTS MODAL)
-     ===================================================================== -->
-<div class="modal fade" id="adjustPointsModal" tabindex="-1" aria-labelledby="adjustPointsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow" style="border-radius: 18px; overflow: hidden;">
-            <div class="modal-header text-white" style="background: linear-gradient(135deg, #3D271D 0%, #781A24 100%); padding: 18px 24px;">
-                <h5 class="modal-title font-serif fw-bold" id="adjustPointsModalLabel">
-                    <i class="bi bi-plus-slash-minus me-2" style="color: var(--cham-gold);"></i>Điều chỉnh Điểm thưởng Hội viên
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="adjustPointsForm" method="POST" action="{% url 'membership:staff_lookup' %}">
-                {% csrf_token %}
-                <input type="hidden" name="form_action" value="adjust_points">
-                <div class="modal-body p-4">
-                    <input type="hidden" id="adjust_membership_id" name="membership_id">
-
-                    <!-- Thông tin tóm tắt khách hàng -->
-                    <div class="p-3 mb-3 rounded-3" style="background: #FAF7F0; border: 1px solid rgba(208, 181, 129, 0.4);">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="text-muted small text-uppercase fw-semibold">Khách hàng:</span>
-                                <div class="fw-bold fs-6 text-dark" id="adjust_customer_name">-</div>
-                                <div class="small text-muted" id="adjust_customer_phone">-</div>
-                            </div>
-                            <div class="text-end">
-                                <span class="text-muted small text-uppercase fw-semibold">Số dư hiện tại:</span>
-                                <div class="fs-5 fw-bold text-success" id="adjust_current_points">0</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Thao tác: Luôn là Cộng điểm thưởng -->
-                    <input type="hidden" name="adjust_action" id="action_add" value="ADD">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-dark small">Loại thao tác:</label>
-                        <div class="p-2.5 rounded-3 text-center" style="background: #F0FDF4; border: 1.5px solid #86EFAC;">
-                            <span class="fw-bold text-success fs-6">
-                                <i class="bi bi-plus-circle me-1"></i>Cộng điểm thưởng (+)
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Nhập số điểm -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-dark small" for="adjust_points_amount">Số điểm thưởng cộng:</label>
-                        <div class="input-group">
-                            <input type="number" class="form-control" id="adjust_points_amount" name="points_amount" min="1" step="1" placeholder="Nhập số điểm (VD: 50)" required style="border-color: #D0B581;">
-                            <span class="input-group-text bg-light text-muted">điểm</span>
-                        </div>
-                    </div>
-
-                    <!-- Nhập lý do bắt buộc -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-dark small" for="adjust_reason">Lý do cộng điểm (Bắt buộc):</label>
-                        <textarea class="form-control" id="adjust_reason" name="reason_description" rows="2" placeholder="VD: Tặng điểm tri ân sinh nhật, Thưởng điểm khách hàng thân thiết..." required minlength="5" style="border-color: #D0B581; font-size: 13.5px;"></textarea>
-                    </div>
-
-                    <!-- Gợi ý lý do nhanh -->
-                    <div class="small">
-                        <span class="text-muted fw-semibold me-1">Gợi ý nhanh:</span>
-                        <div class="d-flex flex-wrap gap-1 mt-1">
-                            <button type="button" class="btn btn-sm btn-light border py-0 px-2" style="font-size: 11px;" onclick="setReason('Tặng điểm sinh nhật tri ân thành viên VIP')">Sinh nhật VIP</button>
-                            <button type="button" class="btn btn-sm btn-light border py-0 px-2" style="font-size: 11px;" onclick="setReason('Bồi thường điểm thưởng do khách chờ dịch vụ')">Bồi thường chờ</button>
-                            <button type="button" class="btn btn-sm btn-light border py-0 px-2" style="font-size: 11px;" onclick="setReason('Thưởng điểm tri ân khách hàng thân thiết lâu năm')">Tri ân khách VIP</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light" style="padding: 12px 24px;">
-                    <button type="button" class="btn btn-secondary px-3 py-2" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-cham px-4 py-2 fw-semibold" id="btnSubmitAdjust">
-                        <span class="spinner-border spinner-border-sm me-1 d-none" id="adjustSpinner"></span>
-                        <span>Xác nhận cập nhật</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- =====================================================================
-     MODAL 2: THAY ĐỔI HẠNG THẺ VIP THỦ CÔNG (UPDATE TIER MODAL)
-     ===================================================================== -->
-<div class="modal fade" id="updateTierModal" tabindex="-1" aria-labelledby="updateTierModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow" style="border-radius: 18px; overflow: hidden;">
-            <div class="modal-header text-white" style="background: linear-gradient(135deg, #3D271D 0%, #781A24 100%); padding: 18px 24px;">
-                <h5 class="modal-title font-serif fw-bold" id="updateTierModalLabel">
-                    <i class="bi bi-award me-2" style="color: var(--cham-gold);"></i>Điều chỉnh Hạng thẻ VIP Hội viên
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="updateTierForm" method="POST" action="{% url 'membership:staff_lookup' %}">
-                {% csrf_token %}
-                <input type="hidden" name="form_action" value="update_tier">
-                <div class="modal-body p-4">
-                    <input type="hidden" id="tier_membership_id" name="membership_id">
-
-                    <div class="mb-3">
-                        <label class="form-label text-muted small text-uppercase fw-semibold">Khách hàng:</label>
-                        <div class="fw-bold fs-6 text-dark" id="tier_customer_name">-</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-dark small" for="tier_select">Chọn Hạng thẻ mới:</label>
-                        <select class="form-select" id="tier_select" name="tier_id" required style="border-color: #D0B581;">
-                            {% for t in all_tiers %}
-                                <option value="{{ t.id }}">{{ t.name }} (Chiết khấu {{ t.discount_percent }}% - Tối thiểu {{ t.min_points }} điểm)</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-dark small" for="tier_reason">Ghi chú / Quyết định nâng hạng:</label>
-                        <textarea class="form-control" id="tier_reason" name="reason_description" rows="2" placeholder="VD: Nâng hạng đặc cách khách hàng thân thiết lâu năm..." style="border-color: #D0B581; font-size: 13.5px;"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light" style="padding: 12px 24px;">
-                    <button type="button" class="btn btn-secondary px-3 py-2" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-cham px-4 py-2 fw-semibold" id="btnSubmitTier">
-                        <span class="spinner-border spinner-border-sm me-1 d-none" id="tierSpinner"></span>
-                        <span>Lưu thay đổi</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- =====================================================================
-     SCRIPTS TRA CỨU TỨC THÌ & MỞ MODAL ĐIỀU CHỈNH (FORM POST)
+     SCRIPTS TRA CỨU TỨC THÌ
      ===================================================================== -->
 <script>
     // 1. TRA CỨU HỘI VIÊN TỨC THÌ QUA SĐT / TÊN
@@ -593,18 +444,9 @@
 
                         <!-- Thao tác nhanh tại quầy -->
                         <div class="col-md-4 text-end">
-                            <div class="d-flex flex-column gap-2 align-items-end">
-                                <button type="button" class="btn btn-sm btn-cham d-inline-flex align-items-center gap-1 px-3 py-1.5" 
-                                        onclick="openAdjustPointsModal(${m.id}, '${m.customer_name}', '${m.customer_phone}', ${m.current_points})">
-                                    <i class="bi bi-plus-circle"></i>
-                                    <span>Cộng điểm thưởng</span>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1 px-3 py-1.5" 
-                                        onclick="openUpdateTierModal(${m.id}, '${m.customer_name}', 0)">
-                                    <i class="bi bi-award"></i>
-                                    <span>Đổi hạng thẻ VIP</span>
-                                </button>
-                            </div>
+                            <a href="/accounts/admin/customers/${m.customer_id || m.id}/?tab=membership" class="btn-cham-view-link">
+                                Xem hồ sơ
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -613,36 +455,6 @@
 
         html += `</div>`;
         resultBox.innerHTML = html;
-    }
-
-    // 2. MỞ MODAL ĐIỀU CHỈNH ĐIỂM
-    function openAdjustPointsModal(membershipId, customerName, phone, currentPoints) {
-        document.getElementById('adjust_membership_id').value = membershipId;
-        document.getElementById('adjust_customer_name').innerText = customerName;
-        document.getElementById('adjust_customer_phone').innerText = phone;
-        document.getElementById('adjust_current_points').innerText = currentPoints + " điểm";
-        document.getElementById('adjust_points_amount').value = '';
-        document.getElementById('adjust_reason').value = '';
-        
-        const modal = new bootstrap.Modal(document.getElementById('adjustPointsModal'));
-        modal.show();
-    }
-
-    function setReason(text) {
-        document.getElementById('adjust_reason').value = text;
-    }
-
-    // 3. MỞ MODAL ĐỔI HẠNG THẺ
-    function openUpdateTierModal(membershipId, customerName, currentTierId) {
-        document.getElementById('tier_membership_id').value = membershipId;
-        document.getElementById('tier_customer_name').innerText = customerName;
-        if (currentTierId) {
-            document.getElementById('tier_select').value = currentTierId;
-        }
-        document.getElementById('tier_reason').value = '';
-
-        const modal = new bootstrap.Modal(document.getElementById('updateTierModal'));
-        modal.show();
     }
 </script>
 {% endblock %}

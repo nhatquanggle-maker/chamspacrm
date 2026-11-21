@@ -347,12 +347,10 @@ def staff_membership_lookup_view(request):
         return redirect('membership:my_card')
 
     if request.method == 'POST':
-        form_action = (request.POST.get('form_action') or '').strip()
-        if form_action == 'adjust_points':
-            return _handle_adjust_points_post(request)
-        if form_action == 'update_tier':
-            return _handle_update_tier_post(request)
-        messages.error(request, "Thao tác không hợp lệ.")
+        messages.warning(
+            request,
+            "Hệ thống tích điểm và nâng hạng thẻ hội viên được thực hiện hoàn toàn tự động theo chi tiêu hóa đơn (10.000 VNĐ = 1 điểm). Không hỗ trợ điều chỉnh thủ công."
+        )
         return redirect('membership:staff_lookup')
 
     base_layout = 'layouts/admin_layout.html' if user.is_superuser else 'layouts/staff_layout.html'

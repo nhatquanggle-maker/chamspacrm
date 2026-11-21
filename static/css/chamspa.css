@@ -596,7 +596,7 @@ a {
    -------------------------------------------------------------------------- */
 .admin-sidebar {
     width: 306px;
-    min-height: calc(100vh - 32px);
+    max-height: calc(100vh - 40px);
     background-color: var(--cham-white);
     border-radius: 20px;
     padding: 24px 20px;
@@ -604,6 +604,25 @@ a {
     border: 1px solid var(--cham-border-subtle);
     display: flex;
     flex-direction: column;
+    position: sticky;
+    top: 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 100;
+    scrollbar-width: thin;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(208, 181, 129, 0.4);
+    border-radius: 4px;
 }
 
 .sidebar-brand-lockup {
@@ -743,13 +762,32 @@ a {
    -------------------------------------------------------------------------- */
 .staff-sidebar {
     width: 286px;
-    min-height: calc(100vh - 32px);
+    max-height: calc(100vh - 40px);
     background-color: var(--cham-red);
     border-radius: 20px;
     padding: 20px 18px;
     box-shadow: 0 8px 30px rgba(120, 26, 36, 0.25);
     display: flex;
     flex-direction: column;
+    position: sticky;
+    top: 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 100;
+    scrollbar-width: thin;
+}
+
+.staff-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.staff-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.staff-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
 }
 
 .staff-brand-panel {
@@ -873,6 +911,39 @@ a {
     padding: 24px 20px;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
     border: 1px solid var(--cham-border-subtle);
+}
+
+@media (min-width: 992px) {
+    .customer-sidebar {
+        position: sticky;
+        top: max(80px, calc(50vh - 270px));
+        margin: 0 auto;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        z-index: 100;
+        scrollbar-width: thin;
+        transition: top 0.25s cubic-bezier(0.16, 1, 0.3, 1), max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body.header-hidden-active .customer-sidebar,
+    body:has(.cham-header-figma.header-hidden) .customer-sidebar {
+        top: max(24px, calc(50vh - 270px));
+        max-height: calc(100vh - 48px);
+    }
+}
+
+.customer-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.customer-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.customer-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(208, 181, 129, 0.4);
+    border-radius: 4px;
 }
 
 .customer-profile-card {
@@ -3335,15 +3406,18 @@ body.page-accounts-admin-customer-list .custom-admin-table {
     }
 
 body.page-accounts-admin-customer-list .custom-admin-table thead tr {
-        background-color: #781A24;
+        background-color: #FAF7EF;
     }
 
 body.page-accounts-admin-customer-list .custom-admin-table thead th {
-        color: #FFFFFF;
+        color: #716761;
         font-size: 13px;
         font-weight: 700;
-        padding: 13px 16px;
-        border: none;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 14px 14px;
+        border-top: none;
+        border-bottom: 1px solid #E8E2D9;
         white-space: nowrap;
         vertical-align: middle;
     }
@@ -3358,8 +3432,9 @@ body.page-accounts-admin-customer-list .custom-admin-table tbody tr:hover {
     }
 
 body.page-accounts-admin-customer-list .custom-admin-table tbody td {
-        padding: 14px 16px;
-        font-size: 13px;
+        padding: 14px 14px;
+        font-size: 15px;
+        line-height: 1.45;
         color: #171311;
         vertical-align: middle;
         border-top: 1px solid #F4EFE3;
@@ -3551,15 +3626,18 @@ body.page-accounts-admin-staff-list .custom-staff-table {
     }
 
 body.page-accounts-admin-staff-list .custom-staff-table thead tr {
-        background-color: #781A24;
+        background-color: #FAF7EF;
     }
 
 body.page-accounts-admin-staff-list .custom-staff-table thead th {
-        color: #FFFFFF;
+        color: #716761;
         font-size: 13px;
         font-weight: 700;
-        padding: 13px 16px;
-        border: none;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 14px 14px;
+        border-top: none;
+        border-bottom: 1px solid #E8E2D9;
         white-space: nowrap;
         vertical-align: middle;
     }
@@ -3574,8 +3652,9 @@ body.page-accounts-admin-staff-list .custom-staff-table tbody tr:hover {
     }
 
 body.page-accounts-admin-staff-list .custom-staff-table tbody td {
-        padding: 14px 16px;
-        font-size: 14px;
+        padding: 14px 14px;
+        font-size: 15px;
+        line-height: 1.45;
         color: #171311;
         vertical-align: middle;
         border-top: 1px solid #F4EFE3;
@@ -6539,7 +6618,7 @@ body.page-appointment-staff-appointments .staff-filter-label,
 body.page-appointment-admin-appointments .staff-filter-label,
 body.page-appointment-staff-appointments .admin-filter-label,
 body.page-appointment-admin-appointments .admin-filter-label {
-    font-size: 11px !important;
+    font-size: 12px !important;
     font-weight: 700 !important;
     letter-spacing: 0.5px !important;
     color: #8C7E77 !important;
@@ -6560,7 +6639,7 @@ body.page-appointment-admin-appointments .admin-filter-input {
     background-color: #FFFFFF !important;
     border: 1px solid #E9DCC0 !important;
     border-radius: 8px !important;
-    font-size: 13.5px !important;
+    font-size: 14px !important;
     color: #2E1D17 !important;
     padding: 8px 12px !important;
 }
@@ -6617,7 +6696,7 @@ body.page-appointment-admin-appointments .admin-schedule-header {
 body.page-appointment-staff-appointments .schedule-title,
 body.page-appointment-admin-appointments .schedule-title {
     font-family: 'Lora', Georgia, serif !important;
-    font-size: 18px !important;
+    font-size: 21px !important;
     font-weight: 700 !important;
     color: #2E1D17 !important;
 }
@@ -6627,8 +6706,8 @@ body.page-appointment-admin-appointments .schedule-date-badge {
     background-color: #FAF7EF !important;
     border: 1px solid #E9DCC0 !important;
     border-radius: 20px !important;
-    padding: 4px 12px !important;
-    font-size: 12.5px !important;
+    padding: 5px 14px !important;
+    font-size: 13.5px !important;
     font-weight: 600 !important;
     color: #781A24 !important;
 }
@@ -6638,10 +6717,17 @@ body.page-appointment-admin-appointments .schedule-count-badge {
     background-color: #FAF7EF !important;
     border: 1px solid #E9DCC0 !important;
     border-radius: 20px !important;
-    padding: 4px 12px !important;
-    font-size: 12.5px !important;
+    padding: 5px 14px !important;
+    font-size: 13.5px !important;
     font-weight: 600 !important;
     color: #781A24 !important;
+}
+
+body.page-appointment-staff-appointments .staff-schedule-header .small,
+body.page-appointment-admin-appointments .staff-schedule-header .small,
+body.page-appointment-staff-appointments .admin-schedule-header .small,
+body.page-appointment-admin-appointments .admin-schedule-header .small {
+    font-size: 13.5px !important;
 }
 
 /* Table styling (Shared) */
@@ -6650,7 +6736,7 @@ body.page-appointment-staff-appointments .table-schedule,
 body.page-appointment-admin-appointments .table-schedule {
     margin-bottom: 0 !important;
     font-family: var(--font-body, 'Cabin', sans-serif) !important;
-    font-size: 13px !important;
+    font-size: 15px !important;
     vertical-align: middle !important;
 }
 
@@ -6660,22 +6746,22 @@ body.page-appointment-admin-appointments .table-schedule thead th {
     border-bottom: 1px solid #E9DCC0 !important;
     color: #8C7E77 !important;
     font-family: var(--font-body, 'Cabin', sans-serif) !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
-    padding: 12px 10px !important;
+    padding: 14px 12px !important;
     white-space: nowrap !important;
 }
 
 body.page-appointment-staff-appointments .table-schedule tbody td,
 body.page-appointment-admin-appointments .table-schedule tbody td {
-    padding: 11px 10px !important;
+    padding: 14px 12px !important;
     border-bottom: 1px solid #F1EFEB !important;
     vertical-align: middle !important;
     font-family: var(--font-body, 'Cabin', sans-serif) !important;
-    font-size: 13px !important;
-    line-height: 1.4 !important;
+    font-size: 15px !important;
+    line-height: 1.45 !important;
 }
 
 body.page-appointment-staff-appointments .table-schedule thead th:first-child,
@@ -6708,8 +6794,8 @@ body.page-appointment-admin-appointments .table-schedule .phone-col,
 body.page-appointment-staff-appointments .table-schedule .service-col,
 body.page-appointment-admin-appointments .table-schedule .service-col {
     font-family: var(--font-body, 'Cabin', sans-serif) !important;
-    font-size: 13px !important;
-    line-height: 1.4 !important;
+    font-size: 15px !important;
+    line-height: 1.45 !important;
 }
 
 body.page-appointment-staff-appointments .table-schedule .time-col,
@@ -6749,19 +6835,16 @@ body.page-appointment-admin-appointments .staff-badge-status {
     display: inline-flex !important;
     align-items: center !important;
     gap: 6px !important;
-    padding: 5px 12px !important;
+    padding: 6px 14px !important;
     border-radius: 999px !important;
-    font-size: 12.5px !important;
+    font-size: 13.5px !important;
     font-weight: 600 !important;
     white-space: nowrap !important;
 }
 
 body.page-appointment-staff-appointments .status-dot,
 body.page-appointment-admin-appointments .status-dot {
-    width: 6px !important;
-    height: 6px !important;
-    border-radius: 50% !important;
-    display: inline-block !important;
+    display: none !important;
 }
 
 /* Action buttons on table rows */
@@ -6772,9 +6855,9 @@ body.page-appointment-admin-appointments .btn-action-confirm {
     border-color: #167455 !important;
     color: #FFFFFF !important;
     border-radius: 6px !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
-    padding: 4px 10px !important;
+    padding: 5px 12px !important;
 }
 
 body.page-appointment-staff-appointments .btn-action-confirm:hover,
@@ -6789,9 +6872,9 @@ body.page-appointment-admin-appointments .btn-action-complete {
     border-color: #781A24 !important;
     color: #FFFFFF !important;
     border-radius: 6px !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
-    padding: 4px 10px !important;
+    padding: 5px 12px !important;
 }
 
 body.page-appointment-staff-appointments .btn-action-complete:hover,
@@ -6806,9 +6889,9 @@ body.page-appointment-admin-appointments .btn-action-cancel {
     border: 1px solid #A63843 !important;
     color: #A63843 !important;
     border-radius: 6px !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
-    padding: 4px 10px !important;
+    padding: 5px 12px !important;
 }
 
 body.page-appointment-staff-appointments .btn-action-cancel:hover,
@@ -6823,8 +6906,8 @@ body.page-appointment-admin-appointments .btn-action-detail {
     border: 1px solid #E9DCC0 !important;
     color: #6B5E59 !important;
     border-radius: 6px !important;
-    padding: 4px 8px !important;
-    font-size: 12px !important;
+    padding: 5px 10px !important;
+    font-size: 13.5px !important;
 }
 
 body.page-appointment-staff-appointments .btn-action-detail:hover,
@@ -6832,6 +6915,12 @@ body.page-appointment-admin-appointments .btn-action-detail:hover {
     background-color: #FAF7EF !important;
     color: #781A24 !important;
     border-color: #781A24 !important;
+}
+
+body.page-appointment-staff-appointments .action-buttons-group .small,
+body.page-appointment-admin-appointments .action-buttons-group .small {
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
 }
 
 /* Schedule Footer & Legend */
@@ -6934,9 +7023,9 @@ body.page-chatbox-admin-monitor .admin-chatbox-nav-btn {
     border: none;
     background: transparent;
     padding: 11px 18px;
-    font-family: var(--font-serif, 'Lora', serif);
-    font-size: 15px;
-    font-weight: 700;
+    font-family: var(--font-body), sans-serif;
+    font-size: 14px;
+    font-weight: 600;
     color: #716761;
     border-radius: 10px;
     cursor: pointer;
@@ -7358,9 +7447,9 @@ body.page-chatbox-faq-management .admin-chatbox-nav-btn {
     border: none;
     background: transparent;
     padding: 11px 18px;
-    font-family: var(--font-serif, 'Lora', serif);
-    font-size: 15px;
-    font-weight: 700;
+    font-family: var(--font-body), sans-serif;
+    font-size: 14px;
+    font-weight: 600;
     color: #716761;
     border-radius: 10px;
     cursor: pointer;
@@ -7447,7 +7536,7 @@ body.page-chatbox-livechat .filter-group-search {
     }
 
 body.page-chatbox-livechat .filter-label {
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.8px;
         color: var(--cham-muted);
@@ -7466,16 +7555,16 @@ body.page-chatbox-livechat .filter-input-wrap i {
         top: 50%;
         transform: translateY(-50%);
         color: var(--cham-muted);
-        font-size: 13px;
+        font-size: 14px;
     }
 
 body.page-chatbox-livechat .filter-input {
         width: 100%;
-        height: 38px;
+        height: 40px;
         border: 1px solid #E0D7C6;
         border-radius: 8px;
         padding: 6px 12px 6px 34px;
-        font-size: 12.5px;
+        font-size: 14px;
         background-color: #FAF7F0;
         color: var(--cham-dark);
         outline: none;
@@ -7489,11 +7578,11 @@ body.page-chatbox-livechat .filter-input:focus {
 
 body.page-chatbox-livechat .filter-select {
         width: 100%;
-        height: 38px;
+        height: 40px;
         border: 1px solid #E0D7C6;
         border-radius: 8px;
         padding: 6px 12px;
-        font-size: 12.5px;
+        font-size: 14px;
         background-color: #FAF7F0;
         color: var(--cham-dark);
         outline: none;
@@ -7501,13 +7590,13 @@ body.page-chatbox-livechat .filter-select {
     }
 
 body.page-chatbox-livechat .btn-filter-apply {
-        height: 38px;
+        height: 40px;
         background-color: var(--cham-red);
         color: #FFFFFF;
         border: none;
         border-radius: 8px;
         padding: 0 20px;
-        font-size: 12.5px;
+        font-size: 13.5px;
         font-weight: 600;
         cursor: pointer;
         white-space: nowrap;
@@ -7607,29 +7696,56 @@ body.page-chatbox-livechat .queue-tabs {
         gap: 4px;
     }
 
-body.page-chatbox-livechat .queue-tab-btn {
-        flex: 1;
-        border: none;
-        background: transparent;
-        padding: 6px 4px;
-        border-radius: 8px;
-        font-size: 11.5px;
-        font-weight: 600;
-        color: var(--cham-muted);
+body.page-chatbox-livechat .queue-tab-btn,
+body.page-chatbox-admin-monitor .conv-tab-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        background-color: transparent !important;
+        border: none !important;
+        color: #554D46 !important;
+        border-radius: 10px !important;
+        font-family: var(--font-body, 'Cabin', sans-serif) !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        padding: 7px 12px !important;
+        transition: all 0.18s ease;
         cursor: pointer;
         text-align: center;
         white-space: nowrap;
-        transition: all 0.2s;
-        display: flex;
+        text-decoration: none;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 4px;
+        box-sizing: border-box;
+        box-shadow: none !important;
     }
 
-body.page-chatbox-livechat .queue-tab-btn.active {
-        background-color: #FAF7F0;
-        color: var(--cham-red);
-        font-weight: 700;
+body.page-chatbox-livechat .queue-tab-btn:hover,
+body.page-chatbox-admin-monitor .conv-tab-btn:hover {
+        background-color: rgba(250, 244, 232, 0.6) !important;
+        color: #781A24 !important;
+        border: none !important;
+    }
+
+body.page-chatbox-livechat .queue-tab-btn.active,
+body.page-chatbox-admin-monitor .conv-tab-btn.active {
+        background-color: #FAF4E8 !important;
+        border: none !important;
+        color: #781A24 !important;
+        font-weight: 700 !important;
+        box-shadow: none !important;
+    }
+
+body.page-chatbox-livechat .queue-tab-btn.active span,
+body.page-chatbox-admin-monitor .conv-tab-btn.active span {
+        color: #781A24 !important;
+        font-weight: 700 !important;
+    }
+
+body.page-chatbox-livechat .queue-tab-btn span,
+body.page-chatbox-admin-monitor .conv-tab-btn span {
+        color: inherit !important;
     }
 
 body.page-chatbox-livechat .queue-badge-pill {
@@ -7707,23 +7823,23 @@ body.page-chatbox-livechat .card-name-row {
 
 body.page-chatbox-livechat .card-name {
         font-family: var(--font-serif);
-        font-size: 13.5px;
+        font-size: 15px;
         font-weight: 700;
         color: var(--cham-dark);
     }
 
 body.page-chatbox-livechat .card-time {
-        font-size: 11px;
+        font-size: 12px;
         color: var(--cham-muted);
     }
 
 body.page-chatbox-livechat .card-phone {
-        font-size: 11.5px;
+        font-size: 13px;
         color: var(--cham-muted);
     }
 
 body.page-chatbox-livechat .card-need-text {
-        font-size: 12px;
+        font-size: 13.5px;
         color: #554D46;
         margin-bottom: 8px;
         white-space: nowrap;
@@ -7733,23 +7849,26 @@ body.page-chatbox-livechat .card-need-text {
 
 body.page-chatbox-livechat .btn-accept-queue {
         width: 100%;
-        height: 34px;
-        background-color: var(--cham-red);
+        height: 32px;
+        background-color: #781A24;
         color: #FFFFFF;
-        border: none;
-        border-radius: 18px;
-        font-size: 12.5px;
-        font-weight: 600;
+        border: 1px solid #781A24;
+        border-radius: 6px;
+        font-family: var(--font-body), sans-serif;
+        font-size: 12px;
+        font-weight: 500;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: background-color 0.2s, border-color 0.2s;
     }
 
 body.page-chatbox-livechat .btn-accept-queue:hover {
-        background-color: var(--cham-red-dark);
+        background-color: #5A121A;
+        border-color: #5A121A;
+        color: #FFFFFF;
     }
 
 body.page-chatbox-livechat .queue-footer {
@@ -7954,9 +8073,9 @@ body.page-chatbox-livechat .staff-side .chat-sender-header {
     }
 
 body.page-chatbox-livechat .chat-bubble-box {
-        padding: 10px 16px;
+        padding: 12px 18px;
         border-radius: 16px;
-        font-size: 13.5px;
+        font-size: 15px;
         line-height: 1.5;
         position: relative;
         word-break: break-word;
@@ -7977,7 +8096,7 @@ body.page-chatbox-livechat .staff-side .chat-bubble-box {
     }
 
 body.page-chatbox-livechat .bubble-meta-time {
-        font-size: 10px;
+        font-size: 11.5px;
         margin-top: 4px;
         opacity: 0.8;
     }
@@ -8853,9 +8972,9 @@ body.page-feedbacks-admin-management .filter-pills {
     }
 
 body.page-feedbacks-admin-management .filter-pill {
-        font-size: 12px;
+        font-size: 13.5px;
         font-weight: 600;
-        padding: 5px 14px;
+        padding: 6px 14px;
         border-radius: 999px;
         border: 1px solid var(--cham-border);
         background: #FFFFFF;
@@ -8890,7 +9009,7 @@ body.page-feedbacks-admin-management .master-item-card {
         background: #FFFFFF;
         border: 1px solid var(--cham-border);
         border-radius: 10px;
-        padding: 12px 14px;
+        padding: 14px 16px;
         cursor: pointer;
         transition: all 0.18s ease;
         position: relative;
@@ -8911,26 +9030,26 @@ body.page-feedbacks-admin-management .master-item-card.active {
 
 body.page-feedbacks-admin-management .status-dot-pending {
         color: #B45309;
-        font-size: 11.5px;
+        font-size: 13px;
         font-weight: 600;
     }
 
 body.page-feedbacks-admin-management .status-dot-replied,
 body.page-feedbacks-admin-management .status-dot-resolved {
         color: #047857;
-        font-size: 11.5px;
+        font-size: 13px;
         font-weight: 600;
     }
 
 body.page-feedbacks-admin-management .status-dot-hidden {
         color: #6B7280;
-        font-size: 11.5px;
+        font-size: 13px;
         font-weight: 600;
     }
 
 body.page-feedbacks-admin-management .status-dot-processing {
         color: #1D4ED8;
-        font-size: 11.5px;
+        font-size: 13px;
         font-weight: 600;
     }
 
@@ -10733,24 +10852,38 @@ body.page-marketing-admin-notifications .cham-table-card-header {
         gap: 12px;
     }
 
+body.page-marketing-admin-notifications .cham-table-card-header h5,
+body.page-marketing-admin-promotions .cham-table-card-header h5 {
+        font-family: 'Lora', Georgia, serif !important;
+        font-size: 21px !important;
+        font-weight: 700 !important;
+        color: #2E1D17 !important;
+        margin-bottom: 0 !important;
+    }
+
 body.page-marketing-admin-notifications .cham-table thead th {
-        background-color: #F4EFE3;
-        color: #2E1D17;
-        font-size: 12.5px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        border-bottom: 1px solid #D0B581;
-        padding: 12px 18px;
-        white-space: nowrap;
+        background-color: #FAF7EF !important;
+        color: #716761 !important;
+        font-family: var(--font-body, 'Cabin', sans-serif) !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        border-top: none !important;
+        border-bottom: 1px solid #E8E2D9 !important;
+        padding: 14px 14px !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
     }
 
 body.page-marketing-admin-notifications .cham-table tbody td {
-        padding: 14px 18px;
-        font-size: 13.5px;
-        color: #2E1D17;
-        border-bottom: 1px solid #F4EFE3;
-        vertical-align: middle;
+        padding: 14px 14px !important;
+        font-family: var(--font-body, 'Cabin', sans-serif) !important;
+        font-size: 15px !important;
+        line-height: 1.45 !important;
+        color: #2E1D17 !important;
+        border-bottom: 1px solid #FAF7EF !important;
+        vertical-align: middle !important;
     }
 
 body.page-marketing-admin-notifications .cham-table tbody tr:hover {
@@ -10867,9 +11000,9 @@ body.page-marketing-admin-promotions .admin-mkt-nav-btn {
         border: none;
         background: transparent;
         padding: 11px 18px;
-        font-family: var(--font-serif, 'Lora', serif);
-        font-size: 15px;
-        font-weight: 700;
+        font-family: var(--font-body, 'Cabin', sans-serif);
+        font-size: 14px;
+        font-weight: 600;
         color: #716761;
         border-radius: 10px;
         cursor: pointer;
@@ -10913,23 +11046,28 @@ body.page-marketing-admin-promotions .cham-table-card-header {
     }
 
 body.page-marketing-admin-promotions .cham-table thead th {
-        background-color: #F4EFE3;
-        color: #2E1D17;
-        font-size: 12.5px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        border-bottom: 1px solid #D0B581;
-        padding: 12px 18px;
-        white-space: nowrap;
+        background-color: #FAF7EF !important;
+        color: #716761 !important;
+        font-family: var(--font-body, 'Cabin', sans-serif) !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        border-top: none !important;
+        border-bottom: 1px solid #E8E2D9 !important;
+        padding: 14px 14px !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
     }
 
 body.page-marketing-admin-promotions .cham-table tbody td {
-        padding: 14px 18px;
-        font-size: 13.5px;
-        color: #2E1D17;
-        border-bottom: 1px solid #F4EFE3;
-        vertical-align: middle;
+        padding: 14px 14px !important;
+        font-family: var(--font-body, 'Cabin', sans-serif) !important;
+        font-size: 15px !important;
+        line-height: 1.45 !important;
+        color: #2E1D17 !important;
+        border-bottom: 1px solid #FAF7EF !important;
+        vertical-align: middle !important;
     }
 
 body.page-marketing-admin-promotions .cham-table tbody tr:hover {
@@ -11209,14 +11347,14 @@ body.page-marketing-staff-notifications .staff-notif-card-header {
 
 body.page-marketing-staff-notifications .staff-notif-card-title {
         font-family: var(--font-serif, 'Lora', serif);
-        font-size: 16.5px;
+        font-size: 18px;
         font-weight: 700;
         color: #2E1D17;
         margin-bottom: 0;
     }
 
 body.page-marketing-staff-notifications .staff-notif-card-desc {
-        font-size: 13.5px;
+        font-size: 15px;
         line-height: 1.6;
         color: #716761;
         margin-bottom: 14px;
@@ -11228,7 +11366,7 @@ body.page-marketing-staff-notifications .staff-notif-card-footer {
         justify-content: space-between;
         padding-top: 10px;
         border-top: 1px solid #F4EFE3;
-        font-size: 12px;
+        font-size: 13.5px;
         color: #9E948E;
     }
 
@@ -11236,7 +11374,7 @@ body.page-marketing-staff-notifications .btn-action-task {
         background-color: #FAF7EF;
         border: 1px solid #781A24;
         color: #781A24;
-        font-size: 12.5px;
+        font-size: 13px;
         font-weight: 700;
         padding: 6px 16px;
         border-radius: 999px;
@@ -11932,21 +12070,24 @@ body.page-services-service-admin .table-service-custom {
     }
 
 body.page-services-service-admin .table-service-custom thead th {
-        background-color: var(--cham-primary-red);
-        color: #FFFFFF;
+        background-color: #FAF7EF;
+        color: #716761;
         font-family: var(--font-body, 'Cabin', sans-serif);
         font-size: 13px;
         font-weight: 700;
+        text-transform: uppercase;
         letter-spacing: 0.5px;
-        padding: 14px 16px;
-        border: none;
+        padding: 14px 14px;
+        border-top: none;
+        border-bottom: 1px solid #E8E2D9;
         white-space: nowrap;
     }
 
 body.page-services-service-admin .table-service-custom tbody td {
-        padding: 14px 16px;
+        padding: 14px 14px;
         border-bottom: 1px solid #F0EAE1;
-        font-size: 14px;
+        font-size: 15px;
+        line-height: 1.45;
         color: var(--cham-wood-dark);
         background-color: #FFFFFF;
     }
@@ -11973,22 +12114,22 @@ body.page-services-service-admin .table-thumb-box img {
 body.page-services-service-admin .table-service-name {
         font-weight: 700;
         color: var(--cham-wood-dark);
-        font-size: 14.5px;
+        font-size: 15px;
         margin-bottom: 2px;
     }
 
 body.page-services-service-admin .table-service-subtext {
-        font-size: 11.5px;
+        font-size: 13px;
         color: #9E8F85;
     }
 
 body.page-services-service-admin .table-category-badge {
         display: inline-block;
-        padding: 3px 10px;
+        padding: 4px 12px;
         border-radius: 999px;
         border: 1px solid var(--cham-border-color);
         background-color: #FFFDF9;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 600;
         color: #7A5B46;
     }
@@ -12006,13 +12147,7 @@ body.page-services-service-admin .status-dot-active {
     }
 
 body.page-services-service-admin .status-dot-active::before {
-        content: '';
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background-color: #2E7D32;
-        display: inline-block;
-        flex-shrink: 0;
+        display: none !important;
     }
 
 body.page-services-service-admin .status-dot-inactive {
@@ -12026,13 +12161,7 @@ body.page-services-service-admin .status-dot-inactive {
     }
 
 body.page-services-service-admin .status-dot-inactive::before {
-        content: '';
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background-color: #BDBDBD;
-        display: inline-block;
-        flex-shrink: 0;
+        display: none !important;
     }
 
 /* Actions */
@@ -13441,3 +13570,389 @@ body.page-services-service-list .empty-services-state {
         border-radius: 20px;
         border: 1px dashed var(--cham-border-color);
     }
+
+/* ==========================================================================
+   UNIVERSAL CHAM SPA DESIGN STANDARD (STANDARDIZED FROM IMAGE 1 & IMAGE 2)
+   - Font chữ trang nhã (Serif & Sans phân cấp rõ ràng)
+   - Header bảng dịu mắt (#FAF7EF), chữ in hoa xám nâu (#716761)
+   - Nút bấm chữ đơn giản, tinh gọn, bo góc 6px, hạn chế icon
+   - Filter chips bo mềm mại, active đỏ rượu vang #781A24
+   - Avatar tròn 32px nền đỏ #781A24 với ký tự viết tắt màu trắng
+   ========================================================================== */
+
+/* 1. Universal Table Layout */
+.cham-table,
+.custom-admin-table,
+.custom-staff-table,
+.table-service-custom {
+    margin-bottom: 0 !important;
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    font-family: var(--font-body, 'Cabin', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+}
+
+.cham-table thead th,
+.custom-admin-table thead th,
+.custom-staff-table thead th,
+.table-service-custom thead th,
+#faqDataTable thead th {
+    background-color: #FAF7EF !important;
+    color: #716761 !important;
+    font-family: var(--font-body, 'Cabin', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 14px 14px !important;
+    border-top: none !important;
+    border-bottom: 1px solid #E8E2D9 !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+}
+
+.cham-table tbody tr,
+.custom-admin-table tbody tr,
+.custom-staff-table tbody tr,
+.table-service-custom tbody tr,
+#faqDataTable tbody tr {
+    transition: background-color 0.15s ease !important;
+    background-color: #FFFFFF !important;
+}
+
+.cham-table tbody tr:hover,
+.custom-admin-table tbody tr:hover,
+.custom-staff-table tbody tr:hover,
+.table-service-custom tbody tr:hover,
+#faqDataTable tbody tr:hover {
+    background-color: #FAF7EF !important;
+}
+
+.cham-table tbody td,
+.custom-admin-table tbody td,
+.custom-staff-table tbody td,
+.table-service-custom tbody td,
+#faqDataTable tbody td {
+    padding: 14px 14px !important;
+    font-size: 15px !important;
+    line-height: 1.45 !important;
+    color: #171311 !important;
+    vertical-align: middle !important;
+    border-top: none !important;
+    border-bottom: 1px solid #F0EAE1 !important;
+}
+
+/* 2. Universal Action Buttons (Image 2 style: Xem hồ sơ / Chi tiết) */
+.btn-cham-view-link {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 5px 12px !important;
+    border-radius: 6px !important;
+    font-family: var(--font-body, 'Cabin', sans-serif) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #781A24 !important;
+    border: 1px solid #D0B581 !important;
+    background-color: #FAF7EF !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    transition: all 0.15s ease !important;
+    line-height: 1.4 !important;
+    cursor: pointer !important;
+}
+
+.btn-cham-view-link:hover {
+    background-color: #781A24 !important;
+    color: #FFFFFF !important;
+    border-color: #781A24 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 6px rgba(120, 26, 36, 0.15) !important;
+}
+
+/* 3. Universal Row Action Buttons (Image 1 style) */
+.btn-action-confirm,
+.btn-cham-action-confirm {
+    background-color: #167455 !important;
+    border: 1px solid #167455 !important;
+    color: #FFFFFF !important;
+    border-radius: 6px !important;
+    font-family: var(--font-body, 'Cabin', sans-serif) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 5px 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+}
+.btn-action-confirm:hover,
+.btn-cham-action-confirm:hover {
+    background-color: #0E513A !important;
+    border-color: #0E513A !important;
+    color: #FFFFFF !important;
+}
+
+.btn-action-complete,
+.btn-cham-action-complete {
+    background-color: #781A24 !important;
+    border: 1px solid #781A24 !important;
+    color: #FFFFFF !important;
+    border-radius: 6px !important;
+    font-family: var(--font-body, 'Cabin', sans-serif) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 5px 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+}
+.btn-action-complete:hover,
+.btn-cham-action-complete:hover {
+    background-color: #5A121A !important;
+    border-color: #5A121A !important;
+    color: #FFFFFF !important;
+}
+
+.btn-action-cancel,
+.btn-cham-action-cancel {
+    background-color: #FAF7EF !important;
+    border: 1px solid #E5C3C6 !important;
+    color: #781A24 !important;
+    border-radius: 6px !important;
+    font-family: var(--font-body, 'Cabin', sans-serif) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 5px 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+}
+.btn-action-cancel:hover,
+.btn-cham-action-cancel:hover {
+    background-color: #F8E2E4 !important;
+    border-color: #781A24 !important;
+    color: #781A24 !important;
+}
+
+.btn-action-detail,
+.btn-action-icon,
+.btn-cham-action-detail {
+    background-color: transparent !important;
+    border: 1px solid #E9DCC0 !important;
+    color: #6B5E59 !important;
+    border-radius: 6px !important;
+    font-family: var(--font-body, 'Cabin', sans-serif) !important;
+    padding: 5px 10px !important;
+    font-size: 13.5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+}
+.btn-action-detail:hover,
+.btn-action-icon:hover,
+.btn-cham-action-detail:hover {
+    background-color: #FAF7EF !important;
+    color: #781A24 !important;
+    border-color: #781A24 !important;
+}
+
+/* 4. Universal Filter Chips / Buttons */
+.filter-btn,
+.filter-tab-pill,
+.filter-pill,
+.cus-filter-btn,
+.staff-filter-btn {
+    padding: 6px 14px !important;
+    border-radius: 6px !important;
+    font-family: var(--font-body, 'Cabin', sans-serif) !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    border: 1px solid #DED2BA !important;
+    background-color: #FFFFFF !important;
+    color: #4A3E39 !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    cursor: pointer !important;
+}
+.filter-btn:hover,
+.filter-tab-pill:hover,
+.filter-pill:hover,
+.cus-filter-btn:hover,
+.staff-filter-btn:hover {
+    border-color: #781A24 !important;
+    background-color: #FAF7EF !important;
+    color: #781A24 !important;
+}
+.filter-btn.active,
+.filter-tab-pill.active,
+.filter-pill.active,
+.cus-filter-btn.active,
+.staff-filter-btn.active {
+    background-color: #781A24 !important;
+    border-color: #781A24 !important;
+    color: #FFFFFF !important;
+}
+
+/* 5. Universal Circular Avatar */
+.cham-avatar-circle,
+.cust-avatar-pill,
+.staff-avatar-pill {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 50% !important;
+    background-color: #781A24 !important;
+    color: #FFFFFF !important;
+    font-family: var(--font-body, 'Cabin', sans-serif) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    text-transform: uppercase !important;
+    border: none !important;
+}
+
+/* 6. Primary Action Button (Top bar CTA) */
+.btn-cham-primary,
+.btn-cham-primary-btn,
+.btn-add-customer,
+.btn-add-staff,
+.btn-add-new-service {
+    background-color: #781A24 !important;
+    border-color: #781A24 !important;
+    color: #FFFFFF !important;
+    border-radius: 6px !important;
+    font-family: var(--font-body, 'Cabin', sans-serif) !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    padding: 7px 16px !important;
+    box-shadow: 0 1px 3px rgba(120, 26, 36, 0.15) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: all 0.15s ease !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    border: none !important;
+}
+.btn-cham-primary:hover,
+.btn-cham-primary-btn:hover,
+.btn-add-customer:hover,
+.btn-add-staff:hover,
+.btn-add-new-service:hover {
+    background-color: #5A121A !important;
+    border-color: #5A121A !important;
+    color: #FFFFFF !important;
+}
+    align-items: center !important;
+    gap: 6px !important;
+    transition: all 0.15s ease !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    border: none !important;
+}
+.btn-cham-primary:hover,
+.btn-cham-primary-btn:hover,
+.btn-add-customer:hover,
+.btn-add-staff:hover,
+.btn-add-new-service:hover {
+    background-color: #5A121A !important;
+    border-color: #5A121A !important;
+    color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   GLOBAL BUTTON HARMONIZATION: CABIN & FONT-WEIGHT 600 (SEMI-BOLD)
+   Đồng bộ 100% font chữ Cabin và độ in đậm chuẩn 600 cho toàn bộ nút bấm
+   ========================================================================== */
+button,
+button.btn,
+.btn,
+a.btn,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.btn-cham,
+.btn-cham-primary,
+.btn-cham-primary-btn,
+.btn-cham-view-link,
+.btn-action-confirm,
+.btn-cham-action-confirm,
+.btn-action-complete,
+.btn-cham-action-complete,
+.btn-action-cancel,
+.btn-cham-action-cancel,
+.btn-action-detail,
+.btn-cham-action-detail,
+.btn-action-icon,
+.filter-btn,
+.filter-tab-pill,
+.filter-pill,
+.cus-filter-btn,
+.staff-filter-btn,
+.queue-tab-btn,
+.conv-tab-btn,
+.admin-mkt-nav-btn,
+.admin-page-btn,
+.admin-chatbox-nav-btn,
+.detail-nav-tab,
+.service-tab-btn,
+.btn-edit-outline,
+.btn-lock-solid,
+.btn-unlock-solid,
+.btn-add-customer,
+.btn-add-staff,
+.btn-add-new-service,
+.btn-figma-gold,
+.btn-figma-red,
+.btn-figma-outline-white,
+.btn-figma-outline-dark,
+.modal-footer .btn,
+.modal-footer button {
+    font-family: var(--font-body, 'Cabin', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+    font-weight: 600 !important;
+}
+
+button span,
+button strong,
+button b,
+button.btn span,
+.btn span,
+.btn strong,
+.btn b,
+a.btn span,
+.btn-cham span,
+.filter-btn span,
+.queue-tab-btn span,
+.conv-tab-btn span,
+.admin-mkt-nav-btn span,
+.admin-chatbox-nav-btn span,
+.modal-footer .btn span {
+    font-family: var(--font-body, 'Cabin', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+    font-weight: 600 !important;
+}
+
+/* Bảo toàn font bootstrap-icons cho icon bên trong nút bấm */
+button .bi,
+.btn .bi,
+.btn-cham .bi,
+.bi {
+    font-family: "bootstrap-icons" !important;
+}
+

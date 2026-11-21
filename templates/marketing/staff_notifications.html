@@ -85,7 +85,7 @@
             <div class="staff-notif-card">
                 <div class="staff-notif-card-header">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="{{ notif.staff_badge_class }}" style="font-size: 11px;">{{ notif.staff_badge_label }}</span>
+                        <span class="{{ notif.staff_badge_class }}" style="font-size: 12.5px; font-weight: 600;">{{ notif.staff_badge_label }}</span>
                         <h4 class="staff-notif-card-title">{{ notif.title }}</h4>
                     </div>
                 </div>
@@ -101,9 +101,8 @@
                     </div>
                     <div>
                         {% if notif.staff_action_url %}
-                            <a href="{{ notif.staff_action_url }}" class="btn-action-task">
+                            <a href="{{ notif.staff_action_url }}" class="btn-cham-view-link">
                                 <span>{{ notif.staff_action_label }}</span>
-                                <i class="bi bi-arrow-right"></i>
                             </a>
                         {% endif %}
                     </div>

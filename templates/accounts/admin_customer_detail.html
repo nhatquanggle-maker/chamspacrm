@@ -60,7 +60,7 @@
                     <span class="cust-name-large">{{ customer.name }}</span>
                     {% if customer.is_active %}
                         <span class="badge-status-active">
-                            <i class="bi bi-circle-fill" style="font-size: 6px;"></i> Hoạt động
+                            Hoạt động
                         </span>
                     {% else %}
                         <span class="badge-status-locked">
@@ -340,7 +340,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="points-table-custom">
+                    <table class="table cham-table align-middle">
                         <thead>
                             <tr>
                                 <th>THỜI GIAN</th>
@@ -436,13 +436,14 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-bold" style="font-size: 13px;">Hạng thẻ hội viên</label>
-                        <select name="tier_name" class="form-select">
-                            {% for t in all_tiers %}
-                                <option value="{{ t.name }}" {% if membership.tier.id == t.id %}selected{% endif %}>
-                                    {{ t.name }} (từ {{ t.min_points }} điểm)
-                                </option>
-                            {% endfor %}
-                        </select>
+                        <div class="p-2.5 rounded bg-light border d-flex align-items-center justify-content-between" style="padding: 10px 14px;">
+                            <span class="badge px-3 py-1.5" style="background-color: #781A24; font-size: 13px; font-weight: 600;">
+                                <i class="bi bi-shield-check me-1"></i>{{ membership.tier.name|default:"Hạng Đồng" }}
+                            </span>
+                            <small class="text-muted" style="font-size: 12px;">
+                                <i class="bi bi-lock-fill text-secondary me-1"></i>Hệ thống tự động nâng hạng theo tích lũy chi tiêu
+                            </small>
+                        </div>
                     </div>
 
                     <div class="mb-2">

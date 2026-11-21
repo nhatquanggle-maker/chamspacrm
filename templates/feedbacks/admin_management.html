@@ -168,24 +168,24 @@
                         {% for fb in feedbacks %}
                         <div class="master-item-card {% if selected_feedback.id == fb.id %}active{% endif %}" id="fbCard{{ fb.id }}" style="cursor: pointer;" onclick="window.location.href='?tab=feedbacks&fb_id={{ fb.id }}&rating_tab={{ rating_tab }}{% if fb_search %}&q={{ fb_search|urlencode }}{% endif %}{% if feedbacks.number %}&page={{ feedbacks.number }}{% endif %}'">
                             <div class="d-flex justify-content-between align-items-start mb-1">
-                                <span class="fw-bold text-dark" style="font-size: 13.5px;">{{ fb.customer.name|default:fb.customer.username }}</span>
+                                <span class="fw-bold text-dark" style="font-size: 15px;">{{ fb.customer.name|default:fb.customer.username }}</span>
                                 {% if fb.status == 'Đã ẩn' %}
-                                <span class="status-dot-hidden">• Đã ẩn</span>
+                                <span class="status-dot-hidden">Đã ẩn</span>
                                 {% elif fb.status == 'Đã phản hồi' %}
-                                <span class="status-dot-replied">• Đã phản hồi</span>
+                                <span class="status-dot-replied">Đã phản hồi</span>
                                 {% else %}
-                                <span class="status-dot-pending">• Chờ phản hồi</span>
+                                <span class="status-dot-pending">Chờ phản hồi</span>
                                 {% endif %}
                             </div>
 
-                            <div class="d-flex align-items-center gap-1 text-warning mb-1" style="font-size: 11.5px;">
+                            <div class="d-flex align-items-center gap-1 text-warning mb-1" style="font-size: 13px;">
                                 {% for i in "12345" %}
                                 {% if forloop.counter <= fb.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star text-muted opacity-50"></i>{% endif %}
                                 {% endfor %}
-                                <span class="text-dark fw-bold ms-1" style="font-size: 11.5px;">{{ fb.rating }}/5</span>
+                                <span class="text-dark fw-bold ms-1" style="font-size: 13px;">{{ fb.rating }}/5</span>
                             </div>
 
-                            <div class="text-dark text-truncate mb-2" style="font-size: 12.5px;"
+                            <div class="text-dark text-truncate mb-2" style="font-size: 14px;"
                                 title="{{ fb.comment }}">
                                 {{ fb.comment|default:"Trải nghiệm dịch vụ tuyệt vời!" }}
                             </div>
@@ -201,12 +201,12 @@
                                     <input type="hidden" name="filter_q" value="{{ fb_search }}">
                                     <input type="hidden" name="filter_page" value="{{ feedbacks.number }}">
                                     <input class="form-check-input" type="checkbox" id="switchFb{{ fb.id }}" {% if fb.status != 'Đã ẩn' %}checked{% endif %} onchange="this.form.submit()">
-                                    <label class="form-check-label small text-muted ms-1" for="switchFb{{ fb.id }}" style="font-size: 11.5px;">
+                                    <label class="form-check-label small text-muted ms-1" for="switchFb{{ fb.id }}" style="font-size: 12.5px; font-weight: 600;">
                                         {% if fb.status == 'Đã ẩn' %}Ẩn{% else %}Hiện{% endif %}
                                     </label>
                                 </form>
 
-                                <a href="?tab=feedbacks&fb_id={{ fb.id }}&rating_tab={{ rating_tab }}{% if fb_search %}&q={{ fb_search|urlencode }}{% endif %}{% if feedbacks.number %}&page={{ feedbacks.number }}{% endif %}#dtFbReplyInput" class="btn btn-sm btn-outline-secondary py-0.5 px-2" style="font-size: 11px; border-radius: 4px;" onclick="event.stopPropagation()">
+                                <a href="?tab=feedbacks&fb_id={{ fb.id }}&rating_tab={{ rating_tab }}{% if fb_search %}&q={{ fb_search|urlencode }}{% endif %}{% if feedbacks.number %}&page={{ feedbacks.number }}{% endif %}#dtFbReplyInput" class="btn btn-sm btn-outline-secondary py-0.5 px-2" style="font-size: 12px; font-weight: 600; border-radius: 4px;" onclick="event.stopPropagation()">
                                     {% if fb.reply %}Xem lại phản hồi{% else %}Phản hồi{% endif %}
                                 </a>
                             </div>
@@ -516,7 +516,7 @@
                         {% for c in complaints %}
                         <div class="master-item-card {% if selected_complaint.id == c.id %}active{% endif %}" id="compCard{{ c.id }}" style="cursor: pointer;" onclick="window.location.href='?tab=complaints&comp_id={{ c.id }}&comp_tab={{ comp_tab }}&staff_id={{ staff_filter }}{% if comp_search %}&comp_q={{ comp_search|urlencode }}{% endif %}{% if complaints.number %}&comp_page={{ complaints.number }}{% endif %}'">
                             <div class="d-flex justify-content-between align-items-start mb-1">
-                                <span class="fw-bold text-dark" style="font-size: 13px;">
+                                <span class="fw-bold text-dark" style="font-size: 15px;">
                                     {{ c.customer.name|default:c.customer.username }}
                                 </span>
                                 {% if c.status == 'Chờ phân công' %}
@@ -530,12 +530,12 @@
                                 {% endif %}
                             </div>
 
-                            <div class="text-secondary small text-truncate mb-1" style="font-size: 12px;">
+                            <div class="text-secondary text-truncate mb-1" style="font-size: 14px;">
                                 {{ c.description|truncatewords:8 }}
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top"
-                                style="font-size: 11px;">
+                                style="font-size: 13px;">
                                 <span class="text-muted">
                                     {% if c.assigned_staff %}
                                     {{ c.assigned_staff.name|default:c.assigned_staff.username }}

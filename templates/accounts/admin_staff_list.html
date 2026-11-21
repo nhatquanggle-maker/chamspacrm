@@ -84,7 +84,7 @@
                     <tr>
                         <td style="text-align: center;">
                             <div class="staff-avatar-pill mx-auto">
-                                {{ s.initials }}
+                                {{ s.name|default:s.username|make_list|first|upper }}
                             </div>
                         </td>
                         <td>
@@ -103,7 +103,7 @@
                         <td style="text-align: center;">
                             {% if s.work_status == 'Hoạt động' %}
                                 <span class="badge-status-active">
-                                    <i class="bi bi-circle-fill" style="font-size: 6px;"></i> Hoạt động
+                                    Hoạt động
                                 </span>
                             {% else %}
                                 <span class="badge-status-locked">
@@ -112,49 +112,21 @@
                             {% endif %}
                         </td>
                         <td style="text-align: center;">
-                            <div class="d-flex align-items-center justify-content-center gap-2 text-nowrap">
-                                <!-- Xem -->
-                                <button type="button" class="row-action-link action-view-staff btn-view-staff"
-                                        title="Xem chi tiết nhân viên"
-                                        data-id="{{ s.id }}"
-                                        data-code="{{ s.staff_code }}"
-                                        data-name="{{ s.name }}"
-                                        data-phone="{{ s.phone }}"
-                                        data-email="{{ s.email }}"
-                                        data-status="{{ s.work_status }}"
-                                        data-gender="{{ s.profile.gender|default:'Chưa rõ' }}"
-                                        data-birthday="{{ s.profile.birthday|date:'d/m/Y'|default:'Chưa cập nhật' }}"
-                                        data-joined="{{ s.date_joined|date:'d/m/Y' }}">
-                                    <i class="bi bi-eye"></i> Xem
-                                </button>
-
-                                <!-- Sửa -->
-                                <button type="button" class="row-action-link action-edit-staff btn-edit-staff"
-                                        title="Chỉnh sửa thông tin nhân viên"
-                                        data-id="{{ s.id }}"
-                                        data-code="{{ s.staff_code }}"
-                                        data-name="{{ s.name }}"
-                                        data-phone="{{ s.phone }}"
-                                        data-email="{{ s.email }}"
-                                        data-status="{{ s.work_status }}"
-                                        data-gender="{{ s.profile.gender|default:'Nữ' }}"
-                                        data-birthday="{{ s.profile.birthday|date:'Y-m-d'|default:'' }}">
-                                    <i class="bi bi-pencil-square"></i> Sửa
-                                </button>
-
-                                <!-- Khóa / Mở khóa -->
-                                <button type="button" class="row-action-link {% if s.is_active %}action-lock-staff{% else %}action-unlock-staff{% endif %} btn-toggle-staff"
-                                        title="{% if s.is_active %}Tạm khóa tài khoản{% else %}Mở khóa tài khoản{% endif %}"
-                                        data-id="{{ s.id }}"
-                                        data-name="{{ s.name }}"
-                                        data-active="{{ s.is_active|yesno:'true,false' }}">
-                                    {% if s.is_active %}
-                                        <i class="bi bi-lock"></i> Khóa
-                                    {% else %}
-                                        <i class="bi bi-unlock"></i> Mở khóa
-                                    {% endif %}
-                                </button>
-                            </div>
+                            <button type="button" class="btn-cham-view-link btn-view-staff"
+                                    title="Xem chi tiết nhân viên"
+                                    data-id="{{ s.id }}"
+                                    data-code="{{ s.staff_code }}"
+                                    data-name="{{ s.name }}"
+                                    data-phone="{{ s.phone }}"
+                                    data-email="{{ s.email }}"
+                                    data-status="{{ s.work_status }}"
+                                    data-active="{{ s.is_active|yesno:'true,false' }}"
+                                    data-gender="{{ s.profile.gender|default:'Nữ' }}"
+                                    data-birthday="{{ s.profile.birthday|date:'Y-m-d'|default:'' }}"
+                                    data-birthday-display="{{ s.profile.birthday|date:'d/m/Y'|default:'Chưa cập nhật' }}"
+                                    data-joined="{{ s.date_joined|date:'d/m/Y' }}">
+                                Xem hồ sơ
+                            </button>
                         </td>
                     </tr>
                     {% empty %}
@@ -516,8 +488,16 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer bg-light px-4 py-3 justify-content-center">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Đóng</button>
+            <div class="modal-footer bg-light px-4 py-3 d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-outline-danger px-3 py-2" id="btnModalToggleStaff" style="border-radius: 999px; font-weight: 600; font-size: 13px;">
+                    <i class="bi bi-lock me-1"></i>Khóa tài khoản
+                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 999px; font-weight: 600;">Đóng</button>
+                    <button type="button" class="btn px-4 py-2" id="btnModalEditStaff" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-weight: 600;">
+                        <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -575,19 +555,55 @@
         document.querySelectorAll('.btn-view-staff').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
+                const id = this.getAttribute('data-id');
                 const code = this.getAttribute('data-code');
                 const name = this.getAttribute('data-name');
                 const phone = this.getAttribute('data-phone');
                 const email = this.getAttribute('data-email');
                 const status = this.getAttribute('data-status');
+                const isActive = this.getAttribute('data-active') === 'true';
                 const gender = this.getAttribute('data-gender');
                 const birthday = this.getAttribute('data-birthday');
+                const birthdayDisplay = this.getAttribute('data-birthday-display');
                 const joined = this.getAttribute('data-joined');
 
-                openViewStaffModal(code, name, phone, email, status, gender, birthday, joined);
+                openViewStaffModal(id, code, name, phone, email, status, isActive, gender, birthday, birthdayDisplay, joined);
             });
         });
+
+        // Nút Sửa trong View Modal
+        document.getElementById('btnModalEditStaff')?.addEventListener('click', function() {
+            const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewStaffModal'));
+            if (viewModal) viewModal.hide();
+            if (currentViewingStaff) {
+                openEditStaffModal(
+                    currentViewingStaff.id,
+                    currentViewingStaff.code,
+                    currentViewingStaff.name,
+                    currentViewingStaff.phone,
+                    currentViewingStaff.email,
+                    currentViewingStaff.status,
+                    currentViewingStaff.gender,
+                    currentViewingStaff.birthday
+                );
+            }
+        });
+
+        // Nút Khóa / Mở khóa trong View Modal
+        document.getElementById('btnModalToggleStaff')?.addEventListener('click', function() {
+            const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewStaffModal'));
+            if (viewModal) viewModal.hide();
+            if (currentViewingStaff) {
+                openToggleStaffModal(
+                    currentViewingStaff.id,
+                    currentViewingStaff.name,
+                    currentViewingStaff.isActive
+                );
+            }
+        });
     });
+
+    let currentViewingStaff = null;
 
     // Mở Modal Cập nhật Nhân viên
     function openEditStaffModal(id, code, name, phone, email, status, gender, birthday) {
@@ -638,10 +654,12 @@
     }
 
     // Mở Modal Xem chi tiết nhanh
-    function openViewStaffModal(code, name, phone, email, status, gender, birthday, joined) {
+    function openViewStaffModal(id, code, name, phone, email, status, isActive, gender, birthday, birthdayDisplay, joined) {
         ensureStaffModalsOnBody();
         const modalEl = document.getElementById('viewStaffModal');
         if (!modalEl) return;
+
+        currentViewingStaff = { id, code, name, phone, email, status, isActive, gender, birthday, birthdayDisplay, joined };
 
         const viewCodeEl = document.getElementById('viewStaffCode');
         if (viewCodeEl) viewCodeEl.innerText = code || '';
@@ -650,7 +668,7 @@
         document.getElementById('viewStaffEmail').innerText = email || '---';
         document.getElementById('viewStaffPosition').innerText = 'Staff';
         document.getElementById('viewStaffGender').innerText = gender || '---';
-        document.getElementById('viewStaffBirthday').innerText = birthday || '---';
+        document.getElementById('viewStaffBirthday').innerText = birthdayDisplay || birthday || '---';
         document.getElementById('viewStaffJoined').innerText = joined || '---';
         
         const statusEl = document.getElementById('viewStaffStatus');
@@ -660,6 +678,17 @@
             statusEl.className = 'text-success fw-bold';
         } else {
             statusEl.className = 'text-danger fw-bold';
+        }
+
+        const toggleBtn = document.getElementById('btnModalToggleStaff');
+        if (toggleBtn) {
+            if (isActive) {
+                toggleBtn.innerHTML = '<i class="bi bi-lock me-1"></i>Khóa tài khoản';
+                toggleBtn.className = 'btn btn-outline-danger px-3 py-2';
+            } else {
+                toggleBtn.innerHTML = '<i class="bi bi-unlock me-1"></i>Mở khóa tài khoản';
+                toggleBtn.className = 'btn btn-outline-success px-3 py-2';
+            }
         }
 
         // Initials Avatar (Chuẩn hóa loại bỏ chữ trong ngoặc đơn như Lead KTV)

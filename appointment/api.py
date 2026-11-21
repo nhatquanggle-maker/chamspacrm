@@ -771,53 +771,101 @@ def confirm_payment_api(request, pk=None):
     if not _can_access_appointment(request, appointment):
         return JsonResponse({'status': 'error', 'error': 'Bạn không có quyền xác nhận thanh toán cho lịch hẹn này.'}, status=403)
 
-    appointment.status = 'Confirmed'
-    appointment.save()
+    is_internal_staff = bool(request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser))
 
-    invoice, _ = Invoice.objects.get_or_create(
-        appointment=appointment,
-        defaults={
-            'amount': appointment.total_price,
-            'discount_applied': 0,
-            'status': 'Đã thanh toán',
-            'paid_at': timezone.now(),
-            'reason_refuse': 'Chuyển khoản VietQR',
-        },
-    )
-    invoice.status = 'Đã thanh toán'
-    invoice.paid_at = timezone.now()
-    invoice.reason_refuse = 'Chuyển khoản VietQR'
-    invoice.amount = appointment.total_price
-    invoice.save()
+    if is_internal_staff:
+        # Nhân viên / Quản lý đối soát tiền thực vào tài khoản -> Nâng lên Confirmed & Đã thanh toán
+        appointment.status = 'Confirmed'
+        appointment.save(update_fields=['status'])
 
-    if appointment.voucher and appointment.voucher.customer:
-        appointment.voucher.status = 'Đã dùng'
-        appointment.voucher.used_at = timezone.now()
-        appointment.voucher.save()
+        invoice, _ = Invoice.objects.get_or_create(
+            appointment=appointment,
+            defaults={
+                'amount': appointment.total_price,
+                'discount_applied': 0,
+                'status': 'Đã thanh toán',
+                'paid_at': timezone.now(),
+                'reason_refuse': 'Chuyển khoản VietQR',
+            },
+        )
+        invoice.status = 'Đã thanh toán'
+        invoice.paid_at = timezone.now()
+        invoice.reason_refuse = 'Chuyển khoản VietQR'
+        invoice.amount = appointment.total_price
+        invoice.save()
 
-    if appointment.user:
-        try:
-            create_unique_notification(
-                user=appointment.user,
-                title="Lịch hẹn đã được xác nhận!",
-                content=(
-                    f"Lịch hẹn {appointment.appointment_code} lúc {appointment.time_slot} "
-                    f"ngày {appointment.appointment_date} đã được thanh toán và xác nhận thành công."
-                ),
-                prefix="TB-CONFIRM",
-                delivery_channels="Web",
-                status="Đã gửi",
-            )
-        except Exception:
-            pass
+        if appointment.voucher and appointment.voucher.customer:
+            appointment.voucher.status = 'Đã dùng'
+            appointment.voucher.used_at = timezone.now()
+            appointment.voucher.save()
+
+        if appointment.user:
+            try:
+                create_unique_notification(
+                    user=appointment.user,
+                    title="Lịch hẹn đã được xác nhận!",
+                    content=(
+                        f"Lịch hẹn {appointment.appointment_code} lúc {appointment.time_slot} "
+                        f"ngày {appointment.appointment_date} đã được nhân viên đối soát thanh toán và xác nhận thành công."
+                    ),
+                    prefix="TB-CONFIRM",
+                    delivery_channels="Web",
+                    status="Đã gửi",
+                )
+            except Exception:
+                pass
+
+        resp_message = 'Thanh toán thành công! Lịch hẹn đã được xác nhận.'
+        resp_status = 'Confirmed'
+    else:
+        # Khách hàng tự bấm "Tôi đã chuyển khoản thành công":
+        # Hệ thống giữ nguyên trạng thái 'Hold', hóa đơn 'Chờ xác nhận' chờ nhân viên kiểm tra
+        if appointment.status != 'Confirmed':
+            appointment.status = 'Hold'
+            appointment.save(update_fields=['status'])
+
+        now_str = timezone.localtime(timezone.now()).strftime('%H:%M %d/%m/%Y')
+        invoice, _ = Invoice.objects.get_or_create(
+            appointment=appointment,
+            defaults={
+                'amount': appointment.total_price,
+                'discount_applied': 0,
+                'status': 'Chờ xác nhận',
+                'reason_refuse': f'Chuyển khoản VietQR (Khách báo đã chuyển {now_str})',
+            },
+        )
+        if invoice.status != 'Đã thanh toán':
+            invoice.status = 'Chờ xác nhận'
+            invoice.reason_refuse = f'Chuyển khoản VietQR (Khách báo đã chuyển {now_str})'
+            invoice.amount = appointment.total_price
+            invoice.save()
+
+        if appointment.user:
+            try:
+                create_unique_notification(
+                    user=appointment.user,
+                    title="Đã ghi nhận thông tin chuyển khoản VietQR",
+                    content=(
+                        f"Lịch hẹn {appointment.appointment_code} đang ở trạng thái 'Hold (Chờ đối soát)'. "
+                        f"Nhân viên Cham Spa sẽ kiểm tra biến động tài khoản ACB và xác nhận lịch hẹn của bạn trong ít phút."
+                    ),
+                    prefix="TB-HOLD",
+                    delivery_channels="Web",
+                    status="Đã gửi",
+                )
+            except Exception:
+                pass
+
+        resp_message = 'Hệ thống đã ghi nhận thông tin chuyển khoản của bạn. Lịch hẹn đang ở trạng thái Hold, nhân viên Cham Spa sẽ đối soát tài khoản và xác nhận sớm nhất.'
+        resp_status = 'Hold'
 
     clean_code_redirect = appointment.appointment_code.replace('#', '')
     return JsonResponse({
         'status': 'success',
         'success': True,
-        'message': 'Thanh toán thành công! Lịch hẹn của bạn đã được xác nhận.',
+        'message': resp_message,
         'appointment_code': appointment.appointment_code,
-        'appointment_status': 'Confirmed',
+        'appointment_status': resp_status,
         'redirect_url': f"/appointment/success/{clean_code_redirect}/",
     }, status=200)
 

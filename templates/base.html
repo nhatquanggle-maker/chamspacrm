@@ -54,6 +54,7 @@
             // Luôn hiện khi ở đầu trang
             if (currentScrollY <= minScrollToHide) {
                 header.classList.remove('header-hidden');
+                document.body.classList.remove('header-hidden-active');
                 lastScrollY = currentScrollY;
                 return;
             }
@@ -66,10 +67,12 @@
             // Cuộn xuống -> Ẩn header
             if (currentScrollY > lastScrollY && currentScrollY > minScrollToHide) {
                 header.classList.add('header-hidden');
+                document.body.classList.add('header-hidden-active');
             } 
             // Cuộn lên -> Hiện header
             else if (currentScrollY < lastScrollY) {
                 header.classList.remove('header-hidden');
+                document.body.classList.remove('header-hidden-active');
             }
 
             lastScrollY = currentScrollY;

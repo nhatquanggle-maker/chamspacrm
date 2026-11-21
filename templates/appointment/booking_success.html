@@ -29,21 +29,39 @@
     <!-- ============================================================== -->
     <div class="success-banner-box">
         <div class="d-flex align-items-center gap-3">
-            <div class="success-icon-wrap">
+            <div class="success-icon-wrap" {% if appointment.status == 'Hold' %}style="background: #FEF3C7; color: #B45309;"{% endif %}>
+                {% if appointment.status == 'Hold' %}
+                <i class="bi bi-clock-history"></i>
+                {% else %}
                 <i class="bi bi-check-circle-fill"></i>
+                {% endif %}
             </div>
             <div>
                 <h4 class="success-banner-title">
-                    Thanh toán thành công! Lịch hẹn của bạn đã được ghi nhận.
+                    {% if appointment.status == 'Hold' %}
+                    Đã ghi nhận yêu cầu chuyển khoản! Lịch hẹn đang chờ đối soát.
+                    {% else %}
+                    Thanh toán thành công! Lịch hẹn của bạn đã được xác nhận.
+                    {% endif %}
                 </h4>
                 <p class="success-banner-desc">
+                    {% if appointment.status == 'Hold' %}
+                    Nhân viên Cham Spa đang kiểm tra đối soát biến động tài khoản ACB. Lịch hẹn sẽ tự động đổi sang "Đã xác nhận" ngay khi giao dịch được xác thực.
+                    {% else %}
                     Thông tin xác nhận lịch hẹn và hóa đơn đã được gửi tới email <strong>{{ appointment.customer_email|default:'quý khách' }}</strong>. Vui lòng đến sớm 10 phút để chuẩn bị chu đáo.
+                    {% endif %}
                 </p>
             </div>
         </div>
+        {% if appointment.status == 'Hold' %}
+        <div class="badge-paid-tag" style="background: #FFF7ED; color: #C2410C; border: 1px solid #FED7AA;">
+            <i class="bi bi-hourglass-split"></i> CHỜ ĐỐI SOÁT VIETQR
+        </div>
+        {% else %}
         <div class="badge-paid-tag">
             <i class="bi bi-dot"></i> ĐÃ THANH TOÁN (100%)
         </div>
+        {% endif %}
     </div>
 
     <!-- ============================================================== -->
@@ -59,8 +77,14 @@
                 <div class="ticket-eyebrow">CHAM SPA & MASSAGE · DIGITAL PASS</div>
                 <h2 class="ticket-main-title">VÉ TRẢI NGHIỆM CHI TIẾT {{ appointment.appointment_code }}</h2>
             </div>
-            <div class="badge-ticket-status">
+            <div class="badge-ticket-status" {% if appointment.status == 'Hold' %}style="background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A;"{% endif %}>
+                {% if appointment.status == 'Hold' %}
+                <i class="bi bi-clock-history text-warning me-1"></i> HOLD (CHỜ ĐỐI SOÁT)
+                {% elif appointment.status == 'Confirmed' %}
                 <i class="bi bi-calendar-check-fill text-danger me-1"></i> LỊCH HẸN ĐÃ XÁC NHẬN
+                {% else %}
+                <i class="bi bi-info-circle text-primary me-1"></i> {{ appointment.get_status_display|default:appointment.status|upper }}
+                {% endif %}
             </div>
         </div>
 

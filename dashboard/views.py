@@ -17,6 +17,7 @@ Mục đích:
 import json
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db.models import Q, Sum
@@ -58,8 +59,14 @@ def admin_dashboard(request):
     if tab == 'customers':
         return redirect('accounts:admin_customer_list')
     if tab == 'staff':
+        if not request.user.is_superuser:
+            messages.warning(request, "Bạn không có quyền truy cập chức năng Quản lý Nhân viên.")
+            return redirect('dashboard:staff')
         return redirect('accounts:admin_staff_list')
     if tab == 'chatbox':
+        if not request.user.is_superuser:
+            messages.warning(request, "Bạn không có quyền truy cập chức năng Giám sát Boxchat.")
+            return redirect('dashboard:staff')
         return redirect('chatbox:admin_monitor')
     if tab == 'appointments':
         return redirect('appointment:admin_appointments')

@@ -219,11 +219,11 @@ def _summarize_notification_group(group_notifs):
         has_staff = any(u.is_staff and not u.is_superuser for u in users)
         has_admin = any(u.is_superuser for u in users)
         if has_customer and not has_staff and not has_admin:
-            summary = f"Khách hàng ({count} người)"
+            summary = f"Khách hàng ({count})"
         elif has_staff and not has_customer and not has_admin:
-            summary = f"Nhân viên ({count} người)"
+            summary = f"Nhân viên ({count})"
         else:
-            summary = f"Nhiều đối tượng ({count} người)"
+            summary = f"Nhiều đối tượng ({count})"
         names = [u.name or u.username for u in users[:8]]
         preview = ', '.join(names) + (f" ... (+{len(users) - 8} người)" if len(users) > 8 else '')
         scope = 'broadcast'

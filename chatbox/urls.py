@@ -32,6 +32,7 @@ urlpatterns = [
     path('api/admin/conversations/<int:pk>/reassign/', api.admin_reassign_staff_api, name='api_admin_conversation_reassign'),
     path('api/admin/conversations/<int:pk>/takeover/', api.admin_takeover_conversation_api, name='api_admin_conversation_takeover'),
     path('api/admin/conversations/<int:pk>/messages/', api.admin_send_message_api, name='api_admin_conversation_send_message'),
+    path('api/upload-media/', api.chat_upload_media_api, name='api_chat_upload_media'),
     path('api/admin/faqs/', api.admin_faqs_api, name='api_admin_faqs'),
     path('api/admin/faqs/<int:pk>/', api.admin_faq_detail_api, name='api_admin_faq_detail'),
     path('api/admin/faqs/<int:pk>/toggle-status/', api.admin_faq_toggle_status_api, name='api_admin_faq_toggle'),

@@ -69,33 +69,32 @@ def livechat_staff_view(request):
     day_name = days_vi[today.weekday()]
     formatted_date_header = f"{day_name}, {today.strftime('%d/%m/%Y')}"
 
-    # Đếm số lượng cuộc hội thoại theo từng trạng thái
-    waiting_count = Conversation.objects.filter(status='Đang chờ').count()
-    processing_count = Conversation.objects.filter(status='Đang xử lý').count()
-    closed_count = Conversation.objects.filter(status='Kết thúc').count()
-    total_count = Conversation.objects.count()
+    # Đếm số lượng cuộc hội thoại theo từng trạng thái (Nhân viên chỉ thấy chờ tiếp nhận & ca của mình)
+    waiting_count = Conversation.objects.filter(status='Đang chờ', staff__isnull=True).count()
+    processing_count = Conversation.objects.filter(status='Đang xử lý', staff=request.user).count()
+    total_count = waiting_count + processing_count
 
     # Chọn tab mặc định khớp với dữ liệu thực tế hiện có
-    if waiting_count > 0:
-        initial_tab = 'waiting'
-    elif processing_count > 0:
+    if processing_count > 0:
         initial_tab = 'processing'
     else:
-        initial_tab = 'closed'
+        initial_tab = 'waiting'
 
-    tab_status_map = {
-        'waiting': 'Đang chờ',
-        'processing': 'Đang xử lý',
-        'closed': 'Kết thúc',
-    }
-
-    # Lấy danh sách hội thoại theo tab đang mở mặc định để đồng bộ SSR và API polling
-    conversations = (
-        Conversation.objects.filter(status=tab_status_map[initial_tab])
-        .select_related('customer', 'staff')
-        .prefetch_related('messages')
-        .order_by('-created_at')
-    )
+    # Lấy danh sách hội thoại theo tab đang mở (Nhân viên chỉ thấy ca của mình hoặc chưa ai tiếp nhận)
+    if initial_tab == 'processing':
+        conversations = (
+            Conversation.objects.filter(status='Đang xử lý', staff=request.user)
+            .select_related('customer', 'staff')
+            .prefetch_related('messages')
+            .order_by('-created_at')
+        )
+    else:
+        conversations = (
+            Conversation.objects.filter(status='Đang chờ', staff__isnull=True)
+            .select_related('customer', 'staff')
+            .prefetch_related('messages')
+            .order_by('-created_at')
+        )
 
     # Lấy danh sách dịch vụ Spa đang hoạt động để gửi nhanh vào chat
     services = Service.objects.filter(status='Hoạt động').select_related('category').order_by('category_id', 'id')
@@ -111,7 +110,6 @@ def livechat_staff_view(request):
         'initial_tab': initial_tab,
         'waiting_count': waiting_count,
         'processing_count': processing_count,
-        'closed_count': closed_count,
         'total_count': total_count,
         'conversations': conversations,
         'services': services,
@@ -131,11 +129,11 @@ def admin_livechat_monitor_view(request):
       - Cột 2: Khung giám sát & Can thiệp chat (Mode Giám sát vs Mode Can thiệp, Tiếp quản, Chuyển nhân viên)
       - Nút nhỏ xem chi tiết khách hàng chuẩn phân hệ quản trị
     """
-    if not (request.user.is_staff or request.user.is_superuser):
-        messages.error(request, "Quyền truy cập bị từ chối: Màn hình Giám sát phiên tư vấn chỉ dành cho Quản trị viên.")
-        return redirect('home')
+    if not request.user.is_superuser:
+        messages.error(request, "Quyền truy cập bị từ chối: Màn hình Giám sát và Can thiệp phiên tư vấn chỉ dành riêng cho Quản lý.")
+        return redirect('dashboard:staff')
 
-    # Lấy danh sách hội thoại theo 3 tab
+    # Lấy danh sách hội thoại theo 2 tab (Chờ tiếp nhận & Đang tiếp nhận)
     waiting_conversations = (
         Conversation.objects.filter(status='Đang chờ')
         .select_related('customer', 'staff')
@@ -146,11 +144,6 @@ def admin_livechat_monitor_view(request):
         .select_related('customer', 'staff')
         .order_by('-created_at')
     )
-    closed_conversations = (
-        Conversation.objects.filter(status='Kết thúc')
-        .select_related('customer', 'staff')
-        .order_by('-closed_at')
-    )
 
     conv_id = request.GET.get('conv_id')
     active_conv = None
@@ -158,14 +151,11 @@ def admin_livechat_monitor_view(request):
         active_conv = Conversation.objects.filter(pk=conv_id).select_related('customer', 'staff').first()
 
     if not active_conv:
-        active_conv = processing_conversations.first() or waiting_conversations.first() or closed_conversations.first()
+        active_conv = processing_conversations.first() or waiting_conversations.first()
 
     initial_tab = 'processing'
-    if active_conv:
-        if active_conv.status == 'Đang chờ':
-            initial_tab = 'waiting'
-        elif active_conv.status == 'Kết thúc':
-            initial_tab = 'closed'
+    if active_conv and active_conv.status == 'Đang chờ':
+        initial_tab = 'waiting'
 
     # Dữ liệu khách hàng cho Cột 3
     customer_info = None
@@ -209,10 +199,8 @@ def admin_livechat_monitor_view(request):
         'initial_tab': initial_tab,
         'waiting_conversations': waiting_conversations,
         'processing_conversations': processing_conversations,
-        'closed_conversations': closed_conversations,
         'waiting_count': waiting_conversations.count(),
         'processing_count': processing_conversations.count(),
-        'closed_count': closed_conversations.count(),
         'active_conv': active_conv,
         'customer_info': customer_info,
         'messages_list': messages_list,
@@ -235,9 +223,9 @@ def faq_management_view(request):
       - Xuất dữ liệu CSV
       - Thêm/Sửa/Xóa và Toggle Trạng thái hoạt động
     """
-    if not (request.user.is_staff or request.user.is_superuser):
-        messages.error(request, "Quyền truy cập bị từ chối: Chỉ tài khoản Quản trị viên mới được phép quản lý kịch bản Chatbot FAQ.")
-        return redirect('home')
+    if not request.user.is_superuser:
+        messages.error(request, "Quyền truy cập bị từ chối: Chỉ Quản lý mới có quyền quản trị kịch bản Chatbot FAQ.")
+        return redirect('dashboard:staff')
 
     faqs = FAQ.objects.all().order_by('-created_at')
     

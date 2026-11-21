@@ -92,55 +92,136 @@ def logout_view(request):
 
 def forgot_password_view(request):
     """
-    Xử lý Quên & Đặt lại mật khẩu tối giản (2 bước tại cùng giao diện):
-    Bước 1: Người dùng nhập email đã đăng ký trong hệ thống.
-    Bước 2: Hệ thống kiểm tra email tồn tại -> Lập tức hiển thị form nhập mật khẩu mới.
+    Xử lý Quên mật khẩu & Gửi liên kết đặt lại mật khẩu bảo mật qua Gmail (Figma Node 188:27987)
     """
     if request.user.is_authenticated:
         return redirect('home')
 
     step = 'input_email'
-    verified_email = ''
-    reset_form = None
+    sent_email = ''
 
     if request.method == 'POST':
-        action_step = request.POST.get('step', 'input_email')
+        form = ForgotPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            user = User.objects.filter(email=email).first()
+            if user:
+                # 1. Tạo uidb64 và token bảo mật 1 lần (chuẩn Django token generator)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+                reset_path = reverse('accounts:reset_password_confirm', kwargs={'uidb64': uid, 'token': token})
+                site_url = getattr(settings, 'SITE_URL', '') or os.environ.get('SITE_URL', '').strip().rstrip('/')
+                if site_url:
+                    # Nếu có cấu hình domain sản xuất (VD: https://chamspa.com.vn hoặc domain deploy)
+                    reset_url = f"{site_url}{reset_path}"
+                else:
+                    # Tự động nhận diện domain từ request của người dùng (hỗ trợ cả Localhost và Deploy)
+                    host = request.get_host()
+                    if not host or 'testserver' in host:
+                        host = '127.0.0.1:8000'
+                    protocol = 'https' if (request.is_secure() or request.headers.get('x-forwarded-proto') == 'https') else 'http'
+                    reset_url = f"{protocol}://{host}{reset_path}"
 
-        if action_step == 'set_password':
-            # Bước 2: Người dùng gửi mật khẩu mới
-            verified_email = request.POST.get('email', '').strip().lower()
-            user = User.objects.filter(email=verified_email).first()
+                # 2. Xây dựng nội dung email (Plain text và HTML Template chuẩn nhận diện Cham Spa)
+                subject = "[Cham Spa & Massage] Đặt lại mật khẩu tài khoản"
+                plain_message = f"""Kính chào {user.name or user.username},
 
-            if not user:
-                messages.error(request, "Email không hợp lệ hoặc không tồn tại trong hệ thống.")
-                return redirect('accounts:forgot_password')
+Cham Spa & Massage vừa nhận được yêu cầu đặt lại mật khẩu cho tài khoản ({user.email}).
 
-            reset_form = ResetPasswordForm(request.POST)
-            if reset_form.is_valid():
-                new_password = reset_form.cleaned_data['new_password']
-                user.set_password(new_password)
-                user.save()
-                messages.success(request, "Đặt lại mật khẩu thành công! Quý khách vui lòng đăng nhập với mật khẩu mới.")
-                return redirect('accounts:login')
-            else:
-                step = 'set_password'
-                form = ForgotPasswordForm(initial={'email': verified_email})
-        else:
-            # Bước 1: Người dùng nhập email để xác thực
-            form = ForgotPasswordForm(request.POST)
-            if form.is_valid():
-                verified_email = form.cleaned_data['email']
-                step = 'set_password'
-                reset_form = ResetPasswordForm()
-                messages.info(request, f"Đã xác thực tài khoản {verified_email}. Vui lòng nhập mật khẩu mới bên dưới.")
+Vui lòng nhấp vào đường link bên dưới để thiết lập mật khẩu mới (liên kết có giá trị trong vòng 24 giờ):
+{reset_url}
+
+Nếu quý khách không thực hiện yêu cầu này, vui lòng bỏ qua email. Mật khẩu hiện tại của quý khách vẫn được bảo mật an toàn.
+
+Trân trọng,
+Cham Spa & Massage Đà Nẵng
+Hotline: 0987 654 321 | Website: https://chamspa.com.vn
+"""
+                html_message = f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #FAF7EF; border: 1px solid #E8E1D5; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                    <!-- Header with Cham Spa Logo -->
+                    <div style="background-color: #781A24; padding: 26px 20px; text-align: center;">
+                        <img src="cid:chamspa_logo" alt="Cham Spa & Massage" style="max-height: 52px; margin-bottom: 10px; display: inline-block;">
+                        <h2 style="color: #D0B581; margin: 0; font-family: Georgia, serif; font-size: 22px; letter-spacing: 1.5px; font-weight: bold;">CHAM SPA & MASSAGE</h2>
+                        <p style="color: #FAF7EF; margin: 6px 0 0 0; font-size: 13px; opacity: 0.9;">Thiên đường chăm sóc sức khỏe & thư giãn Hoàng Gia</p>
+                    </div>
+
+                    <!-- Spa Atmosphere Banner Image -->
+                    <div style="width: 100%; max-height: 220px; overflow: hidden; background-color: #2C2C2C;">
+                        <img src="cid:chamspa_banner" alt="Không gian Cham Spa & Massage" style="width: 100%; height: auto; display: block; object-fit: cover;">
+                    </div>
+
+                    <!-- Main Content -->
+                    <div style="padding: 32px 30px; color: #2C2C2C; font-size: 15px; line-height: 1.65; background-color: #FAF7EF;">
+                        <p style="margin-top: 0;">Kính chào quý khách <strong>{user.name or user.username}</strong>,</p>
+                        <p>Hệ thống Cham Spa vừa nhận được yêu cầu đặt lại mật khẩu cho tài khoản liên kết với địa chỉ Gmail <strong>{user.email}</strong>.</p>
+                        <p>Để hoàn tất quá trình tạo mật khẩu mới, quý khách vui lòng nhấn vào nút xác nhận bên dưới:</p>
+                        
+                        <div style="text-align: center; margin: 32px 0;">
+                            <a href="{reset_url}" style="background-color: #781A24; color: #FAF7EF; padding: 15px 36px; font-weight: bold; font-size: 15px; text-decoration: none; border-radius: 8px; display: inline-block; letter-spacing: 0.5px; box-shadow: 0 6px 16px rgba(120, 26, 36, 0.3);">
+                                ĐẶT LẠI MẬT KHẨU NGAY
+                            </a>
+                        </div>
+
+                        <div style="margin-top: 28px; padding: 16px; background-color: #ffffff; border-radius: 8px; border-left: 4px solid #D0B581; font-size: 13px; color: #666; line-height: 1.5;">
+                            <strong>Lưu ý bảo mật:</strong> Liên kết này chỉ có hiệu lực một lần duy nhất trong vòng 24 giờ. Nếu quý khách không gửi yêu cầu này, xin vui lòng bỏ qua thư. Mật khẩu hiện tại của quý khách vẫn được bảo vệ tuyệt đối an toàn.
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div style="background-color: #F1ECE1; padding: 20px 24px; text-align: center; font-size: 12px; color: #777; border-top: 1px solid #E8E1D5; line-height: 1.6;">
+                        <strong style="color: #781A24;">Cham Spa & Massage Đà Nẵng</strong><br>
+                        05 Lê Quang Hòa, Khu Đô Thị Sinh Thái Hòa Xuân, Cẩm Lệ, Đà Nẵng<br>
+                        Hotline: 0987 654 321 • Website: <a href="https://chamspa.com.vn" style="color: #781A24; text-decoration: none;">chamspa.com.vn</a>
+                    </div>
+                </div>
+                """
+
+                # 3. Gửi email qua EmailMultiAlternatives kèm ảnh nhúng inline (CID)
+                try:
+                    from django.core.mail import EmailMultiAlternatives
+                    from email.mime.image import MIMEImage
+
+                    msg = EmailMultiAlternatives(
+                        subject=subject,
+                        body=plain_message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to=[user.email],
+                    )
+                    msg.attach_alternative(html_message, "text/html")
+
+                    # Đính kèm Logo Cham Spa
+                    logo_file = os.path.join(settings.BASE_DIR, 'static', 'images', 'chamspa_logo.png')
+                    if os.path.exists(logo_file):
+                        with open(logo_file, 'rb') as f:
+                            img_logo = MIMEImage(f.read())
+                            img_logo.add_header('Content-ID', '<chamspa_logo>')
+                            img_logo.add_header('Content-Disposition', 'inline', filename='chamspa_logo.png')
+                            msg.attach(img_logo)
+
+                    # Đính kèm Banner ảnh không gian Spa sang trọng
+                    banner_file = os.path.join(settings.BASE_DIR, 'static', 'images', 'spa_bg.jpg')
+                    if os.path.exists(banner_file):
+                        with open(banner_file, 'rb') as f:
+                            img_banner = MIMEImage(f.read())
+                            img_banner.add_header('Content-ID', '<chamspa_banner>')
+                            img_banner.add_header('Content-Disposition', 'inline', filename='spa_bg.jpg')
+                            msg.attach(img_banner)
+
+                    msg.send(fail_silently=False)
+                    messages.success(request, f"Đã gửi email khôi phục mật khẩu đến {user.email}! Quý khách vui lòng kiểm tra hộp thư Gmail.")
+                except Exception as ex:
+                    messages.warning(request, f"Đã tạo liên kết khôi phục cho {user.email}. (Hệ thống mail: {str(ex)})")
+
+                step = 'email_sent'
+                sent_email = user.email
     else:
         form = ForgotPasswordForm()
 
     return render(request, 'accounts/forgot_password.html', {
         'form': form,
         'step': step,
-        'verified_email': verified_email,
-        'reset_form': reset_form,
+        'sent_email': sent_email,
     })
 
 
@@ -169,6 +250,9 @@ def reset_password_view(request, uidb64=None, token=None):
         is_valid_token = True
 
     if request.method == 'POST':
+        if not is_valid_token:
+            messages.error(request, "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Quý khách vui lòng gửi lại yêu cầu mới.")
+            return redirect('accounts:forgot_password')
         form = ResetPasswordForm(request.POST)
         if form.is_valid():
             new_password = form.cleaned_data['new_password']
@@ -378,11 +462,14 @@ def admin_customer_list_view(request):
                 profile.birthday = bday
                 profile.save()
 
-                tier_obj = Tier.objects.filter(name=tier_name).first() or Tier.objects.first()
-                mem, _ = Membership.objects.get_or_create(user=new_user)
-                mem.tier = tier_obj
-                mem.current_points = tier_obj.min_points if tier_obj else 0
-                mem.save()
+                default_tier = Tier.objects.filter(min_points=0).order_by('min_points').first() or Tier.objects.first()
+                mem, _ = Membership.objects.get_or_create(
+                    user=new_user,
+                    defaults={'tier': default_tier, 'current_points': 0, 'total_spent': Decimal(0)}
+                )
+                if mem.tier is None and default_tier:
+                    mem.tier = default_tier
+                    mem.save(update_fields=['tier'])
 
                 care_note_val = care_note
                 hp, _ = UserHealthProfile.objects.get_or_create(
@@ -418,7 +505,6 @@ def admin_customer_list_view(request):
             target_id = request.POST.get('customer_id')
             target_user = get_object_or_404(User, id=target_id, is_staff=False, is_superuser=False)
             gender = request.POST.get('gender', 'Nữ')
-            tier_name = request.POST.get('tier_name', '')
             status_val = request.POST.get('is_active')
 
             validated, err = validate_account_payload(
@@ -448,13 +534,6 @@ def admin_customer_list_view(request):
             profile.gender = gender
             profile.birthday = bday
             profile.save()
-
-            if tier_name:
-                t_obj = Tier.objects.filter(name=tier_name).first()
-                if t_obj:
-                    mem, _ = Membership.objects.get_or_create(user=target_user)
-                    mem.tier = t_obj
-                    mem.save()
 
             messages.success(request, f"Đã cập nhật thông tin khách hàng {target_user.name} thành công!")
             return redirect('accounts:admin_customer_list')
@@ -556,7 +635,6 @@ def admin_customer_detail_view(request, pk):
         if action == 'edit_customer_detail':
             gender = request.POST.get('gender', 'Nữ')
             care_note = request.POST.get('care_note', '').strip()
-            tier_name = request.POST.get('tier_name', '')
             tab_param = request.GET.get('tab', 'info')
 
             validated, err = validate_account_payload(
@@ -586,12 +664,6 @@ def admin_customer_detail_view(request, pk):
 
             health_profile.special_requests = care_note
             health_profile.save()
-
-            if tier_name:
-                t_obj = Tier.objects.filter(name=tier_name).first()
-                if t_obj:
-                    membership.tier = t_obj
-                    membership.save()
 
             messages.success(request, f"Cập nhật hồ sơ khách hàng {customer.name} thành công!")
             return redirect(f"{reverse('accounts:admin_customer_detail', kwargs={'pk': customer.id})}?tab={tab_param}")
@@ -757,9 +829,9 @@ def admin_staff_list_view(request):
     UC-5.13: Cập nhật thông tin nhân viên (Figma Node 188:30139)
     UC-5.14: Khóa / Mở khóa an toàn tài khoản nhân viên
     """
-    if not (request.user.is_superuser or request.user.is_staff):
-        messages.error(request, "Bạn không có quyền truy cập trang quản lý nhân viên.")
-        return redirect('accounts:login')
+    if not request.user.is_superuser:
+        messages.error(request, "Chỉ Quản trị viên (Admin) mới có quyền truy cập trang quản lý nhân sự.")
+        return redirect('dashboard:staff')
 
     # Xử lý các Form POST
     if request.method == 'POST':
@@ -939,9 +1011,9 @@ def admin_staff_list_view(request):
 @login_required
 def admin_staff_detail_view(request, pk):
     """Xem nhanh thông tin nhân viên"""
-    if not (request.user.is_superuser or request.user.is_staff):
-        messages.error(request, "Bạn không có quyền truy cập.")
-        return redirect('accounts:login')
+    if not request.user.is_superuser:
+        messages.error(request, "Chỉ Quản trị viên (Admin) mới có quyền xem chi tiết hồ sơ nhân sự.")
+        return redirect('dashboard:staff')
 
     staff = get_object_or_404(User.objects.select_related('profile'), pk=pk, is_staff=True)
     staff.staff_code = f"#NV{staff.id:03d}"

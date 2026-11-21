@@ -10,10 +10,21 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Tự động nạp các biến môi trường từ file .env nếu có (phục vụ cấu hình Gmail SMTP...)
+env_path = BASE_DIR / '.env'
+if env_path.exists():
+    with open(env_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                k, v = line.split('=', 1)
+                os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 
 
 # Quick-start development settings - unsuitable for production
@@ -26,6 +37,11 @@ SECRET_KEY = 'django-insecure-h2hf%yz!c#2b&efd_rbniw$(9%s5f$8!o7)v+46d9q6p2!($9&
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
+# Cấu hình Domain khi Deploy lên Production (nếu để trống, hệ thống sẽ tự động bắt domain từ trình duyệt của khách)
+SITE_URL = os.environ.get('SITE_URL', '').strip().rstrip('/')
+# Nhận diện HTTPS khi deploy sau Reverse Proxy (Nginx, Render, Cloudflare...)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Application definition
@@ -137,12 +153,23 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-# Email
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+# ==============================================================================
+# EMAIL CONFIGURATION (Cấu hình gửi Email qua Gmail SMTP / Console)
+# ==============================================================================
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '').strip()
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '').strip()
+
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    # Chế độ gửi thật qua máy chủ SMTP của Gmail
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', f"Cham Spa & Massage <{EMAIL_HOST_USER}>")
+else:
+    # Môi trường phát triển / Local dev: In nội dung email trực tiếp ra Terminal (không cần mật khẩu Gmail)
+    EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Cham Spa & Massage <noreply@chamspa.com>')
 
 # Custom User Model
 AUTH_USER_MODEL = 'core.User'

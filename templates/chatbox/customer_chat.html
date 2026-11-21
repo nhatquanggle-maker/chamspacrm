@@ -9,14 +9,15 @@
 {% block content %}
 <div class="container py-4">
     <div class="customer-chat-wrapper">
-        
+
         <!-- SIDEBAR THÔNG TIN CSKH -->
         <div class="customer-chat-intro d-none d-md-flex">
             <div>
                 <img src="{% static 'images/chamspa-logo.png' %}" alt="Cham Spa Logo" class="intro-brand-logo">
                 <h5 class="font-serif text-white fw-bold mb-2">Cham Spa & Massage</h5>
                 <p style="font-size: 13px; color: var(--cham-gold-light); line-height: 1.6;">
-                    Không gian thư giãn chuẩn Đông Y bên dòng sông Cẩm Lệ. Đội ngũ chuyên viên tư vấn luôn sẵn sàng lắng nghe và đồng hành cùng quý khách.
+                    Không gian thư giãn chuẩn Đông Y bên dòng sông Cẩm Lệ. Đội ngũ chuyên viên tư vấn luôn sẵn sàng lắng
+                    nghe và đồng hành cùng quý khách.
                 </p>
 
                 <div class="mt-4">
@@ -48,7 +49,8 @@
             <!-- Header -->
             <div class="cust-chat-header">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-danger-subtle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <div class="rounded-circle bg-danger-subtle d-flex align-items-center justify-content-center"
+                        style="width: 44px; height: 44px;">
                         <i class="bi bi-stars fs-4" style="color: var(--cham-red);"></i>
                     </div>
                     <div>
@@ -56,14 +58,17 @@
                             Trung tâm Tư vấn Cham Spa
                         </div>
                         <div id="connectionStatus" style="font-size: 12px; color: #28A745;">
-                            <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Trợ lý ảo & Tư vấn viên đang trực tuyến
+                            <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Trợ lý ảo & Tư vấn viên đang trực
+                            tuyến
                         </div>
                     </div>
                 </div>
 
                 <div>
                     <!-- Nút Gặp nhân viên tư vấn -->
-                    <button id="btnRequestStaff" type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold" onclick="handleRequestStaff()">
+                    <button id="btnRequestStaff" type="button"
+                        class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold"
+                        onclick="handleRequestStaff()">
                         <i class="bi bi-headset me-1"></i> Gặp nhân viên tư vấn
                     </button>
                 </div>
@@ -77,7 +82,9 @@
                         <i class="bi bi-stars"></i> Trợ lý ảo Cham Spa
                     </div>
                     <div class="cust-bubble">
-                        Dạ em chào quý khách! Em là trợ lý ảo của Cham Spa & Massage Đà Nẵng. Em có thể giải đáp nhanh thông tin về bảng giá, giờ mở cửa, các gói trị liệu cổ vai gáy hoặc hỗ trợ quý khách kết nối trực tiếp với chuyên viên tư vấn ạ!
+                        Dạ em chào quý khách! Em là trợ lý ảo của Cham Spa & Massage Đà Nẵng. Em có thể giải đáp nhanh
+                        thông tin về bảng giá, giờ mở cửa, các gói trị liệu cổ vai gáy hoặc hỗ trợ quý khách kết nối
+                        trực tiếp với chuyên viên tư vấn ạ!
                     </div>
                 </div>
             </div>
@@ -96,23 +103,22 @@
                 </div>
                 <div id="custFaqBody">
                     <div id="custFaqCatBar">
-                        <button type="button" class="cust-faq-cat-pill active" onclick="filterCustFaqCat('Tất cả', this)">
+                        <button type="button" class="cust-faq-cat-pill active"
+                            onclick="filterCustFaqCat('Tất cả', this)">
                             Tất cả
                         </button>
                         {% for cat in faq_categories %}
-                        <button type="button" class="cust-faq-cat-pill" data-cat="{{ cat }}" onclick="filterCustFaqCat(this.getAttribute('data-cat'), this)">
+                        <button type="button" class="cust-faq-cat-pill" data-cat="{{ cat }}"
+                            onclick="filterCustFaqCat(this.getAttribute('data-cat'), this)">
                             {{ cat }}
                         </button>
                         {% endfor %}
                     </div>
                     <div id="custFaqBlocksGrid">
                         {% for faq in quick_faqs %}
-                        <button type="button"
-                                class="cust-faq-block"
-                                data-faq-id="{{ faq.id }}"
-                                data-faq-cat="{{ faq.category|default:'Chung' }}"
-                                data-faq-question="{{ faq.question }}"
-                                onclick="sendFaqBlockFromBtn(this)">
+                        <button type="button" class="cust-faq-block" data-faq-id="{{ faq.id }}"
+                            data-faq-cat="{{ faq.category|default:'Chung' }}" data-faq-question="{{ faq.question }}"
+                            onclick="sendFaqBlockFromBtn(this)">
                             <div class="cust-faq-block-meta">
                                 <span class="cust-faq-block-cat">{{ faq.category|default:"Tư vấn" }}</span>
                                 <span class="cust-faq-block-q">{{ faq.question }}</span>
@@ -129,8 +135,8 @@
             <!-- Khung nhập tin nhắn -->
             <div class="cust-chat-footer">
                 <form class="cust-chat-form" onsubmit="handleCustomerSendMessage(event)">
-                    <input type="text" id="custChatInput" class="cust-chat-input" 
-                           placeholder="Nhập câu hỏi của quý khách tại đây..." autocomplete="off">
+                    <input type="text" id="custChatInput" class="cust-chat-input"
+                        placeholder="Nhập câu hỏi của quý khách tại đây..." autocomplete="off">
                     <button type="submit" class="btn-cust-send" title="Gửi tin nhắn">
                         <i class="bi bi-send-fill"></i>
                     </button>
@@ -144,322 +150,343 @@
 
 {% block extra_js %}
 <script>
-/**
- * JAVASCRIPT KHÁCH HÀNG CHAT (UC-2.1 & UC-2.2)
- * Hỗ trợ lưu in-memory cho khách vãng lai và lưu DB cho khách đăng nhập.
- */
-let conversationId = null;
-let isConnectedToStaff = false;
-let customerPollingTimer = null;
-const IS_AUTHENTICATED = {% if user.is_authenticated %}true{% else %}false{% endif %};
-const USER_NAME = "{{ user.name|default:user.username|escapejs }}";
-const CUST_CSRF_TOKEN = "{{ csrf_token|escapejs }}";
+    /**
+     * JAVASCRIPT KHÁCH HÀNG CHAT (UC-2.1 & UC-2.2)
+     * Hỗ trợ lưu in-memory cho khách vãng lai và lưu DB cho khách đăng nhập.
+     */
+    let conversationId = null;
+    let isConnectedToStaff = false;
+    let customerPollingTimer = null;
+    const IS_AUTHENTICATED = {% if user.is_authenticated %}true{% else %} false{% endif %};
+    const USER_NAME = "{{ user.name|default:user.username|escapejs }}";
+    const CUST_CSRF_TOKEN = "{{ csrf_token|escapejs }}";
 
-let pendingCustFaqId = null;
-let custStreamEpoch = 0;
+    let pendingCustFaqId = null;
+    let custStreamEpoch = 0;
 
-function toggleCustFaqPanel() {
-    const bodyEl = document.getElementById('custFaqBody');
-    const chevEl = document.getElementById('custFaqChevron');
-    if (!bodyEl || !chevEl) return;
-    const willCollapse = !bodyEl.classList.contains('is-collapsed');
-    bodyEl.classList.toggle('is-collapsed', willCollapse);
-    chevEl.textContent = willCollapse ? '▴' : '▾';
-}
-
-function filterCustFaqCat(cat, btnEl) {
-    document.querySelectorAll('#custFaqCatBar .cust-faq-cat-pill').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    if (btnEl) btnEl.classList.add('active');
-
-    document.querySelectorAll('#custFaqBlocksGrid .cust-faq-block').forEach(card => {
-        const cardCat = card.getAttribute('data-faq-cat') || 'Chung';
-        card.style.display = (cat === 'Tất cả' || cardCat === cat) ? 'flex' : 'none';
-    });
-}
-
-function sendFaqBlock(faqId, text) {
-    pendingCustFaqId = faqId;
-    const inputEl = document.getElementById('custChatInput');
-    if (inputEl) inputEl.value = text;
-    try {
-        handleCustomerSendMessage();
-    } finally {
-        pendingCustFaqId = null;
+    function toggleCustFaqPanel() {
+        const bodyEl = document.getElementById('custFaqBody');
+        const chevEl = document.getElementById('custFaqChevron');
+        if (!bodyEl || !chevEl) return;
+        const willCollapse = !bodyEl.classList.contains('is-collapsed');
+        bodyEl.classList.toggle('is-collapsed', willCollapse);
+        chevEl.textContent = willCollapse ? '▴' : '▾';
     }
-}
 
-function sendFaqBlockFromBtn(btnEl) {
-    if (!btnEl) return;
-    const faqId = parseInt(btnEl.getAttribute('data-faq-id'), 10);
-    const questionText = btnEl.getAttribute('data-faq-question') || '';
-    sendFaqBlock(Number.isNaN(faqId) ? null : faqId, questionText);
-}
+    function filterCustFaqCat(cat, btnEl) {
+        document.querySelectorAll('#custFaqCatBar .cust-faq-cat-pill').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        if (btnEl) btnEl.classList.add('active');
 
-function sendQuickPrompt(text) {
-    pendingCustFaqId = null;
-    document.getElementById('custChatInput').value = text;
-    handleCustomerSendMessage();
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    const inputEl = document.getElementById('custChatInput');
-    if (inputEl) {
-        inputEl.addEventListener('input', function () {
-            pendingCustFaqId = null;
+        document.querySelectorAll('#custFaqBlocksGrid .cust-faq-block').forEach(card => {
+            const cardCat = card.getAttribute('data-faq-cat') || 'Chung';
+            card.style.display = (cat === 'Tất cả' || cardCat === cat) ? 'flex' : 'none';
         });
     }
 
-    if (IS_AUTHENTICATED) {
-        fetch('/chatbox/api/conversations/my-active/', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.is_authenticated && data.conversation) {
-                if (data.conversation.status !== 'Kết thúc') {
-                    conversationId = data.conversation.id;
-                }
-                if (data.conversation.status === 'Đang xử lý' && data.conversation.staff_name) {
-                    isConnectedToStaff = true;
-                    document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-circle-fill text-success"></i> Đang trò chuyện với chuyên viên: <strong>${escapeHtml(data.conversation.staff_name)}</strong>`;
-                    document.getElementById('btnRequestStaff').style.display = 'none';
-                    startCustomerPolling();
-                } else if (data.conversation.status === 'Đang chờ') {
-                    isConnectedToStaff = true;
-                    document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-clock-history text-warning"></i> Đang chờ nhân viên tiếp nhận ca tư vấn...`;
-                    document.getElementById('btnRequestStaff').style.display = 'none';
-                    startCustomerPolling();
-                }
-                if (data.conversation.status !== 'Kết thúc' && data.messages && data.messages.length > 0) {
-                    renderFullCustomerStream(data.messages);
-                }
-            }
-        })
-        .catch(() => {});
+    function sendFaqBlock(faqId, text) {
+        pendingCustFaqId = faqId;
+        const inputEl = document.getElementById('custChatInput');
+        if (inputEl) inputEl.value = text;
+        try {
+            handleCustomerSendMessage();
+        } finally {
+            pendingCustFaqId = null;
+        }
     }
-});
 
-function handleCustomerSendMessage(e) {
-    if (e) e.preventDefault();
-    const input = document.getElementById('custChatInput');
-    const text = input.value.trim();
-    if (!text) return;
+    function sendFaqBlockFromBtn(btnEl) {
+        if (!btnEl) return;
+        const faqId = parseInt(btnEl.getAttribute('data-faq-id'), 10);
+        const questionText = btnEl.getAttribute('data-faq-question') || '';
+        sendFaqBlock(Number.isNaN(faqId) ? null : faqId, questionText);
+    }
 
-    const reqFaqId = pendingCustFaqId;
-    pendingCustFaqId = null;
+    function sendQuickPrompt(text) {
+        pendingCustFaqId = null;
+        document.getElementById('custChatInput').value = text;
+        handleCustomerSendMessage();
+    }
 
-    // 1. Hiển thị tin nhắn của khách hàng lên màn hình
-    appendCustomerBubble(text);
-    input.value = '';
+    document.addEventListener('DOMContentLoaded', function () {
+        const inputEl = document.getElementById('custChatInput');
+        if (inputEl) {
+            inputEl.addEventListener('input', function () {
+                pendingCustFaqId = null;
+            });
+        }
 
-    const csrfToken = getCookie('csrftoken') || CUST_CSRF_TOKEN;
+        if (IS_AUTHENTICATED) {
+            fetch('/chatbox/api/conversations/my-active/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.is_authenticated && data.conversation) {
+                        if (data.conversation.status !== 'Kết thúc') {
+                            conversationId = data.conversation.id;
+                        }
+                        if (data.conversation.status === 'Đang xử lý' && data.conversation.staff_name) {
+                            isConnectedToStaff = true;
+                            document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-circle-fill text-success"></i> Đang trò chuyện với chuyên viên: <strong>${escapeHtml(data.conversation.staff_name)}</strong>`;
+                            document.getElementById('btnRequestStaff').style.display = 'none';
+                            startCustomerPolling();
+                        } else if (data.conversation.status === 'Đang chờ') {
+                            isConnectedToStaff = true;
+                            document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-clock-history text-warning"></i> Đang chờ nhân viên tiếp nhận ca tư vấn...`;
+                            document.getElementById('btnRequestStaff').style.display = 'none';
+                            startCustomerPolling();
+                        }
+                        if (data.conversation.status !== 'Kết thúc' && data.messages && data.messages.length > 0) {
+                            renderFullCustomerStream(data.messages);
+                        }
+                    }
+                })
+                .catch(() => { });
+        }
+    });
 
-    // 2. Nếu đã kết nối với nhân viên tư vấn trực tiếp (UC-2.2) và không phải bấm block FAQ
-    if (isConnectedToStaff && conversationId && !reqFaqId) {
-        fetch(`/chatbox/api/conversations/${conversationId}/messages/`, {
+    function handleCustomerSendMessage(e) {
+        if (e) e.preventDefault();
+        const input = document.getElementById('custChatInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const reqFaqId = pendingCustFaqId;
+        pendingCustFaqId = null;
+
+        // 1. Hiển thị tin nhắn của khách hàng lên màn hình
+        appendCustomerBubble(text);
+        input.value = '';
+
+        const csrfToken = getCookie('csrftoken') || CUST_CSRF_TOKEN;
+
+        // 2. Nếu đã kết nối với nhân viên tư vấn trực tiếp (UC-2.2) và không phải bấm block FAQ
+        if (isConnectedToStaff && conversationId && !reqFaqId) {
+            fetch(`/chatbox/api/conversations/${conversationId}/messages/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ content: text, message_type: 'TEXT' })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    // Đã gửi tin nhắn cho nhân viên thành công
+                })
+                .catch(err => console.error('Lỗi gửi tin cho staff:', err));
+            return;
+        }
+
+        // 3. Nếu đang chat với Bot tự động hoặc bấm câu hỏi kịch bản FAQ (UC-2.1)
+        const epochBeforeReply = custStreamEpoch;
+        fetch('/chatbox/api/chat/bot-reply/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ content: text, message_type: 'TEXT' })
+            body: JSON.stringify({ message: text, faq_id: reqFaqId, conversation_id: conversationId })
         })
-        .then(res => {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.json();
-        })
-        .then(data => {
-            // Đã gửi tin nhắn cho nhân viên thành công
-        })
-        .catch(err => console.error('Lỗi gửi tin cho staff:', err));
-        return;
-    }
-
-    // 3. Nếu đang chat với Bot tự động hoặc bấm câu hỏi kịch bản FAQ (UC-2.1)
-    const epochBeforeReply = custStreamEpoch;
-    fetch('/chatbox/api/chat/bot-reply/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({ message: text, faq_id: reqFaqId, conversation_id: conversationId })
-    })
-    .then(res => {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-    })
-    .then(data => {
-        if (data.status === 'success' && data.reply) {
-            if (data.conversation_id) {
-                conversationId = data.conversation_id;
-            }
-            setTimeout(() => {
-                if (epochBeforeReply === custStreamEpoch) {
-                    appendBotBubble(data.reply);
+            .then(res => {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(data => {
+                if (data.status === 'success' && data.reply) {
+                    if (data.conversation_id) {
+                        conversationId = data.conversation_id;
+                    }
+                    if (epochBeforeReply === custStreamEpoch) {
+                        appendBotBubble(data.reply);
+                    }
+                } else {
+                    appendBotBubble(data.message || 'Xin lỗi quý khách, hiện chưa tìm thấy câu trả lời phù hợp.');
                 }
-            }, 350);
-        } else {
-            appendBotBubble(data.message || 'Xin lỗi quý khách, hiện chưa tìm thấy câu trả lời phù hợp.');
-        }
-    })
-    .catch(err => {
-        console.error('Lỗi bot reply:', err);
-        appendBotBubble('Xin lỗi quý khách, hệ thống đang bận. Quý khách vui lòng thử lại sau giây lát hoặc liên hệ hotline 0987 773 777 ạ.');
-    });
-}
-
-function handleRequestStaff() {
-    if (!IS_AUTHENTICATED) {
-        if (confirm('Quý khách vui lòng đăng nhập tài khoản để được kết nối trò chuyện trực tiếp cùng nhân viên CSKH. Bạn có muốn chuyển đến trang Đăng nhập ngay bây giờ không?')) {
-            window.location.href = "{% url 'accounts:login' %}?next=" + encodeURIComponent(window.location.pathname);
-        }
-        return;
+            })
+            .catch(err => {
+                console.error('Lỗi bot reply:', err);
+                appendBotBubble('Xin lỗi quý khách, hệ thống đang bận. Quý khách vui lòng thử lại sau giây lát hoặc liên hệ hotline 0987 773 777 ạ.');
+            });
     }
 
-    fetch('/chatbox/api/conversations/transfer/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken') || CUST_CSRF_TOKEN,
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({ conversation_id: conversationId })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            conversationId = data.conversation_id;
-            isConnectedToStaff = true;
-            document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-clock-history text-warning"></i> Đang chờ nhân viên tiếp nhận ca tư vấn...`;
-            document.getElementById('btnRequestStaff').style.display = 'none';
-
-            appendBotBubble('Yêu cầu của quý khách đã được gửi tới chuyên viên tư vấn Cham Spa. Chuyên viên sẽ phản hồi ngay sau khi tiếp nhận ca trực ạ!');
-
-            // Bắt đầu Polling định kỳ 3 giây để nhận tin nhắn của Staff
-            startCustomerPolling();
+    function handleRequestStaff() {
+        if (!IS_AUTHENTICATED) {
+            if (confirm('Quý khách vui lòng đăng nhập tài khoản để được kết nối trò chuyện trực tiếp cùng nhân viên CSKH. Bạn có muốn chuyển đến trang Đăng nhập ngay bây giờ không?')) {
+                window.location.href = "{% url 'accounts:login' %}?next=" + encodeURIComponent(window.location.pathname);
+            }
+            return;
         }
-    })
-    .catch(err => console.error(err));
-}
 
-function appendCustomerBubble(text) {
-    const stream = document.getElementById('custChatStream');
-    const bubble = document.createElement('div');
-    bubble.className = 'cust-bubble-wrapper from-customer';
-    bubble.innerHTML = `
+        fetch('/chatbox/api/conversations/transfer/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken') || CUST_CSRF_TOKEN,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ conversation_id: conversationId })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    conversationId = data.conversation_id;
+                    isConnectedToStaff = true;
+                    document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-clock-history text-warning"></i> Đang chờ nhân viên tiếp nhận ca tư vấn...`;
+                    document.getElementById('btnRequestStaff').style.display = 'none';
+
+                    appendBotBubble('Yêu cầu của quý khách đã được gửi tới chuyên viên tư vấn Cham Spa. Chuyên viên sẽ phản hồi ngay sau khi tiếp nhận ca trực ạ!');
+
+                    // Bắt đầu Polling định kỳ 3 giây để nhận tin nhắn của Staff
+                    startCustomerPolling();
+                }
+            })
+            .catch(err => console.error(err));
+    }
+
+    function appendCustomerBubble(text) {
+        const stream = document.getElementById('custChatStream');
+        const bubble = document.createElement('div');
+        bubble.className = 'cust-bubble-wrapper from-customer';
+        bubble.innerHTML = `
         <div class="cust-sender-name">${escapeHtml(USER_NAME || 'Quý khách')}</div>
         <div class="cust-bubble">${escapeHtml(text)}</div>
     `;
-    stream.appendChild(bubble);
-    stream.scrollTop = stream.scrollHeight;
-}
+        stream.appendChild(bubble);
+        stream.scrollTop = stream.scrollHeight;
+    }
 
-function appendBotBubble(text) {
-    const stream = document.getElementById('custChatStream');
-    const bubble = document.createElement('div');
-    bubble.className = 'cust-bubble-wrapper from-bot';
-    bubble.innerHTML = `
+    function appendBotBubble(text) {
+        const stream = document.getElementById('custChatStream');
+        const bubble = document.createElement('div');
+        bubble.className = 'cust-bubble-wrapper from-bot';
+        bubble.innerHTML = `
         <div class="cust-sender-name"><i class="bi bi-stars"></i> Trợ lý ảo Cham Spa</div>
         <div class="cust-bubble">${escapeHtml(text)}</div>
     `;
-    stream.appendChild(bubble);
-    stream.scrollTop = stream.scrollHeight;
-}
+        stream.appendChild(bubble);
+        stream.scrollTop = stream.scrollHeight;
+    }
 
-function appendStaffBubble(text, staffName) {
-    const stream = document.getElementById('custChatStream');
-    const bubble = document.createElement('div');
-    bubble.className = 'cust-bubble-wrapper from-staff';
-    bubble.innerHTML = `
+    function appendStaffBubble(text, staffName) {
+        const stream = document.getElementById('custChatStream');
+        const bubble = document.createElement('div');
+        bubble.className = 'cust-bubble-wrapper from-staff';
+        bubble.innerHTML = `
         <div class="cust-sender-name"><i class="bi bi-headset"></i> ${escapeHtml(staffName || 'Chuyên viên tư vấn')}</div>
         <div class="cust-bubble">${escapeHtml(text)}</div>
     `;
-    stream.appendChild(bubble);
-    stream.scrollTop = stream.scrollHeight;
-}
+        stream.appendChild(bubble);
+        stream.scrollTop = stream.scrollHeight;
+    }
 
-function startCustomerPolling() {
-    if (customerPollingTimer) clearInterval(customerPollingTimer);
-    customerPollingTimer = setInterval(() => {
-        if (conversationId) {
-            fetch(`/chatbox/api/conversations/${conversationId}/messages/`)
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.staff_info) {
-                    document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-circle-fill text-success"></i> Đang trò chuyện với chuyên viên: <strong>${escapeHtml(data.staff_info.name)}</strong>`;
-                }
-                if (data && data.messages) {
-                    const renderedCount = document.querySelectorAll('#custChatStream .cust-bubble-wrapper').length;
-                    if (data.messages.length !== renderedCount) {
-                        renderFullCustomerStream(data.messages);
-                    }
-                }
-            })
-            .catch(() => {});
-        }
-    }, 3500);
-}
+    function startCustomerPolling() {
+        if (customerPollingTimer) clearInterval(customerPollingTimer);
+        customerPollingTimer = setInterval(() => {
+            if (conversationId) {
+                fetch(`/chatbox/api/conversations/${conversationId}/messages/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.staff_info) {
+                            document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-circle-fill text-success"></i> Tư vấn viên trực tuyến`;
+                        }
+                        if (data && data.messages) {
+                            const renderedCount = document.querySelectorAll('#custChatStream .cust-bubble-wrapper').length;
+                            if (data.messages.length !== renderedCount) {
+                                renderFullCustomerStream(data.messages);
+                            }
+                        }
+                    })
+                    .catch(() => { });
+            }
+        }, 2000); // Đồng bộ tin nhắn mỗi 2 giây, không bị delay
+    }
 
-function renderFullCustomerStream(messages) {
-    custStreamEpoch += 1;
-    const stream = document.getElementById('custChatStream');
-    let html = '';
-    messages.forEach(m => {
-        if (m.sender_type === 'Customer') {
-            html += `
+    function renderFullCustomerStream(messages) {
+        custStreamEpoch += 1;
+        const stream = document.getElementById('custChatStream');
+        let html = '';
+        messages.forEach(m => {
+            let mediaHtml = '';
+            if (m.attachment_url) {
+                const isVid = (m.attachment_name && (m.attachment_name.endsWith('.mp4') || m.attachment_name.endsWith('.mov') || m.attachment_name.endsWith('.webm'))) || m.attachment_url.match(/\.(mp4|mov|webm)$/i);
+                if (isVid) {
+                    mediaHtml = `<div class="mb-2"><video controls class="rounded-3 w-100" style="max-height: 220px;"><source src="${escapeHtml(m.attachment_url)}"></video></div>`;
+                } else {
+                    mediaHtml = `<div class="mb-2"><a href="${escapeHtml(m.attachment_url)}" target="_blank"><img src="${escapeHtml(m.attachment_url)}" class="rounded-3 img-fluid shadow-sm" style="max-height: 220px; object-fit: cover;"></a></div>`;
+                }
+            }
+
+            if (m.sender_type === 'Customer') {
+                html += `
                 <div class="cust-bubble-wrapper from-customer">
                     <div class="cust-sender-name">${escapeHtml(USER_NAME || 'Quý khách')}</div>
-                    <div class="cust-bubble">${escapeHtml(m.content)}</div>
+                    <div class="cust-bubble">
+                        ${mediaHtml}
+                        ${m.content ? `<div>${escapeHtml(m.content)}</div>` : ''}
+                    </div>
                 </div>
             `;
-        } else if (m.sender_type === 'Staff') {
-            html += `
+            } else if (m.sender_type === 'Staff') {
+                let cleanText = (m.content || '').replace(/^\[Quản lý.*?\]:\s*/i, '');
+                if (m.attachment_url && cleanText.startsWith('Đã gửi ')) {
+                    cleanText = '';
+                }
+                html += `
                 <div class="cust-bubble-wrapper from-staff">
-                    <div class="cust-sender-name"><i class="bi bi-headset"></i> ${escapeHtml(m.sender_name || 'Chuyên viên tư vấn')}</div>
-                    <div class="cust-bubble">${escapeHtml(m.content)}</div>
+                    <div class="cust-sender-name"><i class="bi bi-headset"></i> Cham Spa & Massage</div>
+                    <div class="cust-bubble">
+                        ${mediaHtml}
+                        ${cleanText ? `<div>${escapeHtml(cleanText)}</div>` : ''}
+                    </div>
                 </div>
             `;
-        } else {
-            html += `
+            } else {
+                html += `
                 <div class="cust-bubble-wrapper from-bot">
                     <div class="cust-sender-name"><i class="bi bi-stars"></i> Trợ lý ảo Cham Spa</div>
-                    <div class="cust-bubble">${escapeHtml(m.content)}</div>
+                    <div class="cust-bubble">
+                        ${mediaHtml}
+                        ${m.content ? `<div>${escapeHtml(m.content)}</div>` : ''}
+                    </div>
                 </div>
             `;
-        }
-    });
-    stream.innerHTML = html;
-    stream.scrollTop = stream.scrollHeight;
-}
+            }
+        });
+        stream.innerHTML = html;
+        stream.scrollTop = stream.scrollHeight;
+    }
 
-function escapeHtml(text) {
-    if (text === null || text === undefined) return '';
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return String(text).replace(/[&<>"']/g, m => map[m]);
-}
+    function escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
 </script>
 {% endblock %}

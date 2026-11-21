@@ -146,7 +146,7 @@
 
                         <!-- 3. Dịch vụ -->
                         <td>
-                            <span class="service-col text-dark" style="font-size: 13px;">{{ appt.service_summary }}</span>
+                            <span class="service-col text-dark">{{ appt.service_summary }}</span>
                         </td>
 
                         <!-- 4. Trạng thái (Badge chuẩn Figma) -->
@@ -154,7 +154,6 @@
                             <div class="status-cell" id="status-cell-{{ appt.id }}">
                                 <span class="staff-badge-status {{ appt.status_class }}"
                                     style="background-color: {{ appt.status_bg }}; color: {{ appt.status_color }};">
-                                    <span class="status-dot" style="background-color: {{ appt.status_dot }};"></span>
                                     <span class="status-text">{{ appt.status_display }}</span>
                                 </span>
                             </div>
@@ -782,7 +781,6 @@
         if (cell) {
             cell.innerHTML = `
             <span class="staff-badge-status ${cfg.cls}" style="background-color: ${cfg.bg}; color: ${cfg.color};">
-                <span class="status-dot" style="background-color: ${cfg.dot};"></span>
                 <span class="status-text">${cfg.label}</span>
             </span>
         `;
@@ -909,7 +907,6 @@
         if (badgeEl) {
             badgeEl.innerHTML = `
             <span class="staff-badge-status ${cfg.cls}" style="background-color: ${cfg.bg}; color: ${cfg.color};">
-                <span class="status-dot" style="background-color: ${cfg.dot};"></span>
                 <span class="status-text">${cfg.label}</span>
             </span>
         `;
@@ -966,36 +963,7 @@
         if (iconEl) iconEl.className = `bi ${p.icon} text-burgundy fs-5`;
 
         if (actionsEl) {
-            let actHtml = '';
-            if (p.method === 'transfer') {
-                if (!p.is_paid) {
-                    actHtml += `
-                        <button type="button" class="btn btn-sm btn-cham-primary py-1 px-2.5" style="font-size: 11.5px;" onclick="updatePaymentMethod(${data.id}, 'transfer', true)">
-                            <i class="bi bi-check2 me-1"></i>Đã nhận chuyển khoản
-                        </button>
-                    `;
-                }
-                actHtml += `
-                    <button type="button" class="btn btn-sm btn-cham-outline py-1 px-2.5" style="font-size: 11.5px;" onclick="updatePaymentMethod(${data.id}, 'counter', false)">
-                        <i class="bi bi-cash-coin me-1"></i>Đổi sang Trả tại quầy
-                    </button>
-                `;
-            } else {
-                // Counter
-                if (!p.is_paid) {
-                    actHtml += `
-                        <button type="button" class="btn btn-sm btn-cham-primary py-1 px-2.5" style="font-size: 11.5px;" onclick="updatePaymentMethod(${data.id}, 'counter', true)">
-                            <i class="bi bi-cash me-1"></i>Đã thu tiền tại quầy
-                        </button>
-                    `;
-                }
-                actHtml += `
-                    <button type="button" class="btn btn-sm btn-cham-outline py-1 px-2.5" style="font-size: 11.5px;" onclick="updatePaymentMethod(${data.id}, 'transfer', false)">
-                        <i class="bi bi-qr-code me-1"></i>Đổi sang Chuyển khoản
-                    </button>
-                `;
-            }
-            actionsEl.innerHTML = actHtml;
+            actionsEl.innerHTML = '';
         }
     }
 

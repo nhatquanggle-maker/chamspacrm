@@ -60,7 +60,7 @@
                             <i class="bi bi-gift-fill text-danger me-2"></i>
                             <strong>Chương trình đính kèm:</strong> {{ notif.promotion.title }}
                         </div>
-                        <a href="{% url 'membership:my_card' %}?tab=vouchers" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 11px;">
+                        <a href="{% url 'membership:my_card' %}?tab=vouchers" class="btn-cham-view-link">
                             Xem Ví Voucher
                         </a>
                     </div>
@@ -77,9 +77,8 @@
                     </div>
                     <div>
                         {% if notif.notif_action_url %}
-                            <a href="{{ notif.notif_action_url }}" class="btn-action-cus">
+                            <a href="{{ notif.notif_action_url }}" class="btn-cham-view-link">
                                 <span>{{ notif.notif_action_label }}</span>
-                                <i class="bi bi-arrow-right"></i>
                             </a>
                         {% endif %}
                     </div>
@@ -91,7 +90,7 @@
                 <h4 class="font-serif fw-bold mt-3" style="color: #2E1D17;">Không tìm thấy thông báo nào</h4>
                 <p class="text-muted" style="font-size: 13.5px;">Bạn chưa có thông báo nào trong danh mục này hoặc từ khóa tìm kiếm không khớp.</p>
                 <div class="mt-2">
-                    <a href="?category=all" class="btn px-4 py-2" style="background-color: #781A24; color: #FFFFFF; border-radius: 999px; font-size: 13px; font-weight: 600;">Xem tất cả</a>
+                    <a href="?category=all" class="btn-cham-primary-btn">Xem tất cả</a>
                 </div>
             </div>
         {% endfor %}

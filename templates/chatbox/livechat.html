@@ -57,8 +57,7 @@
                 <select id="filterStatusSelect" class="filter-select">
                     <option value="">Tất cả trạng thái</option>
                     <option value="Đang chờ">Chờ tiếp nhận</option>
-                    <option value="Đang xử lý">Đang xử lý</option>
-                    <option value="Kết thúc">Đã hoàn thành</option>
+                    <option value="Đang xử lý">Đang tiếp nhận</option>
                 </select>
             </div>
 
@@ -92,18 +91,13 @@
                         placeholder="Tìm tên khách hàng, số điện thoại" onkeyup="handleFilterQueueCards()">
                 </div>
 
-                <!-- 3 Tab phân loại chuẩn Ảnh 1 -->
-                <div class="queue-tabs">
-                    <button type="button" class="queue-tab-btn {% if initial_tab == 'waiting' %}active{% endif %}" data-tab="waiting" onclick="switchQueueTab('waiting', this)">
-                        <span>Chờ tiếp nhận</span>
-                        <span id="queueWaitingBadge" class="queue-badge-pill">{{ waiting_count|default_if_none:0 }}</span>
+                <!-- 2 Tab phân loại chuẩn Image 1 (Staff style) -->
+                <div class="queue-tabs d-flex gap-1.5 flex-wrap">
+                    <button type="button" class="queue-tab-btn flex-fill text-center {% if initial_tab == 'waiting' %}active{% endif %}" data-tab="waiting" onclick="switchQueueTab('waiting', this)">
+                        <span>Chờ tiếp nhận</span> <span id="queueWaitingBadge">{{ waiting_count|default_if_none:0 }}</span>
                     </button>
-                    <button type="button" class="queue-tab-btn {% if initial_tab == 'processing' %}active{% endif %}" data-tab="processing" onclick="switchQueueTab('processing', this)">
-                        <span>Đang xử lý</span>
-                        <span id="queueProcessingBadge" class="badge bg-secondary rounded-pill px-1" style="font-size: 9.5px;">{{ processing_count|default_if_none:0 }}</span>
-                    </button>
-                    <button type="button" class="queue-tab-btn {% if initial_tab == 'closed' %}active{% endif %}" data-tab="closed" onclick="switchQueueTab('closed', this)">
-                        <span>Kết thúc</span>
+                    <button type="button" class="queue-tab-btn flex-fill text-center {% if initial_tab == 'processing' %}active{% endif %}" data-tab="processing" onclick="switchQueueTab('processing', this)">
+                        <span>Đang tiếp nhận</span> <span id="queueProcessingBadge">{{ processing_count|default_if_none:0 }}</span>
                     </button>
                 </div>
             </div>
@@ -143,7 +137,7 @@
                     </button>
                     {% elif c.status == 'Đang xử lý' %}
                     <div class="d-flex justify-content-between align-items-center pt-1" style="font-size: 11px;">
-                        <span class="text-success"><i class="bi bi-circle-fill" style="font-size: 7px;"></i> Đang hỗ trợ</span>
+                        <span class="text-success">Đang hỗ trợ</span>
                         {% if c.staff %}<span class="text-muted"><i class="bi bi-person-check"></i> {{ c.staff.name|default:c.staff.username }}</span>{% endif %}
                     </div>
                     {% elif c.status == 'Kết thúc' %}
@@ -163,10 +157,10 @@
                 {% endif %}
             </div>
 
-            <!-- Footer tự động cập nhật mỗi 15 giây -->
+            <!-- Footer tự động cập nhật trực tiếp -->
             <div class="queue-footer">
                 <span class="online-pulse-dot"></span>
-                <span>Tự động cập nhật mỗi 15 giây</span>
+                <span>Đồng bộ tin nhắn trực tiếp</span>
             </div>
         </div>
 
@@ -203,11 +197,6 @@
                     </div>
                 </div>
 
-                <div class="d-flex align-items-center gap-2">
-                    <button id="btnEndSupport" type="button" class="btn-end-support" onclick="handleEndSupport()" {% if not conversations %}disabled{% endif %}>
-                        <i class="bi bi-slash-circle"></i> Kết thúc hỗ trợ
-                    </button>
-                </div>
             </div>
 
             <!-- Accordion tóm tắt tương tác Chatbot trước đó (ẢNH 1) -->
@@ -220,19 +209,6 @@
                 <div id="roomSummaryTags" class="summary-tags-group">
                     <span class="summary-pill pill-pink">Chủ đề: Tư vấn dịch vụ</span>
                 </div>
-            </div>
-
-            <!-- Cảnh báo nếu đã do nhân viên khác tiếp nhận -->
-            <div id="assignedOtherAlertBar" class="alert-assigned-other-compact" style="display: none;">
-                <div>
-                    <i class="bi bi-lock-fill text-warning me-1"></i>
-                    <span>Cuộc hội thoại này đã do nhân viên <strong id="assignedOtherStaffName">[Tên]</strong> tiếp
-                        nhận. Bạn đang ở chế độ xem chỉ đọc.</span>
-                </div>
-                <button type="button" class="btn btn-sm btn-outline-dark py-0 px-2" style="font-size: 11px;"
-                    onclick="handleTakeover()">
-                    Tiếp quản ca
-                </button>
             </div>
 
             <!-- Khung Stream tin nhắn -->
@@ -252,9 +228,15 @@
                             placeholder="Nhập nội dung tư vấn..." onkeydown="handleKeydownDirect(event)"></textarea>
                     </div>
 
-                    <!-- Thanh công cụ 3 nút bấm phía dưới chuẩn 100% Ảnh 1 -->
+                    <!-- Thanh công cụ các nút bấm phía dưới -->
                     <div class="chat-toolbar-row">
                         <div class="chat-tool-btn-group">
+                            <!-- Nút ẩn để tải tệp ảnh / video -->
+                            <input type="file" id="staffMediaFileInput" accept="image/*,video/*" style="display: none;" onchange="handleStaffMediaSelected(this)">
+                            <!-- Nút Gửi ảnh/video -->
+                            <button type="button" class="btn-chat-tool" onclick="triggerStaffMediaUpload()" title="Tải ảnh hoặc video gửi vào chat">
+                                <i class="bi bi-camera-video"></i> Gửi ảnh/video
+                            </button>
                             <!-- Nút 1: Gửi dịch vụ -->
                             <button type="button" class="btn-chat-tool" onclick="handleToolSendService()">
                                 <i class="bi bi-file-text"></i> Gửi dịch vụ
@@ -265,7 +247,7 @@
                             </button>
                             <!-- Nút 3: Nhúng liên kết Đặt lịch hẹn trực tiếp -->
                             <button type="button" class="btn-chat-tool" onclick="handleToolEmbedBooking()">
-                                <i class="bi bi-link-45deg"></i> Nhúng liên kết Đặt lịch hẹn trực tiếp
+                                <i class="bi bi-link-45deg"></i> Nhúng liên kết Đặt lịch hẹn
                             </button>
                         </div>
 
@@ -556,16 +538,32 @@
             `;
             } else {
                 const isBot = msg.sender_type === 'Bot';
-                const senderLabel = isBot
-                    ? escapeHtml(msg.sender_name || 'Trợ lý ảo Cham Spa')
-                    : `${escapeHtml(msg.sender_name || STAFF_NAME)} - Nhân viên tư vấn`;
+                const isManager = msg.content && msg.content.startsWith('[Quản lý');
+                let senderLabel = '';
+                if (isBot) {
+                    senderLabel = escapeHtml(msg.sender_name || 'Trợ lý ảo Cham Spa');
+                } else if (isManager) {
+                    senderLabel = 'Quản lý (Admin) · Can thiệp';
+                } else {
+                    senderLabel = `${escapeHtml(msg.sender_name || STAFF_NAME)} - Nhân viên tư vấn`;
+                }
 
                 let mediaHtml = '';
                 if (msg.attachment_url) {
-                    mediaHtml += `
-                    <div class="chat-bubble-media">
-                        <img src="${escapeHtml(msg.attachment_url)}" alt="${escapeHtml(msg.attachment_name || 'Đính kèm')}">
-                    </div>`;
+                    const isVid = (msg.attachment_name && (msg.attachment_name.endsWith('.mp4') || msg.attachment_name.endsWith('.mov') || msg.attachment_name.endsWith('.webm'))) || (msg.message_type === 'FILE' && msg.attachment_url.match(/\.(mp4|mov|webm)$/i));
+                    if (isVid) {
+                        mediaHtml += `
+                        <div class="chat-bubble-media mb-2">
+                            <video controls class="rounded-3 w-100" style="max-height: 220px;"><source src="${escapeHtml(msg.attachment_url)}"></video>
+                        </div>`;
+                    } else {
+                        mediaHtml += `
+                        <div class="chat-bubble-media mb-2">
+                            <a href="${escapeHtml(msg.attachment_url)}" target="_blank">
+                                <img src="${escapeHtml(msg.attachment_url)}" alt="${escapeHtml(msg.attachment_name || 'Đính kèm')}" style="max-height: 200px; object-fit: cover;">
+                            </a>
+                        </div>`;
+                    }
                 }
                 if (msg.attachment_name) {
                     mediaHtml += `
@@ -595,6 +593,113 @@
     // =============================================================================
     // 2. GỬI TIN NHẮN TỪ NHÂN VIÊN
     // =============================================================================
+    function appendLocalStaffMessage(content, attachmentUrl, attachmentName, isVideo) {
+        const stream = document.getElementById('chatMessagesStream');
+        if (!stream) return;
+
+        const emptyNotice = stream.querySelector('.text-center.text-muted');
+        if (emptyNotice) emptyNotice.remove();
+
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+        let mediaHtml = '';
+        if (attachmentUrl) {
+            if (isVideo) {
+                mediaHtml = `
+                <div class="chat-bubble-media mb-2">
+                    <video controls class="rounded-3 w-100" style="max-height: 220px;"><source src="${escapeHtml(attachmentUrl)}"></video>
+                </div>`;
+            } else {
+                mediaHtml = `
+                <div class="chat-bubble-media mb-2">
+                    <a href="${escapeHtml(attachmentUrl)}" target="_blank">
+                        <img src="${escapeHtml(attachmentUrl)}" alt="${escapeHtml(attachmentName || 'Đính kèm')}" style="max-height: 200px; object-fit: cover;">
+                    </a>
+                </div>`;
+            }
+        }
+
+        const row = document.createElement('div');
+        row.className = 'chat-row staff-side';
+        row.innerHTML = `
+            <div class="chat-sender-header">${escapeHtml(STAFF_NAME || 'Nhân viên tư vấn')} - Nhân viên tư vấn</div>
+            <div class="chat-bubble-box">
+                ${mediaHtml}
+                ${content ? `<div>${escapeHtml(content)}</div>` : ''}
+                <div class="bubble-meta-time">${timeStr}</div>
+            </div>
+        `;
+        stream.appendChild(row);
+        stream.scrollTop = stream.scrollHeight;
+    }
+
+    function triggerStaffMediaUpload() {
+        if (!currentActiveConvId) {
+            alert('Vui lòng chọn một cuộc hội thoại từ hàng chờ bên trái trước.');
+            return;
+        }
+        const input = document.getElementById('staffDirectInput');
+        if (input && input.disabled) {
+            alert('Cuộc hội thoại này đang ở chế độ Chỉ xem hoặc đã kết thúc.');
+            return;
+        }
+        const fileInput = document.getElementById('staffMediaFileInput');
+        if (fileInput) fileInput.click();
+    }
+
+    async function handleStaffMediaSelected(inputEl) {
+        const file = inputEl.files[0];
+        if (!file) return;
+        if (!currentActiveConvId) {
+            alert('Vui lòng chọn một cuộc hội thoại trước khi gửi ảnh/video.');
+            inputEl.value = '';
+            return;
+        }
+        inputEl.value = '';
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const uploadRes = await fetch('/chatbox/api/upload-media/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+                body: formData
+            });
+            const uploadData = await uploadRes.json();
+            if (!uploadRes.ok || uploadData.status !== 'success') {
+                alert(uploadData.error || 'Tải tệp thất bại.');
+                return;
+            }
+
+            const isVid = uploadData.message_type === 'FILE' || (uploadData.file_name && uploadData.file_name.match(/\.(mp4|mov|webm)$/i));
+            appendLocalStaffMessage('', uploadData.file_url, uploadData.file_name, isVid);
+
+            const sendRes = await fetch(`/chatbox/api/conversations/${currentActiveConvId}/messages/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    content: '',
+                    attachment_url: uploadData.file_url,
+                    attachment_name: uploadData.file_name,
+                    attachment_size: uploadData.file_size,
+                    message_type: uploadData.message_type
+                })
+            });
+            const sendData = await sendRes.json();
+            if (!sendRes.ok || sendData.status !== 'success') {
+                alert(sendData.error || 'Có lỗi xảy ra khi gửi tệp đính kèm.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Lỗi kết nối khi tải tệp.');
+        }
+    }
+
     function handleSendStaffDirect(e) {
         if (e) e.preventDefault();
         if (!currentActiveConvId) return;
@@ -603,6 +708,11 @@
         if (input.disabled) return;
         const content = input.value.trim();
         if (!content) return;
+
+        // 1. Xóa nội dung ô nhập và hiển thị tin nhắn ngay lập tức (Không delay)
+        input.value = '';
+        input.focus();
+        appendLocalStaffMessage(content);
 
         fetch(`/chatbox/api/conversations/${currentActiveConvId}/messages/`, {
             method: 'POST',
@@ -622,11 +732,7 @@
                 return res.json();
             })
             .then(data => {
-                if (data && data.status === 'success') {
-                    input.value = '';
-                    selectQueueConversation(currentActiveConvId);
-                    refreshQueueList();
-                } else if (data && data.errors) {
+                if (data && data.errors) {
                     const firstErr = Object.values(data.errors).flat()[0];
                     if (firstErr) alert(firstErr);
                 }
@@ -852,7 +958,7 @@
             } else if (c.status === 'Đang xử lý') {
                 btnAction = `
                 <div class="d-flex justify-content-between align-items-center pt-1" style="font-size: 11px;">
-                    <span class="text-success"><i class="bi bi-circle-fill" style="font-size: 7px;"></i> Đang hỗ trợ</span>
+                    <span class="text-success">Đang hỗ trợ</span>
                     ${c.staff_name ? `<span class="text-muted"><i class="bi bi-person-check"></i> ${escapeHtml(c.staff_name)}</span>` : ''}
                 </div>`;
             } else if (c.status === 'Kết thúc') {
@@ -922,8 +1028,12 @@
 
     function start15sQueuePolling() {
         if (queuePollingTimer) clearInterval(queuePollingTimer);
+        let queuePollTick = 0;
         queuePollingTimer = setInterval(() => {
-            refreshQueueList();
+            queuePollTick++;
+            if (queuePollTick % 3 === 0) {
+                refreshQueueList();
+            }
             if (currentActiveConvId) {
                 fetch(`/chatbox/api/conversations/${currentActiveConvId}/messages/`)
                     .then(res => res.json())
@@ -937,7 +1047,7 @@
                     })
                     .catch(() => { });
             }
-        }, 15000); // 15 giây tự động cập nhật
+        }, 2000); // Tự động đồng bộ tin nhắn mỗi 2 giây, không bị delay
     }
 
     function escapeHtml(text) {

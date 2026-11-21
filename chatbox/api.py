@@ -4,6 +4,10 @@ API Endpoints (Pure Django JsonResponse) cho Phân hệ Quản lý Boxchat Tư v
 
 import csv
 from datetime import date
+import os
+import uuid
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
@@ -16,6 +20,7 @@ from core.ajax import (
     parse_json_body,
     require_auth_json,
     require_staff_json,
+    require_superuser_json,
 )
 from core.models import (
     Conversation,
@@ -51,9 +56,7 @@ def serialize_faq(faq):
 
 def _get_message_sender_name(msg):
     if msg.sender_type == 'Staff':
-        if msg.conversation.staff:
-            return msg.conversation.staff.name or msg.conversation.staff.username
-        return "Nhân viên tư vấn"
+        return "Tư vấn viên Cham Spa"
     if msg.sender_type == 'Customer':
         if msg.conversation.customer:
             return msg.conversation.customer.name or "Khách hàng"
@@ -64,13 +67,19 @@ def _get_message_sender_name(msg):
 
 
 def serialize_message(msg):
+    import re
+    raw_content = msg.content or ""
+    clean_content = re.sub(r'^\[Quản lý.*?\]:\s*', '', raw_content)
+    if msg.attachment_url and clean_content.startswith('Đã gửi '):
+        clean_content = ""
+
     return {
         'id': msg.id,
         'conversation': msg.conversation_id,
         'sender_type': msg.sender_type,
         'sender_name': _get_message_sender_name(msg),
         'message_type': msg.message_type,
-        'content': msg.content,
+        'content': clean_content,
         'attachment_url': msg.attachment_url,
         'attachment_name': msg.attachment_name,
         'attachment_size': msg.attachment_size,
@@ -429,16 +438,15 @@ def conversation_messages_api(request, pk):
         if not is_staff_or_admin(user) and conversation.customer_id != user.id:
             return json_error('Bạn không có quyền xem cuộc hội thoại này.', status=403)
 
-        is_assigned_to_other = bool(
-            user.is_staff and conversation.staff and conversation.staff_id != user.id and conversation.status == 'Đang xử lý'
-        )
-        assigned_staff_name = (
-            (conversation.staff.name or conversation.staff.username) if is_assigned_to_other else None
-        )
+        # Nhân viên (không phải Admin) chỉ xem được phiên chat của chính mình hoặc chưa ai tiếp nhận
+        if user.is_staff and not user.is_superuser:
+            if conversation.staff and conversation.staff_id != user.id:
+                return json_error('Bạn không có quyền xem cuộc hội thoại của nhân viên khác.', status=403)
+
         data = serialize_conversation_detail(conversation)
-        data['is_assigned_to_other'] = is_assigned_to_other
-        data['assigned_staff_name'] = assigned_staff_name
-        data['can_send_message'] = not is_assigned_to_other
+        data['is_assigned_to_other'] = False
+        data['assigned_staff_name'] = None
+        data['can_send_message'] = True
         return JsonResponse(data, status=200)
 
     data, err = parse_json_body(request)
@@ -446,21 +454,20 @@ def conversation_messages_api(request, pk):
         return err
 
     content = str(data.get('content') or '').strip()
-    message_type = data.get('message_type') or 'TEXT'
-    if not content:
-        return JsonResponse({'status': 'error', 'errors': {'content': ['Nội dung tin nhắn không được để trống.']}}, status=400)
+    attachment_url = data.get('attachment_url')
+    message_type = data.get('message_type') or ('IMAGE' if attachment_url else 'TEXT')
+    if not content and not attachment_url:
+        return JsonResponse({'status': 'error', 'errors': {'content': ['Vui lòng nhập nội dung hoặc chọn tệp đính kèm.']}}, status=400)
     if len(content) > 5000:
         return JsonResponse({'status': 'error', 'errors': {'content': ['Nội dung tin nhắn quá dài (tối đa 5000 ký tự).']}}, status=400)
     if message_type not in ('TEXT', 'IMAGE', 'FILE'):
         return JsonResponse({'status': 'error', 'errors': {'message_type': ['Loại tin nhắn không hợp lệ.']}}, status=400)
 
     if is_staff_or_admin(user):
-        if conversation.staff and conversation.staff_id != user.id and conversation.status == 'Đang xử lý':
-            other_name = conversation.staff.name or conversation.staff.username
+        if not user.is_superuser and conversation.staff and conversation.staff_id != user.id:
             return JsonResponse({
                 'status': 'forbidden_assigned',
-                'error': f'Cuộc hội thoại này đã do nhân viên {other_name} tiếp nhận xử lý. Bạn đang ở chế độ xem chỉ đọc và không thể gửi tin nhắn.',
-                'assigned_staff': other_name,
+                'error': 'Cuộc hội thoại này đã do nhân viên khác tiếp nhận xử lý.',
             }, status=403)
 
         if not conversation.staff:
@@ -567,7 +574,7 @@ def conversation_close_api(request, pk):
     }, status=200)
 
 
-@require_staff_json
+@require_superuser_json
 @require_POST
 def conversation_takeover_api(request, pk):
     """Chuyển giao / tiếp quản quyền tiếp nhận hội thoại."""
@@ -583,12 +590,6 @@ def conversation_takeover_api(request, pk):
     conversation.save()
 
     new_staff_name = user.name or user.username
-    ConversationMessage.objects.create(
-        conversation=conversation,
-        sender_type='Staff',
-        message_type='TEXT',
-        content=f"Thông báo: Cuộc trò chuyện đã được chuyển tiếp sang chuyên viên {new_staff_name} tiếp tục hỗ trợ quý khách ạ.",
-    )
 
     return JsonResponse({
         'status': 'success',
@@ -601,35 +602,45 @@ def conversation_takeover_api(request, pk):
 @require_GET
 def staff_conversations_list_api(request):
     """Lấy danh sách cuộc hội thoại cho Livechat Console của Nhân viên."""
-    tab = (request.GET.get('tab') or 'waiting').strip()
+    tab = (request.GET.get('tab') or 'processing').strip()
     status_filter = (request.GET.get('status') or '').strip()
     date_filter = (request.GET.get('date') or '').strip()
     search_kw = (request.GET.get('search') or '').strip()
 
-    queryset = Conversation.objects.select_related('customer', 'staff').prefetch_related('messages')
+    is_admin = request.user.is_superuser
+    base_qs = Conversation.objects.select_related('customer', 'staff').prefetch_related('messages')
+
+    if not is_admin:
+        # Nhân viên chỉ thấy phiên chat của chính mình hoặc chưa ai tiếp nhận (hoàn toàn không thấy của nhân viên khác)
+        waiting_qs = Conversation.objects.filter(status='Đang chờ', staff__isnull=True)
+        processing_qs = Conversation.objects.filter(status='Đang xử lý', staff=request.user)
+        base_qs = base_qs.filter(
+            Q(status='Đang chờ', staff__isnull=True) |
+            Q(status='Đang xử lý', staff=request.user)
+        )
+    else:
+        waiting_qs = Conversation.objects.filter(status='Đang chờ')
+        processing_qs = Conversation.objects.filter(status='Đang xử lý')
+        base_qs = base_qs.exclude(status='Kết thúc')
 
     counts = {
-        'waiting': Conversation.objects.filter(status='Đang chờ').count(),
-        'processing': Conversation.objects.filter(status='Đang xử lý').count(),
-        'closed': Conversation.objects.filter(status='Kết thúc').count(),
-        'bot': Conversation.objects.filter(status='Bot xử lý').count(),
-        'all': Conversation.objects.count(),
+        'waiting': waiting_qs.count(),
+        'processing': processing_qs.count(),
+        'closed': 0,
+        'bot': 0,
+        'all': waiting_qs.count() + processing_qs.count(),
     }
 
     if status_filter:
-        queryset = queryset.filter(status=status_filter)
+        queryset = base_qs.filter(status=status_filter)
     elif tab == 'waiting':
-        queryset = queryset.filter(status='Đang chờ')
+        queryset = base_qs.filter(status='Đang chờ')
     elif tab == 'processing':
-        queryset = queryset.filter(status='Đang xử lý')
-    elif tab == 'closed':
-        queryset = queryset.filter(status='Kết thúc')
-    elif tab == 'bot':
-        queryset = queryset.filter(status='Bot xử lý')
+        queryset = base_qs.filter(status='Đang xử lý')
     elif tab == 'mine':
-        queryset = queryset.filter(staff=request.user, status='Đang xử lý')
-    elif tab == 'all':
-        pass
+        queryset = base_qs.filter(staff=request.user, status='Đang xử lý')
+    else:
+        queryset = base_qs
 
     if date_filter:
         try:
@@ -708,7 +719,7 @@ def _validate_faq_payload(data, instance=None, partial=False):
     return (None, errors) if errors else (cleaned, None)
 
 
-@require_staff_json
+@require_superuser_json
 @require_http_methods(['GET', 'POST'])
 def admin_faqs_api(request):
     """Danh sách và thêm mới câu hỏi FAQ cho Quản lý & Nhân viên quản trị."""
@@ -755,7 +766,7 @@ def admin_faqs_api(request):
     }, status=201)
 
 
-@require_staff_json
+@require_superuser_json
 @require_http_methods(['GET', 'PUT', 'PATCH', 'DELETE'])
 def admin_faq_detail_api(request, pk):
     """Xem chi tiết, cập nhật hoặc xóa câu hỏi FAQ theo ID."""
@@ -793,7 +804,7 @@ def admin_faq_detail_api(request, pk):
     }, status=200)
 
 
-@require_staff_json
+@require_superuser_json
 @require_POST
 def admin_faq_toggle_status_api(request, pk):
     """Chuyển đổi nhanh trạng thái FAQ giữa 'Active' và 'Hidden'."""
@@ -837,7 +848,7 @@ def customer_active_conversation_api(request):
         }, status=200)
 
     messages_qs = conversation.messages.all().order_by('created_at')
-    staff_name = (conversation.staff.name or conversation.staff.username) if conversation.staff else None
+    staff_name = "Tư vấn viên Cham Spa" if conversation.staff else None
 
     return JsonResponse({
         'is_authenticated': True,
@@ -851,7 +862,7 @@ def customer_active_conversation_api(request):
     }, status=200)
 
 
-@require_staff_json
+@require_superuser_json
 @require_GET
 def admin_conversation_monitor_api(request, pk):
     """Lấy thông tin chi tiết phiên chat cần giám sát cho Admin."""
@@ -909,7 +920,7 @@ def admin_conversation_monitor_api(request, pk):
     }, status=200)
 
 
-@require_staff_json
+@require_superuser_json
 @require_POST
 def admin_reassign_staff_api(request, pk):
     """Chuyển cuộc hội thoại sang cho nhân viên khác."""
@@ -934,13 +945,6 @@ def admin_reassign_staff_api(request, pk):
     conv.status = 'Đang xử lý'
     conv.save(update_fields=['staff', 'status'])
 
-    admin_name = request.user.name or 'Quản trị viên'
-    ConversationMessage.objects.create(
-        conversation=conv,
-        sender_type='Staff',
-        content=f"[HỆ THỐNG] {admin_name} đã chuyển giao cuộc hội thoại từ {old_staff_name} sang nhân viên {new_staff.name}.",
-    )
-
     return JsonResponse({
         'status': 'success',
         'message': f'Đã chuyển giao thành công cho nhân viên {new_staff.name}.',
@@ -948,7 +952,7 @@ def admin_reassign_staff_api(request, pk):
     }, status=200)
 
 
-@require_staff_json
+@require_superuser_json
 @require_POST
 def admin_takeover_conversation_api(request, pk):
     """Admin trực tiếp tiếp quản cuộc hội thoại."""
@@ -961,12 +965,6 @@ def admin_takeover_conversation_api(request, pk):
     conv.status = 'Đang xử lý'
     conv.save(update_fields=['staff', 'status'])
 
-    ConversationMessage.objects.create(
-        conversation=conv,
-        sender_type='Staff',
-        content=f"[HỆ THỐNG] Quản lý ({admin_name}) đã can thiệp và trực tiếp tiếp quản phiên tư vấn này.",
-    )
-
     return JsonResponse({
         'status': 'success',
         'message': f'Quản lý {admin_name} đã tiếp quản cuộc hội thoại thành công.',
@@ -975,6 +973,40 @@ def admin_takeover_conversation_api(request, pk):
 
 
 @require_staff_json
+@require_POST
+def chat_upload_media_api(request):
+    """Tải lên hình ảnh hoặc video đính kèm cho tin nhắn chat."""
+    if 'file' not in request.FILES:
+        return json_error('Không tìm thấy tệp tải lên.', status=400)
+
+    uploaded_file = request.FILES['file']
+    ext = os.path.splitext(uploaded_file.name)[1].lower()
+    allowed_exts = ('.jpg', '.jpeg', '.png', '.webp', '.gif', '.mp4', '.mov', '.webm')
+    if ext not in allowed_exts:
+        return json_error('Định dạng tệp không được hỗ trợ. Vui lòng tải ảnh (JPG, PNG, WebP) hoặc video (MP4, MOV).', status=400)
+
+    if uploaded_file.size > 25 * 1024 * 1024:
+        return json_error('Dung lượng tệp vượt quá giới hạn 25MB.', status=400)
+
+    unique_filename = f"chat_media/{timezone.now().strftime('%Y%m')}/{uuid.uuid4().hex[:8]}_{uploaded_file.name}"
+    saved_path = default_storage.save(unique_filename, ContentFile(uploaded_file.read()))
+    file_url = default_storage.url(saved_path)
+
+    size_kb = uploaded_file.size / 1024
+    formatted_size = f"{size_kb:.1f} KB" if size_kb < 1024 else f"{size_kb / 1024:.1f} MB"
+    is_image = ext in ('.jpg', '.jpeg', '.png', '.webp', '.gif')
+    message_type = 'IMAGE' if is_image else 'FILE'
+
+    return JsonResponse({
+        'status': 'success',
+        'file_url': file_url,
+        'file_name': uploaded_file.name,
+        'file_size': formatted_size,
+        'message_type': message_type,
+    }, status=200)
+
+
+@require_superuser_json
 @require_POST
 def admin_send_message_api(request, pk):
     """Admin gửi tin nhắn can thiệp / chỉ đạo trực tiếp vào phiên chat."""
@@ -987,14 +1019,27 @@ def admin_send_message_api(request, pk):
         return err
 
     content = str(data.get('content') or '').strip()
-    if not content:
-        return json_error('Nội dung tin nhắn không được để trống.', status=400)
+    attachment_url = data.get('attachment_url')
+    attachment_name = data.get('attachment_name')
+    attachment_size = data.get('attachment_size')
+    message_type = data.get('message_type') or ('IMAGE' if attachment_url else 'TEXT')
+
+    if not content and not attachment_url:
+        return json_error('Nội dung tin nhắn hoặc tệp đính kèm không được để trống.', status=400)
 
     admin_name = request.user.name or 'Quản lý Cham Spa'
+    text_content = content if content else ("Đã gửi một hình ảnh." if message_type == 'IMAGE' else "Đã gửi một tệp đính kèm.")
+
+    text_content = content if content else ("Đã gửi một hình ảnh." if message_type == 'IMAGE' else "Đã gửi một tệp đính kèm.")
+
     msg = ConversationMessage.objects.create(
         conversation=conv,
         sender_type='Staff',
-        content=f"[Quản lý {admin_name}]: {content}",
+        message_type=message_type,
+        content=text_content,
+        attachment_url=attachment_url,
+        attachment_name=attachment_name,
+        attachment_size=attachment_size,
     )
 
     return JsonResponse({
@@ -1003,7 +1048,7 @@ def admin_send_message_api(request, pk):
     }, status=201)
 
 
-@require_staff_json
+@require_superuser_json
 @require_GET
 def admin_faq_export_api(request):
     """Xuất toàn bộ danh sách kịch bản FAQ ra file CSV có BOM UTF-8."""

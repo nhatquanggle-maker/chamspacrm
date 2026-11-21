@@ -167,18 +167,10 @@
                                     </span>
                                 </div>
                             </td>
-                            <td class="text-center">
-                                <div class="d-flex align-items-center justify-content-center gap-2">
-                                    <!-- Nút Sửa -->
-                                    <button type="button" class="btn-table-edit" onclick="openServiceEditModal({{ svc.id }})" title="Chỉnh sửa dịch vụ">
-                                        <i class="bi bi-pencil-fill"></i> Sửa
-                                    </button>
-
-                                    <!-- Nút Xóa (Mở Modal Xác nhận Xóa - Figma Node 216-2320) -->
-                                    <button type="button" class="btn-table-delete" onclick="openDeleteServiceModal({{ svc.id }}, '{{ svc.name|escapejs }}')" title="Xóa dịch vụ">
-                                        <i class="bi bi-trash3"></i>
-                                    </button>
-                                </div>
+                            <td class="text-center" style="white-space: nowrap;">
+                                <button type="button" class="btn-cham-view-link" onclick="openServiceEditModal({{ svc.id }})" title="Chi tiết dịch vụ">
+                                    Chi tiết
+                                </button>
                             </td>
                         </tr>
                         {% endfor %}
@@ -349,11 +341,18 @@
                     </div>
                 </div>
 
-                <div class="modal-footer px-4 py-3 bg-light">
-                    <button type="button" class="btn btn-outline-secondary rounded-3 px-3" data-bs-dismiss="modal">Hủy bỏ</button>
-                    <button type="submit" class="btn btn-primary rounded-3 px-4 fw-bold" style="background-color: var(--cham-primary-red); border-color: var(--cham-primary-red);" id="btnSubmitService">
-                        <i class="bi bi-check-lg me-1"></i> Lưu dịch vụ
-                    </button>
+                <div class="modal-footer px-4 py-3 bg-light d-flex justify-content-between align-items-center">
+                    <div>
+                        <button type="button" class="btn btn-outline-danger rounded-3 px-3" id="btnDeleteServiceInForm" style="display: none; font-size: 13px; font-weight: 600;" onclick="deleteServiceFromModal()">
+                            <i class="bi bi-trash me-1"></i> Xóa dịch vụ
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary rounded-3 px-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="submit" class="btn btn-primary rounded-3 px-4 fw-bold" style="background-color: var(--cham-primary-red); border-color: var(--cham-primary-red);" id="btnSubmitService">
+                            <i class="bi bi-check-lg me-1"></i> Lưu dịch vụ
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -527,6 +526,9 @@
     function openServiceCreateModal() {
         hideDuplicateAlert();
 
+        const delBtn = document.getElementById('btnDeleteServiceInForm');
+        if (delBtn) delBtn.style.display = 'none';
+
         // 1. Reset form trắng hoàn toàn theo yêu cầu
         const form = document.getElementById('serviceFormSubmit');
         if (form) form.reset();
@@ -587,10 +589,20 @@
         document.getElementById('formServiceThumbnail').value = data.thumbnail_url || '';
         document.getElementById('formServiceDesc').value = data.description || '';
 
+        const delBtn = document.getElementById('btnDeleteServiceInForm');
+        if (delBtn) delBtn.style.display = 'inline-block';
+
         previewThumbnail();
         highlightSampleThumb(data.thumbnail_url);
 
         if (serviceModalObj) serviceModalObj.show();
+    }
+
+    function deleteServiceFromModal() {
+        const serviceId = document.getElementById('formServiceId').value;
+        const serviceName = document.getElementById('formServiceName').value;
+        if (serviceModalObj) serviceModalObj.hide();
+        openDeleteServiceModal(serviceId, serviceName);
     }
 
     // Chọn nhanh ảnh mẫu trong Form thêm/sửa

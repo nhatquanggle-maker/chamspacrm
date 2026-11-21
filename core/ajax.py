@@ -50,3 +50,16 @@ def require_staff_json(view_func):
     return _wrapped
 
 
+def require_superuser_json(view_func):
+    """Chỉ cho phép Quản trị viên / Quản lý (is_superuser=True) thực hiện thao tác."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return json_error('Vui lòng đăng nhập để tiếp tục.', status=401)
+        if not request.user.is_superuser:
+            return json_error('Quyền truy cập bị từ chối: Thao tác này chỉ dành riêng cho Quản lý.', status=403)
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+
+

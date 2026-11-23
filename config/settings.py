@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 import os
+import shutil
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,6 +38,10 @@ SECRET_KEY = 'django-insecure-h2hf%yz!c#2b&efd_rbniw$(9%s5f$8!o7)v+46d9q6p2!($9&
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.vercel.app',
+    'https://chamspacrm.vercel.app',
+]
 
 # Cấu hình Domain khi Deploy lên Production (nếu để trống, hệ thống sẽ tự động bắt domain từ trình duyệt của khách)
 SITE_URL = os.environ.get('SITE_URL', '').strip().rstrip('/')
@@ -103,11 +108,18 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
+# Trên Vercel Serverless (filesystem chỉ đọc), tự động copy db.sqlite3 sang /tmp/db.sqlite3 để có thể đọc & ghi bình thường
+DB_PATH = BASE_DIR / 'db.sqlite3'
+if os.environ.get('VERCEL') or not os.access(BASE_DIR, os.W_OK):
+    tmp_db_path = Path('/tmp/db.sqlite3')
+    if not tmp_db_path.exists() and DB_PATH.exists():
+        shutil.copy2(DB_PATH, tmp_db_path)
+    DB_PATH = tmp_db_path
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DB_PATH,
     }
 }
 
@@ -145,12 +157,13 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files (Ảnh đại diện, ảnh gói dịch vụ tải lên)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path('/tmp/media') if (os.environ.get('VERCEL') or not os.access(BASE_DIR, os.W_OK)) else (BASE_DIR / 'media')
 
 
 # ==============================================================================

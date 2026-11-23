@@ -6,6 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Cham Spa & Massage Đà Nẵng | The Art of Restoration{% endblock %}</title>
 
+    <!-- Open Graph / Link Preview Meta Tags (Zalo, Messenger, Facebook, Telegram) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="{% block og_title %}Cham Spa & Massage Đà Nẵng | Trở về trạng thái cân bằng nguyên bản{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Cham Spa & Massage Đà Nẵng - Không gian trị liệu, thư giãn và phục hồi năng lượng theo triết lý nguyên bản.{% endblock %}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero_image.png' %}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero_image.png' %}">
+
     <!-- Cham Spa Favicon (Browser Tab Icon) -->
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}?v=1.1">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}?v=1.1">

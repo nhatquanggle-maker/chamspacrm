@@ -1,11 +1,12 @@
 # HỆ THỐNG QUẢN LÝ QUAN HỆ KHÁCH HÀNG & ĐẶT LỊCH DỊCH VỤ SPA (CHAMSPA CRM)
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Django](https://img.shields.io/badge/Django-6.1.2-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![Django](https://img.shields.io/badge/Django-5.1%2B-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![VietQR](https://img.shields.io/badge/Payment-VietQR-blue?style=for-the-badge)](https://vietqr.io/)
-[![Project Status](https://img.shields.io/badge/Project_Status-Completed-brightgreen?style=for-the-badge)](#-v-chức-năng-chi-tiết-các-module-mod-01-đến-mod-10)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-PythonAnywhere-1D9BF0?style=for-the-badge&logo=pythonanywhere&logoColor=white)](https://chamspa.pythonanywhere.com/)
+[![Project Status](https://img.shields.io/badge/Project_Status-Deployed-brightgreen?style=for-the-badge)](#-v-chức-năng-chi-tiết-các-module-mod-01-đến-mod-10)
 
 ---
 
@@ -13,6 +14,8 @@
 
 * **Tên đề tài:** Hệ thống Quản lý Quan hệ Khách hàng & Đặt lịch dịch vụ Spa (**ChamSPA CRM**)
 * **Đơn vị đào tạo:** Trường Đại học Kinh tế – Đại học Đà Nẵng (**DUE**) | **Học phần:** Lập trình Web
+* **Giảng viên hướng dẫn:** **TS. Đặng Trung Thành**
+* **Live Demo (Production):** [https://chamspa.pythonanywhere.com](https://chamspa.pythonanywhere.com)
 * **Doanh nghiệp nghiên cứu:** **ChamSpa & Massage Đà Nẵng** (Massage trị liệu Đông y & Thư giãn chuyên sâu)
 * **Địa chỉ cơ sở:** 05 Lê Quang Hoà, Hoà Xuân, Cẩm Lệ, TP. Đà Nẵng | **Hotline:** `0987 773 777` | **Giờ mở cửa:** `8:30 – 22:00`
 * **Đội ngũ sinh viên thực hiện (5 thành viên) & Phân công phân hệ:**
@@ -28,19 +31,21 @@
 
 ### 1. Công nghệ sử dụng (Tech Stack)
 
-1. **Backend & Xử lý nghiệp vụ:** Python (`>= 3.10`, đã kiểm thử trên `3.14.5`) kết hợp **Django 6.1.2** (`requirements.txt` liệt kê `Django>=5.1`, `djangorestframework>=3.14.0`, `Pillow>=10.0.0`, `asgiref>=3.8.0`, `sqlparse>=0.5.0`). Tầng backend hiện tại được chuẩn hóa theo mô hình **Django SSR Views/Forms** kết hợp các **Pure Django JSON APIs (`JsonResponse` + helpers tại `core/ajax.py`)** gọn nhẹ và đồng nhất.
+1. **Backend & Xử lý nghiệp vụ:** Python (`>= 3.10`, hỗ trợ Django `>= 5.1`, vận hành trên PythonAnywhere với Python `3.12` & Django `6.1.x`; các thư viện trong `requirements.txt`: `Django>=5.1`, `Pillow>=10.0.0`, `asgiref>=3.8.0`, `sqlparse>=0.5.0`). Tầng backend được chuẩn hóa theo mô hình **Django SSR Views/Forms** kết hợp **Pure Django JSON APIs (`JsonResponse` + helpers tại `core/ajax.py`)** gọn nhẹ và đồng nhất.
 2. **Cơ sở dữ liệu (Database):** **SQLite** (`db.sqlite3`) — toàn bộ **20 model** của hệ thống được định nghĩa tập trung trong [`core/models.py`](core/models.py) và đăng ký quản trị tại [`core/admin.py`](core/admin.py). Ngôn ngữ `vi`, múi giờ `Asia/Ho_Chi_Minh`.
-3. **Giao diện & Layout:**
+3. **Giao diện, Layout & SEO:**
    * **Django Templates** với 4 layout kế thừa theo vai trò (`public_layout.html`, `customer_layout.html`, `staff_layout.html`, `admin_layout.html`) và các sidebar/topbar chuyên biệt trong `templates/components/`.
    * **Bootstrap 5.3.3** & **Bootstrap Icons 1.11.3**, tùy biến bộ màu & typography Cham Spa tập trung tại [`static/css/chamspa.css`](static/css/chamspa.css).
    * **Google Fonts:** `Lora`, `Tinos` (tiêu đề serif) và `Cabin`, `Manrope` (nội dung).
+   * **Open Graph & Twitter Cards (`templates/base.html`):** Cấu hình sẵn `og:title`, `og:description`, `og:image` (`hero_image.png`) để hiển thị ảnh xem trước đẹp khi chia sẻ link qua Zalo, Messenger, Facebook.
 4. **Tương tác động & Thư viện Client (CDN):**
    * **Vanilla JavaScript (Fetch API):** Gọi JSON API bất đồng bộ để lọc dữ liệu, cập nhật trạng thái, chat polling, mở modal và render bảng biểu.
    * **Chart.js:** Vẽ **6 biểu đồ** phân tích doanh thu, dịch vụ, hội viên, trạng thái lịch và hồ sơ sức khỏe trên Dashboard Quản trị.
    * **SheetJS (`xlsx 0.18.5`) & `html2pdf.js 0.10.1`:** Xuất báo cáo Excel (`.xlsx` với 2 sheet `TongQuan_KPI` & `ChiTiet_HoaDon`) và PDF (`.pdf`) trực tiếp tại trình duyệt ở `admin_dashboard.html`.
    * **FullCalendar (`6.1.15`):** Đã nạp sẵn qua CDN trong `templates/base.html` làm nền mở rộng (giao diện đặt lịch & điều phối hiện sử dụng lưới chọn ngày/slot và bảng lọc tối ưu riêng).
    * **VietQR (`img.vietqr.io` / `api.vietqr.io`):** Sinh ảnh mã QR chuyển khoản theo số tiền và nội dung `CHAMSPA <MÃ_LỊCH>` (hiển thị hướng dẫn chuyển khoản; việc xác nhận & đổi trạng thái thanh toán được thực hiện thủ công bằng thao tác bấm nút, **không tích hợp webhook ngân hàng tự động**).
-5. **Middleware & Lưu trữ Media:**
+5. **Email, Middleware & Lưu trữ Media:**
+   * **Email SMTP / Console (`config/settings.py`):** Đọc cấu hình từ `.env`; tự động dùng Gmail SMTP (`smtp.gmail.com:587` TLS) khi có `EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD` để gửi email đặt lại mật khẩu, hoặc fallback sang `console.EmailBackend` khi dev local.
    * `core.middleware.ChamSpaErrorFallbackMiddleware` điều hướng trang `404.html` / xử lý lỗi an toàn (bỏ qua các đường dẫn API).
    * Lưu ảnh đại diện (`media/avatars/`) và ảnh minh chứng đánh giá/khiếu nại (`media/feedbacks/YYYYMM/`) bằng `Pillow`.
 
@@ -59,11 +64,12 @@ CHAMSPA CRM/
 ├── marketing/              # MOD-07: Khuyến mãi, kho Voucher, chuông thông báo & broadcast
 ├── health/                 # MOD-08: Hồ sơ sức khỏe 1-1, BMI, cảnh báo y tế & phiếu KTV in ấn
 ├── dashboard/              # MOD-10: Staff Dashboard, Admin Dashboard 6 biểu đồ & Export Excel/PDF
-├── payments/               # Thư mục giữ chỗ cũ (nghiệp vụ MOD-09 đã tích hợp vào appointment, membership & dashboard)
 ├── templates/              # Giao diện HTML phân chia theo layouts/, components/ và từng app
 ├── static/                 # CSS hợp nhất (chamspa.css) & tài nguyên hình ảnh thương hiệu
+├── media/                  # Thư mục lưu ảnh upload người dùng (avatars, feedbacks)
 ├── seed_demo_data.py       # Script reset và khởi tạo dữ liệu mẫu sạch cho toàn bộ 20 bảng
 ├── requirements.txt        # Danh sách thư viện Python phụ thuộc
+├── .env                    # Biến môi trường cấu hình (DEBUG, SITE_URL, SMTP Gmail...)
 ├── db.sqlite3              # Cơ sở dữ liệu SQLite demo đi kèm
 └── manage.py
 ```
@@ -108,6 +114,26 @@ Hệ thống hỗ trợ đăng nhập linh hoạt bằng **Email**, **Số đi�
 | **Admin (`is_superuser`)** | `admin` / `admin@chamspa.vn` | `0886556303` | `admin123` | Mật khẩu trên `db.sqlite3` có sẵn (nếu khởi tạo DB mới hoàn toàn chưa có `admin`, `seed_demo_data.py` dùng `Admin@2026`). |
 | **Staff (`is_staff`)** | `staff@chamspa.vn` | `0905123456` | `staff123` | Cùng 5 tài khoản nhân viên mẫu khác mang domain `@chamspa.vn`. |
 | **Customer** | `customer@gmail.com` | `0912845660` | `customer123` | Cùng 5 tài khoản khách hàng mẫu khác mang domain `@gmail.com`. |
+
+### 3. Hướng dẫn Deploy lên PythonAnywhere (Free Beginner Plan)
+
+1. Mở **Consoles → Bash** trên PythonAnywhere, clone mã nguồn và cài đặt môi trường ảo:
+   ```bash
+   git clone https://github.com/nhatquanggle-maker/chamspacrm.git
+   cd chamspacrm
+   mkvirtualenv chamspa --python=python3.12
+   pip install -r requirements.txt
+   echo "" >> .env
+   echo "SITE_URL=https://chamspa.pythonanywhere.com" >> .env
+   echo "DEBUG=False" >> .env
+   python manage.py collectstatic --noinput
+   ```
+2. Mở tab **Web → Add a new web app → Manual configuration → Python 3.12**, cấu hình:
+   * **Source code & Working directory:** `/home/chamspa/chamspacrm`
+   * **Virtualenv:** `/home/chamspa/.virtualenvs/chamspa`
+   * **Static files:** `/static/` → `/home/chamspa/chamspacrm/staticfiles` và `/media/` → `/home/chamspa/chamspacrm/media`
+   * **WSGI configuration file:** trỏ `sys.path` tới `/home/chamspa/chamspacrm` và `DJANGO_SETTINGS_MODULE = 'config.settings'`
+   * Bật **Force HTTPS** và bấm **Reload**.
 
 ---
 
@@ -409,8 +435,21 @@ core/models.py (20 Bảng CSDL SQLite)
 
 ---
 
-## 📄 IX. BẢN QUYỀN & GIẤY PHÉP
+## 🗺️ IX. ROADMAP PHÁT TRIỂN DỰ ÁN
 
-Dự án được xây dựng phục vụ mục đích học tập và nghiên cứu thực tế tại **Trường Đại học Kinh tế – Đại học Đà Nẵng (DUE)**.  
+| Giai đoạn | Phiên bản | Trạng thái | Nội dung & Mục tiêu chính |
+| :--- | :---: | :---: | :--- |
+| **Phase 1: Nền tảng & Dữ liệu gốc** | `v0.1` | ✅ Hoàn thành | Khởi tạo kiến trúc Django `core` (20 models SQLite), Custom User `MOD-05` (`accounts`), Danh mục & Dịch vụ `MOD-03` (`services`). |
+| **Phase 2: Vận hành cốt lõi** | `v0.2` | ✅ Hoàn thành | Triển khai Đặt lịch 3 bước & Digital Pass `MOD-01`, Hồ sơ sức khỏe 1-1 & Phiếu KTV `MOD-08`, Boxchat FAQ & Staff Livechat `MOD-02`. |
+| **Phase 3: Thanh toán & Chăm sóc KH** | `v0.3` | ✅ Hoàn thành | Tích hợp VietQR & Hóa đơn `MOD-09`, Hội viên VIP 4 hạng & Signal tích điểm `MOD-06`, Đánh giá & Khiếu nại `MOD-04`, Khuyến mãi & Thông báo `MOD-07`. |
+| **Phase 4: Dashboard & Production** | `v1.0` | ✅ Hoàn thành | Hoàn thiện Admin/Staff Dashboard 6 biểu đồ Chart.js, xuất Excel/PDF `MOD-10`, tối ưu SEO Open Graph và deploy live trên PythonAnywhere (`chamspa.pythonanywhere.com`). |
+| **Phase 5: Tự động hóa & Real-time** | `v1.1` | 🔜 Dự kiến | Tích hợp Webhook ngân hàng (SePay/Casso/PayOS) đối soát VietQR tự động; nâng cấp Livechat sang WebSockets (Django Channels); gửi nhắc lịch tự động qua Email/Zalo OA. |
+| **Phase 6: Mở rộng quy mô (Enterprise)** | `v2.0` | 🗓️ Tương lai | Nâng cấp CSDL lên PostgreSQL, lưu trữ Media trên Cloud (AWS S3 / Cloudinary), xếp lịch ca trực & tính hoa hồng KTV tự động, hỗ trợ báo cáo liên chi nhánh. |
+
+---
+
+## 📄 X. BẢN QUYỀN & GIẤY PHÉP
+
+Dự án được xây dựng phục vụ mục đích học tập và nghiên cứu thực tế tại **Trường Đại học Kinh tế – Đại học Đà Nẵng (DUE)** dưới sự hướng dẫn của **TS. Đặng Trung Thành**.  
 Mọi quyền sở hữu thương hiệu và hình ảnh thuộc về **ChamSpa & Massage Đà Nẵng** (05 Lê Quang Hoà, Cẩm Lệ, Đà Nẵng).  
 © 2026 Cham Spa & Massage CRM Project. All rights reserved.

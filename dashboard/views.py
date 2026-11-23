@@ -131,11 +131,8 @@ def staff_dashboard(request):
       - Danh sách lịch hẹn hôm nay cần phục vụ.
       - Phím tắt tra cứu nhanh thể trạng sức khỏe & lực massage của khách.
     """
-    if not request.user.is_superuser:
-        if request.user.is_staff:
-            messages.error(request, "Chỉ Quản trị viên (Admin) mới có quyền truy cập Bảng điều khiển Quản trị.")
-            return redirect('dashboard:staff')
-        raise PermissionDenied("Bạn không có quyền truy cập bảng điều khiển.")
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied("Bạn không có quyền truy cập Bảng điều khiển Nhân viên.")
     tab = request.GET.get('tab')
     if tab == 'inbox':
         return redirect('chatbox:inbox')

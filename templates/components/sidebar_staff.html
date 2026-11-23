@@ -21,7 +21,7 @@
     </div>
 
     <!-- Streamlined Navigation -->
-    <nav class="d-flex flex-column gap-1">
+    <nav class="d-flex flex-column gap-1 flex-grow-1">
         <a href="{% url 'accounts:profile' %}"
             class="staff-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
             data-nav-target="Thông tin cá nhân">

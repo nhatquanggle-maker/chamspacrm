@@ -53,7 +53,11 @@ def admin_dashboard(request):
       - Công cụ lọc thời gian (Hôm nay, 7 ngày, Tháng này, Năm nay, Tùy chọn).
       - Nút xuất báo cáo trực tiếp tại trình duyệt (SheetJS Excel & html2pdf.js PDF).
     """
-    _require_staff_access(request.user)
+    if not request.user.is_superuser:
+        if request.user.is_staff:
+            messages.error(request, "Chỉ Quản trị viên (Admin) mới có quyền truy cập Bảng điều khiển Quản trị.")
+            return redirect('dashboard:staff')
+        raise PermissionDenied("Bạn không có quyền truy cập bảng điều khiển.")
     # 1. Hỗ trợ chuyển hướng tiện ích theo query tab nếu có
     tab = request.GET.get('tab')
     if tab == 'customers':
@@ -127,7 +131,11 @@ def staff_dashboard(request):
       - Danh sách lịch hẹn hôm nay cần phục vụ.
       - Phím tắt tra cứu nhanh thể trạng sức khỏe & lực massage của khách.
     """
-    _require_staff_access(request.user)
+    if not request.user.is_superuser:
+        if request.user.is_staff:
+            messages.error(request, "Chỉ Quản trị viên (Admin) mới có quyền truy cập Bảng điều khiển Quản trị.")
+            return redirect('dashboard:staff')
+        raise PermissionDenied("Bạn không có quyền truy cập bảng điều khiển.")
     tab = request.GET.get('tab')
     if tab == 'inbox':
         return redirect('chatbox:inbox')

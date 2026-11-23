@@ -165,12 +165,12 @@ def admin_livechat_monitor_view(request):
         messages_list = active_conv.messages.all().order_by('created_at')
         customer = active_conv.customer
 
-        membership = Membership.objects.filter(user=customer).select_related('tier').first()
-        tier_name = membership.tier.name if (membership and membership.tier) else 'Hạng VÀNG'
-        total_spent = membership.total_spent if membership else 18500000
+        membership = Membership.objects.filter(user=customer).select_related('tier').first() if customer else None
+        tier_name = membership.tier.name if (membership and membership.tier) else 'Thành viên'
+        total_spent = membership.total_spent if membership else 0
         formatted_spent = f"{int(total_spent):,} VNĐ".replace(',', '.')
 
-        health = UserHealthProfile.objects.filter(user=customer).first()
+        health = UserHealthProfile.objects.filter(user=customer).first() if customer else None
         health_summary = build_health_summary(health)
 
         # Tính thời lượng
@@ -186,8 +186,8 @@ def admin_livechat_monitor_view(request):
             'health_summary': health_summary
         }
 
-    # Danh sách nhân viên trực tuyến để chuyển giao (Reassign)
-    available_staffs = User.objects.filter(is_staff=True).order_by('name')
+    # Danh sách nhân viên CSKH để chuyển giao (Reassign)
+    available_staffs = User.objects.filter(is_staff=True, is_superuser=False).order_by('name')
 
     # Danh sách dịch vụ và voucher phục vụ can thiệp
     services = Service.objects.filter(status='Hoạt động')[:10]

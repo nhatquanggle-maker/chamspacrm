@@ -61,9 +61,9 @@
                     <div class="mb-4">
                         <div class="filter-section-title">KHOẢNG GIÁ</div>
                         <div class="cham-price-range-wrapper">
-                            <input type="range" class="cham-price-slider" id="priceRangeInput"
-                                   min="{{ min_price }}" max="{{ max_price }}" step="50000" value="{{ max_price }}"
-                                   aria-label="Lọc theo khoảng giá tối đa">
+                            <input type="range" class="cham-price-slider" id="priceRangeInput" min="{{ min_price }}"
+                                max="{{ max_price }}" step="50000" value="{{ max_price }}"
+                                aria-label="Lọc theo khoảng giá tối đa">
                         </div>
                         <div class="price-display-wrapper mt-2">
                             <span>200.000 VNĐ</span>
@@ -95,7 +95,8 @@
                 <!-- Top Count & Sort Dropdown -->
                 <div class="services-top-bar">
                     <div class="services-count-text">
-                        Hiển thị <strong id="currentDisplayedCount">{{ total_services }}</strong>/{{ total_services }} dịch vụ
+                        Hiển thị <strong id="currentDisplayedCount">{{ total_services }}</strong>/{{ total_services }}
+                        dịch vụ
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="text-muted small fw-semibold">Sắp xếp:</span>
@@ -121,17 +122,20 @@
                 <!-- Lưới Thẻ Dịch Vụ (#servicesGridContainer) -->
                 <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" id="servicesGrid">
                     {% for svc in services %}
-                    <div class="col service-item-col" data-id="{{ svc.id }}" data-category="{{ svc.category.slug }}" data-price="{{ svc.price_vnd }}" data-duration="{{ svc.duration_minutes }}">
+                    <div class="col service-item-col" data-id="{{ svc.id }}" data-category="{{ svc.category.slug }}"
+                        data-price="{{ svc.price_vnd }}" data-duration="{{ svc.duration_minutes }}">
                         <div class="service-card">
-                            <div class="service-thumb-box" style="cursor: pointer;" onclick="openServiceDetailModal('{{ svc.slug }}')">
+                            <div class="service-thumb-box" style="cursor: pointer;"
+                                onclick="openServiceDetailModal('{{ svc.slug }}')">
                                 <img src="{{ svc.thumbnail_url|default:'/static/images/treatment_1.png' }}?v=2"
-                                     alt="{{ svc.name }}" class="service-thumb-img" loading="lazy">
+                                    alt="{{ svc.name }}" class="service-thumb-img" loading="lazy">
                             </div>
                             <div class="service-card-body">
                                 <div class="service-meta-top">
                                     <span class="service-category-badge">{{ svc.category.name }}</span>
                                 </div>
-                                <h3 class="service-name-title" title="{{ svc.name }}" style="cursor: pointer;" onclick="openServiceDetailModal('{{ svc.slug }}')">{{ svc.name }}</h3>
+                                <h3 class="service-name-title" title="{{ svc.name }}" style="cursor: pointer;"
+                                    onclick="openServiceDetailModal('{{ svc.slug }}')">{{ svc.name }}</h3>
                                 <div class="service-specs-row">
                                     <div class="service-spec-item">
                                         <i class="bi bi-clock"></i>
@@ -146,10 +150,13 @@
                                     {{ svc.formatted_price|default:svc.price_vnd }}
                                 </div>
                                 <div class="service-actions-row">
-                                    <a href="{% url 'appointment:booking' %}?service={{ svc.id }}" class="btn-card-book">
+                                    <a href="{% url 'appointment:booking' %}?service={{ svc.id }}"
+                                        class="btn-card-book">
                                         Đặt lịch ngay
                                     </a>
-                                    <button type="button" class="btn-card-detail" data-bs-toggle="modal" data-bs-target="#serviceDetailModal" onclick="openServiceDetailModal('{{ svc.slug }}')">
+                                    <button type="button" class="btn-card-detail" data-bs-toggle="modal"
+                                        data-bs-target="#serviceDetailModal"
+                                        onclick="openServiceDetailModal('{{ svc.slug }}')">
                                         Xem chi tiết
                                     </button>
                                 </div>
@@ -163,8 +170,10 @@
                 <div class="empty-services-state mt-4 d-none" id="emptyServicesBox">
                     <i class="bi bi-search fs-1 text-muted d-block mb-3"></i>
                     <h5 class="fw-bold text-dark font-serif">Không tìm thấy dịch vụ phù hợp</h5>
-                    <p class="text-muted small mb-3">Vui lòng điều chỉnh lại khoảng giá, thời lượng hoặc chọn danh mục khác.</p>
-                    <button type="button" class="btn btn-sm btn-outline-dark px-3 py-2 rounded-pill" onclick="resetAllFilters()">
+                    <p class="text-muted small mb-3">Vui lòng điều chỉnh lại khoảng giá, thời lượng hoặc chọn danh mục
+                        khác.</p>
+                    <button type="button" class="btn btn-sm btn-outline-dark px-3 py-2 rounded-pill"
+                        onclick="resetAllFilters()">
                         <i class="bi bi-arrow-clockwise me-1"></i> Khôi phục bộ lọc mặc định
                     </button>
                 </div>
@@ -176,7 +185,8 @@
 <!-- ==========================================================================
      MODAL POPUP: CHI TIẾT LIỆU TRÌNH (FIGMA NODE 216-929)
      ========================================================================== -->
-<div class="modal fade" id="serviceDetailModal" tabindex="-1" aria-labelledby="serviceDetailModalLabel" aria-hidden="true">
+<div class="modal fade" id="serviceDetailModal" tabindex="-1" aria-labelledby="serviceDetailModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered cham-modal-dialog">
         <div class="modal-content cham-modal-content">
             <!-- Modal Header -->
@@ -202,7 +212,8 @@
                         </div>
                         <div class="modal-trust-box">
                             <i class="bi bi-shield-check"></i>
-                            <div>Kỹ thuật viên được đào tạo chuyên sâu • Không gian riêng tư • Dầu thảo mộc an toàn</div>
+                            <div>Kỹ thuật viên được đào tạo chuyên sâu • Không gian riêng tư • Dầu thảo mộc an toàn
+                            </div>
                         </div>
                     </div>
 
@@ -210,9 +221,10 @@
                     <div class="col-lg-6">
                         <span class="modal-cat-pill" id="modalCategoryBadge">MASSAGE BODY • TRỊ LIỆU</span>
                         <h2 class="modal-service-title" id="modalServiceTitle">Massage Body Trị Liệu Vai Gáy</h2>
-                        
+
                         <div class="modal-specs-meta">
-                            <span><i class="bi bi-star-fill text-warning me-1"></i><strong id="modalRatingText">4.9/5</strong></span>
+                            <span><i class="bi bi-star-fill text-warning me-1"></i><strong
+                                    id="modalRatingText">4.9/5</strong></span>
                             <span><i class="bi bi-clock me-1"></i><span id="modalDurationText">60 phút</span></span>
                         </div>
 
@@ -221,7 +233,9 @@
                         </div>
 
                         <p class="modal-desc-paragraph" id="modalDescParagraph">
-                            Liệu trình chuyên sâu sử dụng đá nóng giữ nhiệt, dầu thảo mộc thiên nhiên và kỹ thuật ấn huyệt chính xác giúp giải phóng căng cứng vùng vai gáy, phục hồi tuần hoàn và mang lại trạng thái thư giãn sâu.
+                            Liệu trình chuyên sâu sử dụng đá nóng giữ nhiệt, dầu thảo mộc thiên nhiên và kỹ thuật ấn
+                            huyệt chính xác giúp giải phóng căng cứng vùng vai gáy, phục hồi tuần hoàn và mang lại trạng
+                            thái thư giãn sâu.
                         </p>
 
                         <!-- Quy trình trải nghiệm (Accordion) -->
@@ -239,7 +253,8 @@
                                     <i class="bi bi-chevron-down process-step-chevron"></i>
                                 </div>
                                 <div class="process-step-body">
-                                    Chuyên viên lắng nghe tình trạng cơ thể, xác định điểm căng cơ và mức áp lực phù hợp.
+                                    Chuyên viên lắng nghe tình trạng cơ thể, xác định điểm căng cơ và mức áp lực phù
+                                    hợp.
                                 </div>
                             </div>
                             <!-- Bước 2 -->
@@ -252,7 +267,8 @@
                                     <i class="bi bi-chevron-down process-step-chevron"></i>
                                 </div>
                                 <div class="process-step-body">
-                                    Xông hơi đá muối Himalaya, thưởng trà thảo mộc ấm và ngâm chân thảo mộc bài thuốc Dao Đỏ.
+                                    Xông hơi đá muối Himalaya, thưởng trà thảo mộc ấm và ngâm chân thảo mộc bài thuốc
+                                    Dao Đỏ.
                                 </div>
                             </div>
                             <!-- Bước 3 -->
@@ -265,7 +281,8 @@
                                     <i class="bi bi-chevron-down process-step-chevron"></i>
                                 </div>
                                 <div class="process-step-body">
-                                    Kỹ thuật ấn huyệt Champa chuyên sâu giải phóng căng cứng huyệt đạo cổ vai gáy và cột sống.
+                                    Kỹ thuật ấn huyệt Champa chuyên sâu giải phóng căng cứng huyệt đạo cổ vai gáy và cột
+                                    sống.
                                 </div>
                             </div>
                             <!-- Bước 4 -->
@@ -278,7 +295,8 @@
                                     <i class="bi bi-chevron-down process-step-chevron"></i>
                                 </div>
                                 <div class="process-step-body">
-                                    Đặt và trượt đá bazan núi lửa tự nhiên hấp nóng, kết hợp tinh dầu trị liệu thư giãn sâu.
+                                    Đặt và trượt đá bazan núi lửa tự nhiên hấp nóng, kết hợp tinh dầu trị liệu thư giãn
+                                    sâu.
                                 </div>
                             </div>
                         </div>
@@ -551,7 +569,7 @@
     // Hàm mở Modal Chi tiết Dịch vụ (UC-3.2 - Gọi REST API /services/api/detail/<slug>/)
     function openServiceDetailModal(slug) {
         if (typeof allServices === 'string') {
-            try { allServices = JSON.parse(allServices); } catch (e) {}
+            try { allServices = JSON.parse(allServices); } catch (e) { }
         }
 
         // Tìm nhanh trong cache dữ liệu ban đầu để hiển thị ngay lập tức không có độ trễ
@@ -587,7 +605,8 @@
     function populateModalData(data) {
         document.getElementById('modalServiceTitle').textContent = data.name;
         document.getElementById('modalCategoryBadge').textContent = (data.category?.name || data.category_name || 'DỊCH VỤ SPA').toUpperCase();
-        document.getElementById('modalRatingText').textContent = (data.rating_avg || 5.0) + '/5';
+        const modalRating = (data.rating_avg !== undefined && data.rating_avg !== null) ? Number(data.rating_avg).toFixed(1) : '0.0';
+        document.getElementById('modalRatingText').textContent = modalRating + '/5';
         document.getElementById('modalDurationText').textContent = (data.duration_minutes || 60) + ' phút';
         document.getElementById('modalPriceTag').textContent = data.formatted_price || (Math.round(data.price_vnd).toLocaleString('vi-VN') + ' VNĐ');
         document.getElementById('modalDescParagraph').textContent = data.description || 'Liệu trình chăm sóc và trị liệu chuyên sâu mang lại sự thư thái tuyệt đối.';

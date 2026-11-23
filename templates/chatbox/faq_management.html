@@ -80,7 +80,7 @@
                 Tất cả danh mục ({{ total_faqs }})
             </a>
             {% for cat, count in category_counts.items %}
-            <a href="{% url 'chatbox:admin_faq' %}?category={{ cat }}" 
+            <a href="{% url 'chatbox:admin_faq' %}?category={{ cat|urlencode }}{% if search_q %}&q={{ search_q|urlencode }}{% endif %}" 
                class="filter-btn {% if selected_category == cat %}active{% endif %}">
                 {{ cat }} ({{ count }})
             </a>
@@ -164,19 +164,9 @@
             </table>
         </div>
 
-        <!-- PHÂN TRANG & THÔNG TIN DÒNG (FIGMA 211:3459) -->
+        <!-- THÔNG TIN HIỂN THỊ DÒNG -->
         <div class="d-flex align-items-center justify-content-between mt-3 text-muted" style="font-size: 12.5px;">
-            <div>Hiển thị <strong>{{ faqs|length }}</strong> hàng mỗi trang</div>
-            <nav aria-label="Page navigation">
-                <ul class="pagination pagination-sm mb-0">
-                    <li class="page-item disabled"><a class="page-link" href="#">&lt;</a></li>
-                    <li class="page-item active"><a class="page-link" style="background-color: var(--cham-red); border-color: var(--cham-red);" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link text-dark" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link text-dark" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link text-dark" href="#">4</a></li>
-                    <li class="page-item"><a class="page-link text-dark" href="#">&gt;</a></li>
-                </ul>
-            </nav>
+            <div>Hiển thị <strong>{{ faqs|length }}</strong> / <strong>{{ total_faqs }}</strong> câu hỏi FAQ</div>
         </div>
     </div>
 </div>
@@ -353,7 +343,7 @@ function openCreateFaqModal() {
     document.getElementById('modalFaqQuestion').value = '';
     document.getElementById('modalFaqAnswer').value = '';
     document.getElementById('modalFaqStatus').checked = true;
-    currentTags = ['chi nhánh', 'địa chỉ', 'đường đi'];
+    currentTags = [];
     renderTags();
 
     document.getElementById('faqEditorModalLabel').textContent = 'Thêm mới câu hỏi FAQ';
@@ -452,12 +442,15 @@ function toggleFaqStatus(faqId) {
     .then(data => {
         const badge = document.getElementById(`faqStatusBadge_${faqId}`);
         const icon = document.getElementById(`eyeIcon_${faqId}`);
-        if (data.current_status === 'Active') {
-            badge.innerHTML = '<span class="badge py-1 px-2 rounded-pill" style="background-color: #ECFDF5; color: #065F46; font-size: 12px; font-weight: 500;">Kích hoạt</span>';
-            icon.className = 'bi bi-eye-fill text-success fs-6';
-        } else {
-            badge.innerHTML = '<span class="badge py-1 px-2 rounded-pill" style="background-color: #F3F4F6; color: #4B5563; font-size: 12px; font-weight: 500;">Đang ẩn</span>';
-            icon.className = 'bi bi-eye-slash text-muted fs-6';
+        if (badge) {
+            if (data.current_status === 'Active') {
+                badge.innerHTML = '<span class="badge py-1 px-2.5 rounded-pill" style="background-color: #ECFDF5; color: #065F46; font-size: 13px; font-weight: 600;">Kích hoạt</span>';
+            } else {
+                badge.innerHTML = '<span class="badge py-1 px-2.5 rounded-pill" style="background-color: #F3F4F6; color: #4B5563; font-size: 13px; font-weight: 600;">Đang ẩn</span>';
+            }
+        }
+        if (icon) {
+            icon.className = data.current_status === 'Active' ? 'bi bi-eye-fill text-success fs-6' : 'bi bi-eye-slash text-muted fs-6';
         }
     })
     .catch(() => alert('Lỗi kết nối khi đổi trạng thái.'));

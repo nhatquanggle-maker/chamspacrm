@@ -64,7 +64,6 @@ def login_view(request):
 def register_view(request):
     """
     Xử lý Đăng ký tài khoản Khách hàng thành viên
-    Khớp 100% Figma: Node 188:27928
     """
     if request.user.is_authenticated:
         return redirect('home')
@@ -420,8 +419,10 @@ def admin_customer_list_view(request):
       - Modal Khóa / Mở khóa tài khoản an toàn (Soft Deactivation is_active=False)
       - Phân trang chuẩn 8 tài khoản / trang theo thiết kế Figma
     """
-    if not (request.user.is_superuser or request.user.is_staff):
-        messages.error(request, "Bạn không có quyền truy cập trang quản trị khách hàng.")
+    if not request.user.is_superuser:
+        messages.error(request, "Chỉ Quản trị viên (Admin) mới có quyền truy cập trang quản trị tài khoản khách hàng.")
+        if request.user.is_staff:
+            return redirect('dashboard:staff')
         return redirect('home')
 
     # Xử lý các thao tác POST từ Modal Form

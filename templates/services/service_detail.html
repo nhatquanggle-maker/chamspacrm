@@ -28,18 +28,20 @@
                     <div class="col-lg-6">
                         <div class="detail-main-photo-box">
                             <img src="{{ gallery_images.0|default:service.thumbnail_url|default:'/static/images/treatment_1.png' }}"
-                                 alt="{{ service.name }}" class="detail-main-photo-img" id="detailMainPhoto">
+                                alt="{{ service.name }}" class="detail-main-photo-img" id="detailMainPhoto">
                         </div>
 
                         <!-- 4 Gallery Thumbs -->
                         <div class="detail-gallery-thumbs">
                             {% for img_url in gallery_images %}
-                            <div class="detail-thumb-item {% if forloop.first %}active{% endif %}" onclick="changeDetailPhoto('{{ img_url }}', this)">
+                            <div class="detail-thumb-item {% if forloop.first %}active{% endif %}"
+                                onclick="changeDetailPhoto('{{ img_url }}', this)">
                                 <img src="{{ img_url }}" alt="Gallery {{ forloop.counter }}">
                             </div>
                             {% empty %}
                             <div class="detail-thumb-item active">
-                                <img src="{{ service.thumbnail_url|default:'/static/images/treatment_1.png' }}" alt="{{ service.name }}">
+                                <img src="{{ service.thumbnail_url|default:'/static/images/treatment_1.png' }}"
+                                    alt="{{ service.name }}">
                             </div>
                             {% endfor %}
                         </div>
@@ -47,7 +49,8 @@
                         <!-- Trust Badge Box (Figma Node 216-929) -->
                         <div class="detail-trust-box">
                             <i class="bi bi-shield-check"></i>
-                            <div>Kỹ thuật viên được đào tạo chuyên sâu • Không gian riêng tư chuẩn hoàng gia • Dầu thảo mộc tự nhiên an toàn</div>
+                            <div>Kỹ thuật viên được đào tạo chuyên sâu • Không gian riêng tư chuẩn hoàng gia • Dầu thảo
+                                mộc tự nhiên an toàn</div>
                         </div>
                     </div>
 
@@ -57,7 +60,8 @@
                         <h1 class="detail-service-title">{{ service.name }}</h1>
 
                         <div class="detail-specs-meta">
-                            <span><i class="bi bi-star-fill text-warning me-1"></i><strong>{{ service.rating_avg }}/5</strong> ({{ service.review_count }} đánh giá)</span>
+                            <span><i class="bi bi-star-fill text-warning me-1"></i><strong>{{ service.rating_avg
+                                    }}/5</strong> ({{ service.review_count }} đánh giá)</span>
                             <span><i class="bi bi-clock me-1"></i>{{ service.duration_minutes }} phút</span>
                         </div>
 
@@ -66,7 +70,9 @@
                         </div>
 
                         <p class="detail-desc-paragraph">
-                            {{ service.description|default:'Liệu trình chuyên sâu kết hợp thảo mộc thiên nhiên và kỹ thuật ấn huyệt Champa chính xác, giúp giải phóng căng cứng toàn thân, phục hồi tuần hoàn và mang lại trạng thái thư giãn sâu lắng.' }}
+                            {{ service.description|default:'Liệu trình chuyên sâu kết hợp thảo mộc thiên nhiên và kỹ
+                            thuật ấn huyệt Champa chính xác, giúp giải phóng căng cứng toàn thân, phục hồi tuần hoàn và
+                            mang lại trạng thái thư giãn sâu lắng.' }}
                         </p>
 
                         <!-- Quy trình trải nghiệm (Accordion) -->
@@ -83,7 +89,8 @@
                                     <i class="bi bi-chevron-down detail-step-chevron"></i>
                                 </div>
                                 <div class="detail-step-body">
-                                    Chuyên viên lắng nghe tình trạng cơ thể, xác định điểm căng cơ và mức áp lực phù hợp theo thể trạng riêng của quý khách.
+                                    Chuyên viên lắng nghe tình trạng cơ thể, xác định điểm căng cơ và mức áp lực phù hợp
+                                    theo thể trạng riêng của quý khách.
                                 </div>
                             </div>
 
@@ -96,7 +103,8 @@
                                     <i class="bi bi-chevron-down detail-step-chevron"></i>
                                 </div>
                                 <div class="detail-step-body">
-                                    Thưởng trà thảo mộc ấm, ngâm chân muối khoáng cổ truyền bài thuốc người Dao Đỏ và làm ấm cơ thể.
+                                    Thưởng trà thảo mộc ấm, ngâm chân muối khoáng cổ truyền bài thuốc người Dao Đỏ và
+                                    làm ấm cơ thể.
                                 </div>
                             </div>
 
@@ -109,7 +117,8 @@
                                     <i class="bi bi-chevron-down detail-step-chevron"></i>
                                 </div>
                                 <div class="detail-step-body">
-                                    Kỹ thuật ấn huyệt Champa chuyên sâu giải phóng căng cứng huyệt đạo cổ vai gáy và cột sống toàn diện.
+                                    Kỹ thuật ấn huyệt Champa chuyên sâu giải phóng căng cứng huyệt đạo cổ vai gáy và cột
+                                    sống toàn diện.
                                 </div>
                             </div>
 
@@ -122,7 +131,8 @@
                                     <i class="bi bi-chevron-down detail-step-chevron"></i>
                                 </div>
                                 <div class="detail-step-body">
-                                    Đặt và trượt đá bazan núi lửa tự nhiên hấp nóng, kết hợp tinh dầu trị liệu thẩm thấu sâu nuôi dưỡng làn da.
+                                    Đặt và trượt đá bazan núi lửa tự nhiên hấp nóng, kết hợp tinh dầu trị liệu thẩm thấu
+                                    sâu nuôi dưỡng làn da.
                                 </div>
                             </div>
                         </div>
@@ -146,7 +156,8 @@
             <div class="d-flex align-items-center justify-content-between mb-4">
                 <div>
                     <h3 class="font-serif fw-bold text-dark mb-1" style="font-size: 22px;">Đánh giá từ khách hàng</h3>
-                    <p class="text-muted small mb-0">Cảm nhận chân thực của khách hàng sau khi trải nghiệm liệu trình tại Cham Spa.</p>
+                    <p class="text-muted small mb-0">Cảm nhận chân thực của khách hàng sau khi trải nghiệm liệu trình
+                        tại Cham Spa.</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="fs-3 fw-bold font-serif text-dark">{{ service.rating_avg }}</span>
@@ -166,29 +177,32 @@
                     <div class="review-bubble-item">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="d-flex align-items-center gap-2">
-                                <div class="rounded-circle bg-white d-flex align-items-center justify-content-center border" style="width: 36px; height: 36px; color: var(--cham-primary-red); font-weight: 700;">
+                                <div class="rounded-circle bg-white d-flex align-items-center justify-content-center border"
+                                    style="width: 36px; height: 36px; color: var(--cham-primary-red); font-weight: 700;">
                                     {{ fb.customer.name|slice:":1"|default:"K" }}
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark small">{{ fb.customer.name|default:"Khách hàng" }}</div>
-                                    <div class="text-muted" style="font-size: 11px;">{{ fb.created_at|date:"d/m/Y" }}</div>
+                                    <div class="fw-bold text-dark small">{{ fb.customer.name|default:"Khách hàng" }}
+                                    </div>
+                                    <div class="text-muted" style="font-size: 11px;">{{ fb.created_at|date:"d/m/Y" }}
+                                    </div>
                                 </div>
                             </div>
                             <div class="text-warning small">
                                 {% for i in "12345"|make_list %}
-                                    {% if forloop.counter <= fb.rating %}
-                                        <i class="bi bi-star-fill"></i>
+                                {% if forloop.counter <= fb.rating %} <i class="bi bi-star-fill"></i>
                                     {% else %}
-                                        <i class="bi bi-star"></i>
+                                    <i class="bi bi-star"></i>
                                     {% endif %}
-                                {% endfor %}
+                                    {% endfor %}
                             </div>
                         </div>
 
                         {% if fb.tags %}
                         <div class="d-flex flex-wrap gap-1 mb-2">
                             {% for tag in fb.tags %}
-                            <span class="badge rounded-pill bg-white text-muted border" style="font-size: 11px;">{{ tag }}</span>
+                            <span class="badge rounded-pill bg-white text-muted border" style="font-size: 11px;">{{ tag
+                                }}</span>
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -197,7 +211,8 @@
 
                         {% if fb.reply %}
                         <div class="p-2 rounded-3 bg-white border small mt-2">
-                            <span class="fw-bold" style="color: var(--cham-primary-red); font-size: 11px;">Cham Spa phản hồi:</span>
+                            <span class="fw-bold" style="color: var(--cham-primary-red); font-size: 11px;">Cham Spa phản
+                                hồi:</span>
                             <div class="text-muted mt-1" style="font-size: 12px;">{{ fb.reply }}</div>
                         </div>
                         {% endif %}
@@ -206,7 +221,8 @@
                 {% empty %}
                 <div class="col-12 text-center py-4 text-muted">
                     <i class="bi bi-chat-heart fs-2 d-block mb-2 text-secondary"></i>
-                    Liệu trình này nhận được tỷ lệ hài lòng 99% từ khách hàng tại cơ sở. Hãy là người đầu tiên gửi đánh giá trực tuyến nhé!
+                    Liệu trình này nhận được tỷ lệ hài lòng 99% từ khách hàng tại cơ sở. Hãy là người đầu tiên gửi đánh
+                    giá trực tuyến nhé!
                 </div>
                 {% endfor %}
             </div>
@@ -217,7 +233,8 @@
         <div class="mt-5">
             <div class="d-flex align-items-center justify-content-between mb-4">
                 <h3 class="font-serif fw-bold text-dark mb-0" style="font-size: 24px;">Liệu trình cùng danh mục</h3>
-                <a href="{% url 'services:service_list' %}?category={{ service.category.slug }}" class="fw-bold text-decoration-none small" style="color: var(--cham-primary-red);">
+                <a href="{% url 'services:service_list' %}?category={{ service.category.slug }}"
+                    class="fw-bold text-decoration-none small" style="color: var(--cham-primary-red);">
                     Xem tất cả {{ service.category.name }} →
                 </a>
             </div>
@@ -227,16 +244,19 @@
                 <div class="col">
                     <div class="related-card">
                         <div style="height: 180px; overflow: hidden;">
-                            <img src="{{ r_svc.thumbnail_url|default:'/static/images/treatment_1.png' }}" alt="{{ r_svc.name }}" class="w-100 h-100 object-fit-cover">
+                            <img src="{{ r_svc.thumbnail_url|default:'/static/images/treatment_1.png' }}"
+                                alt="{{ r_svc.name }}" class="w-100 h-100 object-fit-cover">
                         </div>
                         <div class="p-3 d-flex flex-column flex-grow-1">
                             <h5 class="font-serif fw-bold text-dark mb-2" style="font-size: 17px;">{{ r_svc.name }}</h5>
                             <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
                                 <span><i class="bi bi-clock me-1"></i>{{ r_svc.duration_minutes }}p</span>
-                                <span class="fw-bold" style="color: var(--cham-primary-red); font-size: 16px;">{{ r_svc.formatted_price|default:r_svc.price_vnd }}</span>
+                                <span class="fw-bold" style="color: var(--cham-primary-red); font-size: 16px;">{{
+                                    r_svc.formatted_price|default:r_svc.price_vnd }}</span>
                             </div>
                             <div class="mt-auto d-grid">
-                                <a href="{% url 'services:service_detail_slug' slug=r_svc.slug %}" class="btn btn-sm btn-outline-dark rounded-3">
+                                <a href="{% url 'services:service_detail_slug' slug=r_svc.slug %}"
+                                    class="btn btn-sm btn-outline-dark rounded-3">
                                     Chi tiết liệu trình
                                 </a>
                             </div>

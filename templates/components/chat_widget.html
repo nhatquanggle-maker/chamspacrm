@@ -1,5 +1,5 @@
 {% load static %}
-{% if not user.is_staff and not user.is_superuser %}
+{% if not user.is_staff and not user.is_superuser and request.resolver_match.url_name != 'customer_chat' %}
 <!-- ========================================================================
      CHAM SPA FLOATING CHAT WIDGET (FIGMA COMPONENT)
      Module 2: Quản lý Boxchat tư vấn - Thành viên phụ trách: Thảo Ngọc
@@ -15,7 +15,9 @@
 <!-- Floating Chatbot Button (Figma Node: Chatbot button 58x58) -->
 <button id="chamChatbotFab" type="button" class="cham-chatbot-fab" title="Trò chuyện với Cham Spa"
     aria-label="Trò chuyện với Cham Spa">
-    <i class="bi bi-chat-dots-fill"></i>
+    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" style="display: block;">
+        <path d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+    </svg>
 </button>
 
 <!-- Cham Spa Chat Window -->
@@ -52,22 +54,22 @@
         </div>
     </div>
 
-    <!-- Khối chọn câu hỏi FAQ theo kịch bản (đồng bộ 100% từ Admin FAQ) -->
+    <!-- Khối chọn câu hỏi thường gặp (đồng bộ từ Admin FAQ) -->
     <div id="chamFaqBlocksPanel">
         <div class="cham-faq-header">
             <button type="button" id="chamFaqToggleBtn" class="cham-faq-toggle-btn" onclick="toggleWidgetFaqPanel();">
-                <span>📋 Kịch bản FAQ</span>
+                <span>💬 Câu hỏi thường gặp</span>
                 <span id="chamFaqCountBadge" style="opacity: 0.85;">(...)</span>
                 <span id="chamFaqChevron">▾</span>
             </button>
-            <button type="button" class="cham-staff-quick-btn" onclick="handleWidgetRequestStaff();">
+            <button type="button" id="widgetStaffQuickBtn" class="cham-staff-quick-btn"
+                onclick="handleWidgetRequestStaff();">
                 👩‍💼 Gặp nhân viên
             </button>
         </div>
         <div id="chamFaqBlocksBody">
-            <div id="chamFaqCatFilter"></div>
             <div id="chamFaqBlocksList">
-                <div class="text-muted text-center py-2" style="font-size: 11.5px;">Đang tải kịch bản hỏi đáp...</div>
+                <div class="text-muted text-center py-2" style="font-size: 11.5px;">Đang tải câu hỏi thường gặp...</div>
             </div>
         </div>
     </div>
@@ -107,10 +109,11 @@
     let widgetPollingTimer = null;
     let hasLoadedHistory = false;
     let historyRenderEpoch = 0;
+    let lastWidgetMsgSignature = null;
+    let isWidgetBotTyping = false;
 
     // Bật/tắt cửa sổ Chat
     let widgetFaqBlocks = [];
-    let activeWidgetFaqCat = 'Tất cả';
     let isFaqBlocksLoaded = false;
     let pendingFaqId = null;
 
@@ -143,56 +146,26 @@
         }
     };
 
-    window.filterWidgetFaqCat = function (cat) {
-        activeWidgetFaqCat = cat;
-        renderWidgetFaqPanel();
-    };
-
-    function renderWidgetFaqPanel(categoriesFromServer) {
-        const catContainer = document.getElementById('chamFaqCatFilter');
+    function renderWidgetFaqPanel() {
         const listContainer = document.getElementById('chamFaqBlocksList');
         const countBadge = document.getElementById('chamFaqCountBadge');
-        if (!catContainer || !listContainer) return;
+        if (!listContainer) return;
 
         if (countBadge) {
             countBadge.textContent = '(' + widgetFaqBlocks.length + ')';
         }
 
-        const uniqueCats = categoriesFromServer && categoriesFromServer.length
-            ? categoriesFromServer
-            : Array.from(new Set(widgetFaqBlocks.map(b => b.category || 'Chung')));
-
-        if (activeWidgetFaqCat !== 'Tất cả' && !uniqueCats.includes(activeWidgetFaqCat)) {
-            activeWidgetFaqCat = 'Tất cả';
-        }
-
-        catContainer.innerHTML = '';
-        ['Tất cả'].concat(uniqueCats).forEach(function (cat) {
-            const pill = document.createElement('button');
-            pill.type = 'button';
-            pill.className = 'cham-faq-cat-pill' + (activeWidgetFaqCat === cat ? ' active' : '');
-            pill.textContent = cat;
-            pill.addEventListener('click', function () {
-                window.filterWidgetFaqCat(cat);
-            });
-            catContainer.appendChild(pill);
-        });
-
-        const filtered = activeWidgetFaqCat === 'Tất cả'
-            ? widgetFaqBlocks
-            : widgetFaqBlocks.filter(b => (b.category || 'Chung') === activeWidgetFaqCat);
-
         listContainer.innerHTML = '';
-        if (!filtered.length) {
+        if (!widgetFaqBlocks.length) {
             const emptyDiv = document.createElement('div');
             emptyDiv.className = 'text-muted text-center py-2';
             emptyDiv.style.fontSize = '11.5px';
-            emptyDiv.textContent = 'Chưa có kịch bản FAQ đang hoạt động.';
+            emptyDiv.textContent = 'Hiện chưa có câu hỏi thường gặp nào.';
             listContainer.appendChild(emptyDiv);
             return;
         }
 
-        filtered.forEach(function (block) {
+        widgetFaqBlocks.forEach(function (block) {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'cham-faq-block-btn';
@@ -237,13 +210,13 @@
                 if (data && data.status === 'success') {
                     widgetFaqBlocks = data.blocks || [];
                     isFaqBlocksLoaded = true;
-                    renderWidgetFaqPanel(data.categories || []);
+                    renderWidgetFaqPanel();
                 }
             })
             .catch(() => {
                 const listContainer = document.getElementById('chamFaqBlocksList');
                 if (listContainer && !widgetFaqBlocks.length) {
-                    listContainer.innerHTML = '<div class="text-muted text-center py-2" style="font-size:11.5px;">Không tải được danh sách FAQ. Quý khách có thể nhập câu hỏi trực tiếp bên dưới.</div>';
+                    listContainer.innerHTML = '<div class="text-muted text-center py-2" style="font-size:11.5px;">Không tải được danh sách câu hỏi. Quý khách có thể nhập câu hỏi trực tiếp bên dưới.</div>';
                 }
             });
     }
@@ -271,6 +244,32 @@
         });
     }
 
+    function updateWidgetStaffConnectionUI(status) {
+        const staffBtn = document.getElementById('widgetStaffQuickBtn');
+        if (status === 'Đang xử lý') {
+            if (staffBtn) staffBtn.style.display = 'none';
+            if (statusIndicator) statusIndicator.textContent = 'Đã kết nối';
+        } else if (status === 'Đang chờ') {
+            if (staffBtn) {
+                staffBtn.style.display = '';
+                staffBtn.disabled = true;
+                staffBtn.textContent = 'Đang chờ nhân viên...';
+            }
+            if (statusIndicator) {
+                statusIndicator.innerHTML = `<i class="bi bi-clock-history text-warning"></i> Đang kết nối tư vấn viên...`;
+            }
+        } else {
+            if (staffBtn) {
+                staffBtn.style.display = '';
+                staffBtn.disabled = false;
+                staffBtn.textContent = '👩‍💼 Gặp nhân viên';
+            }
+            if (statusIndicator) {
+                statusIndicator.innerHTML = `<i class="bi bi-circle-fill text-success" style="font-size: 8px;"></i> Trực tuyến 24/7`;
+            }
+        }
+    }
+
     // =========================================================================
     // 1. TẢI LỊCH SỬ CHAT CỦA KHÁCH HÀNG TỪ CSDL (CHỈ KHI ĐÃ ĐĂNG NHẬP)
     // =========================================================================
@@ -290,12 +289,14 @@
 
                     if (data.conversation.status === 'Đang xử lý') {
                         isConnectedToStaff = true;
-                        statusIndicator.innerHTML = `<i class="bi bi-circle-fill text-success" style="font-size: 8px;"></i> Tư vấn viên trực tuyến`;
+                        updateWidgetStaffConnectionUI('Đang xử lý');
                         startWidgetPolling();
                     } else if (data.conversation.status === 'Đang chờ') {
                         isConnectedToStaff = true;
-                        statusIndicator.innerHTML = `<i class="bi bi-clock-history text-warning"></i> Đang kết nối tư vấn viên...`;
+                        updateWidgetStaffConnectionUI('Đang chờ');
                         startWidgetPolling();
+                    } else {
+                        updateWidgetStaffConnectionUI(data.conversation.status);
                     }
 
                     // Render lịch sử tin nhắn đã lưu trong CSDL
@@ -307,8 +308,14 @@
             .catch(err => console.error('Lỗi tải lịch sử chat:', err));
     }
 
+    function buildWidgetMsgSignature(messages) {
+        if (!messages || !messages.length) return '0';
+        return messages.map(m => `${m.id}:${m.message_type}:${(m.content || '').length}`).join('|');
+    }
+
     function renderHistoryMessages(messages) {
         historyRenderEpoch += 1;
+        lastWidgetMsgSignature = buildWidgetMsgSignature(messages);
         body.innerHTML = '';
         messages.forEach(msg => {
             if (msg.sender_type === 'Customer') {
@@ -365,24 +372,32 @@
             // 3. NẾU ĐANG CHAT BOT TỰ ĐỘNG HOẶC BẤM CÂU HỎI KỊCH BẢN FAQ (UC-2.1):
             // Khách đăng nhập -> Backend lưu DB; Khách vãng lai -> Backend KHÔNG lưu DB!
             const epochBeforeReply = historyRenderEpoch;
-            fetch('/chatbox/api/chat/bot-reply/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                    message: text,
-                    faq_id: reqFaqId,
-                    conversation_id: activeConvId
-                })
-            })
-                .then(res => {
+            const typingEl = showWidgetBotTyping();
+            isWidgetBotTyping = true;
+            const minDelay = new Promise(resolve => setTimeout(resolve, 800));
+
+            Promise.all([
+                fetch('/chatbox/api/chat/bot-reply/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        message: text,
+                        faq_id: reqFaqId,
+                        conversation_id: activeConvId
+                    })
+                }).then(res => {
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     return res.json();
-                })
-                .then(data => {
+                }),
+                minDelay
+            ])
+                .then(([data]) => {
+                    isWidgetBotTyping = false;
+                    if (typingEl && typingEl.parentNode) typingEl.remove();
                     if (data.status === 'success' && data.reply) {
                         if (data.conversation_id) {
                             activeConvId = data.conversation_id;
@@ -390,13 +405,17 @@
                         if (epochBeforeReply === historyRenderEpoch) {
                             appendBotBubble(data.reply, true);
                         }
-                    } else {
+                    } else if (epochBeforeReply === historyRenderEpoch) {
                         appendBotBubble(data.message || 'Xin lỗi quý khách, hiện chưa tìm thấy câu trả lời phù hợp.', true);
                     }
                 })
                 .catch(err => {
+                    isWidgetBotTyping = false;
+                    if (typingEl && typingEl.parentNode) typingEl.remove();
                     console.error('Lỗi phản hồi bot:', err);
-                    appendBotBubble('Xin lỗi quý khách, hệ thống đang bận. Quý khách vui lòng thử lại sau giây lát hoặc liên hệ hotline 0987 773 777 ạ.', true);
+                    if (epochBeforeReply === historyRenderEpoch) {
+                        appendBotBubble('Xin lỗi quý khách, hệ thống đang bận. Quý khách vui lòng thử lại sau giây lát hoặc liên hệ hotline 0987 773 777 ạ.', true);
+                    }
                 });
         });
     }
@@ -404,6 +423,16 @@
     // =========================================================================
     // 3. CÁC HÀM HIỂN THỊ BONG BÓNG CHAT
     // =========================================================================
+    function showWidgetBotTyping() {
+        const el = document.createElement('div');
+        el.className = 'p-2 px-3 rounded-4 bg-white shadow-sm align-self-start border text-muted';
+        el.style.cssText = 'max-width: 75%; font-size: 12.5px; border-bottom-left-radius: 4px; border-color: var(--cham-border-subtle) !important;';
+        el.innerHTML = '<span class="spinner-grow spinner-grow-sm me-1" style="width: 6px; height: 6px; color: var(--cham-gold);" role="status"></span><span class="spinner-grow spinner-grow-sm me-1" style="width: 6px; height: 6px; color: var(--cham-gold); animation-delay: 0.15s;" role="status"></span><span class="spinner-grow spinner-grow-sm me-2" style="width: 6px; height: 6px; color: var(--cham-gold); animation-delay: 0.3s;" role="status"></span>Trợ lý đang soạn tin...';
+        body.appendChild(el);
+        body.scrollTop = body.scrollHeight;
+        return el;
+    }
+
     function appendUserBubble(text, scroll, attachmentUrl, attachmentName) {
         const userBubble = document.createElement('div');
         userBubble.className = 'p-2 px-3 rounded-4 text-white align-self-end shadow-sm';
@@ -432,7 +461,7 @@
                 <i class="bi bi-stars"></i> Trợ lý Cham Spa
             </div>
             ${mediaHtml}
-            ${text ? `<div>${escapeHtml(text)}</div>` : ''}
+            ${text ? `<div>${formatBotRichText(text)}</div>` : ''}
         `;
         body.appendChild(botBubble);
         if (scroll) body.scrollTop = body.scrollHeight;
@@ -495,8 +524,18 @@
                 if (data.status === 'success') {
                     activeConvId = data.conversation_id;
                     isConnectedToStaff = true;
-                    statusIndicator.innerHTML = `<i class="bi bi-clock-history text-warning"></i> Đang chờ nhân viên tiếp nhận...`;
+                    updateWidgetStaffConnectionUI('Đang chờ');
                     appendBotBubble('Yêu cầu của quý khách đã được chuyển tới chuyên viên tư vấn Cham Spa. Chuyên viên sẽ tiếp nhận và phản hồi ngay trong giây lát ạ!', true);
+                    startWidgetPolling();
+                } else if (data.status === 'already_connected') {
+                    activeConvId = data.conversation_id;
+                    isConnectedToStaff = true;
+                    updateWidgetStaffConnectionUI('Đang xử lý');
+                    startWidgetPolling();
+                } else if (data.status === 'already_waiting') {
+                    activeConvId = data.conversation_id;
+                    isConnectedToStaff = true;
+                    updateWidgetStaffConnectionUI('Đang chờ');
                     startWidgetPolling();
                 }
             })
@@ -522,23 +561,45 @@
     function startWidgetPolling() {
         if (widgetPollingTimer) clearInterval(widgetPollingTimer);
         widgetPollingTimer = setInterval(function () {
+            if (isWidgetBotTyping) return;
             if (activeConvId && IS_USER_LOGGED_IN) {
-                fetch(`/chatbox/api/conversations/${activeConvId}/messages/`)
-                    .then(res => res.json())
+                const targetConvId = activeConvId;
+                fetch(`/chatbox/api/conversations/${targetConvId}/messages/`)
+                    .then(res => res.ok ? res.json() : null)
                     .then(data => {
-                        if (data && data.staff_info) {
-                            statusIndicator.innerHTML = `<i class="bi bi-circle-fill text-success" style="font-size: 8px;"></i> Tư vấn viên trực tuyến`;
-                        }
-                        if (data && data.messages) {
-                            const currentMsgCount = body.querySelectorAll('.p-2').length;
-                            if (data.messages.length !== currentMsgCount) {
+                        if (!data || Number(targetConvId) !== Number(activeConvId)) return;
+                        if (data.messages && data.messages.length > 0) {
+                            const sig = buildWidgetMsgSignature(data.messages);
+                            if (sig !== lastWidgetMsgSignature) {
                                 renderHistoryMessages(data.messages);
                             }
+                        }
+                        if (data.status === 'Kết thúc') {
+                            isConnectedToStaff = false;
+                            activeConvId = null;
+                            clearInterval(widgetPollingTimer);
+                            widgetPollingTimer = null;
+                            updateWidgetStaffConnectionUI('Kết thúc');
+                            return;
+                        }
+                        if (data.status === 'Đang xử lý') {
+                            updateWidgetStaffConnectionUI('Đang xử lý');
+                        } else if (data.status === 'Đang chờ') {
+                            updateWidgetStaffConnectionUI('Đang chờ');
                         }
                     })
                     .catch(() => { });
             }
-        }, 2000); // Đồng bộ phản hồi mỗi 2 giây, không bị delay
+        }, 1000); // Đồng bộ tin nhắn mỗi 1 giây cho cảm giác chat trực tiếp mượt mà
+    }
+
+    function formatBotRichText(text) {
+        let safe = escapeHtml(text || '');
+        safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        safe = safe.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        safe = safe.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-decoration-underline" style="color: var(--cham-red);">$1</a>');
+        safe = safe.replace(/\n/g, '<br>');
+        return safe;
     }
 
     function escapeHtml(text) {

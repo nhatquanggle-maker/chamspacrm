@@ -197,6 +197,11 @@
                     </div>
                 </div>
 
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btnEndSupport" type="button" class="btn-end-support" onclick="handleEndSupport()" {% if not conversations %}disabled{% endif %}>
+                        <i class="bi bi-slash-circle"></i> Kết thúc hỗ trợ
+                    </button>
+                </div>
             </div>
 
             <!-- Accordion tóm tắt tương tác Chatbot trước đó (ẢNH 1) -->
@@ -339,6 +344,7 @@
     let currentQueueTab = "{{ initial_tab|default:'waiting'|escapejs }}";
     let isCustomFilterActive = false;
     let queuePollingTimer = null;
+    let lastStaffMsgSignature = null;
     const STAFF_NAME = "{{ current_staff.name|default:current_staff.username|escapejs }}";
     const CSRF_TOKEN = "{{ csrf_token|escapejs }}";
 
@@ -434,12 +440,18 @@
         tagsEl.innerHTML = pills.join('');
     }
 
+    function buildStaffMsgSignature(messages) {
+        if (!messages || !messages.length) return '0';
+        return messages.map(m => `${m.id}:${m.message_type}:${(m.content || '').length}`).join('|');
+    }
+
     // =============================================================================
     // 1. CHỌN CUỘC HỘI THOẠI TRONG HÀNG CHỜ
     // =============================================================================
     function selectQueueConversation(convId) {
         if (!convId) return;
         currentActiveConvId = parseInt(convId, 10);
+        lastStaffMsgSignature = null;
 
         // Tô màu active card
         document.querySelectorAll('.queue-card').forEach(el => el.classList.remove('active'));
@@ -451,11 +463,21 @@
             document.getElementById('roomCustomerAvatar').textContent = name.substring(0, 2).toUpperCase();
         }
 
-        fetch(`/chatbox/api/conversations/${currentActiveConvId}/messages/`, {
+        const targetConvId = currentActiveConvId;
+        fetch(`/chatbox/api/conversations/${targetConvId}/messages/`, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-            .then(res => res.json())
-            .then(data => {
+            .then(async res => {
+                const data = await res.json().catch(() => ({}));
+                return { ok: res.ok, status: res.status, data };
+            })
+            .then(({ ok, status, data }) => {
+                if (Number(targetConvId) !== Number(currentActiveConvId)) return;
+                if (!ok) {
+                    setComposerEnabled(false, data.error || 'Không thể truy cập cuộc hội thoại này.', false);
+                    return;
+                }
+
                 if (data.customer_info) {
                     const custName = data.customer_info.name || 'Khách vãng lai';
                     document.getElementById('roomCustomerName').textContent = custName;
@@ -467,14 +489,17 @@
 
                 const alertBar = document.getElementById('assignedOtherAlertBar');
                 if (data.is_assigned_to_other) {
-                    alertBar.style.display = 'flex';
-                    document.getElementById('assignedOtherStaffName').textContent = data.assigned_staff_name || 'Nhân viên khác';
+                    if (alertBar) {
+                        alertBar.style.display = 'flex';
+                        const otherEl = document.getElementById('assignedOtherStaffName');
+                        if (otherEl) otherEl.textContent = data.assigned_staff_name || 'Nhân viên khác';
+                    }
                     setComposerEnabled(false, `Phiên chat do [${data.assigned_staff_name}] tiếp nhận. Chế độ Chỉ xem (Read-only).`, false);
                 } else if (data.status === 'Kết thúc') {
-                    alertBar.style.display = 'none';
+                    if (alertBar) alertBar.style.display = 'none';
                     setComposerEnabled(false, 'Phiên tư vấn này đã kết thúc.', false);
                 } else {
-                    alertBar.style.display = 'none';
+                    if (alertBar) alertBar.style.display = 'none';
                     setComposerEnabled(true, 'Nhập nội dung tư vấn...', true);
                 }
 
@@ -510,6 +535,7 @@
 
     function renderDirectMessages(messages, createdAt) {
         const stream = document.getElementById('chatMessagesStream');
+        lastStaffMsgSignature = buildStaffMsgSignature(messages);
         if (!messages || messages.length === 0) {
             stream.innerHTML = `
                 <div class="time-divider-badge">${formatTimeDivider(createdAt, [])}</div>
@@ -526,59 +552,47 @@
         messages.forEach(msg => {
             const timeStr = msg.formatted_time ? msg.formatted_time.split(' - ')[0] : '';
 
+            let mediaHtml = '';
+            if (msg.attachment_url) {
+                const isVid = (msg.attachment_name && (msg.attachment_name.endsWith('.mp4') || msg.attachment_name.endsWith('.mov') || msg.attachment_name.endsWith('.webm'))) || (msg.message_type === 'FILE' && msg.attachment_url.match(/\.(mp4|mov|webm)$/i));
+                if (isVid) {
+                    mediaHtml += `
+                    <div class="chat-bubble-media mb-2">
+                        <video controls class="rounded-3 w-100" style="max-height: 220px;"><source src="${escapeHtml(msg.attachment_url)}"></video>
+                    </div>`;
+                } else {
+                    mediaHtml += `
+                    <div class="chat-bubble-media mb-2">
+                        <a href="${escapeHtml(msg.attachment_url)}" target="_blank">
+                            <img src="${escapeHtml(msg.attachment_url)}" alt="${escapeHtml(msg.attachment_name || 'Đính kèm')}" style="max-height: 200px; object-fit: cover;">
+                        </a>
+                    </div>`;
+                }
+            }
+
             if (msg.sender_type === 'Customer') {
                 html += `
                 <div class="chat-row cust-side">
                     <div class="chat-sender-header">${escapeHtml(msg.sender_name || 'Khách hàng')} - Khách hàng</div>
                     <div class="chat-bubble-box">
-                        ${escapeHtml(msg.content)}
+                        ${mediaHtml}
+                        ${msg.content ? `<div>${escapeHtml(msg.content)}</div>` : ''}
                         <div class="bubble-meta-time">${escapeHtml(timeStr)}</div>
                     </div>
                 </div>
             `;
             } else {
                 const isBot = msg.sender_type === 'Bot';
-                const isManager = msg.content && msg.content.startsWith('[Quản lý');
-                let senderLabel = '';
-                if (isBot) {
-                    senderLabel = escapeHtml(msg.sender_name || 'Trợ lý ảo Cham Spa');
-                } else if (isManager) {
-                    senderLabel = 'Quản lý (Admin) · Can thiệp';
-                } else {
-                    senderLabel = `${escapeHtml(msg.sender_name || STAFF_NAME)} - Nhân viên tư vấn`;
-                }
-
-                let mediaHtml = '';
-                if (msg.attachment_url) {
-                    const isVid = (msg.attachment_name && (msg.attachment_name.endsWith('.mp4') || msg.attachment_name.endsWith('.mov') || msg.attachment_name.endsWith('.webm'))) || (msg.message_type === 'FILE' && msg.attachment_url.match(/\.(mp4|mov|webm)$/i));
-                    if (isVid) {
-                        mediaHtml += `
-                        <div class="chat-bubble-media mb-2">
-                            <video controls class="rounded-3 w-100" style="max-height: 220px;"><source src="${escapeHtml(msg.attachment_url)}"></video>
-                        </div>`;
-                    } else {
-                        mediaHtml += `
-                        <div class="chat-bubble-media mb-2">
-                            <a href="${escapeHtml(msg.attachment_url)}" target="_blank">
-                                <img src="${escapeHtml(msg.attachment_url)}" alt="${escapeHtml(msg.attachment_name || 'Đính kèm')}" style="max-height: 200px; object-fit: cover;">
-                            </a>
-                        </div>`;
-                    }
-                }
-                if (msg.attachment_name) {
-                    mediaHtml += `
-                    <div class="chat-attachment-chip">
-                        <i class="bi bi-file-earmark-text-fill"></i>
-                        <span>${escapeHtml(msg.attachment_name)}${msg.attachment_size ? ' • ' + escapeHtml(msg.attachment_size) : ''}</span>
-                    </div>`;
-                }
+                const senderLabel = isBot
+                    ? escapeHtml(msg.sender_name || 'Trợ lý ảo Cham Spa')
+                    : 'Tư vấn viên Cham Spa - Nhân viên tư vấn';
 
                 html += `
                 <div class="chat-row staff-side">
                     <div class="chat-sender-header">${senderLabel}</div>
                     <div class="chat-bubble-box">
-                        ${escapeHtml(msg.content)}
                         ${mediaHtml}
+                        ${msg.content ? `<div>${escapeHtml(msg.content)}</div>` : ''}
                         <div class="bubble-meta-time">${escapeHtml(timeStr)}</div>
                     </div>
                 </div>
@@ -623,7 +637,7 @@
         const row = document.createElement('div');
         row.className = 'chat-row staff-side';
         row.innerHTML = `
-            <div class="chat-sender-header">${escapeHtml(STAFF_NAME || 'Nhân viên tư vấn')} - Nhân viên tư vấn</div>
+            <div class="chat-sender-header">Tư vấn viên Cham Spa - Nhân viên tư vấn</div>
             <div class="chat-bubble-box">
                 ${mediaHtml}
                 ${content ? `<div>${escapeHtml(content)}</div>` : ''}
@@ -693,10 +707,16 @@
             const sendData = await sendRes.json();
             if (!sendRes.ok || sendData.status !== 'success') {
                 alert(sendData.error || 'Có lỗi xảy ra khi gửi tệp đính kèm.');
+                selectQueueConversation(currentActiveConvId);
+            } else if (sendData.conversation_status === 'Đang xử lý' && currentQueueTab === 'waiting') {
+                updateRoomStatusBadge('Đang xử lý');
+                activateQueueTabButton('processing');
+                refreshQueueList();
             }
         } catch (err) {
             console.error(err);
             alert('Lỗi kết nối khi tải tệp.');
+            selectQueueConversation(currentActiveConvId);
         }
     }
 
@@ -714,7 +734,8 @@
         input.focus();
         appendLocalStaffMessage(content);
 
-        fetch(`/chatbox/api/conversations/${currentActiveConvId}/messages/`, {
+        const targetConvId = currentActiveConvId;
+        fetch(`/chatbox/api/conversations/${targetConvId}/messages/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -723,21 +744,33 @@
             },
             body: JSON.stringify({ content: content, message_type: 'TEXT' })
         })
-            .then(res => {
-                if (res.status === 403) {
-                    return res.json().then(errData => {
-                        alert(errData.error || 'Phiên chat này đã do nhân viên khác tiếp nhận!');
-                    });
-                }
-                return res.json();
+            .then(async res => {
+                const data = await res.json().catch(() => ({}));
+                return { ok: res.ok, status: res.status, data };
             })
-            .then(data => {
-                if (data && data.errors) {
-                    const firstErr = Object.values(data.errors).flat()[0];
-                    if (firstErr) alert(firstErr);
+            .then(({ ok, status, data }) => {
+                if (!ok) {
+                    if (status === 403) {
+                        alert(data.error || 'Phiên chat này đã do nhân viên khác tiếp nhận!');
+                    } else if (data && data.errors) {
+                        const firstErr = Object.values(data.errors).flat()[0];
+                        if (firstErr) alert(firstErr);
+                    } else {
+                        alert(data.error || 'Không thể gửi tin nhắn.');
+                    }
+                    selectQueueConversation(targetConvId);
+                    return;
+                }
+                if (data.conversation_status === 'Đang xử lý' && currentQueueTab === 'waiting') {
+                    updateRoomStatusBadge('Đang xử lý');
+                    activateQueueTabButton('processing');
+                    refreshQueueList();
                 }
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error(err);
+                selectQueueConversation(targetConvId);
+            });
     }
 
     function handleKeydownDirect(e) {
@@ -908,10 +941,12 @@
     function buildFilterQueryUrl() {
         const kw = document.getElementById('filterSearchInput')?.value.trim() || '';
         const dateVal = document.getElementById('filterDateInput')?.value || '';
+        const slotVal = document.getElementById('filterSlotSelect')?.value || '';
         const statusVal = document.getElementById('filterStatusSelect')?.value || '';
         const params = new URLSearchParams({ tab: 'all' });
         if (kw) params.set('search', kw);
         if (dateVal) params.set('date', dateVal);
+        if (slotVal) params.set('slot', slotVal);
         if (statusVal) params.set('status', statusVal);
         return `/chatbox/api/conversations/?${params.toString()}`;
     }
@@ -1002,11 +1037,12 @@
     function handleApplyFilters() {
         const kw = document.getElementById('filterSearchInput')?.value.trim() || '';
         const dateVal = document.getElementById('filterDateInput')?.value || '';
+        const slotVal = document.getElementById('filterSlotSelect')?.value || '';
         const statusVal = document.getElementById('filterStatusSelect')?.value || '';
 
-        isCustomFilterActive = Boolean(kw || dateVal || statusVal);
+        isCustomFilterActive = Boolean(kw || dateVal || slotVal || statusVal);
 
-        const statusToTab = { 'Đang chờ': 'waiting', 'Đang xử lý': 'processing', 'Kết thúc': 'closed' };
+        const statusToTab = { 'Đang chờ': 'waiting', 'Đang xử lý': 'processing' };
         document.querySelectorAll('.queue-tab-btn').forEach(btn => {
             const targetTab = statusToTab[statusVal];
             btn.classList.toggle('active', Boolean(targetTab && btn.getAttribute('data-tab') === targetTab));
@@ -1031,23 +1067,35 @@
         let queuePollTick = 0;
         queuePollingTimer = setInterval(() => {
             queuePollTick++;
-            if (queuePollTick % 3 === 0) {
+            if (queuePollTick % 5 === 0) {
                 refreshQueueList();
             }
             if (currentActiveConvId) {
-                fetch(`/chatbox/api/conversations/${currentActiveConvId}/messages/`)
-                    .then(res => res.json())
-                    .then(data => {
+                const targetConvId = currentActiveConvId;
+                fetch(`/chatbox/api/conversations/${targetConvId}/messages/`)
+                    .then(async res => {
+                        const data = await res.json().catch(() => ({}));
+                        return { ok: res.ok, status: res.status, data };
+                    })
+                    .then(({ ok, status, data }) => {
+                        if (Number(targetConvId) !== Number(currentActiveConvId)) return;
+                        if (!ok) {
+                            if (status === 403 || status === 404) {
+                                setComposerEnabled(false, data.error || 'Phiên hội thoại đã được chuyển giao hoặc đóng.', false);
+                                refreshQueueList();
+                            }
+                            return;
+                        }
                         if (data && data.messages) {
-                            const currentCount = document.querySelectorAll('#chatMessagesStream .chat-row').length;
-                            if (data.messages.length !== currentCount) {
+                            const sig = buildStaffMsgSignature(data.messages);
+                            if (sig !== lastStaffMsgSignature) {
                                 renderDirectMessages(data.messages, data.created_at);
                             }
                         }
                     })
                     .catch(() => { });
             }
-        }, 2000); // Tự động đồng bộ tin nhắn mỗi 2 giây, không bị delay
+        }, 1000); // Tự động đồng bộ tin nhắn mỗi 1 giây cho mượt mà
     }
 
     function escapeHtml(text) {

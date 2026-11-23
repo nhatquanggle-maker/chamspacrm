@@ -339,7 +339,16 @@ def staff_membership_lookup_view(request):
     """
     user = request.user
 
-    # Kiểm tra phân quyền: Chỉ Nhân viên (Staff) hoặc Quản lý (Admin) mới được truy cập
+    # Kiểm tra phân quyền: Đường dẫn /membership/admin/ chỉ dành riêng cho Admin (Superuser)
+    if '/admin/' in request.path and not user.is_superuser:
+        if request.method == 'POST':
+            raise PermissionDenied("Chỉ Quản trị viên (Admin) mới có quyền truy cập.")
+        messages.error(request, "Chỉ Quản trị viên (Admin) mới có quyền truy cập trang Quản trị Hội viên.")
+        if user.is_staff:
+            return redirect('dashboard:staff')
+        return redirect('membership:my_card')
+
+    # Các đường dẫn tra cứu nội bộ (/membership/lookup/): Nhân viên (Staff) hoặc Quản lý (Admin)
     if not (user.is_staff or user.is_superuser):
         if request.method == 'POST':
             raise PermissionDenied("Bạn không có quyền điều chỉnh điểm hoặc hạng thẻ hội viên.")

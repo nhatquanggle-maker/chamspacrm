@@ -514,15 +514,68 @@ def reset_and_seed_demo():
                 reason_description=reason,
             )
 
-        # 11. Thông báo hệ thống (7 thông báo tinh gọn, phân loại rõ không trùng)
+        # 11. Thông báo hệ thống & Đợt phát hành Admin (TB-...) + Thông báo Staff
         Notification.objects.all().delete()
+        ts_base = int(now.timestamp())
+
+        # 11a. Các đợt phát hành do Admin quản lý (notification_code dạng TB-<timestamp>-... để hiển thị trên /marketing/admin/notifications/)
+        admin_broadcasts = [
+            (
+                f'TB-{ts_base - 7200}-KM01',
+                customers,
+                'Tuần Lễ Chăm Sóc Da Sen Vàng - Ưu Đãi Hội Viên',
+                'Cham Spa dành tặng ưu đãi đặc biệt cho liệu trình chăm sóc da chuyên sâu trong tuần này.',
+                promos[2],
+                'Web, Email',
+            ),
+            (
+                f'TB-{ts_base - 5400}-NB01',
+                staff_list,
+                'Thông báo điều phối nhân sự & quy trình đón khách cuối tuần',
+                'Ban Quản lý đề nghị bộ phận lễ tân và CSKH chuẩn bị trà thảo mộc và rà soát phòng VIP trước 09:00 sáng.',
+                None,
+                'Web',
+            ),
+            (
+                f'TB-{ts_base - 3600}-VIP1',
+                [customers[0]],
+                'Chúc mừng chị Phạm Bảo Ngọc đạt đặc quyền Kim Cương',
+                'Cảm ơn chị đã đồng hành cùng Cham Spa. Chị được giảm 15% cho mọi liệu trình trong năm nay.',
+                None,
+                'Web, Email',
+            ),
+            (
+                f'TB-{ts_base - 1800}-TV01',
+                [staff_primary],
+                'Phân công hỗ trợ tư vấn khách VIP trên Livechat',
+                'Nhờ bạn ưu tiên tiếp nhận phiên tư vấn gói Trị Liệu Vai Gáy trên Livechat cho khách hàng Phạm Bảo Ngọc.',
+                None,
+                'Web',
+            ),
+        ]
+        for b_code, recipients, title, content, promo, channels in admin_broadcasts:
+            for idx, recipient in enumerate(recipients, start=1):
+                Notification.objects.create(
+                    notification_code=f'{b_code}-{idx}',
+                    user=recipient,
+                    title=title,
+                    content=content,
+                    promotion=promo,
+                    delivery_channels=channels,
+                    status='Đã gửi',
+                )
+
+        # 11b. Thông báo nghiệp vụ riêng cho Khách hàng & Staff (lọc theo vai trò)
         notif_specs = [
-            ('KM-1001', customers[0], 'Ưu Đãi Chào Thành Viên - Giảm 20%', 'Nhập mã CHAM20NEW khi đặt lịch Massage Body để được giảm 20% (tối đa 300.000đ).', promos[0]),
             ('APPT-1001', customers[0], 'Nhắc lịch hẹn #LH1006 hôm nay lúc 17:00', 'Cham Spa trân trọng nhắc chị Phạm Bảo Ngọc lịch trải nghiệm Massage Chân lúc 17:00 hôm nay.', None),
             ('KN-1001', customers[0], 'Khiếu nại #KN-1004 đã được xử lý xong', 'Cham Spa đã hoàn tất xử lý phiếu khiếu nại #KN-1004 và gửi tặng voucher DENBU200K vào ví của bạn.', None),
             ('DG-1001', customers[1], 'Cham Spa đã phản hồi đánh giá #FB-1002', 'Cảm ơn chị Trần Gia Hân đã đánh giá 4 sao. Mời chị xem phản hồi từ đại diện Cham Spa.', None),
             ('SYS-1001', customers[2], 'Cập nhật hồ sơ sức khỏe định kỳ', 'Vui lòng rà soát lại thông số huyết áp trong mục Hồ sơ sức khỏe trước ca trị liệu tiếp theo.', None),
-            ('APPT-STAFF-1', staff_primary, 'Có lịch hẹn mới #LH1006 chờ xác nhận hôm nay', 'Khách hàng Phạm Bảo Ngọc vừa đặt lịch #LH1006 khung giờ 17:00 hôm nay.', None),
+            # Thông báo Staff nhận được (chia đủ 3 nhóm: Khiếu nại, Tư vấn, Nội bộ)
+            ('TB-COMP-1001', staff_primary, 'Phân công xử lý phiếu khiếu nại #KN-1001', 'Quản lý đã phân công bạn phụ trách kiểm tra và phản hồi phiếu khiếu nại của khách hàng Trần Gia Hân.', None),
+            ('TB-COMP-1002', staff_primary, 'Phiếu khiếu nại #KN-1003 đang chờ liên hệ lại', 'Phiếu khiếu nại #KN-1003 của khách hàng Hoàng Bảo Long cần liên hệ xác nhận trong hôm nay.', None),
+            ('CHAT-STAFF-1002', staff_primary, 'Khách hàng Trần Gia Hân đang chờ tư vấn trực tuyến', 'Có phiên trò chuyện mới trên Livechat cần nhân viên CSKH tiếp nhận hỗ trợ.', None),
+            ('SYS-STAFF-1002', staff_primary, 'Cập nhật chương trình ưu đãi tháng mới', 'Hệ thống đã kích hoạt mã CHAM20NEW giảm 20%, nhân viên lưu ý tư vấn cho khách khi đặt dịch vụ.', None),
             ('KN-ADMIN-1', admin_user, 'Phiếu khiếu nại mới #KN-1001 cần phân công', 'Khách Trần Gia Hân vừa gửi phiếu khiếu nại #KN-1001 trạng thái Chờ phân công.', None),
         ]
         for ncode, u, title, content, promo in notif_specs:

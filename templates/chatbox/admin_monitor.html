@@ -75,7 +75,7 @@
                 </div>
 
                 <!-- Danh sách Card hội thoại -->
-                <div class="p-2 overflow-y-auto" id="convCardsContainer" style="max-height: 680px; min-height: 480px;">
+                <div class="p-2 overflow-y-auto" id="convCardsContainer" style="max-height: 430px; min-height: 320px;">
                     <!-- Danh sách Đang xử lý -->
                     <div id="tabProcessingList" class="conv-tab-pane">
                         {% for conv in processing_conversations %}
@@ -83,33 +83,31 @@
                             class="text-decoration-none text-dark d-block mb-2 conv-card-link"
                             onclick="selectConversation({{ conv.id }}, event)">
                             <div class="conv-card p-3 rounded-3 cursor-pointer {% if active_conv and active_conv.id == conv.id %}active-card{% endif %}"
-                                data-conv-id="{{ conv.id }}" data-name="{{ conv.customer.name|lower }}"
-                                data-phone="{{ conv.customer.phone }}" style="cursor: pointer;">
+                                data-conv-id="{{ conv.id }}" data-name="{% if conv.customer %}{{ conv.customer.name|default:conv.customer.username|lower }}{% else %}khách vãng lai{% endif %}"
+                                data-phone="{% if conv.customer %}{{ conv.customer.phone|default:'' }}{% endif %}" style="cursor: pointer;">
                                 <div class="d-flex align-items-center gap-2 mb-2">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0"
                                         style="width: 32px; height: 32px; background-color: #781A24; font-size: 12.5px;">
-                                        {{ conv.customer.name|default:"KH"|make_list|first|upper }}
+                                        {% if conv.customer %}{{ conv.customer.name|default:conv.customer.username|make_list|first|upper }}{% else %}KH{% endif %}
                                     </div>
                                     <div class="flex-grow-1 overflow-hidden">
-                                        <div class="fw-bold text-dark text-truncate" style="font-size: 13.5px;">{{
-                                            conv.customer.name }}</div>
-                                        <div class="text-muted" style="font-size: 11.5px;">+84 {{
-                                            conv.customer.phone|slice:"1:" }}</div>
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 13.5px;">{% if conv.customer %}{{ conv.customer.name|default:conv.customer.username }}{% else %}Khách vãng lai{% endif %}</div>
+                                        <div class="text-muted" style="font-size: 11.5px;">{% if conv.customer and conv.customer.phone %}+84 {{ conv.customer.phone|slice:"1:" }}{% else %}Khách hàng{% endif %}</div>
                                     </div>
                                 </div>
 
                                 <div class="mb-2">
                                     <span class="badge py-1 px-2 rounded-pill"
                                         style="background-color: #FFF1F2; color: #9F1239; font-size: 11px; font-weight: 500;">
-                                        Đang chat với Staff: {{ conv.staff.name|default:"Lê Thị Mai" }}
+                                        {% if conv.staff %}Đang chat với Staff: {{ conv.staff.name|default:conv.staff.username }}{% else %}Đang xử lý{% endif %}
                                     </span>
                                 </div>
 
                                 <div class="d-flex justify-content-between align-items-center" style="font-size: 12px;">
                                     <div class="text-muted text-truncate" style="max-width: 170px;">
-                                        Nhu cầu: {{ conv.customer_tag|default:"Trị liệu vai gáy & Đặt lịch" }}
+                                        Nhu cầu: {{ conv.customer_tag|default:"Tư vấn dịch vụ" }}
                                     </div>
-                                    <div class="text-muted" style="font-size: 11px;">2 phút trước</div>
+                                    <div class="text-muted" style="font-size: 11px;">{{ conv.created_at|date:"H:i · d/m" }}</div>
                                 </div>
                             </div>
                         </a>
@@ -126,18 +124,16 @@
                             class="text-decoration-none text-dark d-block mb-2 conv-card-link"
                             onclick="selectConversation({{ conv.id }}, event)">
                             <div class="conv-card p-3 rounded-3 cursor-pointer {% if active_conv and active_conv.id == conv.id %}active-card{% endif %}"
-                                data-conv-id="{{ conv.id }}" data-name="{{ conv.customer.name|lower }}"
-                                data-phone="{{ conv.customer.phone }}" style="cursor: pointer;">
+                                data-conv-id="{{ conv.id }}" data-name="{% if conv.customer %}{{ conv.customer.name|default:conv.customer.username|lower }}{% else %}khách vãng lai{% endif %}"
+                                data-phone="{% if conv.customer %}{{ conv.customer.phone|default:'' }}{% endif %}" style="cursor: pointer;">
                                 <div class="d-flex align-items-center gap-2 mb-2">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
                                         style="width: 38px; height: 38px; background-color: #FEF3C7; color: #92400E; font-size: 13px;">
-                                        {{ conv.customer.name|default:"KH"|slice:":2"|upper }}
+                                        {% if conv.customer %}{{ conv.customer.name|default:conv.customer.username|slice:":2"|upper }}{% else %}KH{% endif %}
                                     </div>
                                     <div class="flex-grow-1 overflow-hidden">
-                                        <div class="fw-bold text-dark text-truncate" style="font-size: 14.5px;">{{
-                                            conv.customer.name }}</div>
-                                        <div class="text-muted" style="font-size: 12px;">+84 {{
-                                            conv.customer.phone|slice:"1:" }}</div>
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 14.5px;">{% if conv.customer %}{{ conv.customer.name|default:conv.customer.username }}{% else %}Khách vãng lai{% endif %}</div>
+                                        <div class="text-muted" style="font-size: 12px;">{% if conv.customer and conv.customer.phone %}+84 {{ conv.customer.phone|slice:"1:" }}{% else %}Khách hàng{% endif %}</div>
                                     </div>
                                 </div>
                                 <div class="mb-2">
@@ -147,9 +143,8 @@
                                     </span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center" style="font-size: 12px;">
-                                    <div class="text-muted text-truncate">Nhu cầu: {{ conv.customer_tag|default:"Tư vấn
-                                        dịch vụ" }}</div>
-                                    <div class="text-muted" style="font-size: 11px;">5 phút trước</div>
+                                    <div class="text-muted text-truncate">Nhu cầu: {{ conv.customer_tag|default:"Tư vấn dịch vụ" }}</div>
+                                    <div class="text-muted" style="font-size: 11px;">{{ conv.created_at|date:"H:i · d/m" }}</div>
                                 </div>
                             </div>
                         </a>
@@ -171,18 +166,18 @@
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
                             id="monitorCustomerAvatar"
                             style="width: 44px; height: 44px; background-color: var(--cham-red); font-size: 15px;">
-                            {{ active_conv.customer.name|default:"TT"|slice:":2"|upper }}
+                            {% if active_conv and active_conv.customer %}{{ active_conv.customer.name|default:active_conv.customer.username|slice:":2"|upper }}{% else %}KH{% endif %}
                         </div>
                         <div>
                             <div class="d-flex align-items-center gap-2">
                                 <div class="fw-bold" id="monitorCustomerName"
                                     style="font-family: var(--font-body, 'Cabin', sans-serif); color: #2E1D17; font-size: 16px; font-weight: 700;">
-                                    {{ active_conv.customer.name|default:"Trần Trần Thảo Ngọc" }}
+                                    {% if active_conv and active_conv.customer %}{{ active_conv.customer.name|default:active_conv.customer.username }}{% elif active_conv %}Khách vãng lai{% else %}Chưa chọn cuộc hội thoại{% endif %}
                                 </div>
                                 <!-- Nút nhỏ xem thông tin chi tiết khách hàng -->
                                 <a id="btnViewCustomerDetail"
-                                    href="{% if active_conv %}{% url 'accounts:admin_customer_detail' active_conv.customer.id %}{% else %}#{% endif %}"
-                                    target="_blank" class="btn-cham-view-link ms-1"
+                                    href="{% if active_conv and active_conv.customer %}{% url 'accounts:admin_customer_detail' active_conv.customer.id %}{% else %}#{% endif %}"
+                                    target="_blank" class="btn-cham-view-link ms-1 {% if not active_conv or not active_conv.customer %}d-none{% endif %}"
                                     title="Xem hồ sơ chi tiết khách hàng">
                                     Xem hồ sơ
                                 </a>
@@ -190,17 +185,15 @@
                             <div class="d-flex align-items-center gap-1" id="monitorStaffIndicator"
                                 style="font-size: 12.5px; color: #10B981;">
                                 <i class="bi bi-circle-fill" style="font-size: 7px;"></i>
-                                <span id="monitorStaffName">{% if active_conv.staff %}Nhân viên hỗ trợ: {{
-                                    active_conv.staff.name }} (Online){% else %}Chưa có nhân viên tiếp nhận{% endif
-                                    %}</span>
+                                <span id="monitorStaffName">{% if active_conv and active_conv.staff %}Nhân viên hỗ trợ: {{ active_conv.staff.name|default:active_conv.staff.username }} (Online){% else %}Chưa có nhân viên tiếp nhận{% endif %}</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Nút tác vụ giám sát -->
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn-cham-action-cancel" data-bs-toggle="modal"
-                            data-bs-target="#reassignStaffModal">
+                        <button type="button" id="btnReassignStaff" class="btn-cham-action-cancel" data-bs-toggle="modal"
+                            data-bs-target="#reassignStaffModal" {% if not active_conv %}disabled{% endif %}>
                             Chuyển nhân viên
                         </button>
                     </div>
@@ -213,38 +206,40 @@
                         <strong>Lịch sử tương tác với Chatbot trước đó</strong>
                     </div>
                     <div class="mt-1 text-muted" style="font-size: 12px;" id="monitorBotSummary">
-                        (Vùng chăm sóc: Vai gáy | Mục đích: Trị liệu chuyên sâu | Đề xuất: Massage 60m)
+                        {% if active_conv %}(Nhu cầu: {{ active_conv.customer_tag|default:"Tư vấn dịch vụ" }}){% else %}Chưa có thông tin tương tác với bot{% endif %}
                     </div>
                 </div>
 
                 <!-- Vùng hiển thị tin nhắn (Chat Log) -->
                 <div class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-3" id="adminChatLog"
-                    style="background-color: #FAF9F6; min-height: 480px; max-height: 560px;">
+                    style="background-color: #FAF9F6; height: 340px; min-height: 300px; max-height: 380px;">
                     {% for msg in messages_list %}
                     {% if msg.sender_type == 'Customer' %}
                     <!-- Tin nhắn khách hàng (Trái) -->
                     <div class="chat-msg-row d-flex align-items-start gap-2 align-self-start" style="max-width: 80%;">
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0"
                             style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
-                            {{ active_conv.customer.name|default:"KH"|slice:":2"|upper }}
+                            {% if active_conv.customer %}{{ active_conv.customer.name|default:active_conv.customer.username|slice:":2"|upper }}{% else %}KH{% endif %}
                         </div>
                         <div>
-                            <div class="text-muted small mb-1" style="font-size: 11px;">{{ active_conv.customer.name }}
-                                · Khách hàng</div>
+                            <div class="text-muted small mb-1" style="font-size: 11px;">{% if active_conv.customer %}{{ active_conv.customer.name|default:active_conv.customer.username }}{% else %}Khách vãng lai{% endif %} · Khách hàng</div>
                             <div class="p-3 rounded-4 bg-white shadow-sm border text-dark"
                                 style="font-size: 13.5px; line-height: 1.5; border-bottom-left-radius: 4px;">
                                 {% if msg.attachment_url %}
                                 <div class="mb-2">
+                                    {% if '.mp4' in msg.attachment_url|lower or '.mov' in msg.attachment_url|lower or '.webm' in msg.attachment_url|lower %}
+                                    <video controls class="rounded-3 w-100" style="max-height: 220px;"><source src="{{ msg.attachment_url }}"></video>
+                                    {% else %}
                                     <a href="{{ msg.attachment_url }}" target="_blank">
                                         <img src="{{ msg.attachment_url }}" class="rounded-3 img-fluid shadow-sm"
                                             style="max-height: 200px; object-fit: cover;">
                                     </a>
+                                    {% endif %}
                                 </div>
                                 {% endif %}
-                                {{ msg.content }}
+                                {% if not msg.attachment_url or 'Đã gửi ' not in msg.content %}{{ msg.content }}{% endif %}
                             </div>
-                            <div class="text-muted mt-1 text-end" style="font-size: 10px;">{{ msg.created_at|date:"H:i"
-                                }}</div>
+                            <div class="text-muted mt-1 text-end" style="font-size: 10px;">{{ msg.created_at|date:"H:i" }}</div>
                         </div>
                     </div>
                     {% elif msg.sender_type == 'Bot' %}
@@ -261,8 +256,7 @@
                                 style="background-color: #FDFBF7; border-color: #E6D8BF !important; color: #78350F; font-size: 13.5px; line-height: 1.5; border-bottom-left-radius: 4px;">
                                 {{ msg.content }}
                             </div>
-                            <div class="text-muted mt-1 text-end" style="font-size: 10px;">{{ msg.created_at|date:"H:i"
-                                }}</div>
+                            <div class="text-muted mt-1 text-end" style="font-size: 10px;">{{ msg.created_at|date:"H:i" }}</div>
                         </div>
                     </div>
                     {% else %}
@@ -271,25 +265,27 @@
                         style="max-width: 80%;">
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0"
                             style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
-                            {% if msg.sender_name %}{{ msg.sender_name|slice:":2"|upper }}{% elif active_conv.staff %}{{
-                            active_conv.staff.name|slice:":2"|upper }}{% else %}NV{% endif %}
+                            {% if active_conv.staff %}{{ active_conv.staff.name|default:active_conv.staff.username|slice:":2"|upper }}{% else %}CS{% endif %}
                         </div>
                         <div>
                             <div class="text-muted small mb-1 text-end" style="font-size: 11px;">
-                                {% if msg.sender_name %}{{ msg.sender_name }}{% elif active_conv.staff %}{{
-                                active_conv.staff.name }}{% else %}Nhân viên tư vấn{% endif %} · Nhân viên hỗ trợ
+                                Tư vấn viên Cham Spa · Nhân viên tư vấn
                             </div>
                             <div class="p-3 rounded-4 text-white shadow-sm"
                                 style="background-color: var(--cham-red); font-size: 13.5px; line-height: 1.5; border-bottom-right-radius: 4px;">
                                 {% if msg.attachment_url %}
                                 <div class="mb-2">
+                                    {% if '.mp4' in msg.attachment_url|lower or '.mov' in msg.attachment_url|lower or '.webm' in msg.attachment_url|lower %}
+                                    <video controls class="rounded-3 w-100" style="max-height: 220px;"><source src="{{ msg.attachment_url }}"></video>
+                                    {% else %}
                                     <a href="{{ msg.attachment_url }}" target="_blank">
                                         <img src="{{ msg.attachment_url }}" class="rounded-3 img-fluid shadow-sm"
                                             style="max-height: 200px; object-fit: cover;">
                                     </a>
+                                    {% endif %}
                                 </div>
                                 {% endif %}
-                                {{ msg.content }}
+                                {% if not msg.attachment_url or 'Đã gửi ' not in msg.content %}{{ msg.content }}{% endif %}
                             </div>
                             <div class="text-muted mt-1" style="font-size: 10px;">{{ msg.created_at|date:"H:i" }}</div>
                         </div>
@@ -337,14 +333,14 @@
                             <!-- Input ẩn để upload file ảnh / video -->
                             <input type="file" id="adminMediaFileInput" accept="image/*,video/*" style="display: none;"
                                 onchange="handleAdminMediaSelected(this)">
-                            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 border-0"
+                            <button type="button" id="adminMediaUploadBtn" class="btn btn-sm btn-outline-secondary py-1 px-2.5 border-0"
                                 style="background-color: #F3F4F6; font-size: 12.5px; font-weight: 500;"
-                                onclick="triggerAdminMediaUpload()" title="Tải ảnh hoặc video gửi vào chat">
+                                onclick="triggerAdminMediaUpload()" title="Tải ảnh hoặc video gửi vào chat" disabled>
                                 <i class="bi bi-camera-video me-1"></i> Gửi ảnh/video
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 border-0"
+                            <button type="button" id="adminVoucherBtn" class="btn btn-sm btn-outline-secondary py-1 px-2.5 border-0"
                                 style="background-color: #F3F4F6; font-size: 12.5px; font-weight: 500;"
-                                data-bs-toggle="modal" data-bs-target="#adminVoucherModal" title="Chọn Voucher ưu đãi">
+                                data-bs-toggle="modal" data-bs-target="#adminVoucherModal" title="Chọn Voucher ưu đãi" {% if not active_conv %}disabled{% endif %}>
                                 <i class="bi bi-ticket-perforated me-1"></i> Gửi Voucher
                             </button>
                         </div>
@@ -367,13 +363,12 @@
                     style="font-family: var(--font-serif); font-size: 17px;">
                     Chuyển phiên chat cho nhân viên khác
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-toggle="modal"
-                    data-bs-target="#reassignStaffModal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
             <div class="modal-body p-4">
                 <p class="text-muted mb-3" style="font-size: 13.5px;">
                     Chọn nhân viên tư vấn để tiếp quản cuộc hội thoại của khách hàng <strong
-                        id="reassignCustomerName">{{ active_conv.customer.name }}</strong>:
+                        id="reassignCustomerName">{% if active_conv and active_conv.customer %}{{ active_conv.customer.name|default:active_conv.customer.username }}{% else %}Khách vãng lai{% endif %}</strong>:
                 </p>
                 <div class="mb-3">
                     <label class="form-label fw-bold small">Nhân viên tiếp nhận mới *</label>
@@ -443,7 +438,9 @@
 
 <script>
     // Biến lưu trạng thái toàn cục
-    let currentConvId = {{ active_conv.id|default: "null" }};
+    let currentConvId = {{ active_conv.id|default:"null" }};
+    let lastAdminMsgSignature = null;
+    let isAdminInterveneMode = false;
 
     // Chuyển đổi tab danh sách hội thoại chuẩn Image 2
     function switchConvTab(tabName) {
@@ -478,11 +475,13 @@
     function toggleAdminMode(mode) {
         const input = document.getElementById('adminMsgInput');
         const btn = document.getElementById('adminSendBtn');
+        const mediaBtn = document.getElementById('adminMediaUploadBtn');
         const hint = document.getElementById('modeHintText');
         const btnWatch = document.getElementById('btnModeWatch');
         const btnIntervene = document.getElementById('btnModeIntervene');
 
-        if (mode === 'intervene') {
+        if (mode === 'intervene' && currentConvId) {
+            isAdminInterveneMode = true;
             if (btnWatch) {
                 btnWatch.classList.remove('btn-cham-action-complete');
                 btnWatch.classList.add('btn-cham-action-cancel');
@@ -493,11 +492,13 @@
             }
             if (input) input.disabled = false;
             if (btn) btn.disabled = false;
+            if (mediaBtn) mediaBtn.disabled = false;
             if (hint) {
-                hint.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-shield-exclamation"></i> Chế độ can thiệp đang BẬT: Tin nhắn gửi sẽ mang danh nghĩa Quản trị viên Cham Spa.</span>';
+                hint.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-shield-exclamation"></i> Chế độ can thiệp đang BẬT: Tin nhắn gửi sẽ mang danh nghĩa Tư vấn viên Cham Spa.</span>';
             }
             if (input) input.focus();
         } else {
+            isAdminInterveneMode = false;
             if (btnWatch) {
                 btnWatch.classList.remove('btn-cham-action-cancel');
                 btnWatch.classList.add('btn-cham-action-complete');
@@ -508,32 +509,117 @@
             }
             if (input) input.disabled = true;
             if (btn) btn.disabled = true;
+            if (mediaBtn) mediaBtn.disabled = true;
             if (hint) {
-                hint.textContent = 'Bấm nút "Can thiệp" để nhập và gửi tin nhắn.';
+                hint.textContent = currentConvId ? 'Bấm nút "Can thiệp" để nhập và gửi tin nhắn.' : 'Chọn một cuộc hội thoại ở danh sách bên trái.';
             }
         }
+    }
+
+    // Cập nhật cột danh sách hội thoại realtime cho Admin
+    function refreshAdminConversationList() {
+        fetch('/chatbox/api/conversations/?tab=all', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (!data || data.status !== 'success') return;
+                if (data.counts) {
+                    const wc = document.getElementById('waitingCount');
+                    const pc = document.getElementById('processingCount');
+                    if (wc) wc.textContent = data.counts.waiting || 0;
+                    if (pc) pc.textContent = data.counts.processing || 0;
+                }
+                const list = data.conversations || [];
+                const processing = list.filter(c => c.status === 'Đang xử lý');
+                const waiting = list.filter(c => c.status === 'Đang chờ');
+
+                const renderCards = (items, isWaiting) => {
+                    if (!items.length) {
+                        return `<div class="text-center text-muted py-4" style="font-size: 13px;">${isWaiting ? 'Không có hội thoại chờ tiếp nhận' : 'Không có hội thoại đang tư vấn'}</div>`;
+                    }
+                    return items.map(c => {
+                        const custName = c.customer_name || 'Khách vãng lai';
+                        const avatarTxt = isWaiting ? custName.slice(0, 2).toUpperCase() : custName.slice(0, 1).toUpperCase();
+                        const phoneTxt = c.customer_phone ? `+84 ${c.customer_phone.slice(1)}` : 'Khách hàng';
+                        const isActive = (Number(currentConvId) === Number(c.id)) ? 'active-card' : '';
+                        const badgeHtml = isWaiting
+                            ? `<span class="badge py-1 px-2 rounded-pill" style="background-color: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 500;">Đang chờ</span>`
+                            : `<span class="badge py-1 px-2 rounded-pill" style="background-color: #FFF1F2; color: #9F1239; font-size: 11px; font-weight: 500;">${c.staff_name ? 'Đang chat với Staff: ' + escapeHtml(c.staff_name) : 'Đang xử lý'}</span>`;
+                        const avatarStyle = isWaiting
+                            ? 'width: 38px; height: 38px; background-color: #FEF3C7; color: #92400E; font-size: 13px;'
+                            : 'width: 32px; height: 32px; background-color: #781A24; color: #FFFFFF; font-size: 12.5px;';
+
+                        return `
+                        <a href="/chatbox/admin/monitor/?conv_id=${c.id}"
+                            class="text-decoration-none text-dark d-block mb-2 conv-card-link"
+                            onclick="selectConversation(${c.id}, event)">
+                            <div class="conv-card p-3 rounded-3 cursor-pointer ${isActive}"
+                                data-conv-id="${c.id}" data-name="${escapeHtml(custName.toLowerCase())}"
+                                data-phone="${escapeHtml(c.customer_phone || '')}" style="cursor: pointer;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0"
+                                        style="${avatarStyle}">
+                                        ${escapeHtml(avatarTxt)}
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 13.5px;">${escapeHtml(custName)}</div>
+                                        <div class="text-muted" style="font-size: 11.5px;">${escapeHtml(phoneTxt)}</div>
+                                    </div>
+                                </div>
+                                <div class="mb-2">${badgeHtml}</div>
+                                <div class="d-flex justify-content-between align-items-center" style="font-size: 12px;">
+                                    <div class="text-muted text-truncate" style="max-width: 170px;">
+                                        Nhu cầu: ${escapeHtml(c.customer_tag || 'Tư vấn dịch vụ')}
+                                    </div>
+                                    <div class="text-muted" style="font-size: 11px;">${escapeHtml(c.last_message_time || '')}</div>
+                                </div>
+                            </div>
+                        </a>`;
+                    }).join('');
+                };
+
+                const procEl = document.getElementById('tabProcessingList');
+                const waitEl = document.getElementById('tabWaitingList');
+                if (procEl) procEl.innerHTML = renderCards(processing, false);
+                if (waitEl) waitEl.innerHTML = renderCards(waiting, true);
+                filterConvCards();
+            })
+            .catch(() => { });
     }
 
     // Chọn cuộc hội thoại để giám sát qua API
     let adminPollingTimer = null;
 
+    function buildMsgSignature(messages) {
+        if (!messages || !messages.length) return '0';
+        return messages.map(m => `${m.id}:${m.message_type}:${(m.content || '').length}`).join('|');
+    }
+
     function startAdminPolling() {
         if (adminPollingTimer) clearInterval(adminPollingTimer);
+        let tick = 0;
         adminPollingTimer = setInterval(() => {
+            tick += 1;
+            if (tick % 5 === 0) {
+                refreshAdminConversationList();
+            }
             if (!currentConvId) return;
-            fetch(`/chatbox/api/conversations/${currentConvId}/messages/`)
-                .then(res => res.json())
+            const targetConvId = currentConvId;
+            fetch(`/chatbox/api/conversations/${targetConvId}/messages/`)
+                .then(res => res.ok ? res.json() : null)
                 .then(data => {
+                    if (Number(targetConvId) !== Number(currentConvId)) return;
                     if (data && data.messages) {
-                        const currentCount = document.querySelectorAll('#adminChatLog .chat-msg-row').length;
-                        if (data.messages.length !== currentCount) {
+                        const sig = buildMsgSignature(data.messages);
+                        if (sig !== lastAdminMsgSignature) {
                             const custName = document.getElementById('monitorCustomerName')?.textContent || 'Khách hàng';
                             renderAdminChatLog(data.messages, custName);
                         }
                     }
                 })
                 .catch(() => { });
-        }, 2000); // Tự động đồng bộ tin nhắn mỗi 2 giây, không bị delay
+        }, 1000);
     }
 
     function selectConversation(convId, event) {
@@ -546,8 +632,12 @@
         }
         if (!convId) return;
         currentConvId = convId;
+        lastAdminMsgSignature = null;
 
-        const log = document.getElementById('adminChatLog');
+        const btnReassign = document.getElementById('btnReassignStaff');
+        const btnVoucher = document.getElementById('adminVoucherBtn');
+        if (btnReassign) btnReassign.disabled = false;
+        if (btnVoucher) btnVoucher.disabled = false;
 
         // Active visual card ngay lập tức khi click
         document.querySelectorAll('.conv-card').forEach(c => {
@@ -570,9 +660,10 @@
                 return res.json();
             })
             .then(res => {
+                if (Number(convId) !== Number(currentConvId)) return;
                 if (res.status === 'success') {
                     const data = res.conversation;
-                    const custName = data.customer ? (data.customer.name || 'Khách hàng') : 'Khách hàng';
+                    const custName = data.customer ? (data.customer.name || 'Khách vãng lai') : 'Khách vãng lai';
 
                     // Cập nhật Cột 2 Header
                     const custNameEl = document.getElementById('monitorCustomerName');
@@ -597,6 +688,7 @@
                             btnDetail.href = `/accounts/admin/customers/${data.customer.id}/`;
                             btnDetail.classList.remove('d-none');
                         } else {
+                            btnDetail.href = '#';
                             btnDetail.classList.add('d-none');
                         }
                     }
@@ -632,6 +724,7 @@
     function renderAdminChatLog(messages, customerName) {
         const log = document.getElementById('adminChatLog');
         if (!log) return;
+        lastAdminMsgSignature = buildMsgSignature(messages);
         log.innerHTML = '';
 
         if (!messages || messages.length === 0) {
@@ -666,16 +759,16 @@
                 msgDiv.innerHTML = `
                 <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
                      style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
-                    ${safeName.slice(0, 2).toUpperCase()}
+                    ${escapeHtml(safeName.slice(0, 2).toUpperCase())}
                 </div>
                 <div>
-                    <div class="text-muted small mb-1" style="font-size: 11px;">${safeName} · Khách hàng</div>
+                    <div class="text-muted small mb-1" style="font-size: 11px;">${escapeHtml(safeName)} · Khách hàng</div>
                     <div class="p-3 rounded-4 bg-white shadow-sm border text-dark" 
                          style="font-size: 13.5px; line-height: 1.5; border-bottom-left-radius: 4px;">
                         ${mediaHtml}
-                        ${escapeHtml(msg.content)}
+                        ${msg.content ? `<div>${escapeHtml(msg.content)}</div>` : ''}
                     </div>
-                    <div class="text-muted mt-1 text-end" style="font-size: 10px;">${msg.formatted_time || formatTime(msg.created_at)}</div>
+                    <div class="text-muted mt-1 text-end" style="font-size: 10px;">${escapeHtml(msg.formatted_time || formatTime(msg.created_at))}</div>
                 </div>
             `;
             } else if (isBot) {
@@ -690,30 +783,31 @@
                     <div class="text-muted small mb-1" style="font-size: 11px;">Trợ lý Chatbot AI · Tự động</div>
                     <div class="p-3 rounded-4 shadow-sm border" 
                          style="background-color: #FDFBF7; border-color: #E6D8BF !important; color: #78350F; font-size: 13.5px; line-height: 1.5; border-bottom-left-radius: 4px;">
-                        ${escapeHtml(msg.content)}
+                        ${mediaHtml}
+                        ${msg.content ? `<div>${escapeHtml(msg.content)}</div>` : ''}
                     </div>
-                    <div class="text-muted mt-1 text-end" style="font-size: 10px;">${msg.formatted_time || formatTime(msg.created_at)}</div>
+                    <div class="text-muted mt-1 text-end" style="font-size: 10px;">${escapeHtml(msg.formatted_time || formatTime(msg.created_at))}</div>
                 </div>
             `;
             } else {
-                const staffName = msg.sender_name || 'Nhân viên hỗ trợ';
+                const staffName = msg.sender_name || 'Tư vấn viên Cham Spa';
                 msgDiv.className = 'chat-msg-row d-flex align-items-start gap-2 align-self-end flex-row-reverse';
                 msgDiv.style.maxWidth = '80%';
                 msgDiv.innerHTML = `
                 <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
                      style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
-                    ${staffName.slice(0, 2).toUpperCase()}
+                    ${escapeHtml(staffName.slice(0, 2).toUpperCase())}
                 </div>
                 <div>
                     <div class="text-muted small mb-1 text-end" style="font-size: 11px;">
-                        ${staffName} · Nhân viên tư vấn
+                        ${escapeHtml(staffName)} · Nhân viên tư vấn
                     </div>
                     <div class="p-3 rounded-4 text-white shadow-sm" 
                          style="background-color: var(--cham-red); font-size: 13.5px; line-height: 1.5; border-bottom-right-radius: 4px;">
                         ${mediaHtml}
-                        ${escapeHtml(msg.content)}
+                        ${msg.content ? `<div>${escapeHtml(msg.content)}</div>` : ''}
                     </div>
-                    <div class="text-muted mt-1" style="font-size: 10px;">${msg.formatted_time || formatTime(msg.created_at)}</div>
+                    <div class="text-muted mt-1" style="font-size: 10px;">${escapeHtml(msg.formatted_time || formatTime(msg.created_at))}</div>
                 </div>
             `;
             }
@@ -748,16 +842,16 @@
         msgDiv.innerHTML = `
         <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
              style="width: 32px; height: 32px; background-color: var(--cham-red); font-size: 11px;">
-            AD
+            CS
         </div>
         <div>
             <div class="text-muted small mb-1 text-end" style="font-size: 11px;">
-                Quản trị viên Cham Spa · Can thiệp
+                Tư vấn viên Cham Spa · Can thiệp
             </div>
             <div class="p-3 rounded-4 text-white shadow-sm" 
                  style="background-color: var(--cham-red); font-size: 13.5px; line-height: 1.5; border-bottom-right-radius: 4px;">
                 ${mediaHtml}
-                ${escapeHtml(content)}
+                ${content ? `<div>${escapeHtml(content)}</div>` : ''}
             </div>
             <div class="text-muted mt-1" style="font-size: 10px;">${timeStr}</div>
         </div>
@@ -768,6 +862,10 @@
 
     // Bấm nút "Gửi ảnh/video" để chọn tệp
     function triggerAdminMediaUpload() {
+        if (!currentConvId) {
+            alert('Vui lòng chọn một cuộc hội thoại trước khi gửi ảnh/video.');
+            return;
+        }
         toggleAdminMode('intervene');
         const fileInput = document.getElementById('adminMediaFileInput');
         if (fileInput) fileInput.click();
@@ -824,10 +922,12 @@
             const sendData = await sendRes.json();
             if (!sendRes.ok || sendData.status !== 'success') {
                 alert(sendData.error || 'Có lỗi xảy ra khi gửi tin nhắn.');
+                selectConversation(currentConvId);
             }
         } catch (err) {
             console.error(err);
             alert('Lỗi kết nối khi tải tệp.');
+            selectConversation(currentConvId);
         } finally {
             toggleAdminMode('intervene');
         }
@@ -835,6 +935,7 @@
 
     // Chèn mã voucher vào ô chat khi admin chọn trong Modal
     function adminInsertVoucher(code, val) {
+        if (!currentConvId) return;
         toggleAdminMode('intervene');
         const input = document.getElementById('adminMsgInput');
         const formattedVal = Number(val).toLocaleString('vi-VN');
@@ -874,9 +975,13 @@
             .then(res => {
                 if (res.status !== 'success') {
                     alert(res.error || 'Có lỗi xảy ra khi gửi tin nhắn.');
+                    selectConversation(currentConvId);
                 }
             })
-            .catch(err => alert('Không thể kết nối đến máy chủ.'));
+            .catch(() => {
+                alert('Không thể kết nối đến máy chủ.');
+                selectConversation(currentConvId);
+            });
     }
 
     // Quản lý Can thiệp / Tiếp quản
@@ -894,6 +999,7 @@
             .then(res => res.json())
             .then(res => {
                 alert(res.message);
+                refreshAdminConversationList();
                 selectConversation(currentConvId);
             })
             .catch(() => alert('Lỗi kết nối máy chủ.'));
@@ -918,6 +1024,7 @@
                 const modalEl = document.getElementById('reassignStaffModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
+                refreshAdminConversationList();
                 selectConversation(currentConvId);
             })
             .catch(() => alert('Lỗi kết nối máy chủ.'));
@@ -944,9 +1051,9 @@
     }
 
     function escapeHtml(text) {
-        if (!text) return '';
+        if (text === null || text === undefined) return '';
         const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-        return text.replace(/[&<>"']/g, m => map[m]);
+        return String(text).replace(/[&<>"']/g, m => map[m]);
     }
 
     function formatTime(isoStr) {
@@ -979,17 +1086,17 @@
         }
 
         // Mở đúng tab chứa hội thoại đang kích hoạt
-        switchConvTab('{{ initial_tab|default:"processing" }}');
+        switchConvTab('{{ initial_tab|default:"processing"|escapejs }}');
 
-        // Đánh dấu active cho card hội thoại đang mở
+        // Đánh dấu active cho card hội thoại đang mở và khởi động polling
         if (currentConvId) {
             const activeC = document.querySelector(`.conv-card[data-conv-id="${currentConvId}"]`);
             if (activeC) {
                 activeC.classList.add('active-card');
             }
-            startAdminPolling();
         }
-    }
-});
+        toggleAdminMode('watch');
+        startAdminPolling();
+    });
 </script>
 {% endblock %}

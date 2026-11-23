@@ -390,9 +390,11 @@ def admin_appointments_view(request):
     from datetime import timedelta
     from django.db.models import Q
 
-    # 1. Phân quyền Admin
-    if not (request.user.is_superuser or request.user.is_staff):
-        messages.error(request, 'Bạn không có quyền truy cập khu vực Quản trị Lịch hẹn của Admin.')
+    # 1. Phân quyền Admin (Chỉ Superuser mới được vào trang quản trị lịch hẹn Admin)
+    if not request.user.is_superuser:
+        messages.error(request, 'Chỉ Quản trị viên (Admin) mới có quyền truy cập khu vực Quản trị Lịch hẹn toàn hệ thống.')
+        if request.user.is_staff:
+            return redirect('appointment:staff_appointments')
         return redirect('appointment:booking')
 
     today = timezone.localdate()
@@ -599,8 +601,8 @@ def admin_export_appointments_view(request):
     from django.http import HttpResponse
     from django.db.models import Q
 
-    if not (request.user.is_superuser or request.user.is_staff):
-        return HttpResponse('Bạn không có quyền truy cập.', status=403)
+    if not request.user.is_superuser:
+        return HttpResponse('Chỉ Quản trị viên (Admin) mới có quyền xuất dữ liệu lịch hẹn.', status=403)
 
     search_query = (request.GET.get('search') or request.GET.get('q') or '').strip()
     date_str = request.GET.get('date', '').strip()

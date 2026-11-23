@@ -272,9 +272,12 @@ def service_admin_view(request):
       - Nút '+ Thêm dịch vụ mới' mở Modal nhập liệu (Form POST)
       - Bảng dữ liệu Data Table & Toggle Switch đổi trạng thái (Form POST)
     """
-    # Chỉ tài khoản Quản lý (is_superuser=True hoặc is_staff=True) mới có quyền truy cập
-    if not (request.user.is_superuser or request.user.is_staff):
-        raise PermissionDenied("Chỉ Quản lý hoặc Nhân viên có thẩm quyền mới được truy cập trang này.")
+    # Chỉ tài khoản Quản trị viên (is_superuser=True) mới có quyền truy cập quản trị dịch vụ
+    if not request.user.is_superuser:
+        if request.user.is_staff and request.method == 'GET':
+            messages.error(request, "Chỉ Quản trị viên (Admin) mới có quyền truy cập trang Quản lý Dịch vụ.")
+            return redirect('dashboard:staff')
+        raise PermissionDenied("Chỉ Quản trị viên (Admin) mới có quyền truy cập trang này.")
 
     if request.method == 'POST':
         return _handle_service_admin_post(request)

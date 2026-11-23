@@ -3,11 +3,12 @@ API Endpoints (Pure Django JsonResponse) cho Phân hệ Quản lý Boxchat Tư v
 """
 
 import csv
-from datetime import date
+from datetime import date, time
 import os
 import uuid
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.utils.text import get_valid_filename
 from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
@@ -264,7 +265,7 @@ def bot_reply_api(request):
     if not user_message and not faq_id:
         return JsonResponse({
             'status': 'error',
-            'errors': {'message': ['Vui lòng nhập nội dung hoặc chọn câu hỏi kịch bản FAQ.']},
+            'errors': {'message': ['Vui lòng nhập nội dung hoặc chọn câu hỏi thường gặp.']},
         }, status=400)
 
     matched_faq = None
@@ -278,12 +279,12 @@ def bot_reply_api(request):
 
     if matched_faq:
         bot_reply_text = matched_faq.answer
-        suggested_actions = ["Chọn câu hỏi FAQ khác", "Gặp nhân viên tư vấn"]
+        suggested_actions = ["Chọn câu hỏi khác", "Gặp nhân viên tư vấn"]
     else:
         bot_reply_text = (
             "Dạ Cham Spa & Massage xin chào quý khách! "
-            "Em chưa hiểu rõ yêu cầu của mình trong kịch bản tự động. "
-            "Quý khách có thể chọn các Block câu hỏi FAQ bên dưới hoặc bấm 'Gặp nhân viên tư vấn' "
+            "Em chưa hiểu rõ yêu cầu của mình. "
+            "Quý khách có thể chọn các Câu hỏi thường gặp bên dưới hoặc bấm 'Gặp nhân viên tư vấn' "
             "để chuyên viên chăm sóc khách hàng hỗ trợ ngay nhé ạ!"
         )
         suggested_actions = ["Bảng giá dịch vụ", "Giờ mở cửa & Địa chỉ", "Gặp nhân viên tư vấn"]
@@ -378,6 +379,9 @@ def conversation_transfer_staff_api(request):
             'message': 'Quý khách vui lòng đăng nhập tài khoản để được kết nối trò chuyện trực tiếp với nhân viên CSKH.',
         }, status=401)
 
+    if is_staff_or_admin(request.user):
+        return json_error('Tài khoản nhân viên hoặc quản lý không thể gửi yêu cầu gặp tư vấn viên như khách hàng.', status=403)
+
     data, err = parse_json_body(request)
     if err:
         return err
@@ -406,16 +410,35 @@ def conversation_transfer_staff_api(request):
                 status='Đang chờ',
                 customer_tag='Yêu cầu tư vấn trực tiếp',
             )
+            ConversationMessage.objects.create(
+                conversation=conversation,
+                sender_type='Bot',
+                message_type='TEXT',
+                content='Dạ, yêu cầu của quý khách đã được chuyển tới chuyên viên tư vấn Cham Spa. Chuyên viên sẽ tiếp nhận và phản hồi ngay trong giây lát ạ!',
+            )
+        elif conversation.status == 'Đang xử lý':
+            return JsonResponse({
+                'status': 'already_connected',
+                'message': 'Quý khách đang được chuyên viên Cham Spa hỗ trợ trực tiếp trong phiên chat này rồi ạ!',
+                'conversation_id': conversation.id,
+                'conversation_status': conversation.status,
+            }, status=200)
+        elif conversation.status == 'Đang chờ':
+            return JsonResponse({
+                'status': 'already_waiting',
+                'message': 'Yêu cầu của quý khách đang nằm trong hàng chờ, chuyên viên Cham Spa sẽ tiếp nhận trong giây lát ạ!',
+                'conversation_id': conversation.id,
+                'conversation_status': conversation.status,
+            }, status=200)
         else:
             conversation.status = 'Đang chờ'
-            conversation.save()
-
-        ConversationMessage.objects.create(
-            conversation=conversation,
-            sender_type='Bot',
-            message_type='TEXT',
-            content='Dạ, yêu cầu của quý khách đã được chuyển tới chuyên viên tư vấn Cham Spa. Chuyên viên sẽ tiếp nhận và phản hồi ngay trong giây lát ạ!',
-        )
+            conversation.save(update_fields=['status'])
+            ConversationMessage.objects.create(
+                conversation=conversation,
+                sender_type='Bot',
+                message_type='TEXT',
+                content='Dạ, yêu cầu của quý khách đã được chuyển tới chuyên viên tư vấn Cham Spa. Chuyên viên sẽ tiếp nhận và phản hồi ngay trong giây lát ạ!',
+            )
 
     return JsonResponse({
         'status': 'success',
@@ -535,7 +558,7 @@ def conversation_accept_api(request, pk):
         conversation=conversation,
         sender_type='Staff',
         message_type='TEXT',
-        content=f"Dạ em chào anh/chị! Em là {staff_name} - chuyên viên tư vấn của Cham Spa & Massage. Em rất vui được hỗ trợ quý khách hôm nay ạ!",
+        content="Dạ em chào anh/chị! Chuyên viên tư vấn của Cham Spa & Massage đã tiếp nhận yêu cầu và rất vui được hỗ trợ quý khách hôm nay ạ!",
     )
 
     return JsonResponse({
@@ -559,12 +582,11 @@ def conversation_close_api(request, pk):
     conversation.closed_at = timezone.now()
     conversation.save()
 
-    staff_name = request.user.name or request.user.username
     ConversationMessage.objects.create(
         conversation=conversation,
         sender_type='Staff',
         message_type='TEXT',
-        content=f"Phiên tư vấn trực tiếp đã được hoàn tất bởi chuyên viên {staff_name}. Cham Spa trân trọng cảm ơn quý khách và chúc quý khách một ngày an nhiên!",
+        content="Phiên tư vấn trực tiếp đã được hoàn tất. Cham Spa trân trọng cảm ơn quý khách và chúc quý khách một ngày an nhiên!",
     )
 
     return JsonResponse({
@@ -605,6 +627,7 @@ def staff_conversations_list_api(request):
     tab = (request.GET.get('tab') or 'processing').strip()
     status_filter = (request.GET.get('status') or '').strip()
     date_filter = (request.GET.get('date') or '').strip()
+    slot_filter = (request.GET.get('slot') or '').strip()
     search_kw = (request.GET.get('search') or '').strip()
 
     is_admin = request.user.is_superuser
@@ -647,6 +670,21 @@ def staff_conversations_list_api(request):
             queryset = queryset.filter(created_at__date=date.fromisoformat(date_filter))
         except ValueError:
             pass
+
+    slot_ranges = {
+        '09:00': (time(9, 0), time(10, 30)),
+        '14:00': (time(14, 0), time(15, 30)),
+        '16:00': (time(16, 0), time(17, 30)),
+        '18:30': (time(18, 30), time(20, 0)),
+    }
+    if slot_filter in slot_ranges:
+        start_t, end_t = slot_ranges[slot_filter]
+        matched_ids = []
+        for conv in queryset:
+            local_t = timezone.localtime(conv.created_at).time()
+            if start_t <= local_t <= end_t:
+                matched_ids.append(conv.id)
+        queryset = queryset.filter(id__in=matched_ids)
 
     if search_kw:
         queryset = queryset.filter(
@@ -872,8 +910,8 @@ def admin_conversation_monitor_api(request, pk):
 
     customer = conv.customer
     membership = Membership.objects.filter(user=customer).select_related('tier').first() if customer else None
-    tier_name = membership.tier.name if (membership and membership.tier) else 'Hạng VÀNG'
-    total_spent = membership.total_spent if membership else 18500000
+    tier_name = membership.tier.name if (membership and membership.tier) else 'Thành viên'
+    total_spent = membership.total_spent if membership else 0
     formatted_spent = f"{int(total_spent):,} VNĐ".replace(',', '.')
 
     from health.helpers import build_health_summary
@@ -884,7 +922,7 @@ def admin_conversation_monitor_api(request, pk):
     duration_seconds = int((timezone.now() - conv.created_at).total_seconds())
     duration_display = f"{duration_seconds // 60:02d}:{duration_seconds % 60:02d}"
 
-    available_staffs = User.objects.filter(is_staff=True).exclude(
+    available_staffs = User.objects.filter(is_staff=True, is_superuser=False).exclude(
         pk=conv.staff_id if conv.staff else 0
     ).values('id', 'name', 'phone')
 
@@ -988,7 +1026,8 @@ def chat_upload_media_api(request):
     if uploaded_file.size > 25 * 1024 * 1024:
         return json_error('Dung lượng tệp vượt quá giới hạn 25MB.', status=400)
 
-    unique_filename = f"chat_media/{timezone.now().strftime('%Y%m')}/{uuid.uuid4().hex[:8]}_{uploaded_file.name}"
+    safe_stem = get_valid_filename(os.path.splitext(uploaded_file.name)[0])[:60] or 'media'
+    unique_filename = f"chat_media/{timezone.now().strftime('%Y%m')}/{uuid.uuid4().hex[:8]}_{safe_stem}{ext}"
     saved_path = default_storage.save(unique_filename, ContentFile(uploaded_file.read()))
     file_url = default_storage.url(saved_path)
 
@@ -1027,16 +1066,11 @@ def admin_send_message_api(request, pk):
     if not content and not attachment_url:
         return json_error('Nội dung tin nhắn hoặc tệp đính kèm không được để trống.', status=400)
 
-    admin_name = request.user.name or 'Quản lý Cham Spa'
-    text_content = content if content else ("Đã gửi một hình ảnh." if message_type == 'IMAGE' else "Đã gửi một tệp đính kèm.")
-
-    text_content = content if content else ("Đã gửi một hình ảnh." if message_type == 'IMAGE' else "Đã gửi một tệp đính kèm.")
-
     msg = ConversationMessage.objects.create(
         conversation=conv,
         sender_type='Staff',
         message_type=message_type,
-        content=text_content,
+        content=content,
         attachment_url=attachment_url,
         attachment_name=attachment_name,
         attachment_size=attachment_size,

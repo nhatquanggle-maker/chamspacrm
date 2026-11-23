@@ -89,31 +89,19 @@
                 </div>
             </div>
 
-            <!-- Khối chọn câu hỏi FAQ theo kịch bản (đồng bộ từ Admin FAQ) -->
+            <!-- Khối chọn câu hỏi thường gặp (đồng bộ từ Admin FAQ) -->
             <div id="custFaqPanel">
                 <div class="cust-faq-topbar">
                     <button type="button" class="cust-faq-toggle" onclick="toggleCustFaqPanel()">
-                        <span>📋 Chọn kịch bản hỏi đáp (FAQ)</span>
+                        <span>💬 Câu hỏi thường gặp</span>
                         <span style="opacity: 0.85;">({{ quick_faqs|length }})</span>
                         <span id="custFaqChevron">▾</span>
                     </button>
-                    <button type="button" class="cust-faq-staff-btn" onclick="handleRequestStaff()">
+                    <button type="button" id="btnFaqRequestStaff" class="cust-faq-staff-btn" onclick="handleRequestStaff()">
                         👩‍💼 Gặp nhân viên tư vấn
                     </button>
                 </div>
                 <div id="custFaqBody">
-                    <div id="custFaqCatBar">
-                        <button type="button" class="cust-faq-cat-pill active"
-                            onclick="filterCustFaqCat('Tất cả', this)">
-                            Tất cả
-                        </button>
-                        {% for cat in faq_categories %}
-                        <button type="button" class="cust-faq-cat-pill" data-cat="{{ cat }}"
-                            onclick="filterCustFaqCat(this.getAttribute('data-cat'), this)">
-                            {{ cat }}
-                        </button>
-                        {% endfor %}
-                    </div>
                     <div id="custFaqBlocksGrid">
                         {% for faq in quick_faqs %}
                         <button type="button" class="cust-faq-block" data-faq-id="{{ faq.id }}"
@@ -126,7 +114,7 @@
                             <span class="cust-faq-block-arrow">›</span>
                         </button>
                         {% empty %}
-                        <div class="text-muted small py-2">Chưa có kịch bản FAQ đang hoạt động.</div>
+                        <div class="text-muted small py-2">Hiện chưa có câu hỏi thường gặp nào.</div>
                         {% endfor %}
                     </div>
                 </div>
@@ -163,6 +151,13 @@
 
     let pendingCustFaqId = null;
     let custStreamEpoch = 0;
+    let lastCustMsgSignature = null;
+    let isCustBotTyping = false;
+
+    function buildCustMsgSignature(messages) {
+        if (!messages || !messages.length) return '0';
+        return messages.map(m => `${m.id}:${m.message_type}:${(m.content || '').length}`).join('|');
+    }
 
     function toggleCustFaqPanel() {
         const bodyEl = document.getElementById('custFaqBody');
@@ -171,18 +166,6 @@
         const willCollapse = !bodyEl.classList.contains('is-collapsed');
         bodyEl.classList.toggle('is-collapsed', willCollapse);
         chevEl.textContent = willCollapse ? '▴' : '▾';
-    }
-
-    function filterCustFaqCat(cat, btnEl) {
-        document.querySelectorAll('#custFaqCatBar .cust-faq-cat-pill').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        if (btnEl) btnEl.classList.add('active');
-
-        document.querySelectorAll('#custFaqBlocksGrid .cust-faq-block').forEach(card => {
-            const cardCat = card.getAttribute('data-faq-cat') || 'Chung';
-            card.style.display = (cat === 'Tất cả' || cardCat === cat) ? 'flex' : 'none';
-        });
     }
 
     function sendFaqBlock(faqId, text) {
@@ -209,6 +192,38 @@
         handleCustomerSendMessage();
     }
 
+    function updateCustomerStaffConnectionUI(status) {
+        const statusEl = document.getElementById('connectionStatus');
+        const btnReq = document.getElementById('btnRequestStaff');
+        const btnFaqReq = document.getElementById('btnFaqRequestStaff');
+
+        if (status === 'Đang xử lý') {
+            if (btnReq) btnReq.style.display = 'none';
+            if (btnFaqReq) btnFaqReq.style.display = 'none';
+            if (statusEl) statusEl.textContent = 'Đã kết nối';
+        } else if (status === 'Đang chờ') {
+            if (btnReq) btnReq.style.display = 'none';
+            if (btnFaqReq) {
+                btnFaqReq.style.display = '';
+                btnFaqReq.disabled = true;
+                btnFaqReq.textContent = 'Đang chờ nhân viên...';
+            }
+            if (statusEl) {
+                statusEl.innerHTML = `<i class="bi bi-clock-history text-warning"></i> Đang chờ nhân viên tiếp nhận ca tư vấn...`;
+            }
+        } else {
+            if (btnReq) btnReq.style.display = 'inline-block';
+            if (btnFaqReq) {
+                btnFaqReq.style.display = '';
+                btnFaqReq.disabled = false;
+                btnFaqReq.textContent = '👩‍💼 Gặp nhân viên tư vấn';
+            }
+            if (statusEl) {
+                statusEl.innerHTML = `<i class="bi bi-circle-fill" style="font-size: 8px;"></i> Trợ lý ảo & Tư vấn viên đang trực tuyến`;
+            }
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         const inputEl = document.getElementById('custChatInput');
         if (inputEl) {
@@ -231,16 +246,16 @@
                         if (data.conversation.status !== 'Kết thúc') {
                             conversationId = data.conversation.id;
                         }
-                        if (data.conversation.status === 'Đang xử lý' && data.conversation.staff_name) {
+                        if (data.conversation.status === 'Đang xử lý') {
                             isConnectedToStaff = true;
-                            document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-circle-fill text-success"></i> Đang trò chuyện với chuyên viên: <strong>${escapeHtml(data.conversation.staff_name)}</strong>`;
-                            document.getElementById('btnRequestStaff').style.display = 'none';
+                            updateCustomerStaffConnectionUI('Đang xử lý');
                             startCustomerPolling();
                         } else if (data.conversation.status === 'Đang chờ') {
                             isConnectedToStaff = true;
-                            document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-clock-history text-warning"></i> Đang chờ nhân viên tiếp nhận ca tư vấn...`;
-                            document.getElementById('btnRequestStaff').style.display = 'none';
+                            updateCustomerStaffConnectionUI('Đang chờ');
                             startCustomerPolling();
+                        } else {
+                            updateCustomerStaffConnectionUI(data.conversation.status);
                         }
                         if (data.conversation.status !== 'Kết thúc' && data.messages && data.messages.length > 0) {
                             renderFullCustomerStream(data.messages);
@@ -288,22 +303,30 @@
             return;
         }
 
-        // 3. Nếu đang chat với Bot tự động hoặc bấm câu hỏi kịch bản FAQ (UC-2.1)
+        // 3. Nếu đang chat với Bot tự động hoặc bấm câu hỏi thường gặp (UC-2.1)
         const epochBeforeReply = custStreamEpoch;
-        fetch('/chatbox/api/chat/bot-reply/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ message: text, faq_id: reqFaqId, conversation_id: conversationId })
-        })
-            .then(res => {
+        const typingEl = showCustBotTyping();
+        isCustBotTyping = true;
+        const minDelay = new Promise(resolve => setTimeout(resolve, 800));
+
+        Promise.all([
+            fetch('/chatbox/api/chat/bot-reply/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ message: text, faq_id: reqFaqId, conversation_id: conversationId })
+            }).then(res => {
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 return res.json();
-            })
-            .then(data => {
+            }),
+            minDelay
+        ])
+            .then(([data]) => {
+                isCustBotTyping = false;
+                if (typingEl && typingEl.parentNode) typingEl.remove();
                 if (data.status === 'success' && data.reply) {
                     if (data.conversation_id) {
                         conversationId = data.conversation_id;
@@ -311,13 +334,17 @@
                     if (epochBeforeReply === custStreamEpoch) {
                         appendBotBubble(data.reply);
                     }
-                } else {
+                } else if (epochBeforeReply === custStreamEpoch) {
                     appendBotBubble(data.message || 'Xin lỗi quý khách, hiện chưa tìm thấy câu trả lời phù hợp.');
                 }
             })
             .catch(err => {
+                isCustBotTyping = false;
+                if (typingEl && typingEl.parentNode) typingEl.remove();
                 console.error('Lỗi bot reply:', err);
-                appendBotBubble('Xin lỗi quý khách, hệ thống đang bận. Quý khách vui lòng thử lại sau giây lát hoặc liên hệ hotline 0987 773 777 ạ.');
+                if (epochBeforeReply === custStreamEpoch) {
+                    appendBotBubble('Xin lỗi quý khách, hệ thống đang bận. Quý khách vui lòng thử lại sau giây lát hoặc liên hệ hotline 0987 773 777 ạ.');
+                }
             });
     }
 
@@ -343,16 +370,45 @@
                 if (data.status === 'success') {
                     conversationId = data.conversation_id;
                     isConnectedToStaff = true;
-                    document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-clock-history text-warning"></i> Đang chờ nhân viên tiếp nhận ca tư vấn...`;
-                    document.getElementById('btnRequestStaff').style.display = 'none';
+                    updateCustomerStaffConnectionUI('Đang chờ');
 
                     appendBotBubble('Yêu cầu của quý khách đã được gửi tới chuyên viên tư vấn Cham Spa. Chuyên viên sẽ phản hồi ngay sau khi tiếp nhận ca trực ạ!');
 
-                    // Bắt đầu Polling định kỳ 3 giây để nhận tin nhắn của Staff
+                    // Bắt đầu Polling định kỳ 2 giây để nhận tin nhắn của Staff
                     startCustomerPolling();
+                } else if (data.status === 'already_connected') {
+                    conversationId = data.conversation_id;
+                    isConnectedToStaff = true;
+                    updateCustomerStaffConnectionUI('Đang xử lý');
+                    startCustomerPolling();
+                } else if (data.status === 'already_waiting') {
+                    conversationId = data.conversation_id;
+                    isConnectedToStaff = true;
+                    updateCustomerStaffConnectionUI('Đang chờ');
+                    startCustomerPolling();
+                } else if (data.error || data.message) {
+                    alert(data.error || data.message);
                 }
             })
             .catch(err => console.error(err));
+    }
+
+    function showCustBotTyping() {
+        const stream = document.getElementById('custChatStream');
+        const bubble = document.createElement('div');
+        bubble.className = 'cust-bubble-wrapper from-bot';
+        bubble.innerHTML = `
+        <div class="cust-sender-name"><i class="bi bi-stars"></i> Trợ lý ảo Cham Spa</div>
+        <div class="cust-bubble text-muted" style="font-size: 13px;">
+            <span class="spinner-grow spinner-grow-sm me-1" style="width: 6px; height: 6px; color: var(--cham-gold);" role="status"></span>
+            <span class="spinner-grow spinner-grow-sm me-1" style="width: 6px; height: 6px; color: var(--cham-gold); animation-delay: 0.15s;" role="status"></span>
+            <span class="spinner-grow spinner-grow-sm me-2" style="width: 6px; height: 6px; color: var(--cham-gold); animation-delay: 0.3s;" role="status"></span>
+            Đang soạn tin nhắn...
+        </div>
+    `;
+        stream.appendChild(bubble);
+        stream.scrollTop = stream.scrollHeight;
+        return bubble;
     }
 
     function appendCustomerBubble(text) {
@@ -373,7 +429,7 @@
         bubble.className = 'cust-bubble-wrapper from-bot';
         bubble.innerHTML = `
         <div class="cust-sender-name"><i class="bi bi-stars"></i> Trợ lý ảo Cham Spa</div>
-        <div class="cust-bubble">${escapeHtml(text)}</div>
+        <div class="cust-bubble">${formatBotRichText(text)}</div>
     `;
         stream.appendChild(bubble);
         stream.scrollTop = stream.scrollHeight;
@@ -384,7 +440,7 @@
         const bubble = document.createElement('div');
         bubble.className = 'cust-bubble-wrapper from-staff';
         bubble.innerHTML = `
-        <div class="cust-sender-name"><i class="bi bi-headset"></i> ${escapeHtml(staffName || 'Chuyên viên tư vấn')}</div>
+        <div class="cust-sender-name"><i class="bi bi-headset"></i> ${escapeHtml(staffName || 'Cham Spa & Massage')}</div>
         <div class="cust-bubble">${escapeHtml(text)}</div>
     `;
         stream.appendChild(bubble);
@@ -394,27 +450,41 @@
     function startCustomerPolling() {
         if (customerPollingTimer) clearInterval(customerPollingTimer);
         customerPollingTimer = setInterval(() => {
+            if (isCustBotTyping) return;
             if (conversationId) {
-                fetch(`/chatbox/api/conversations/${conversationId}/messages/`)
-                    .then(res => res.json())
+                const targetConvId = conversationId;
+                fetch(`/chatbox/api/conversations/${targetConvId}/messages/`)
+                    .then(res => res.ok ? res.json() : null)
                     .then(data => {
-                        if (data && data.staff_info) {
-                            document.getElementById('connectionStatus').innerHTML = `<i class="bi bi-circle-fill text-success"></i> Tư vấn viên trực tuyến`;
-                        }
-                        if (data && data.messages) {
-                            const renderedCount = document.querySelectorAll('#custChatStream .cust-bubble-wrapper').length;
-                            if (data.messages.length !== renderedCount) {
+                        if (!data || Number(targetConvId) !== Number(conversationId)) return;
+                        if (data.messages && data.messages.length > 0) {
+                            const sig = buildCustMsgSignature(data.messages);
+                            if (sig !== lastCustMsgSignature) {
                                 renderFullCustomerStream(data.messages);
                             }
+                        }
+                        if (data.status === 'Kết thúc') {
+                            isConnectedToStaff = false;
+                            conversationId = null;
+                            clearInterval(customerPollingTimer);
+                            customerPollingTimer = null;
+                            updateCustomerStaffConnectionUI('Kết thúc');
+                            return;
+                        }
+                        if (data.status === 'Đang xử lý') {
+                            updateCustomerStaffConnectionUI('Đang xử lý');
+                        } else if (data.status === 'Đang chờ') {
+                            updateCustomerStaffConnectionUI('Đang chờ');
                         }
                     })
                     .catch(() => { });
             }
-        }, 2000); // Đồng bộ tin nhắn mỗi 2 giây, không bị delay
+        }, 1000); // Đồng bộ tin nhắn mỗi 1 giây cho cảm giác chat trực tiếp mượt mà
     }
 
     function renderFullCustomerStream(messages) {
         custStreamEpoch += 1;
+        lastCustMsgSignature = buildCustMsgSignature(messages);
         const stream = document.getElementById('custChatStream');
         let html = '';
         messages.forEach(m => {
@@ -458,7 +528,7 @@
                     <div class="cust-sender-name"><i class="bi bi-stars"></i> Trợ lý ảo Cham Spa</div>
                     <div class="cust-bubble">
                         ${mediaHtml}
-                        ${m.content ? `<div>${escapeHtml(m.content)}</div>` : ''}
+                        ${m.content ? `<div>${formatBotRichText(m.content)}</div>` : ''}
                     </div>
                 </div>
             `;
@@ -466,6 +536,15 @@
         });
         stream.innerHTML = html;
         stream.scrollTop = stream.scrollHeight;
+    }
+
+    function formatBotRichText(text) {
+        let safe = escapeHtml(text || '');
+        safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        safe = safe.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        safe = safe.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-decoration-underline" style="color: var(--cham-red);">$1</a>');
+        safe = safe.replace(/\n/g, '<br>');
+        return safe;
     }
 
     function escapeHtml(text) {

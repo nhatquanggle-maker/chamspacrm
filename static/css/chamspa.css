@@ -762,6 +762,7 @@ a {
    -------------------------------------------------------------------------- */
 .staff-sidebar {
     width: 286px;
+    min-height: calc(100vh - 48px);
     max-height: calc(100vh - 40px);
     background-color: var(--cham-red);
     border-radius: 20px;
@@ -1270,12 +1271,21 @@ a {
     border: 2px solid var(--cham-gold);
     z-index: 1050;
     font-size: 24px;
+    padding: 0;
+    line-height: 1;
     cursor: pointer;
     box-shadow: 0 6px 20px rgba(120, 26, 36, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.cham-chatbot-fab i,
+.cham-chatbot-fab svg {
+    display: block;
+    margin: 0;
+    line-height: 1;
 }
 
 .cham-chatbot-fab:hover {
@@ -1289,7 +1299,8 @@ a {
     right: 28px;
     width: 360px;
     max-width: calc(100vw - 40px);
-    height: 480px;
+    height: 520px;
+    max-height: calc(100vh - 115px);
     background-color: #FFFFFF;
     border-radius: 18px;
     border: 1px solid var(--cham-border-subtle);
@@ -2561,53 +2572,27 @@ body.page-auth .cham-strength-hint {
             border-color: #781A24;
         }
         #chamFaqBlocksBody {
-            padding: 8px 10px 9px;
-            max-height: 170px;
+            padding: 8px 10px 10px;
+            max-height: 195px;
             display: flex;
             flex-direction: column;
-            gap: 7px;
+            gap: 8px;
             background: #FAF6EF;
+            overflow: hidden;
+            flex-shrink: 0;
+            transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.2s ease;
+            opacity: 1;
         }
         #chamFaqBlocksBody.is-collapsed {
-            display: none;
-        }
-        #chamFaqCatFilter {
-            display: flex;
-            gap: 5px;
-            overflow-x: auto;
-            padding-bottom: 2px;
-            scrollbar-width: thin;
-        }
-        #chamFaqCatFilter::-webkit-scrollbar {
-            height: 4px;
-        }
-        #chamFaqCatFilter::-webkit-scrollbar-thumb {
-            background: #D7C6A5;
-            border-radius: 999px;
-        }
-        .cham-faq-cat-pill {
-            flex: 0 0 auto;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 3px 9px;
-            border-radius: 999px;
-            border: 1px solid #E2D5BC;
-            background: #FFFFFF;
-            color: #5C4B48;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.15s ease;
-        }
-        .cham-faq-cat-pill:hover {
-            border-color: #781A24;
-            color: #781A24;
-        }
-        .cham-faq-cat-pill.active {
-            background: #781A24;
-            color: #FFFFFF;
-            border-color: #781A24;
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+            pointer-events: none;
         }
         #chamFaqBlocksList {
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -7330,43 +7315,17 @@ body.page-chatbox-customer-chat #custFaqBody {
                     display: flex;
                     flex-direction: column;
                     gap: 8px;
+                    max-height: 240px;
+                    overflow: hidden;
+                    transition: max-height 0.25s ease, opacity 0.2s ease, margin-top 0.2s ease;
+                    opacity: 1;
                 }
 
 body.page-chatbox-customer-chat #custFaqBody.is-collapsed {
-                    display: none;
-                }
-
-body.page-chatbox-customer-chat #custFaqCatBar {
-                    display: flex;
-                    gap: 6px;
-                    overflow-x: auto;
-                    padding-bottom: 2px;
-                    scrollbar-width: thin;
-                }
-
-body.page-chatbox-customer-chat .cust-faq-cat-pill {
-                    flex: 0 0 auto;
-                    font-size: 11.5px;
-                    font-weight: 600;
-                    padding: 4px 11px;
-                    border-radius: 999px;
-                    border: 1px solid #E2D5BC;
-                    background: #FFFFFF;
-                    color: #5C4B48;
-                    cursor: pointer;
-                    white-space: nowrap;
-                    transition: all 0.15s ease;
-                }
-
-body.page-chatbox-customer-chat .cust-faq-cat-pill:hover {
-                    border-color: #781A24;
-                    color: #781A24;
-                }
-
-body.page-chatbox-customer-chat .cust-faq-cat-pill.active {
-                    background: #781A24;
-                    color: #FFFFFF;
-                    border-color: #781A24;
+                    max-height: 0;
+                    margin-top: 0;
+                    opacity: 0;
+                    pointer-events: none;
                 }
 
 body.page-chatbox-customer-chat #custFaqBlocksGrid {
@@ -8950,7 +8909,7 @@ body.page-feedbacks-admin-management .master-card {
         box-shadow: 0 4px 16px rgba(46, 29, 23, 0.04);
         display: flex;
         flex-direction: column;
-        height: 100%;
+        height: auto;
     }
 
 body.page-feedbacks-admin-management .detail-card {
@@ -8959,7 +8918,7 @@ body.page-feedbacks-admin-management .detail-card {
         border-radius: 14px;
         box-shadow: 0 4px 16px rgba(46, 29, 23, 0.04);
         overflow: hidden;
-        height: 100%;
+        height: auto;
     }
 
 /* Search & Filter Pills */
@@ -9001,7 +8960,7 @@ body.page-feedbacks-admin-management .master-item-list {
         flex-direction: column;
         gap: 10px;
         overflow-y: auto;
-        max-height: 640px;
+        max-height: 460px;
         padding-right: 4px;
     }
 

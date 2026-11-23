@@ -163,7 +163,13 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files (Ảnh đại diện, ảnh gói dịch vụ tải lên)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = Path('/tmp/media') if (os.environ.get('VERCEL') or not os.access(BASE_DIR, os.W_OK)) else (BASE_DIR / 'media')
+if os.environ.get('VERCEL') or not os.access(BASE_DIR, os.W_OK):
+    MEDIA_ROOT = Path('/tmp/media')
+    src_media = BASE_DIR / 'media'
+    if src_media.exists() and not (MEDIA_ROOT / 'services').exists():
+        shutil.copytree(src_media, MEDIA_ROOT, dirs_exist_ok=True)
+else:
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # ==============================================================================

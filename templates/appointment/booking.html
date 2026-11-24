@@ -312,7 +312,7 @@
             <div class="voucher-input-group">
               <div class="input-icon-wrapper" style="flex: 1;">
                 <span class="input-prefix-icon">🎁</span>
-                <input type="text" id="inputVoucher" class="form-input text-uppercase" placeholder="Nhập mã voucher (Ví dụ: CHARMSPA)" value="{{ request.GET.voucher|default:'CHARMSPA'|upper }}">
+                <input type="text" id="inputVoucher" class="form-input text-uppercase" placeholder="Nhập mã voucher (Ví dụ: CHAM20NEW)" value="{{ request.GET.voucher|default:''|upper }}">
               </div>
               <button type="button" class="btn-apply-voucher" id="btnApplyVoucher">Áp dụng</button>
             </div>
@@ -559,7 +559,7 @@
   // Đọc mã voucher truyền từ URL (?voucher=...) khi chuyển từ Ví Voucher sang trang Đặt lịch
   const urlVoucherParam = new URLSearchParams(window.location.search).get('voucher');
   const normalizedUrlVoucher = urlVoucherParam ? urlVoucherParam.trim().toUpperCase() : '';
-  const initialVoucherCode = normalizedUrlVoucher || 'CHARMSPA';
+  const initialVoucherCode = normalizedUrlVoucher || '';
 
   const serverTodayStr = "{{ today_str|default:'' }}";
   const serverNowTimeStr = "{{ now_time_str|default:'' }}";
@@ -1105,7 +1105,7 @@
         els.voucherMessage.style.color = '#277A3E';
         els.voucherMessage.textContent = `✓ Áp dụng thành công voucher ${state.voucherCode}: ${data.formatted_discount || formatMoney(state.discountAmount)}`;
       } else {
-        state.voucherCode = code;
+        state.voucherCode = '';
         state.discountAmount = 0;
         els.voucherMessage.style.display = 'block';
         els.voucherMessage.style.color = '#C0392B';
@@ -1115,15 +1115,12 @@
     })
     .catch(err => {
       console.warn('Voucher apply error:', err);
-      // Fallback cục bộ cho mã CHARMSPA nếu offline
-      if (code === 'CHARMSPA') {
-        state.voucherCode = 'CHARMSPA';
-        state.discountAmount = Math.round(subtotal * 0.1);
-        els.voucherMessage.style.display = 'block';
-        els.voucherMessage.style.color = '#277A3E';
-        els.voucherMessage.textContent = `✓ Áp dụng voucher CHARMSPA: Giảm 10% (-${formatMoney(state.discountAmount)})`;
-        updateSummary();
-      }
+      state.voucherCode = '';
+      state.discountAmount = 0;
+      els.voucherMessage.style.display = 'block';
+      els.voucherMessage.style.color = '#C0392B';
+      els.voucherMessage.textContent = 'Không thể kiểm tra mã voucher lúc này. Vui lòng thử lại.';
+      updateSummary();
     });
   }
 
@@ -1372,7 +1369,9 @@
       }
       updateGuestCards();
       renderCalendar();
-      applyVoucherCode();
+      if (normalizedUrlVoucher) {
+        applyVoucherCode();
+      }
       updateSummary();
       fetchAvailableSlots();
     } catch(err) {

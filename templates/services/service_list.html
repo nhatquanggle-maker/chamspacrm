@@ -8,7 +8,7 @@
 
 {% block content %}
 <!-- ==========================================================================
-     HERO HEADER SECTION: CHĂM SÓC THÂN · TÂM · TRÍ (FIGMA NODE 216-928)
+     HERO HEADER SECTION: CHĂM SÓC THÂN · TÂM · TRÍ
      ========================================================================== -->
 <section class="services-hero-section">
     <div class="container">
@@ -57,7 +57,7 @@
                         </div>
                     </div>
 
-                    <!-- Filter 2: KHOẢNG GIÁ (Gộp duy nhất 1 thanh trượt chuẩn Figma) -->
+                    <!-- Filter 2: KHOẢNG GIÁ -->
                     <div class="mb-4">
                         <div class="filter-section-title">KHOẢNG GIÁ</div>
                         <div class="cham-price-range-wrapper">
@@ -110,7 +110,7 @@
                     </div>
                 </div>
 
-                <!-- Quick Options Strip (Figma Style) -->
+                <!-- Quick Options Strip -->
                 <div class="quick-options-strip">
                     <span class="quick-opt-label">Tùy chọn:</span>
                     <a href="javascript:void(0)" class="quick-opt-item active" data-sort="default">Mặc định</a>
@@ -183,7 +183,7 @@
 </section>
 
 <!-- ==========================================================================
-     MODAL POPUP: CHI TIẾT LIỆU TRÌNH (FIGMA NODE 216-929)
+     MODAL POPUP: CHI TIẾT LIỆU TRÌNH
      ========================================================================== -->
 <div class="modal fade" id="serviceDetailModal" tabindex="-1" aria-labelledby="serviceDetailModalLabel"
     aria-hidden="true">
@@ -353,7 +353,7 @@
             });
         });
 
-        // 2. Lắng nghe thanh trượt Giá tiền (Slider gộp duy nhất 1 thanh chuẩn Figma)
+        // 2. Lắng nghe thanh trượt Giá tiền
         const priceInput = document.getElementById('priceRangeInput');
         const maxPriceLabel = document.getElementById('maxPriceLabel');
 
@@ -587,7 +587,7 @@
             detailModalInstance.show();
         }
 
-        // Gọi REST API ngầm để lấy đầy đủ Gallery ảnh đa góc chụp và Quy trình 4 bước chuẩn Figma 216-929
+        // Gọi REST API ngầm để lấy đầy đủ Gallery ảnh đa góc chụp và Quy trình 4 bước
         fetch(`/services/api/detail/${slug}/`)
             .then(res => {
                 if (!res.ok) throw new Error('Không tải được thông tin chi tiết');
@@ -601,7 +601,7 @@
             });
     }
 
-    // Điền dữ liệu vào Modal theo chuẩn Figma Node 216-929
+    // Điền dữ liệu vào Modal theo
     function populateModalData(data) {
         document.getElementById('modalServiceTitle').textContent = data.name;
         document.getElementById('modalCategoryBadge').textContent = (data.category?.name || data.category_name || 'DỊCH VỤ SPA').toUpperCase();
@@ -618,7 +618,7 @@
         const mainSrc = (hasImages ? data.images[0] : defaultImg) + '?v=2';
         mainImg.src = mainSrc;
 
-        // Render Gallery Thumbs (Tối đa 3 thumbnails chuẩn Figma)
+        // Render Gallery Thumbs
         const thumbsContainer = document.getElementById('modalGalleryThumbs');
         if (thumbsContainer) {
             let images = hasImages ? data.images : [defaultImg];

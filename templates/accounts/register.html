@@ -10,7 +10,7 @@
     <div class="cham-auth-backdrop"></div>
 
     <div class="cham-auth-container">
-        <!-- Register Card (Figma Node 188:27928) -->
+        <!-- Register Card -->
         <div class="cham-auth-card cham-auth-card-register">
             
             <!-- Brand Identity & Header -->
@@ -143,7 +143,7 @@
                         </button>
                     </div>
 
-                    <!-- Password Strength Meter (Figma: 4 segments) -->
+                    <!-- Password Strength Meter -->
                     <div class="cham-strength-meter" id="strengthMeter">
                         <div class="cham-strength-bar" id="bar1"></div>
                         <div class="cham-strength-bar" id="bar2"></div>
@@ -235,13 +235,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (/[a-z]/.test(val)) score++;
             if (/[0-9]/.test(val)) score++;
 
-            // Highlight segments according to Figma palette
+            // Highlight segments according to palette
             bars.forEach((bar, idx) => {
                 if (idx < score) {
                     if (score <= 1) {
                         bar.style.backgroundColor = '#C25757'; // Weak
                     } else if (score <= 3) {
-                        bar.style.backgroundColor = '#D0B581'; // Figma gold
+                        bar.style.backgroundColor = '# D0B581'; // gold
                     } else {
                         bar.style.backgroundColor = '#781A24'; // Strong wine red
                     }

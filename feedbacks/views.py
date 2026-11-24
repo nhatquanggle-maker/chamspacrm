@@ -4,7 +4,7 @@ MODULE 04: QUẢN LÝ ĐÁNH GIÁ VÀ KHIẾU NẠI (MOD-04) - TEMPLATE VIEWS
 Thành viên phụ trách: NGUYỄN THỊ THANH THẢO
 Mục đích:
   - Điều phối và kết xuất (Render) các giao diện HTML cho Module 4:
-    1. Giao diện Theo dõi Đánh giá & Phản hồi cá nhân của Khách hàng (Figma Node 217:4864 & Node 694:4).
+    1. Giao diện Theo dõi Đánh giá & Phản hồi cá nhân của Khách hàng.
     2. Giao diện Quản lý Đánh giá & Xử lý Khiếu nại toàn diện của Staff/Admin (UC-4.2, UC-4.3, UC-4.4).
   - Tích hợp chuẩn bộ màu nhận diện Cham Spa, kế thừa layout chung của dự án.
 ================================================================================
@@ -191,9 +191,9 @@ def _handle_customer_feedback_post(request):
 @login_required
 def customer_feedback_tracking(request):
     """
-    [Figma Node 217:4864 & 694:4] Giao diện cá nhân dành cho Khách hàng:
-    - Tab 1 (Node 217:4864): Tiến độ xử lý khiếu nại (Gửi -> Tiếp nhận -> Xử lý & Voucher).
-    - Tab 2 (Node 694:4): Lịch sử các đánh giá sao và phản hồi từ đại diện Cham Spa.
+    Giao diện cá nhân dành cho Khách hàng:
+    Tab 1: Tiến độ xử lý khiếu nại (Gửi -> Tiếp nhận -> Xử lý & Voucher).
+    Tab 2: Lịch sử các đánh giá sao và phản hồi từ đại diện Cham Spa.
     - Tích hợp Modal đánh giá & khiếu nại qua Form POST chuẩn.
     - Tự động mở Modal đánh giá nếu có tham số ?appointment=<id> trên URL.
     """
@@ -212,7 +212,7 @@ def customer_feedback_tracking(request):
         'appointment', 'assigned_staff', 'compensated_voucher'
     ).prefetch_related('appointment__details__service').order_by('-created_at')
 
-    # 3. Đếm số lượng thống kê theo trạng thái khiếu nại (Node 217:4864 Sub-tabs)
+    # 3. Đếm số lượng thống kê theo trạng thái khiếu nại
     complaint_counts = {
         'all': complaints_qs.count(),
         'pending': complaints_qs.filter(status__in=['Chờ phân công', 'Đang xử lý', 'Chờ liên hệ lại']).count(),
@@ -228,7 +228,7 @@ def customer_feedback_tracking(request):
     }
 
     # 4. Bộ lọc trên giao diện
-    active_tab = request.GET.get('tab', 'complaints')  # Mặc định theo Node 217:4864 là tab khiếu nại
+    active_tab = request.GET.get('tab', 'complaints')  # Mặc định là tab khiếu nại
     complaint_filter = request.GET.get('status', 'all')
 
     filtered_complaints = complaints_qs
@@ -608,10 +608,10 @@ def _handle_admin_feedback_post(request):
 @login_required
 def admin_feedback_management(request):
     """
-    [UC-4.2, UC-4.3, UC-4.4] Master-Detail Dashboard Quản lý Đánh giá & Khiếu nại (Figma Node 217-7569 & 217-6127):
+    [UC-4.2, UC-4.3, UC-4.4] Master-Detail Dashboard Quản lý Đánh giá & Khiếu nại:
     - Kế thừa động layout: layouts/admin_layout.html (Admin) hoặc layouts/staff_layout.html (Staff).
-    - Tab 1: Quản lý Đánh giá (Figma 217-7569): KPI cards, Danh sách Master, Panel Detail phản hồi công khai & duyệt/ẩn.
-    - Tab 2: Quản lý Khiếu nại (Figma 217-6127): KPI tickets, Danh sách Master, Stepper quy trình, Phân công CSKH & SLA.
+    Tab 1: Quản lý Đánh giá: KPI cards, Danh sách Master, Panel Detail phản hồi công khai & duyệt/ẩn.
+    Tab 2: Quản lý Khiếu nại: KPI tickets, Danh sách Master, Stepper quy trình, Phân công CSKH & SLA.
     """
     # Ràng buộc bảo mật: Chỉ cho phép Nhân viên hoặc Quản lý truy cập
     if not _is_staff_or_admin(request.user):
@@ -631,13 +631,13 @@ def admin_feedback_management(request):
     now = timezone.now()
 
     # =========================================================================
-    # 1. DỮ LIỆU TAB ĐÁNH GIÁ (FEEDBACKS - FIGMA NODE 217-7569)
+    # 1. DỮ LIỆU TAB ĐÁNH GIÁ
     # =========================================================================
     feedbacks_base_qs = Feedback.objects.all().select_related(
         'appointment', 'customer', 'replied_by'
     ).prefetch_related('appointment__details__service').order_by('-created_at')
 
-    # Thống kê tổng quan Feedbacks (Figma 217-7569 KPI)
+    # Thống kê tổng quan Feedbacks
     total_feedbacks = feedbacks_base_qs.count()
     avg_rating = feedbacks_base_qs.aggregate(avg=Avg('rating'))['avg'] or 5.0
     waiting_feedbacks_count = feedbacks_base_qs.filter(status='Chờ phản hồi').count()
@@ -681,13 +681,13 @@ def admin_feedback_management(request):
         selected_feedback = feedbacks_page.object_list[0]
 
     # =========================================================================
-    # 2. DỮ LIỆU TAB KHIẾU NẠI (COMPLAINTS - FIGMA NODE 217-6127)
+    # 2. DỮ LIỆU TAB KHIẾU NẠI
     # =========================================================================
     complaints_base_qs = Complaint.objects.all().select_related(
         'appointment', 'customer', 'assigned_staff', 'compensated_voucher'
     ).prefetch_related('appointment__details__service').order_by('-created_at')
 
-    # Thống kê tổng quan Complaints (Figma 217-6127 KPI)
+    # Thống kê tổng quan Complaints
     total_complaints = complaints_base_qs.count()
     pending_assign_count = complaints_base_qs.filter(status='Chờ phân công').count()
     processing_count = complaints_base_qs.filter(status__in=['Đang xử lý', 'Chờ liên hệ lại']).count()
@@ -744,7 +744,7 @@ def admin_feedback_management(request):
         'base_layout': base_layout,
         'active_tab': active_tab,
 
-        # Feedbacks Context (Figma 217-7569)
+        # Feedbacks Context
         'feedbacks': feedbacks_page,
         'selected_feedback': selected_feedback,
         'total_feedbacks': total_feedbacks,
@@ -757,7 +757,7 @@ def admin_feedback_management(request):
         'rating_tab': rating_tab,
         'fb_search': fb_search,
 
-        # Complaints Context (Figma 217-6127)
+        # Complaints Context
         'complaints': complaints_page,
         'selected_complaint': selected_complaint,
         'total_complaints': total_complaints,

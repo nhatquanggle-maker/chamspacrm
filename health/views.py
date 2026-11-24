@@ -2,9 +2,9 @@
 ================================================================================
 VIEWS GIAO DIỆN CHO PHÂN HỆ QUẢN LÝ HỒ SƠ SỨC KHỎE (MOD-08) - CHAMSPA CRM
 Thành viên phụ trách: Thảo Ngọc (Meo)
-Triển khai giao diện chuẩn Figma:
-  - Node 273:2545: Giao diện xem hồ sơ sức khỏe cá nhân & Cảnh báo an toàn y tế
-  - Node 273:2839: Giao diện cập nhật / khảo sát thể trạng sức khỏe Body Map
+Triển khai giao diện:
+  Giao diện xem hồ sơ sức khỏe cá nhân & Cảnh báo an toàn y tế
+  Giao diện cập nhật / khảo sát thể trạng sức khỏe Body Map
   - Màn hình Tra cứu & Xem Hồ sơ sức khỏe Khách hàng dành cho Staff Workspace
 ================================================================================
 """
@@ -43,7 +43,7 @@ def format_metric_value(val):
 @login_required
 def my_health_profile_view(request):
     """
-    [MOD-08 - UC-8.2 & Figma Node 273:2575]
+    [MOD-08 - UC-8.2]
     Màn hình Xem Hồ sơ sức khỏe cá nhân dành cho Khách hàng (và Nhân viên).
     Hiển thị thông tin sinh trắc học, chỉ số BMI, mức độ đau mỏi,
     lực massage ưa chuộng và các mục tiêu trị liệu.
@@ -86,7 +86,7 @@ def my_health_profile_view(request):
 @login_required
 def health_profile_update_view(request):
     """
-    [MOD-08 - UC-8.1 & Figma Node 273:2839]
+    [MOD-08 - UC-8.1]
     Màn hình Khảo sát / Cập nhật Hồ sơ sức khỏe cá nhân (Chuẩn 1-1 tối giản).
     Tự động điền sẵn 100% dữ liệu cũ để khách hàng có thể chỉnh sửa lại dễ dàng.
     """
@@ -202,7 +202,7 @@ def health_profile_update_view(request):
 @login_required
 def staff_health_lookup_view(request):
     """
-    [MOD-08 - Mở rộng cho Staff Workspace & Figma Node 273:2545]
+    [MOD-08 - Mở rộng cho Staff Workspace]
     Màn hình Quản lý & Tra cứu Hồ sơ sức khỏe Khách hàng dành cho Nhân viên Lễ tân,
     Tư vấn viên CSKH và Kỹ thuật viên (KTV).
     Cho phép:
@@ -333,16 +333,16 @@ def staff_health_lookup_view(request):
 def staff_customer_health_detail_view(request, user_id):
     """
     [MOD-08 & MOD-05] Chi tiết hồ sơ khách hàng 360 độ đầy đủ 3 Tab cho Nhân viên & Admin:
-      - Tab 1 (Figma Node 221:481): Thông tin cá nhân & Liên hệ
-      - Tab 2 (Figma Node 608:1773): Hồ sơ sức khỏe
-      - Tab 3 (Figma Node 608:250): Thẻ hội viên & Tích điểm
+      Tab 1: Thông tin cá nhân & Liên hệ
+      Tab 2: Hồ sơ sức khỏe
+      Tab 3: Thẻ hội viên & Tích điểm
     Đồng thời hỗ trợ hiển thị giao diện chuyên biệt cho KTV in phiếu khi có tham số ?view=ktv hoặc ?standalone=1.
     """
     if not is_staff_or_superuser(request.user):
         messages.error(request, "Bạn không có quyền truy cập hồ sơ sức khỏe khách hàng này.")
         return redirect('home')
 
-    # Nếu KTV yêu cầu xem bản in phiếu hồ sơ y tế chuyên sâu (Figma Node 279:1633)
+    # Nếu KTV yêu cầu xem bản in phiếu hồ sơ y tế chuyên sâu
     if request.GET.get('view') in ['ktv', 'standalone', 'print']:
         base_layout = 'layouts/admin_layout.html' if request.user.is_superuser else 'layouts/staff_layout.html'
         customer = get_object_or_404(User, id=user_id)

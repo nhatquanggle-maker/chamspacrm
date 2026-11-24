@@ -2,8 +2,8 @@
 ================================================================================
 VIEWS GIAO DIỆN CHO PHÂN HỆ QUẢN LÝ BOXCHAT TƯ VẤN (MOD-02) - CHAMSPA CRM
 Thành viên phụ trách: Thảo Ngọc
-Triển khai giao diện chuẩn Figma Node 207:1040:
-  - Staff Workspace: Giao diện Livechat tư vấn trực tiếp với khách hàng (Ảnh 1 chuẩn Figma)
+Triển khai giao diện:
+  Staff Workspace: Giao diện Livechat tư vấn trực tiếp với khách hàng
   - Phân quyền nghiêm ngặt:
       + Nhân viên (Staff): CHỈ có giao diện Livechat nhắn với khách hàng, KHÔNG ĐƯỢC quản lý FAQ.
       + Quản lý (Admin / Superuser): Toàn quyền quản trị kịch bản Chatbot FAQ.
@@ -32,8 +32,8 @@ def is_staff_or_superuser(user):
 def chatbox_index_view(request):
     """
     Tự động phân luồng theo vai trò người dùng:
-      - Quản lý / Quản trị viên (is_superuser): Điều hướng sang Admin Monitor (Figma Node 502:2005)
-      - Nhân viên (is_staff): Điều hướng sang Staff Inbox Livechat (Figma Node 207:1040)
+      Quản lý / Quản trị viên (is_superuser): Điều hướng sang Admin Monitor
+      Nhân viên (is_staff): Điều hướng sang Staff Inbox Livechat
       - Khách hàng (Customer): Điều hướng sang Chatbot tư vấn khách hàng
     """
     if request.user.is_superuser:
@@ -47,7 +47,7 @@ def chatbox_index_view(request):
 @login_required
 def livechat_staff_view(request):
     """
-    [UC-2.2 & Figma Node 207:1040]
+    [UC-2.2]
     Màn hình Livechat tư vấn trực tuyến dành cho Nhân viên CSKH & Lễ tân (Ảnh 1).
     Phân quyền: Nhân viên chỉ có giao diện nhắn tin tư vấn với khách hàng, KHÔNG quản lý FAQ.
     
@@ -123,7 +123,6 @@ def livechat_staff_view(request):
 @login_required
 def admin_livechat_monitor_view(request):
     """
-    [Figma Node 502:2005 - ADMIN · Quản lý Live Chat & Giám sát phiên tư vấn (UC-2.2)]
     Dành riêng cho Quản trị viên (Admin / is_staff=True hoặc is_superuser=True):
       - Cột 1: Danh sách hội thoại phân tab (Chưa tiếp nhận, Đang tư vấn, Đã kết thúc)
       - Cột 2: Khung giám sát & Can thiệp chat (Mode Giám sát vs Mode Can thiệp, Tiếp quản, Chuyển nhân viên)
@@ -215,7 +214,7 @@ def admin_livechat_monitor_view(request):
 @login_required
 def faq_management_view(request):
     """
-    [UC-2.3 & Figma Node 211:3459] Màn hình Quản lý kịch bản Chatbot (FAQ).
+    [UC-2.3] Màn hình Quản lý kịch bản Chatbot (FAQ).
     Chỉ tài khoản Quản trị viên (Admin / is_staff=True hoặc is_superuser=True) mới có quyền truy cập.
     Hỗ trợ:
       - Tìm kiếm theo từ khóa hoặc câu hỏi

@@ -25,11 +25,10 @@ from core.models import Category, Service, Feedback
 def service_list_view(request):
     """
     Màn hình Xem danh sách Dịch vụ phía Khách hàng & Khách vãng lai (UC-3.1)
-    Khớp 100% Giao diện Figma Node 216-928:
       - Thanh phân loại danh mục (All, Massage Body, Foot, Gội đầu, Facial, Trị liệu...)
       - Khung bộ lọc sidebar (Danh mục, Khoảng giá slider, Thời lượng chips, Đặt lại bộ lọc)
       - Lưới thẻ dịch vụ responsive (Ảnh thumbnail, Tên, Giá VNĐ, Thời lượng, Đánh giá sao, Nút Đặt ngay & Xem chi tiết)
-      - Tích hợp Modal Popup Chi tiết dịch vụ (Figma Node 216-929) xem ngay không cần chuyển trang.
+      Tích hợp Modal Popup Chi tiết dịch vụ xem ngay không cần chuyển trang.
     """
     # 1. Lấy danh sách danh mục đang hoạt động (đồng bộ cả mã 'Active' và 'Hoạt động')
     categories = Category.objects.filter(status__in=['Active', 'Hoạt động']).order_by('id')
@@ -37,7 +36,7 @@ def service_list_view(request):
     # 2. Lấy toàn bộ dịch vụ đang hoạt động
     services_qs = Service.objects.filter(status='Hoạt động').select_related('category').prefetch_related('images').order_by('id')
 
-    # 3. Cấu hình khoảng giá thanh trượt Slider chuẩn Figma (200.000 VNĐ - 2.000.000 VNĐ)
+    # 3. Cấu hình khoảng giá thanh trượt Slider(200.000 VNĐ - 2.000.000 VNĐ)
     min_price = 200000
     max_price = 2000000
 
@@ -82,7 +81,6 @@ def service_detail_view(request, slug):
     """
     Trang Xem chi tiết Dịch vụ độc lập (UC-3.2)
     Hỗ trợ truy cập trực tiếp qua đường dẫn thân thiện /services/<slug>/
-    Khớp 100% Giao diện Figma Node 216-929:
       - Gallery ảnh đa góc chụp (ảnh lớn + 3 thumbnail)
       - Huy hiệu bảo chứng chất lượng & an toàn thảo mộc
       - Bảng giá niêm yết, thời lượng, đánh giá trung bình
@@ -287,7 +285,7 @@ def service_admin_view(request):
         s.formatted_price = f"{int(s.price_vnd):,}".replace(',', '.') + " VNĐ"
     categories = Category.objects.all().annotate(total_svc=Count('services')).order_by('id')
 
-    # Thống kê KPI khớp Figma
+    # Thống kê KPI khớp
     total_services = services.count()
     active_services = services.filter(status='Hoạt động').count()
     inactive_services = services.filter(status='Ngừng hoạt động').count()

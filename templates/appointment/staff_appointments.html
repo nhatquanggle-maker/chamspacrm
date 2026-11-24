@@ -8,7 +8,7 @@
 {% block staff_content %}
 {% block schedule_main_content %}
 <div class="staff-schedule-container admin-schedule-container pb-5" style="max-width: 1360px; margin: 0 auto; padding-left: 20px; padding-right: 20px;">
-    <!-- 1. PAGE HEADING (Figma Node 110:4969) -->
+    <!-- 1. PAGE HEADING -->
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         {% block schedule_heading %}
         <div>
@@ -31,7 +31,7 @@
     <!-- 2. METRICS (Admin override) -->
     {% block schedule_metrics %}{% endblock %}
 
-    <!-- 3. SCHEDULE FILTERS (Figma Node 110:4969) -->
+    <!-- 3. SCHEDULE FILTERS -->
     <div class="staff-filter-card admin-filter-card mb-4">
         <form method="GET" action="{% block schedule_filter_action %}{% url 'appointment:staff_appointments' %}{% endblock %}" id="staffFilterForm"
             class="row g-3 align-items-end">
@@ -100,7 +100,7 @@
         </form>
     </div>
 
-    <!-- 4. APPOINTMENT SCHEDULE TABLE (Figma Node 110:4969) -->
+    <!-- 4. APPOINTMENT SCHEDULE TABLE -->
     <div class="staff-schedule-card admin-schedule-card">
         <!-- Card Header: Title, Dates, Counts & Loyalty Hint -->
         <div class="staff-schedule-header admin-schedule-header d-flex flex-wrap align-items-center justify-content-between px-4 py-3 gap-2">
@@ -149,7 +149,7 @@
                             <span class="service-col text-dark">{{ appt.service_summary }}</span>
                         </td>
 
-                        <!-- 4. Trạng thái (Badge chuẩn Figma) -->
+                        <!-- 4. Trạng thái -->
                         <td class="text-nowrap">
                             <div class="status-cell" id="status-cell-{{ appt.id }}">
                                 <span class="staff-badge-status {{ appt.status_class }}"
@@ -159,7 +159,7 @@
                             </div>
                         </td>
 
-                        <!-- 5. Cập nhật (Action buttons chuẩn Figma) -->
+                        <!-- 5. Cập nhật -->
                         <td class="text-end text-nowrap pe-4">
                             <div class="action-buttons-group d-inline-flex align-items-center gap-1"
                                 id="actions-{{ appt.id }}">
@@ -218,7 +218,7 @@
             </table>
         </div>
 
-        <!-- Schedule Footer (Figma Node 110:4969) -->
+        <!-- Schedule Footer -->
         <div
             class="staff-schedule-footer d-flex flex-wrap align-items-center justify-content-between px-4 py-3 gap-3 border-top">
             <!-- Left Info: Khung giờ tiếp theo -->
@@ -519,7 +519,7 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- 7. CSS RIÊNG KHỚP 100% BẢN VẼ FIGMA (NODE 110:4969)                       -->
+<!-- 7. CSS RIÊNG -->
 <!-- ========================================================================= -->
 
 <!-- ========================================================================= -->

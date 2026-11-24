@@ -1,10 +1,10 @@
 """
 Views giao diện cho Phân hệ Quản lý Lịch hẹn (MOD-01) - CHAMSPA CRM
 Tác giả: Nhật Quang (Leader)
-Khớp 100% Thiết kế Figma:
-  - Form đặt lịch hẹn trực tuyến: Node 828:515
-  - Modal thanh toán VietQR: Node 818:2
-  - Phiếu xác nhận đặt lịch hoàn tất (Digital Pass): Node 154:4478
+Khớp 100% Thiết kế:
+  Form đặt lịch hẹn trực tuyến
+  Modal thanh toán VietQR
+  Phiếu xác nhận đặt lịch hoàn tất (Digital Pass)
 """
 
 from datetime import datetime
@@ -18,7 +18,7 @@ from core.models import Appointment, Service
 def booking_view(request):
     """
     Màn hình Đặt lịch trải nghiệm (UC-1.1)
-    Khớp 100% Figma Node 828:515 (Form đặt lịch) & Node 818:2 (Modal VietQR)
+    (Form đặt lịch)
     
     YÊU CẦU PHÂN QUYỀN NGHIÊM NGẶT:
       - CHỈ DUY NHẤT khách hàng ĐÃ ĐĂNG NHẬP (is_authenticated và KHÔNG phải staff/superuser) mới có thể bấm đặt lịch.
@@ -69,7 +69,7 @@ def booking_view(request):
             'email': (user.email or '').strip(),
         }
 
-    # 4 Khung giờ chính chuẩn Figma (09:00, 10:00, 14:00, 16:00)
+    # 4 Khung giờ chính(09:00, 10:00, 14:00, 16:00)
     time_slots = [
         {"slot": "09:00", "label": "09:00"},
         {"slot": "10:00", "label": "10:00"},
@@ -110,7 +110,6 @@ def booking_view(request):
 def booking_success_view(request, code):
     """
     Màn hình Giữ chỗ & Nhận mã - Phiếu xác nhận đặt lịch hoàn tất (Digital Pass) (UC-1.1)
-    Khớp 100% Figma Node 154:4478
     """
     clean_code = code if code.startswith('#') else f"#{code}"
     appointment = get_object_or_404(
@@ -150,8 +149,8 @@ def booking_success_view(request, code):
 def my_appointments_view(request):
     """
     Màn hình Quản lý lịch hẹn cá nhân cho Khách hàng (UC-1.2, UC-1.3, UC-1.4)
-    Khớp 100% Figma Node 166:563 (Quản lý lịch cá nhân)
-    Tích hợp Modal Dời lịch (Node 172:3086) và Modal Hủy lịch (Node 172:3088)
+    (Quản lý lịch cá nhân)
+    Tích hợp Modal Dời lịch và Modal Hủy lịch
     """
     user = request.user
     user_phone = (user.phone or '').replace(' ', '').replace('.', '').replace('-', '').strip()
@@ -171,7 +170,7 @@ def my_appointments_view(request):
         4: 'Thứ Sáu', 5: 'Thứ Bảy', 6: 'Chủ Nhật'
     }
 
-    # Format hiển thị từng lịch hẹn khớp chuẩn Figma
+    # Format hiển thị từng lịch hẹn khớp
     for appt in appointments:
         w_name = weekday_map.get(appt.appointment_date.weekday(), '')
         appt.date_vn_formatted = f"{appt.time_slot}, {w_name} - {appt.appointment_date.strftime('%d/%m/%Y')}"
@@ -210,7 +209,7 @@ def _parse_optional_filter_date(raw_date):
 def staff_appointments_view(request):
     """
     Màn hình Quản lý Lịch hẹn cho Nhân viên Lễ tân / CSKH (UC-1.5)
-    Khớp 100% Figma Node 110:4969 (Staff Dashboard / Lịch hẹn hôm nay)
+    (Staff Dashboard / Lịch hẹn hôm nay)
     
     Phân quyền:
       - Chỉ Nhân viên (is_staff) hoặc Quản lý (is_superuser) mới được quyền truy cập.
@@ -279,7 +278,7 @@ def staff_appointments_view(request):
         'visible': len(appointments)
     }
 
-    # 5. Cấu hình bảng màu nhãn trạng thái chuẩn Figma (3 trạng thái cốt lõi: Chờ xác nhận, Đã xác nhận, Đã hoàn thành, Đã hủy)
+    # 5. Cấu hình bảng màu nhãn trạng thái(3 trạng thái cốt lõi: Chờ xác nhận, Đã xác nhận, Đã hoàn thành, Đã hủy)
     status_config = {
         'Confirmed': {
             'label': 'Đã xác nhận',
@@ -325,7 +324,7 @@ def staff_appointments_view(request):
         }
     }
 
-    # 6. Format dữ liệu từng hàng khớp giao diện Figma
+    # 6. Format dữ liệu từng hàng khớp giao diện
     for appt in appointments:
         first_detail = appt.details.first()
         if first_detail and first_detail.service:
@@ -484,7 +483,7 @@ def admin_appointments_view(request):
         'visible': len(appointments)
     }
 
-    # 6. Cấu hình bảng màu nhãn trạng thái chuẩn Figma (3 trạng thái cốt lõi: Chờ xác nhận, Đã xác nhận, Đã hoàn thành, Đã hủy)
+    # 6. Cấu hình bảng màu nhãn trạng thái(3 trạng thái cốt lõi: Chờ xác nhận, Đã xác nhận, Đã hoàn thành, Đã hủy)
     status_config = {
         'Confirmed': {
             'label': 'Đã xác nhận',
@@ -530,7 +529,7 @@ def admin_appointments_view(request):
         }
     }
 
-    # 7. Format dữ liệu từng hàng khớp 100% giao diện Figma
+    # 7. Format dữ liệu từng hàng
     for appt in appointments:
         first_detail = appt.details.first()
         if first_detail and first_detail.service:

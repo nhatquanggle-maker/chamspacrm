@@ -34,7 +34,7 @@
     </div>
     {% endif %}
 
-    <!-- 3. KPI Summary Cards (Figma Hình 23) -->
+    <!-- 3. KPI Summary Cards -->
     <div class="row g-3">
         <!-- KPI 1: Tổng số Dịch vụ -->
         <div class="col-md-4">
@@ -215,7 +215,7 @@
                 <input type="hidden" id="formServiceId" name="service_id" value="">
 
                 <div class="modal-body p-4">
-                    <!-- KHUNG CẢNH BÁO TRÙNG LẶP DỊCH VỤ (FIGMA NODE 216-2853) -->
+                    <!-- KHUNG CẢNH BÁO TRÙNG LẶP DỊCH VỤ -->
                     <div class="alert alert-danger d-none align-items-start gap-3 rounded-3 p-3 mb-3 border-danger shadow-sm" id="duplicateAlertBox" role="alert">
                         <i class="bi bi-exclamation-triangle-fill fs-4 text-danger flex-shrink-0 mt-1"></i>
                         <div class="flex-grow-1">
@@ -360,7 +360,7 @@
 </div>
 
 <!-- ==========================================================================
-     MODAL: XÁC NHẬN XÓA DỊCH VỤ (FIGMA NODE 216-2320)
+     MODAL: XÁC NHẬN XÓA DỊCH VỤ
      ========================================================================== -->
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
@@ -394,7 +394,7 @@
 </div>
 
 <!-- ==========================================================================
-     MODAL: CẢNH BÁO DỊCH VỤ TRÙNG LẶP (FIGMA NODE 216-2853)
+     MODAL: CẢNH BÁO DỊCH VỤ TRÙNG LẶP
      ========================================================================== -->
 <div class="modal fade" id="duplicateWarningModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
@@ -493,7 +493,7 @@
         if (toastObj) toastObj.show();
     }
 
-    // Lọc nhanh bảng dữ liệu Admin theo Từ khóa, Danh mục, Trạng thái (Figma Node 216-931)
+    // Lọc nhanh bảng dữ liệu Admin theo Từ khóa, Danh mục, Trạng thái
     function filterAdminServicesTable() {
         const query = document.getElementById('adminSearchInput').value.toLowerCase().trim();
         const catFilter = document.getElementById('adminCategorySelect').value;
@@ -522,7 +522,7 @@
         document.getElementById('visibleRowsCount').textContent = visibleCount;
     }
 
-    // Mở Modal Thêm mới dịch vụ (Figma Node 216-1890)
+    // Mở Modal Thêm mới dịch vụ
     function openServiceCreateModal() {
         hideDuplicateAlert();
 
@@ -646,7 +646,7 @@
         autoGenerateSlug(val);
     }
 
-    // Xử lý kiểm tra trùng tên trước khi submit Form POST (Figma Node 216-2853)
+    // Xử lý kiểm tra trùng tên trước khi submit Form POST
     function handleSaveService(event) {
         hideDuplicateAlert();
 
@@ -671,7 +671,7 @@
         return true;
     }
 
-    // Hiển thị giao diện cảnh báo trùng lặp (Figma Node 216-2853)
+    // Hiển thị giao diện cảnh báo trùng lặp
     function showDuplicateWarning(serviceName, categoryName, customMsg) {
         const alertBox = document.getElementById('duplicateAlertBox');
         const alertMsg = document.getElementById('duplicateAlertMsg');
@@ -698,7 +698,7 @@
             if (feedbackText) feedbackText.textContent = `Tên "${serviceName}" đã tồn tại!`;
         }
 
-        // Bật popup cảnh báo trùng lặp (Node 216-2853)
+        // Bật popup cảnh báo trùng lặp
         const dupModalText = document.getElementById('duplicateModalText');
         if (dupModalText) dupModalText.textContent = message;
         if (duplicateModalObj) duplicateModalObj.show();

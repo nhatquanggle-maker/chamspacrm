@@ -1,7 +1,7 @@
 {% load static %}
 {% if not user.is_staff and not user.is_superuser and request.resolver_match.url_name != 'customer_chat' %}
 <!-- ========================================================================
-     CHAM SPA FLOATING CHAT WIDGET (FIGMA COMPONENT)
+     CHAM SPA FLOATING CHAT WIDGET
      Module 2: Quản lý Boxchat tư vấn - Thành viên phụ trách: Thảo Ngọc
      Quy tắc nghiệp vụ cốt lõi:
        - Phân quyền: STAFF và ADMIN KHÔNG hiển thị chat widget tại homepage.
@@ -12,7 +12,7 @@
          chỉ chạy in-memory tạm thời trên trình duyệt.
      ======================================================================== -->
 
-<!-- Floating Chatbot Button (Figma Node: Chatbot button 58x58) -->
+<!-- Floating Chatbot Button -->
 <button id="chamChatbotFab" type="button" class="cham-chatbot-fab" title="Trò chuyện với Cham Spa"
     aria-label="Trò chuyện với Cham Spa">
     <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" style="display: block;">

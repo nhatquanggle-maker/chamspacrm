@@ -112,7 +112,6 @@ def sync_user_phone_username(user, new_phone, old_phone=''):
 class LoginForm(forms.Form):
     """
     Form Đăng nhập linh hoạt (Số điện thoại, Email hoặc Tên tài khoản)
-    Khớp 100% bản thiết kế Figma (Node 188:27886)
     """
     username = forms.CharField(
         label="Tài khoản / Email / SĐT *",
@@ -164,7 +163,6 @@ class LoginForm(forms.Form):
 class RegisterForm(forms.Form):
     """
     Form Đăng ký tài khoản Khách hàng Cham Spa
-    Khớp 100% bản thiết kế Figma (Node 188:27928)
     """
     name = forms.CharField(
         label="Họ và tên *",
@@ -265,7 +263,6 @@ class RegisterForm(forms.Form):
 class ForgotPasswordForm(forms.Form):
     """
     Form Quên mật khẩu
-    Khớp 100% bản thiết kế Figma (Node 188:27987)
     """
     email = forms.EmailField(
         label="Email đăng ký *",
@@ -289,7 +286,6 @@ class ForgotPasswordForm(forms.Form):
 class ResetPasswordForm(forms.Form):
     """
     Form Đặt lại mật khẩu mới
-    Khớp 100% bản thiết kế Figma (Node 188:28011)
     """
     new_password = forms.CharField(
         label="Mật khẩu mới *",

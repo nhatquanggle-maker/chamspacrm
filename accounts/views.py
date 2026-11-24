@@ -30,7 +30,6 @@ import os
 def login_view(request):
     """
     Xử lý Đăng nhập tài khoản & Tự động phân luồng điều hướng theo vai trò (Role-based Redirect)
-    Khớp 100% Figma: Node 188:27886
     """
     if request.user.is_authenticated:
         return redirect_by_role(request.user)
@@ -91,7 +90,7 @@ def logout_view(request):
 
 def forgot_password_view(request):
     """
-    Xử lý Quên mật khẩu & Gửi liên kết đặt lại mật khẩu bảo mật qua Gmail (Figma Node 188:27987)
+    Xử lý Quên mật khẩu & Gửi liên kết đặt lại mật khẩu bảo mật qua Gmail
     """
     if request.user.is_authenticated:
         return redirect('home')
@@ -227,7 +226,6 @@ Hotline: 0987 654 321 | Website: https://chamspa.com.vn
 def reset_password_view(request, uidb64=None, token=None):
     """
     Xử lý Đặt lại mật khẩu mới
-    Khớp 100% Figma: Node 188:28011
     """
     user = None
     is_valid_token = False
@@ -276,8 +274,8 @@ def reset_password_view(request, uidb64=None, token=None):
 @login_required
 def profile_view(request):
     """
-    Xem và Cập nhật hồ sơ cá nhân theo đúng Layout phân quyền (Figma Node 218:9161 & 218:9162):
-    - Khách hàng (Customer): hiển thị bên trong layouts/customer_layout.html khớp 100% Figma 218:9161
+    Xem và Cập nhật hồ sơ cá nhân theo đúng Layout phân quyền:
+    Khách hàng (Customer): hiển thị bên trong layouts/customer_layout.html
     - Quản lý (Admin): hiển thị bên trong layouts/admin_layout.html
     - Kỹ thuật viên (Staff): hiển thị bên trong layouts/staff_layout.html
     Hỗ trợ đầy đủ: Đổi thông tin cá nhân, Tải ảnh đại diện Avatar, Đổi mật khẩu tài khoản.
@@ -400,24 +398,24 @@ def redirect_by_role(user):
 
 
 # =============================================================================
-# MODULE 5 - ADMIN: QUẢN LÝ TÀI KHOẢN KHÁCH HÀNG (KHỚP 100% 4 NODE FIGMA)
-# 1. Danh sách khách hàng: Node 218:9398
-# 2. Chi tiết khách hàng (Thông tin cá nhân & liên hệ): Node 221:481
-# 3. Chi tiết khách hàng (Hồ sơ sức khỏe): Node 608:1773
-# 4. Chi tiết khách hàng (Thẻ hội viên & tích điểm): Node 608:250
+# MODULE 5 - ADMIN: QUẢN LÝ TÀI KHOẢN KHÁCH HÀNG
+# 1. Danh sách khách hàng
+# 2. Chi tiết khách hàng (Thông tin cá nhân & liên hệ)
+# 3. Chi tiết khách hàng (Hồ sơ sức khỏe)
+# 4. Chi tiết khách hàng (Thẻ hội viên & tích điểm)
 # =============================================================================
 
 @login_required
 def admin_customer_list_view(request):
     """
-    Giao diện Quản lý Danh sách Tài khoản Khách hàng (Figma Node 218:9398)
+    Giao diện Quản lý Danh sách Tài khoản Khách hàng
     Hỗ trợ:
       - Tìm kiếm realtime theo Họ tên, SĐT, Email, Mã TK
       - Lọc theo Tab trạng thái: Tất cả, Đang hoạt động, Đã khóa
       - Modal Tạo mới tài khoản Khách hàng
       - Modal Sửa thông tin tài khoản
       - Modal Khóa / Mở khóa tài khoản an toàn (Soft Deactivation is_active=False)
-      - Phân trang chuẩn 8 tài khoản / trang theo thiết kế Figma
+      Phân trang chuẩn 8 tài khoản / trang
     """
     if not request.user.is_superuser:
         messages.error(request, "Chỉ Quản trị viên (Admin) mới có quyền truy cập trang quản trị tài khoản khách hàng.")
@@ -569,7 +567,7 @@ def admin_customer_list_view(request):
             q_filter |= Q(id=int(clean_search))
         qs = qs.filter(q_filter)
 
-    # Phân trang chuẩn 8 tài khoản / trang (Figma 218:9398)
+    # Phân trang chuẩn 8 tài khoản / trang
     paginator = Paginator(qs, 8)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
@@ -595,11 +593,11 @@ def admin_customer_list_view(request):
 @login_required
 def admin_customer_detail_view(request, pk):
     """
-    Giao diện Chi tiết Khách hàng 360 độ (Figma Node 221:481, 608:1773, 608:250)
-    Tích hợp 3 Tab chuẩn xác theo thiết kế Figma:
-      - Tab 1 (Node 221:481): Thông tin cá nhân & Liên hệ
-      - Tab 2 (Node 608:1773): Hồ sơ sức khỏe (Timeline, Thể trạng & Huyết áp, Vùng đau mỏi, Cường độ 0-10)
-      - Tab 3 (Node 608:250): Thẻ hội viên & Tích điểm (Tiến trình nâng hạng, Biến động điểm thưởng)
+    Giao diện Chi tiết Khách hàng 360 độ
+    Tích hợp 3 Tab chuẩn xác:
+      Tab 1: Thông tin cá nhân & Liên hệ
+      Tab 2: Hồ sơ sức khỏe (Timeline, Thể trạng & Huyết áp, Vùng đau mỏi, Cường độ 0-10)
+      Tab 3: Thẻ hội viên & Tích điểm (Tiến trình nâng hạng, Biến động điểm thưởng)
     """
     if not (request.user.is_superuser or request.user.is_staff):
         messages.error(request, "Bạn không có quyền truy cập hồ sơ khách hàng.")
@@ -681,7 +679,7 @@ def admin_customer_detail_view(request, pk):
     if active_tab not in ['info', 'health', 'membership']:
         active_tab = 'info'
 
-    # 1. Thống kê lịch hẹn & chỉ số 360 độ (Node 221:481)
+    # 1. Thống kê lịch hẹn & chỉ số 360 độ
     if customer.phone:
         clean_phone = customer.phone.replace(' ', '').replace('.', '').strip()
         Appointment.objects.filter(user__isnull=True, customer_phone=clean_phone).update(user=customer)
@@ -704,7 +702,7 @@ def admin_customer_detail_view(request, pk):
     avg_rating = feedbacks.aggregate(avg=Avg('rating'))['avg'] or 5.0
     satisfaction_score = f"{avg_rating:.1f}".replace('.', ',')
 
-    # 2. Thể trạng & Hồ sơ sức khỏe (Node 608:1773)
+    # 2. Thể trạng & Hồ sơ sức khỏe
     bmi = 21.0
     if health_profile.height_cm and health_profile.weight_kg:
         try:
@@ -718,12 +716,12 @@ def admin_customer_detail_view(request, pk):
     pain_level = max(0, min(10, pain_level))
     pain_scale = [{'level': i, 'is_active': (i <= pain_level)} for i in range(1, 11)]
 
-    # 3. Tiến trình nâng hạng & Biến động điểm (Node 608:250)
+    # 3. Tiến trình nâng hạng & Biến động điểm
     current_tier = membership.tier
     next_tier = Tier.objects.filter(min_points__gt=(current_tier.min_points if current_tier else 0)).order_by('min_points').first()
     next_tier_name = next_tier.name if next_tier else (current_tier.name if current_tier else 'Hạng Kim Cương')
     next_tier_points = next_tier.min_points if next_tier else 2000
-    target_spent = Decimal(10000000)  # 10.000.000 VNĐ chuẩn Figma
+    target_spent = Decimal(10000000)  # 10.000.000 VNĐ
 
     remaining_points = max(0, next_tier_points - membership.current_points)
     remaining_spent = max(Decimal(0), target_spent - membership.total_spent)
@@ -791,11 +789,11 @@ def admin_customer_detail_view(request, pk):
 
 
 # =============================================================================
-# MODULE 5 - QUẢN LÝ NHÂN VIÊN DÀNH CHO ADMIN (FIGMA NODE 221:3117)
+# MODULE 5 - QUẢN LÝ NHÂN VIÊN DÀNH CHO ADMIN
 # =============================================================================
 
 def get_staff_initials(name):
-    """Tạo chữ cái viết tắt avatar chuẩn Figma (VD: Nguyễn Trâm Anh -> TA, Lê Thị Mai -> LM)"""
+    """Tạo chữ cái viết tắt avatar(VD: Nguyễn Trâm Anh -> TA, Lê Thị Mai -> LM)"""
     if not name:
         return 'NV'
     import re
@@ -824,10 +822,10 @@ def _normalize_staff_status(raw_status):
 @login_required
 def admin_staff_list_view(request):
     """
-    UC-5.12: Admin xem danh sách, lọc và tìm kiếm tài khoản nhân viên (Figma Node 221:3117)
+    UC-5.12: Admin xem danh sách, lọc và tìm kiếm tài khoản nhân viên
     Tất cả nhân viên có chung một chức vụ là Staff.
-    UC-5.11: Thêm mới nhân viên (Figma Node 188:29841)
-    UC-5.13: Cập nhật thông tin nhân viên (Figma Node 188:30139)
+    UC-5.11: Thêm mới nhân viên
+    UC-5.13: Cập nhật thông tin nhân viên
     UC-5.14: Khóa / Mở khóa an toàn tài khoản nhân viên
     """
     if not request.user.is_superuser:
@@ -984,7 +982,7 @@ def admin_staff_list_view(request):
 
     filtered_count = qs.count()
 
-    # Phân trang: 7 nhân viên / trang (Chuẩn Figma 221:3117)
+    # Phân trang: 7 nhân viên / trang
     paginator = Paginator(qs, 7)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)

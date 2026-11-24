@@ -8,7 +8,7 @@ Mục đích:
     2. Trang danh sách thông báo dạng Timeline bảng tin (UC-7.1).
     3. Màn hình Quản trị Thông báo & Khuyến mãi cho Admin (UC-7.3, UC-7.4).
     4. Màn hình Thông báo điều phối & ca trực cho Nhân viên (Staff).
-  - Tích hợp chuẩn bộ nhận diện thương hiệu Cham Spa (Figma Moodboard 857:31).
+  Tích hợp chuẩn bộ nhận diện thương hiệu Cham Spa.
   - Kế thừa chuẩn layouts/admin_layout.html, layouts/staff_layout.html, layouts/customer_layout.html.
 ================================================================================
 """

@@ -74,7 +74,7 @@
             </div>
         </div>
 
-        <!-- 3 Navigation Tabs (Figma 221:481, 608:1773, 608:250) -->
+        <!-- 3 Navigation Tabs -->
         <nav class="detail-nav-tabs">
             <a href="?tab=info" class="detail-nav-tab {% if active_tab == 'info' %}active{% endif %}">
                 Thông tin cá nhân & Liên hệ
@@ -88,7 +88,7 @@
         </nav>
 
         <!-- =================================================================
-             TAB 1: THÔNG TIN CÁ NHÂN & LIÊN HỆ (FIGMA NODE 221:481)
+             TAB 1: THÔNG TIN CÁ NHÂN & LIÊN HỆ
              ================================================================= -->
         {% if active_tab == 'info' %}
         <div class="tab-pane-content">
@@ -164,7 +164,7 @@
         {% endif %}
 
         <!-- =================================================================
-             TAB 2: HỒ SƠ SỨC KHỎE (FIGMA NODE 608:1773)
+             TAB 2: HỒ SƠ SỨC KHỎE
              ================================================================= -->
         {% if active_tab == 'health' %}
         <div class="tab-pane-content">
@@ -266,7 +266,7 @@
                             </span>
                         </div>
 
-                        <!-- 10 Nấc đo trực quan chuẩn Figma 608:1773 -->
+                        <!-- 10 Nấc đo trực quan -->
                         <div class="pain-scale-track">
                             {% for p in pain_scale %}
                                 <div class="pain-bar-block {% if p.is_active %}active{% else %}inactive{% endif %}" title="Mức {{ p.level }}"></div>
@@ -283,7 +283,7 @@
         {% endif %}
 
         <!-- =================================================================
-             TAB 3: THẺ HỘI VIÊN & TÍCH ĐIỂM (FIGMA NODE 608:250)
+             TAB 3: THẺ HỘI VIÊN & TÍCH ĐIỂM
              ================================================================= -->
         {% if active_tab == 'membership' %}
         <div class="tab-pane-content">

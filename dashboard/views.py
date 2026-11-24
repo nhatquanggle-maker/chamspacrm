@@ -5,9 +5,9 @@ Thành viên phụ trách: MINH KHA
 Mục đích:
   - Điều phối và kết xuất (render) giao diện Bảng điều khiển Quản trị viên
     và Ca trực Kỹ thuật viên / CSKH Cham Spa.
-  - Kế thừa chuẩn Figma Design System:
-    + Admin Workspace: layouts/admin_layout.html (Figma 772:2 & 576:1396)
-    + Staff Workspace: layouts/staff_layout.html (Figma 760:751)
+  Kế thừaDesign System:
+    + Admin Workspace: layouts/admin_layout.html
+    + Staff Workspace: layouts/staff_layout.html
   - Áp dụng Server-Side Rendering (SSR) cho lần tải đầu tiên giúp giao diện
     mượt mà, lập tức hiển thị đủ 4 thẻ KPI, biểu đồ Chart.js và bảng hóa đơn;
     đồng thời nhúng sẵn API URL để Vanilla JS gọi Fetch API động.
@@ -44,7 +44,6 @@ def _require_staff_access(user):
 def admin_dashboard(request):
     """
     [UC-10.1, UC-10.2] BẢNG ĐIỀU KHIỂN & BÁO CÁO KINH DOANH DÀNH CHO QUẢN TRỊ VIÊN
-    Figma Screen: Node 772:2 & Node 576:1396
     Hiển thị:
       - 4 Thẻ KPI: Doanh thu (VNĐ), Lượt khách, Tỷ lệ hoàn thành %, Hội viên mới.
       - 3 Biểu đồ Chart.js: Line chart doanh thu, Bar chart top dịch vụ, Doughnut chart hội viên.
@@ -125,7 +124,6 @@ def admin_dashboard(request):
 def staff_dashboard(request):
     """
     BẢNG ĐIỀU KHIỂN CA TRỰC DÀNH CHO KỸ THUẬT VIÊN & CSKH CHAM SPA
-    Figma Screen: Node 760:751
     Hiển thị:
       - Thống kê ca trực hôm nay (Lịch hẹn tiếp nhận, Đang thực hiện, Đã xong).
       - Danh sách lịch hẹn hôm nay cần phục vụ.

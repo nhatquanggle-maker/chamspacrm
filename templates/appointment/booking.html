@@ -465,7 +465,7 @@
 </div>
 
 <!-- ==========================================================================
-     MODAL THANH TOÁN VIETQR (CHUẨN FIGMA NODE 818:2)
+     MODAL THANH TOÁN VIETQR
      ========================================================================== -->
 <div class="vietqr-modal-backdrop" id="vietqrModal">
   <div class="vietqr-modal-card">
@@ -547,7 +547,6 @@
 /**
  * PHÂN HỆ 1: QUẢN LÝ LỊCH HẸN (MOD-01) - CHAMSPA CRM
  * Tác giả: Nhật Quang (Leader)
- * Khớp 100% thiết kế Figma Node 828:515, Node 818:2 và Node 154:4478
  * Công nghệ: Vanilla JavaScript + Fetch API (Không load lại trang)
  */
 (function() {
@@ -1142,7 +1141,7 @@
     input.addEventListener('change', updateSummary);
   });
 
-  // 7. XÁC NHẬN ĐẶT LỊCH HẸN & HIỂN THỊ MODAL VIETQR (FIGMA NODE 818:2)
+  // 7. XÁC NHẬN ĐẶT LỊCH HẸN & HIỂN THỊ MODAL VIETQR
   const canBook = {{ can_book|yesno:"true,false" }};
   const userRole = "{{ user_role }}";
 

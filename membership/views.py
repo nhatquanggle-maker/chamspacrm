@@ -5,7 +5,7 @@ Thành viên phụ trách: MINH KHÁNH
 Mục đích:
   - Điều phối và render các giao diện HTML cho Module 6:
     1. Giao diện Thẻ Hội viên điện tử & Tiến trình thăng hạng của Khách hàng (UC-6.1)
-       Kế thừa layouts/customer_layout.html khớp thiết kế Figma Node 1323 & 608:250.
+       Kế thừa layouts/customer_layout.html khớp thiết kế .
     2. Giao diện Tra cứu Hội viên tại Quầy Lễ Tân & Quản lý Thẻ VIP toàn Spa (UC-6.2)
        Kế thừa layouts/admin_layout.html hoặc layouts/staff_layout.html.
 ================================================================================
@@ -28,7 +28,7 @@ from core.models import Tier, Membership, MembershipPoint, Appointment, Voucher
 @login_required
 def customer_membership_view(request):
     """
-    [UC-6.1 - Figma Node 1323 & 608:250] Màn hình Thẻ Hội viên điện tử & Tiến trình thăng hạng:
+    [UC-6.1] Màn hình Thẻ Hội viên điện tử & Tiến trình thăng hạng:
     - Thẻ hội viên VIP sang trọng mang thương hiệu Cham Spa (Serenity Card).
     - Thanh Progress Bar hiển thị tiến độ thăng hạng (Hạng Đồng -> Hạng Bạc -> Hạng Vàng -> Hạng Kim Cương).
     - 4 Widget thống kê: Điểm khả dụng, Tổng chi tiêu, Chiết khấu VIP, Hạng thẻ hiện tại.
@@ -71,7 +71,7 @@ def customer_membership_view(request):
     else:
         points_pct = 100
 
-    # Tiến độ chi tiêu (Mốc chuẩn 10.000.000 VNĐ theo Figma)
+    # Tiến độ chi tiêu
     target_spent = Decimal(10000000)
     remaining_spent = max(Decimal(0), target_spent - (membership.total_spent or Decimal(0))) if not is_max_tier else Decimal(0)
     if target_spent > 0:

@@ -32,7 +32,7 @@
             {% endif %}
         </form>
 
-        <!-- Nút Thêm mới Nhân viên (Figma Node 188:29841) -->
+        <!-- Nút Thêm mới Nhân viên -->
         <button type="button" class="btn-add-staff" data-bs-toggle="modal" data-bs-target="#addStaffModal">
             <i class="bi bi-plus-lg"></i> Thêm mới Nhân viên
         </button>
@@ -143,7 +143,7 @@
         </div>
     </div>
 
-    <!-- 5. Phân trang Pagination (Figma 221:3117 "Hiển thị 1–7 trong 25 nhân viên") -->
+    <!-- 5. Phân trang Pagination -->
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2">
         <div class="text-muted" style="font-size: 13px;">
             {% if page_obj.paginator.count > 0 %}
@@ -192,7 +192,7 @@
 
 {% block admin_modals %}
 <!-- =========================================================================
-     MODAL 1: THÊM MỚI NHÂN VIÊN (FIGMA NODE 188:29841)
+     MODAL 1: THÊM MỚI NHÂN VIÊN
      ========================================================================= -->
 <div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -205,7 +205,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
 
-            <!-- Mode Indicator Banner (Figma 188:29841) -->
+            <!-- Mode Indicator Banner -->
             <div class="d-flex align-items-center justify-content-between px-4 py-3" style="background-color: #FAF7F0; border-bottom: 1px solid #EFE4CD;">
                 <div class="text-muted" style="font-size: 13px;">
                     Tạo hồ sơ và tài khoản đăng nhập nội bộ cho nhân viên mới.
@@ -299,7 +299,7 @@
 </div>
 
 <!-- =========================================================================
-     MODAL 2: CẬP NHẬT THÔNG TIN NHÂN VIÊN (FIGMA NODE 188:30139)
+     MODAL 2: CẬP NHẬT THÔNG TIN NHÂN VIÊN
      ========================================================================= -->
 <div class="modal fade" id="editStaffModal" tabindex="-1" aria-labelledby="editStaffModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -312,7 +312,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
 
-            <!-- Mode Indicator Banner (Figma 188:30139) -->
+            <!-- Mode Indicator Banner -->
             <div class="d-flex align-items-center justify-content-between px-4 py-3" style="background-color: #FAF7F0; border-bottom: 1px solid #EFE4CD;">
                 <div class="text-muted" style="font-size: 13px;">
                     Cập nhật hồ sơ và phân công công việc cho nhân viên hiện tại.

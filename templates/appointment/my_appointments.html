@@ -19,7 +19,7 @@
     </a>
 </div>
 
-<!-- Booking Tabs (Figma Node 166:563) -->
+<!-- Booking Tabs -->
 <div class="cham-booking-tabs" role="tablist">
     <button type="button" class="cham-tab-item active" onclick="switchBookingTab('all', this)">
         <span>Tất cả</span>
@@ -171,7 +171,7 @@
     {% endfor %}
 </div>
 
-<!-- Support Banner (Figma Node 166:563) -->
+<!-- Support Banner -->
 <div class="support-banner-wrap">
     <span style="font-size: 20px;">✨</span>
     <div>
@@ -180,7 +180,7 @@
 </div>
 
 <!-- ==========================================================================
-     MODAL DỜI LỊCH (Figma Node 172:3086)
+     MODAL DỜI LỊCH
      ========================================================================== -->
 <div class="modal fade cham-modal" id="modalReschedule" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 1040px;">
@@ -268,7 +268,7 @@
 </div>
 
 <!-- ==========================================================================
-     MODAL HỦY LỊCH (Figma Node 172:3088)
+     MODAL HỦY LỊCH
      ========================================================================== -->
 <div class="modal fade cham-modal" id="modalCancel" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 680px;">
@@ -401,7 +401,7 @@
         });
     });
 
-    // 1. CHUYỂN TABS TRỰC TIẾP KHÔNG RELOAD (Figma Node 166:563)
+    // 1. CHUYỂN TABS TRỰC TIẾP KHÔNG RELOAD
     function switchBookingTab(tabKey, btnElement) {
         document.querySelectorAll('.cham-tab-item').forEach(btn => btn.classList.remove('active'));
         btnElement.classList.add('active');
@@ -423,7 +423,7 @@
         });
     }
 
-    // 2. MỞ MODAL DỜI LỊCH (Figma Node 172:3086)
+    // 2. MỞ MODAL DỜI LỊCH
     function openRescheduleModal(apptId, code, currDateStr, currSlot, formattedPrice) {
         currentActiveApptId = apptId;
         document.getElementById('rescheduleModalCode').innerText = code;
@@ -667,7 +667,7 @@
         }
     }
 
-    // 3. MỞ MODAL HỦY LỊCH (Figma Node 172:3088)
+    // 3. MỞ MODAL HỦY LỊCH
     function openCancelModal(apptId, code, formattedPrice) {
         currentActiveApptId = apptId;
         document.getElementById('cancelModalCode').innerText = code;

@@ -18,7 +18,7 @@
             <p class="text-muted mb-0" style="font-size: 13.5px;">Giám sát phiên tư vấn trực tuyến của nhân viên và thiết lập kịch bản Chatbot tự động.</p>
         </div>
 
-        <!-- Nút thêm câu hỏi FAQ mới (Figma Node 211:3459) -->
+        <!-- Nút thêm câu hỏi FAQ mới -->
         <button type="button" class="btn-cham-primary-btn d-inline-flex align-items-center gap-1.5" 
                 onclick="openCreateFaqModal()">
             <i class="bi bi-plus-lg" style="font-size: 11px;"></i>
@@ -42,7 +42,7 @@
     </div>
 
     <!-- ========================================================================
-         CARD CONTAINER QUẢN LÝ FAQ (FIGMA NODE 211:3459)
+         CARD CONTAINER QUẢN LÝ FAQ
          ======================================================================== -->
     <div class="card border-0 shadow-sm rounded-4 p-4" style="background-color: #FFFFFF;">
         <!-- THANH TÌM KIẾM & BỘ LỌC NGANG -->
@@ -73,7 +73,7 @@
             </div>
         </form>
 
-        <!-- PILLS / TABS DANH MỤC NHANH (FIGMA NODE 211:3459) -->
+        <!-- PILLS / TABS DANH MỤC NHANH -->
         <div class="d-flex align-items-center gap-2 flex-wrap mb-4" style="font-size: 13px;">
             <a href="{% url 'chatbox:admin_faq' %}" 
                class="filter-btn {% if not selected_category %}active{% endif %}">
@@ -101,7 +101,7 @@
             </a>
         </div>
 
-        <!-- BẢNG DANH SÁCH FAQ (FIGMA 211:3459) -->
+        <!-- BẢNG DANH SÁCH FAQ -->
         <div class="table-responsive rounded-3 border">
             <table class="table cham-table align-middle mb-0" id="faqDataTable">
                 <thead style="background-color: #FAF7EF; border-bottom: 1px solid #E8E2D9;">
@@ -172,7 +172,7 @@
 </div>
 
 <!-- ============================================================================
-     MODAL: THÊM MỚI / CHỈNH SỬA CÂU HỎI FAQ (FIGMA NODE 212:4527)
+     MODAL: THÊM MỚI / CHỈNH SỬA CÂU HỎI FAQ
      Chuẩn 100% từng trường nhập liệu và phong cách giao diện:
        - Header đỏ rượu #781a24
        - Danh mục * (Dropdown)
@@ -227,7 +227,7 @@
                                placeholder="VD: Chi nhánh Cham Spa gần nhất ở đâu?" required>
                     </div>
 
-                    <!-- Từ khóa kích hoạt (Keywords) dạng Tags Input (Figma Node 212:4527) -->
+                    <!-- Từ khóa kích hoạt (Keywords) dạng Tags Input -->
                     <div class="mb-3">
                         <label class="form-label fw-bold text-dark small">Từ khóa kích hoạt (Keywords) *</label>
                         <div class="p-2 border rounded-3 d-flex flex-wrap align-items-center gap-2" id="tagsContainer" style="background-color: #FFFFFF; min-height: 48px;">
@@ -243,7 +243,7 @@
                     <!-- Nội dung phản hồi tự động -->
                     <div class="mb-3">
                         <label class="form-label fw-bold text-dark small">Nội dung phản hồi tự động *</label>
-                        <!-- Toolbar soạn thảo theo Figma 212:4527 -->
+                        <!-- Toolbar soạn thảo theo -->
                         <div class="d-flex align-items-center gap-1 p-2 border border-bottom-0 rounded-top-3 bg-light">
                             <button type="button" class="btn btn-sm btn-light border-0 px-2 py-0 fw-bold" onclick="formatEditor('bold')">B</button>
                             <button type="button" class="btn btn-sm btn-light border-0 px-2 py-0 fst-italic" onclick="formatEditor('italic')">I</button>
@@ -255,7 +255,7 @@
                                   placeholder="Nhập nội dung câu trả lời tự động gửi cho khách hàng..." required></textarea>
                     </div>
 
-                    <!-- Trạng thái hoạt động (Toggle Switch Figma 212:4527) -->
+                    <!-- Trạng thái hoạt động -->
                     <div class="d-flex align-items-center justify-content-between pt-2 border-top">
                         <div>
                             <div class="fw-bold text-dark small">Trạng thái hoạt động</div>
@@ -290,7 +290,7 @@
 
 <script>
 // =============================================================================
-// LOGIC XỬ LÝ TAGS INPUT (KEYWORDS) CHO MODAL FAQ (FIGMA NODE 212:4527)
+// LOGIC XỬ LÝ TAGS INPUT (KEYWORDS) CHO MODAL FAQ
 // =============================================================================
 let currentTags = [];
 

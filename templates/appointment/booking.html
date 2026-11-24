@@ -407,7 +407,7 @@
           <strong id="sumSubtotal">1.221.000 VNĐ</strong>
         </div>
         <div class="pricing-row discount" id="rowDiscount" style="display: none;">
-          <span>Ưu đãi Voucher (<span id="sumVoucherCode">{{ request.GET.voucher|default:'CHARMSPA'|upper }}</span>)</span>
+          <span>Ưu đãi Voucher (<span id="sumVoucherCode">{{ request.GET.voucher|default:''|upper }}</span>)</span>
           <strong id="sumDiscountAmount">-122.100 VNĐ</strong>
         </div>
         <div class="pricing-row total">

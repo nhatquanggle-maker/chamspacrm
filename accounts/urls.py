@@ -15,12 +15,10 @@ urlpatterns = [
 
     # 4. Quên mật khẩu
     path('forgot-password/', views.forgot_password_view, name='forgot_password'),
-    path('password-reset/', views.forgot_password_view, name='password_reset'),
 
     # 5. Đặt lại mật khẩu
     path('reset-password/', views.reset_password_view, name='reset_password'),
     path('reset-password/<str:uidb64>/<str:token>/', views.reset_password_view, name='reset_password_confirm'),
-    path('password-reset-confirm/<str:uidb64>/<str:token>/', views.reset_password_view, name='password_reset_confirm'),
 
     # 6. Hồ sơ cá nhân
     path('profile/', views.profile_view, name='profile'),

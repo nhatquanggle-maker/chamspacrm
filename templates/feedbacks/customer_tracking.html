@@ -8,20 +8,20 @@
 {% block customer_content %}
 <!-- ==========================================================================
      MODULE 04: QUẢN LÝ ĐÁNH GIÁ & KHIẾU NẠI (MOD-04)
-     Giao diện Khách hàng Tinh gọn & Đơn giản theo
+     Giao diện Khách hàng Tinh gọn & Đơn giản theo chuẩn Figma Node 694:4
      Thành viên phụ trách: NGUYỄN THỊ THANH THẢO
      ========================================================================== -->
 
 
 <!-- ==========================================================================
-     NỘI DUNG GIAO DIỆN KHÁCH HÀNG
+     NỘI DUNG GIAO DIỆN KHÁCH HÀNG (FIGMA NODE 694:4)
      ========================================================================== -->
 <div>
-    <!-- 2. Page Heading -->
-    <div class="page-header">
+    <!-- 2. Page Heading (Figma Node 694:4) -->
+    <div class="figma-page-header">
         <div>
-            <h1 class="header-title">Đánh giá & Phản hồi</h1>
-            <p class="header-desc">Theo dõi các đánh giá và phản hồi</p>
+            <h1 class="figma-header-title">Đánh giá & Phản hồi</h1>
+            <p class="figma-header-desc">Theo dõi các đánh giá và phản hồi</p>
         </div>
     </div>
 
@@ -37,14 +37,14 @@
     {% endif %}
 
     <!-- 3. Segmented Pill Tabs: Đánh giá vs Khiếu nại -->
-    <div class="detail-tabs">
-        <button type="button" class="tab-btn {% if active_tab != 'complaints' %}active{% endif %}"
+    <div class="figma-detail-tabs">
+        <button type="button" class="figma-tab-btn {% if active_tab != 'complaints' %}active{% endif %}"
             id="btnTabReviews" onclick="switchSimpleTab('reviews')">
             <i class="bi bi-star"></i>
             <span>Đánh giá</span>
             <span class="badge bg-light text-dark border">{{ feedback_counts.all }}</span>
         </button>
-        <button type="button" class="tab-btn {% if active_tab == 'complaints' %}active{% endif %}"
+        <button type="button" class="figma-tab-btn {% if active_tab == 'complaints' %}active{% endif %}"
             id="btnTabComplaints" onclick="switchSimpleTab('complaints')">
             <i class="bi bi-shield-exclamation"></i>
             <span>Khiếu nại</span>
@@ -53,19 +53,19 @@
     </div>
 
     <!-- =====================================================================
-         TAB 1: DANH SÁCH ĐÁNH GIÁ
+         TAB 1: DANH SÁCH ĐÁNH GIÁ (FIGMA NODE 694:4)
          ===================================================================== -->
     <div id="paneReviews" class="{% if active_tab == 'complaints' %}d-none{% endif %}">
         {% if feedbacks %}
         {% for fb in feedbacks %}
-        <div class="tracking-card" id="cardFeedback{{ fb.id }}">
+        <div class="figma-tracking-card" id="cardFeedback{{ fb.id }}">
             <!-- Linked booking -->
-            <div class="linked-booking">
+            <div class="figma-linked-booking">
                 <div>
-                    <div class="booking-link">
+                    <div class="figma-booking-link">
                         <span>{{ fb.appointment.appointment_code }} — {{ fb.appointment.details.first.service.name|default:"Massage Trị Liệu Vai Gáy" }}</span>
                     </div>
-                    <div class="therapist">
+                    <div class="figma-therapist">
                         KTV: {{ fb.appointment.details.first.gender|default:"Chuyên viên" }} ({{ fb.appointment.details.first.massage_pressure|default:"Lực vừa" }})
                         · Ngày thực hiện: {{ fb.appointment.appointment_date|date:"d/m/Y" }} ({{ fb.appointment.time_slot }})
                     </div>
@@ -75,19 +75,19 @@
                 </div>
             </div>
 
-            <!-- Customer review box -->
-            <div class="customer-review-box">
-                <div class="star-rating">
+            <!-- Customer review box (Figma 694:4) -->
+            <div class="figma-customer-review-box">
+                <div class="figma-star-rating">
                     {% for i in "12345" %}
-                    {% if forloop.counter <= fb.rating %} <i class="bi bi-star-fill star-icon"></i>
+                    {% if forloop.counter <= fb.rating %} <i class="bi bi-star-fill figma-star-icon"></i>
                         {% else %}
-                        <i class="bi bi-star text-muted opacity-50 star-icon"></i>
+                        <i class="bi bi-star text-muted opacity-50 figma-star-icon"></i>
                         {% endif %}
                         {% endfor %}
-                        <span class="rating-value">{{ fb.rating }}/5</span>
+                        <span class="figma-rating-value">{{ fb.rating }}/5</span>
                 </div>
 
-                <p class="full-review">
+                <p class="figma-full-review">
                     {{ fb.comment|default:"Trải nghiệm dịch vụ tuyệt vời!"|linebreaksbr }}
                 </p>
 
@@ -95,7 +95,7 @@
                 {% if fb.tags %}
                 <div class="mt-2">
                     {% for t in fb.tags %}
-                    <span class="pill-tag">{{ t }}</span>
+                    <span class="figma-pill-tag">{{ t }}</span>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -105,7 +105,7 @@
                 <div class="d-flex gap-2 mt-2">
                     {% for m in fb.attached_media %}
                     <a href="{{ m }}" target="_blank">
-                        <img src="{{ m }}" class="thumb-img" alt="Ảnh trải nghiệm">
+                        <img src="{{ m }}" class="figma-thumb-img" alt="Ảnh trải nghiệm">
                     </a>
                     {% endfor %}
                 </div>
@@ -113,8 +113,8 @@
 
                 <!-- Phản hồi từ Cham Spa nếu đã được phản hồi (UC-4.3) -->
                 {% if fb.reply %}
-                <div class="spa-reply">
-                    <div class="reply-author">
+                <div class="figma-spa-reply">
+                    <div class="figma-reply-author">
                         <span>Được phản hồi bởi: {% if fb.replied_by %}{{ fb.replied_by.name|default:fb.replied_by.username }}{% else %}Đại diện Cham Spa{% endif %} ({{ fb.replied_at|date:"d/m/Y" }})</span>
                     </div>
                     <div class="text-muted fst-italic">
@@ -127,7 +127,7 @@
         {% endfor %}
         {% else %}
         <!-- Trạng thái trống (Empty state) -->
-        <div class="empty-box">
+        <div class="figma-empty-box">
             <i class="bi bi-star fs-1" style="color: var(--cham-gold);"></i>
             <h5 class="font-serif fw-bold mt-2" style="color: var(--cham-red);">Chưa có đánh giá nào</h5>
             <p class="text-muted small mb-0">Bạn có thể gửi đánh giá từ lịch hẹn đã hoàn thành tại trang Lịch hẹn của
@@ -137,42 +137,42 @@
     </div>
 
     <!-- =====================================================================
-         TAB 2: DANH SÁCH KHIẾU NẠI
+         TAB 2: DANH SÁCH KHIẾU NẠI (FIGMA NODE 694:4 - TINH GỌN ĐỒNG NHẤT)
          ===================================================================== -->
     <div id="paneComplaints" class="{% if active_tab != 'complaints' %}d-none{% endif %}">
         {% if complaints %}
         {% for c in complaints %}
-        <div class="tracking-card" id="cardComplaint{{ c.id }}">
+        <div class="figma-tracking-card" id="cardComplaint{{ c.id }}">
             <!-- Linked booking -->
-            <div class="linked-booking">
+            <div class="figma-linked-booking">
                 <div>
-                    <div class="booking-link">
+                    <div class="figma-booking-link">
                         <span>{{ c.appointment.appointment_code }} — {{ c.appointment.details.first.service.name|default:"Massage Trị Liệu Vai Gáy" }}</span>
                     </div>
-                    <div class="therapist">
+                    <div class="figma-therapist">
                         KTV: {{ c.appointment.details.first.gender|default:"Chuyên viên" }} ({{ c.appointment.details.first.massage_pressure|default:"Lực vừa" }})
                         · Ngày thực hiện: {{ c.appointment.appointment_date|date:"d/m/Y" }} ({{ c.appointment.time_slot }})
                     </div>
                 </div>
                 <div>
                     {% if c.status == 'Chờ phân công' or c.status == 'Chờ liên hệ lại' %}
-                    <span class="badge badge-pending">{{ c.status }}</span>
+                    <span class="figma-badge badge-pending">{{ c.status }}</span>
                     {% elif c.status == 'Đang xử lý' %}
-                    <span class="badge badge-processing">Đang xử lý</span>
+                    <span class="figma-badge badge-processing">Đang xử lý</span>
                     {% elif c.status == 'Đã xử lý' %}
-                    <span class="badge badge-resolved">Đã xử lý</span>
+                    <span class="figma-badge badge-resolved">Đã xử lý</span>
                     {% else %}
-                    <span class="badge badge-rejected">{{ c.status }}</span>
+                    <span class="figma-badge badge-rejected">{{ c.status }}</span>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Customer issue inner box (Form chuẩn như 694:4) -->
-            <div class="customer-review-box">
+            <div class="figma-customer-review-box">
                 <div class="fw-semibold text-danger small mb-1">
                     Sự cố phản ánh:
                 </div>
-                <p class="full-review">
+                <p class="figma-full-review">
                     {{ c.description|linebreaksbr }}
                 </p>
 
@@ -187,7 +187,7 @@
                 <div class="d-flex gap-2 mt-2">
                     {% for p in c.attached_proofs %}
                     <a href="{{ p }}" target="_blank">
-                        <img src="{{ p }}" class="thumb-img" alt="Bằng chứng sự cố">
+                        <img src="{{ p }}" class="figma-thumb-img" alt="Bằng chứng sự cố">
                     </a>
                     {% endfor %}
                 </div>
@@ -195,8 +195,8 @@
 
                 <!-- Kết quả giải quyết của Spa -->
                 {% if c.resolution_note %}
-                <div class="spa-reply">
-                    <div class="reply-author">
+                <div class="figma-spa-reply">
+                    <div class="figma-reply-author">
                         <span>Kết quả giải quyết từ Cham Spa ({{ c.updated_at|date:"d/m/Y" }}):</span>
                     </div>
                     <div class="text-dark">
@@ -205,10 +205,10 @@
 
                     <!-- Thẻ Voucher đền bù nếu được cấp (UC-4.4) -->
                     {% if c.compensated_voucher %}
-                    <div class="voucher-compact">
+                    <div class="figma-voucher-compact">
                         <div class="d-flex align-items-center gap-2">
                             <span class="fw-semibold text-danger small">Voucher đền bù:</span>
-                            <span class="voucher-code">{{ c.compensated_voucher.voucher_code }}</span>
+                            <span class="figma-voucher-code">{{ c.compensated_voucher.voucher_code }}</span>
                             <span class="small text-muted ms-1">
                                 (Giảm {% if c.compensated_voucher.discount_type == 'PERCENT' %}{{ c.compensated_voucher.discount_value|floatformat:0 }}%{% else %}{{ c.compensated_voucher.discount_value|floatformat:0 }}đ{% endif %})
                             </span>
@@ -226,7 +226,7 @@
         {% endfor %}
         {% else %}
         <!-- Trạng thái trống (Empty state khiếu nại) -->
-        <div class="empty-box">
+        <div class="figma-empty-box">
             <i class="bi bi-shield-check fs-1" style="color: var(--cham-gold);"></i>
             <h5 class="font-serif fw-bold mt-2" style="color: var(--cham-red);">Chưa có khiếu nại nào</h5>
             <p class="text-muted small mb-3">Nếu trải nghiệm chưa trọn vẹn, bạn có thể gửi phản hồi từ một lịch hẹn đã
@@ -240,7 +240,7 @@
 </div>
 
 <!-- ==========================================================================
-     MODAL ĐÁNH GIÁ & KHIẾU NẠI
+     MODAL ĐÁNH GIÁ & KHIẾU NẠI (FIGMA NODE 186:14151 & 186:14323)
      ========================================================================== -->
 <div class="modal fade" id="modalFeedback" tabindex="-1" aria-labelledby="modalFeedbackLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -295,7 +295,7 @@
             </div>
 
             <div class="modal-body p-4">
-                <!-- FORM TAB 1: ĐÁNH GIÁ CHẤT LƯỢNG -->
+                <!-- FORM TAB 1: ĐÁNH GIÁ CHẤT LƯỢNG (Figma 186:14151) -->
                 <form id="formSubmitFeedback" method="POST" action="{% url 'feedbacks:customer_tracking' %}" enctype="multipart/form-data" onsubmit="return validateAppointmentSelected('fbAppointmentId')">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="submit_feedback">
@@ -354,7 +354,7 @@
                     </div>
                 </form>
 
-                <!-- FORM TAB 2: GỬI KHIẾU NẠI SỰ CỐ -->
+                <!-- FORM TAB 2: GỬI KHIẾU NẠI SỰ CỐ (Figma 186:14323) -->
                 <form id="formSubmitComplaint" class="d-none" method="POST" action="{% url 'feedbacks:customer_tracking' %}" enctype="multipart/form-data" onsubmit="return validateAppointmentSelected('complaintAppointmentId')">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="submit_complaint">
@@ -407,7 +407,7 @@
      VANILLA JAVASCRIPT: LOGIC ĐIỀU HƯỚNG & TƯƠNG TÁC
      ========================================================================== -->
 <script>
-    // Chuyển tab đơn giản: Đánh giá vs Khiếu nại
+    // Chuyển tab đơn giản: Đánh giá vs Khiếu nại (Figma Node 694:4)
     function switchSimpleTab(tabName) {
         const btnRev = document.getElementById('btnTabReviews');
         const btnComp = document.getElementById('btnTabComplaints');

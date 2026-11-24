@@ -5,7 +5,7 @@
 
 {% block content %}
 <!-- ==========================================================================
-     1. HERO SECTION
+     1. HERO SECTION (FIGMA 777:3 - Header and hero 1600x930)
      ========================================================================== -->
 <section class="position-relative text-white py-5 d-flex align-items-center" style="min-height: 88vh; background: linear-gradient(rgba(36, 23, 17, 0.72), rgba(36, 23, 17, 0.82)), url('{% static 'images/hero_image.png' %}') center/cover no-repeat;">
     <div class="container py-5">
@@ -25,8 +25,8 @@
                 </p>
                 <!-- CTA buttons -->
                 <div class="d-flex flex-wrap gap-3 mb-5">
-                    <a href="{% url 'appointment:booking' %}" class="btngold">ĐẶT LỊCH</a>
-                    <a href="{% url 'services:service_list' %}" class="btnoutline-white">KHÁM PHÁ LIỆU TRÌNH</a>
+                    <a href="{% url 'appointment:booking' %}" class="btn-figma-gold">ĐẶT LỊCH</a>
+                    <a href="{% url 'services:service_list' %}" class="btn-figma-outline-white">KHÁM PHÁ LIỆU TRÌNH</a>
                 </div>
                 <!-- Badges / Credentials -->
                 <div class="d-flex flex-wrap gap-4 pt-2" style="font-size: 13.5px; color: var(--cham-gold);">
@@ -45,7 +45,7 @@
 </section>
 
 <!-- ==========================================================================
-     2. SIGNATURE INTRODUCTION
+     2. SIGNATURE INTRODUCTION (FIGMA 1600x621)
      ========================================================================== -->
 <section class="py-5" style="background-color: var(--cham-bg);">
     <div class="container py-5 text-center">
@@ -102,7 +102,7 @@
 </section>
 
 <!-- ==========================================================================
-     3. RESTORATION PHILOSOPHY
+     3. RESTORATION PHILOSOPHY (FIGMA 1600x760)
      ========================================================================== -->
 <section id="philosophy" class="py-5 bg-white">
     <div class="container py-5">
@@ -135,14 +135,14 @@
                         “Không vội vàng. Không khuôn mẫu. Chỉ có sự hiện diện trọn vẹn dành cho bạn.”
                     </p>
                 </div>
-                <a href="#about" class="btnoutline-dark">CÂU CHUYỆN CỦA CHAM</a>
+                <a href="#about" class="btn-figma-outline-dark">CÂU CHUYỆN CỦA CHAM</a>
             </div>
         </div>
     </div>
 </section>
 
 <!-- ==========================================================================
-     4. FEATURED TREATMENTS
+     4. FEATURED TREATMENTS (FIGMA 1600x897)
      ========================================================================== -->
 <section id="services" class="py-5" style="background-color: var(--cham-bg);">
     <div class="container py-5">
@@ -158,7 +158,7 @@
                     Ba nghi thức phục hồi đặc trưng, được thiết kế để giải phóng căng thẳng và đánh thức nguồn năng lượng tươi mới.
                 </p>
             </div>
-            <a href="{% url 'services:service_list' %}" class="btnoutline-dark">XEM TẤT CẢ DỊCH VỤ</a>
+            <a href="{% url 'services:service_list' %}" class="btn-figma-outline-dark">XEM TẤT CẢ DỊCH VỤ</a>
         </div>
 
         <!-- 3 Cards -->
@@ -212,7 +212,7 @@
 </section>
 
 <!-- ==========================================================================
-     5. CULTURAL RITUAL
+     5. CULTURAL RITUAL (FIGMA 1600x760)
      ========================================================================== -->
 <section class="py-5 bg-white">
     <div class="container py-5">
@@ -270,7 +270,7 @@
 </section>
 
 <!-- ==========================================================================
-     6. MEMBERSHIP BENEFITS
+     6. MEMBERSHIP BENEFITS (FIGMA 1600x489)
      ========================================================================== -->
 <section id="membership" class="py-5" style="background-color: var(--cham-bg);">
     <div class="container py-5">
@@ -286,12 +286,12 @@
                 <p class="text-muted mb-4" style="font-size: 16.5px; line-height: 1.7;">
                     Hội viên Cham Circle nhận những đặc quyền được thiết kế để biến việc phục hồi thành một nhịp sống bền vững.
                 </p>
-                <a href="#membership" class="btnred">KHÁM PHÁ HỘI VIÊN</a>
+                <a href="#membership" class="btn-figma-red">KHÁM PHÁ HỘI VIÊN</a>
             </div>
 
-            <!-- Right Membership Card -->
+            <!-- Right Membership Card (Figma Serenity) -->
             <div class="col-lg-6">
-                <div class="membership-card">
+                <div class="membership-card-figma">
                     <div class="row g-4 align-items-center h-100">
                         <!-- Left Info Inside Card -->
                         <div class="col-sm-7 d-flex flex-column justify-content-center">
@@ -333,7 +333,7 @@
 </section>
 
 <!-- ==========================================================================
-     7. TESTIMONIALS
+     7. TESTIMONIALS (FIGMA 1600x599)
      ========================================================================== -->
 <section id="testimonials" class="py-5 bg-white">
     <div class="container py-5 text-center">
@@ -406,7 +406,7 @@
 </section>
 
 <!-- ==========================================================================
-     8. LOCATION AND CONTACT
+     8. LOCATION AND CONTACT (FIGMA 1600x650)
      ========================================================================== -->
 <section id="contact" class="py-5" style="background-color: var(--cham-bg);">
     <div class="container py-5">
@@ -470,14 +470,14 @@
                     </div>
                 </div>
 
-                <a href="tel:0987773777" class="btnoutline-dark">LIÊN HỆ VỚI CHAM</a>
+                <a href="tel:0987773777" class="btn-figma-outline-dark">LIÊN HỆ VỚI CHAM</a>
             </div>
         </div>
     </div>
 </section>
 
 <!-- ==========================================================================
-     9. FINAL BOOKING CALL TO ACTION
+     9. FINAL BOOKING CALL TO ACTION (FIGMA 1600x460)
      ========================================================================== -->
 <section id="booking" class="py-5 text-white text-center position-relative d-flex align-items-center" style="min-height: 460px; background: linear-gradient(rgba(36, 23, 17, 0.78), rgba(36, 23, 17, 0.88)), url('{% static 'images/cta_callout.png' %}') center/cover no-repeat;">
     <div class="container py-5">
@@ -487,7 +487,7 @@
         <p class="mx-auto mb-4" style="max-width: 600px; font-size: 18px; color: #f4efe3; line-height: 1.7;">
             Chọn thời gian phù hợp. Cham sẽ chuẩn bị phần còn lại thật chu đáo.
         </p>
-        <a href="{% url 'appointment:booking' %}" class="btngold">ĐẶT LỊCH TRẢI NGHIỆM</a>
+        <a href="{% url 'appointment:booking' %}" class="btn-figma-gold">ĐẶT LỊCH TRẢI NGHIỆM</a>
     </div>
 </section>
 {% endblock %}

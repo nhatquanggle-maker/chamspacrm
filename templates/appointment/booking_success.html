@@ -9,23 +9,23 @@
 {% block layout %}
 <div class="success-wrapper">
     <!-- ============================================================== -->
-    <!-- 1. HEADER ROW -->
+    <!-- 1. HEADER ROW (FIGMA 1640x72) -->
     <!-- ============================================================== -->
-    <div class="header-bar">
-        <a href="{% url 'home' %}" class="logo-wrap">
+    <div class="figma-header-bar">
+        <a href="{% url 'home' %}" class="figma-logo-wrap">
             <img src="{% static 'images/chamspa-logo.png' %}" alt="Cham Spa Logo">
         </a>
-        <div class="title-group">
-            <div class="eyebrow-text">Reserve your moment of peace</div>
-            <h1 class="headline-text">Đặt lịch trải nghiệm</h1>
+        <div class="figma-title-group">
+            <div class="figma-eyebrow-text">Reserve your moment of peace</div>
+            <h1 class="figma-headline-text">Đặt lịch trải nghiệm</h1>
         </div>
-        <a href="{% url 'home' %}" class="close-circle" title="Đóng">
+        <a href="{% url 'home' %}" class="figma-close-circle" title="Đóng">
             X
         </a>
     </div>
 
     <!-- ============================================================== -->
-    <!-- 2. SUCCESS CONFIRMATION BANNER -->
+    <!-- 2. SUCCESS CONFIRMATION BANNER (FIGMA 1184x164) -->
     <!-- ============================================================== -->
     <div class="success-banner-box">
         <div class="d-flex align-items-center gap-3">
@@ -65,7 +65,7 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- 3. EXPERIENCE TICKET - DIGITAL PASS -->
+    <!-- 3. EXPERIENCE TICKET - DIGITAL PASS (FIGMA 1184x672) -->
     <!-- ============================================================== -->
     <div class="digital-ticket-card">
         <div class="ticket-notch-left"></div>
@@ -183,14 +183,14 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- 4. PAGE ACTIONS -->
+    <!-- 4. PAGE ACTIONS (FIGMA 568x52) -->
     <!-- ============================================================== -->
     <div class="page-actions-wrap">
-        <a href="{% url 'appointment:my_appointments' %}" class="action-btn-red">
+        <a href="{% url 'appointment:my_appointments' %}" class="figma-action-btn-red">
             <i class="bi bi-calendar-range"></i>
             <span>Lịch hẹn của tôi</span>
         </a>
-        <a href="{% url 'home' %}" class="action-btn-white">
+        <a href="{% url 'home' %}" class="figma-action-btn-white">
             <i class="bi bi-house"></i>
             <span>Trở về Trang chủ</span>
         </a>

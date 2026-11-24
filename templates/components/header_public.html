@@ -1,6 +1,6 @@
 {% load static %}
-<!-- Header Cham Spa với hiệu ứng lướt ẩn/hiện khi cuộn trang -->
-<header class="cham-header" id="chamPublicHeader">
+<!-- Header Cham Spa (Figma 614:375) với hiệu ứng lướt ẩn/hiện khi cuộn trang -->
+<header class="cham-header-figma" id="chamPublicHeader">
     <!-- Top-bar (76px): 4 Social Icons | LOGO CENTER | Search & Profile -->
     <div class="header-top-bar">
         <!-- Top Left: 4 Social Icons -->
@@ -19,7 +19,7 @@
             </a>
         </div>
 
-        <!-- Center Logo -->
+        <!-- Center Logo (Figma 614:393) -->
         <div class="header-logo-center">
             <a href="{% url 'home' %}" title="Cham Spa & Massage">
                 <img src="{% static 'images/chamspa-logo.png' %}" alt="Cham Spa & Massage">
@@ -29,7 +29,7 @@
         <!-- Top Right: Dynamic Profile / Auth Buttons (đã bỏ icon kính lúp) -->
         <div class="top-right">
             {% if user.is_authenticated %}
-                <!-- Bell icon with Dropdown for Customer / Logged-in User -->
+                <!-- Bell icon with Dropdown for Customer / Logged-in User (Figma 777:440) -->
                 <div class="cham-notif-dropdown-wrapper position-relative me-1">
                     <button class="workspace-bell-btn cham-customer-bell-btn" type="button" title="Thông báo hệ thống" aria-label="Thông báo" id="customerHeaderBellBtn">
                         <i class="bi bi-bell"></i>
@@ -40,14 +40,14 @@
 
                 <!-- KHI ĐÃ ĐĂNG NHẬP: Hiện Tên thật và Dropdown phân quyền theo vai trò -->
                 <div class="profile-dropdown-container">
-                    <div class="profile-pill" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" title="Tài khoản của bạn">
-                        <span class="profile-name">{{ user.name|default:user.username }}</span>
-                        <div class="profile-avatar">
+                    <div class="profile-pill-figma" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" title="Tài khoản của bạn">
+                        <span class="profile-name-figma">{{ user.name|default:user.username }}</span>
+                        <div class="profile-avatar-figma">
                             <i class="bi bi-person"></i>
                         </div>
                     </div>
 
-                    <!-- Hover Dropdown Menu -->
+                    <!-- Hover Dropdown Menu (Figma 777:440 - Phân quyền động) -->
                     <div class="profile-dropdown-menu" role="menu">
                         <!-- Menu Account Card -->
                         <div class="dropdown-account-header">
@@ -156,7 +156,7 @@
                                 </a>
 
                             {% else %}
-                                <!-- 3. Menu dành riêng cho KHÁCH HÀNG -->
+                                <!-- 3. Menu dành riêng cho KHÁCH HÀNG (Figma 777:440) -->
                                 <a href="{% url 'accounts:profile' %}" class="dropdown-menu-item" data-nav-target="Thông tin cá nhân">
                                     <i class="bi bi-person"></i>
                                     <span>Thông tin cá nhân</span>
@@ -210,7 +210,7 @@
     <!-- Divider Line -->
     <div class="header-divider-line"></div>
 
-    <!-- Thanh Điều hướng -->
+    <!-- Thanh Điều hướng (50px, gap 48px, căn giữa Figma) -->
     <nav class="header-nav-bar" aria-label="Điều hướng chính">
         <a href="{% url 'home' %}" class="header-nav-item {% if request.resolver_match.url_name == 'home' and request.path == '/' %}active{% endif %}">Trang chủ</a>
         <a href="{% url 'services:service_list' %}" class="header-nav-item {% if request.resolver_match.app_name == 'services' %}active{% endif %}">Gói dịch vụ</a>

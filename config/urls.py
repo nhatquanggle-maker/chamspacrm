@@ -1,12 +1,12 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.urls import path, include, re_path
+from django.views.generic import RedirectView
 from core import views
 
 urlpatterns = [
-    # 1. Trang quản trị Django mặc định
-    path('admin/', admin.site.urls),
+    # 1. Chuyển hướng /admin/ mặc định sang Admin Dashboard tự thiết kế của ChamSpa
+    path('admin/', RedirectView.as_view(url='/dashboard/admin/', permanent=False)),
 
     # 2. Trang chủ Cham Spa (Landing Page)
     path('', views.home, name='home'),

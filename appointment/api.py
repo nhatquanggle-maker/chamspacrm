@@ -199,12 +199,19 @@ def _get_payment_info(obj):
 
     if method == 'transfer':
         method_label = 'Chuyển khoản (VietQR)'
+        raw_reason = (invoice.reason_refuse or '').strip() if invoice else ''
         if is_paid:
             status_label = 'Đã chuyển khoản'
             badge_bg = '#EAF5EF'
             badge_color = '#167455'
             icon = 'bi-qr-code-scan'
             desc = 'Đã quét mã VietQR và chuyển khoản thành công'
+        elif 'khách báo đã chuyển' in raw_reason.lower():
+            status_label = 'Chờ đối soát'
+            badge_bg = '#FEF6E7'
+            badge_color = '#B25E09'
+            icon = 'bi-hourglass-split'
+            desc = f'{raw_reason} — Vui lòng kiểm tra sao kê và bấm Xác nhận'
         else:
             status_label = 'Chờ chuyển khoản'
             badge_bg = '#EFF8FF'

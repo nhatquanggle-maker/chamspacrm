@@ -486,15 +486,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Quick change status in Modal -->
-                    <div
-                        class="modal-status-actions p-3 rounded-3 mt-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
-                        <span class="small fw-semibold text-dark">Chuyển trạng thái ca trực:</span>
-                        <div class="d-flex gap-2" id="detailStatusButtons">
-                            <!-- Dynamic buttons -->
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -744,7 +735,6 @@
                 const detailBadge = document.getElementById('detailStatusBadge');
                 if (detailBadge) {
                     renderDetailStatusBadge(newStatus);
-                    renderDetailActionButtons(appointmentId, newStatus);
                     if (data.payment && typeof renderDetailPayment === 'function') {
                         renderDetailPayment({ id: appointmentId, payment: data.payment });
                     }
@@ -846,7 +836,6 @@
                 document.getElementById('detailTotalPrice').textContent = `${Number(data.total_price || 0).toLocaleString('vi-VN')} VNĐ`;
 
                 renderDetailStatusBadge(data.status);
-                renderDetailActionButtons(data.id, data.status);
                 renderDetailPayment(data);
 
                 document.getElementById('detailCustomerName').textContent = data.customer_name || 'Khách vãng lai';
@@ -911,21 +900,6 @@
             </span>
         `;
         }
-    }
-
-    function renderDetailActionButtons(id, status) {
-        const container = document.getElementById('detailStatusButtons');
-        if (!container) return;
-
-        let html = '';
-        if (status === 'Hold' || status === 'Pending') {
-            html += `<button type="button" class="btn btn-sm btn-action-confirm" onclick="updateAppointmentStatus(${id}, 'Confirmed')">Xác nhận</button>`;
-        }
-        if (status !== 'Completed' && status !== 'Cancelled') {
-            html += `<button type="button" class="btn btn-sm btn-cham-primary" onclick="updateAppointmentStatus(${id}, 'Completed')">Hoàn thành</button>`;
-            html += `<button type="button" class="btn btn-sm btn-action-cancel" onclick="updateAppointmentStatus(${id}, 'Cancelled')">Hủy lịch</button>`;
-        }
-        container.innerHTML = html;
     }
 
     // 6b. Render thông tin thanh toán (Chuyển khoản VietQR hay Tới quầy trả tiền)

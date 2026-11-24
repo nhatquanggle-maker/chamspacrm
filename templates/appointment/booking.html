@@ -312,7 +312,7 @@
             <div class="voucher-input-group">
               <div class="input-icon-wrapper" style="flex: 1;">
                 <span class="input-prefix-icon">🎁</span>
-                <input type="text" id="inputVoucher" class="form-input text-uppercase" placeholder="Nhập mã voucher (Ví dụ: CHAM20NEW)" value="{{ request.GET.voucher|default:''|upper }}">
+                <input type="text" id="inputVoucher" class="form-input text-uppercase" placeholder="Nhập mã voucher" value="{{ request.GET.voucher|default:''|upper }}">
               </div>
               <button type="button" class="btn-apply-voucher" id="btnApplyVoucher">Áp dụng</button>
             </div>

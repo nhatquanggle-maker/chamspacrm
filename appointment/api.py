@@ -213,7 +213,7 @@ def _get_payment_info(obj):
             icon = 'bi-hourglass-split'
             desc = f'{raw_reason} — Vui lòng kiểm tra sao kê và bấm Xác nhận'
         else:
-            status_label = 'Chờ chuyển khoản'
+            status_label = 'Chờ thanh toán'
             badge_bg = '#EFF8FF'
             badge_color = '#175CD3'
             icon = 'bi-qr-code'

@@ -91,6 +91,14 @@ def booking_view(request):
         for s in services
     ]
 
+    membership_tier_name = ''
+    membership_discount_percent = 0
+    if user.is_authenticated and can_book:
+        mem = getattr(user, 'membership', None)
+        if mem and getattr(mem, 'tier', None):
+            membership_tier_name = mem.tier.name or ''
+            membership_discount_percent = int(mem.tier.discount_percent or 0)
+
     context = {
         'services': services,
         'services_data': services_data,
@@ -103,6 +111,8 @@ def booking_view(request):
         'user_role': user_role,
         'can_book': can_book,
         'is_customer': can_book,
+        'membership_tier_name': membership_tier_name,
+        'membership_discount_percent': membership_discount_percent,
     }
     return render(request, 'appointment/booking.html', context)
 

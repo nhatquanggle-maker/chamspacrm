@@ -429,6 +429,10 @@
           <span>Tạm tính (<span id="sumTotalGuestsNumber">2</span> dịch vụ)</span>
           <strong id="sumSubtotal">1.221.000 VNĐ</strong>
         </div>
+        <div class="pricing-row discount" id="rowTierDiscount" style="display: none;">
+          <span>Đặc quyền {{ membership_tier_name }} (-{{ membership_discount_percent }}%)</span>
+          <strong id="sumTierDiscountAmount">-0 VNĐ</strong>
+        </div>
         <div class="pricing-row discount" id="rowDiscount" style="display: none;">
           <span>Ưu đãi Voucher (<span id="sumVoucherCode">{{ request.GET.voucher|default:''|upper }}</span>)</span>
           <strong id="sumDiscountAmount">-122.100 VNĐ</strong>
@@ -602,6 +606,7 @@
 
     const serverTodayStr = "{{ today_str|default:'' }}";
     const serverNowTimeStr = "{{ now_time_str|default:'' }}";
+    const membershipDiscountPercent = Number("{{ membership_discount_percent|default:0 }}") || 0;
 
     function getMinBookingDate() {
       if (serverTodayStr && /^\d{4}-\d{2}-\d{2}$/.test(serverTodayStr)) {
@@ -700,6 +705,8 @@
       sumCustomerText: document.getElementById('sumCustomerText'),
       sumTotalGuestsNumber: document.getElementById('sumTotalGuestsNumber'),
       sumSubtotal: document.getElementById('sumSubtotal'),
+      rowTierDiscount: document.getElementById('rowTierDiscount'),
+      sumTierDiscountAmount: document.getElementById('sumTierDiscountAmount'),
       rowDiscount: document.getElementById('rowDiscount'),
       sumVoucherCode: document.getElementById('sumVoucherCode'),
       sumDiscountAmount: document.getElementById('sumDiscountAmount'),
@@ -1076,10 +1083,22 @@
       els.sumBranchText.textContent = els.branchSelect.value;
       const name = els.inputFullName.value.trim() || 'Quý khách';
       const phone = els.inputPhone.value.trim() || 'Chưa cung cấp SĐT';
-      els.sumCustomerText.textContent = `${name} · +84 ${phone}`;
+      els.sumCustomerText.textContent = `${name} · ${phone}`;
 
-      // 5. Tính toán giảm giá & tổng thanh toán
+      // 5. Tính toán chiết khấu hạng thẻ, voucher & tổng thanh toán
       els.sumSubtotal.textContent = formatMoney(subtotal);
+      const tierDiscount = membershipDiscountPercent > 0
+        ? Math.min(subtotal, Math.round(subtotal * (membershipDiscountPercent / 100)))
+        : 0;
+      if (els.rowTierDiscount) {
+        if (tierDiscount > 0) {
+          els.rowTierDiscount.style.display = 'flex';
+          els.sumTierDiscountAmount.textContent = `-${formatMoney(tierDiscount)}`;
+        } else {
+          els.rowTierDiscount.style.display = 'none';
+        }
+      }
+
       if (state.discountAmount > 0) {
         els.rowDiscount.style.display = 'flex';
         els.sumVoucherCode.textContent = state.voucherCode;
@@ -1088,7 +1107,7 @@
         els.rowDiscount.style.display = 'none';
       }
 
-      const finalTotal = Math.max(0, subtotal - state.discountAmount);
+      const finalTotal = Math.max(0, subtotal - tierDiscount - state.discountAmount);
       els.sumFinalTotal.textContent = formatMoney(finalTotal);
     }
 
@@ -1125,6 +1144,10 @@
       }
 
       const subtotal = calculateOrderSubtotal();
+      const tierDiscount = membershipDiscountPercent > 0
+        ? Math.min(subtotal, Math.round(subtotal * (membershipDiscountPercent / 100)))
+        : 0;
+      const orderTotalAfterTier = Math.max(0, subtotal - tierDiscount);
       lastVoucherSubtotal = subtotal;
 
       fetch('/appointment/api/apply-voucher/', {
@@ -1133,7 +1156,7 @@
           'Content-Type': 'application/json',
           'X-CSRFToken': csrfToken
         },
-        body: JSON.stringify({ code: code, order_total: subtotal })
+        body: JSON.stringify({ code: code, order_total: orderTotalAfterTier })
       })
         .then(res => res.json())
         .then(data => {

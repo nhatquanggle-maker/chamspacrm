@@ -140,6 +140,19 @@ def _compute_voucher_discount(voucher, total_amount):
     return min(discount, total_amount)
 
 
+def _get_user_tier_discount(user, subtotal):
+    """Tính toán chiết khấu đặc quyền theo hạng thẻ hội viên của khách hàng."""
+    if not user or not getattr(user, 'is_authenticated', True):
+        return '', 0, Decimal(0)
+    mem = getattr(user, 'membership', None)
+    tier = getattr(mem, 'tier', None) if mem else None
+    if not tier or not tier.discount_percent:
+        return (tier.name if tier else ''), 0, Decimal(0)
+    pct = int(tier.discount_percent)
+    discount = (Decimal(subtotal) * Decimal(pct)) / Decimal(100)
+    return tier.name, pct, min(discount, Decimal(subtotal))
+
+
 def _format_vnd(amount):
     return f"{int(amount):,}".replace(',', '.') + " VNĐ"
 
@@ -259,6 +272,9 @@ def _get_payment_info(obj):
 
 
 def _get_appointment_discount(obj):
+    invoice = getattr(obj, 'invoice', None)
+    if invoice and invoice.discount_applied and invoice.discount_applied > 0:
+        return int(invoice.discount_applied)
     if not obj.voucher:
         return 0
     v = obj.voucher
@@ -669,8 +685,11 @@ def appointment_create_api(request):
             calculated_total += svc.price_vnd
 
     auth_user = request.user
+    _, _, tier_discount = _get_user_tier_discount(auth_user, calculated_total)
+    after_tier_total = max(Decimal(0), calculated_total - tier_discount)
+
     applied_voucher = None
-    discount_amount = Decimal(0)
+    voucher_discount = Decimal(0)
     voucher_code = data['voucher_code']
 
     if voucher_code:
@@ -678,11 +697,12 @@ def appointment_create_api(request):
         if voucher and (not voucher.expiry_date or voucher.expiry_date >= timezone.now()):
             if voucher.customer and voucher.customer_id != auth_user.id:
                 pass
-            elif not voucher.min_order_amount or calculated_total >= voucher.min_order_amount:
+            elif not voucher.min_order_amount or after_tier_total >= voucher.min_order_amount:
                 applied_voucher = voucher
-                discount_amount = _compute_voucher_discount(voucher, calculated_total)
+                voucher_discount = _compute_voucher_discount(voucher, after_tier_total)
 
-    discount_amount = min(discount_amount, calculated_total)
+    voucher_discount = min(voucher_discount, after_tier_total)
+    discount_amount = min(tier_discount + voucher_discount, calculated_total)
     final_total = max(Decimal(0), calculated_total - discount_amount)
 
     code = _generate_appointment_code()
@@ -1332,6 +1352,9 @@ def staff_quick_create_api(request):
         Q(phone=clean_phone) | Q(username=clean_phone)
     ).filter(is_staff=False, is_superuser=False).first()
 
+    _, _, tier_discount = _get_user_tier_discount(matched_user, total_price)
+    final_total = max(Decimal(0), total_price - tier_discount)
+
     with transaction.atomic():
         appointment = Appointment.objects.create(
             appointment_code=code,
@@ -1346,7 +1369,7 @@ def staff_quick_create_api(request):
             female_guests=data['female_guests'],
             preferred_contact_channel='Quầy lễ tân',
             note=data['note'],
-            total_price=total_price,
+            total_price=final_total,
             status=data['status'],
         )
 
@@ -1354,8 +1377,8 @@ def staff_quick_create_api(request):
         Invoice.objects.get_or_create(
             appointment=appointment,
             defaults={
-                'amount': total_price,
-                'discount_applied': 0,
+                'amount': final_total,
+                'discount_applied': tier_discount,
                 'status': 'Đã thanh toán' if is_paid else 'Chờ xác nhận',
                 'paid_at': timezone.now() if is_paid else None,
                 'reason_refuse': 'Tại quầy (Tiền mặt/POS)',

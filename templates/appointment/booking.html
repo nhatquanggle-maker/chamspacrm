@@ -1201,7 +1201,7 @@
     });
 
     // 7. XÁC NHẬN ĐẶT LỊCH HẸN & HIỂN THỊ MODAL VIETQR
-    const canBook = {{ can_book|yesno:"true,false" }};
+    const canBook = {% if can_book %}true{% else %}false{% endif %};
   const userRole = "{{ user_role }}";
 
   if (els.btnConfirmBooking) {

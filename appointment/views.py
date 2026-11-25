@@ -213,7 +213,6 @@ def _parse_optional_filter_date(raw_date):
         return None
 
 
-@login_required
 def _resolve_appointment_order(sort_param, selected_date):
     """Xác định thứ tự sắp xếp danh sách lịch hẹn theo lựa chọn bộ lọc."""
     if sort_param == 'created_desc':
@@ -225,6 +224,7 @@ def _resolve_appointment_order(sort_param, selected_date):
     return ('time_slot', '-created_at') if selected_date else ('-appointment_date', 'time_slot', '-created_at')
 
 
+@login_required
 def staff_appointments_view(request):
     """
     Màn hình Quản lý Lịch hẹn cho Nhân viên Lễ tân / CSKH (UC-1.5)

@@ -36,7 +36,7 @@
         <form method="GET" action="{% block schedule_filter_action %}{% url 'appointment:staff_appointments' %}{% endblock %}" id="staffFilterForm"
             class="row g-3 align-items-end">
             <!-- Filter: Tìm lịch hẹn -->
-            <div class="col-12 col-md-6 col-xl-4">
+            <div class="col-12 col-md-6 col-xl-3">
                 <label class="admin-filter-label staff-filter-label mb-1">
                     <i class="bi bi-search me-1 text-gold"></i> TÌM LỊCH HẸN
                 </label>
@@ -89,10 +89,25 @@
                 </div>
             </div>
 
-            <!-- Filter Button: Áp dụng -->
-            <div class="col-12 col-md-6 col-xl-2 d-flex">
+            <!-- Filter: Sắp xếp & Nút Áp dụng -->
+            <div class="col-12 col-md-6 col-xl-3 d-flex align-items-end gap-2">
+                <div class="flex-grow-1">
+                    <label class="admin-filter-label staff-filter-label mb-1">
+                        <i class="bi bi-sort-down me-1 text-gold"></i> SẮP XẾP
+                    </label>
+                    <div class="admin-input-wrapper staff-input-wrapper">
+                        <select name="sort" id="filterSortSelect"
+                            class="form-select admin-filter-input staff-filter-input"
+                            onchange="this.form.submit()">
+                            <option value="" {% if not selected_sort %}selected{% endif %}>Mặc định</option>
+                            <option value="created_desc" {% if selected_sort == 'created_desc' %}selected{% endif %}>Giờ đặt gần nhất</option>
+                            <option value="created_asc" {% if selected_sort == 'created_asc' %}selected{% endif %}>Đặt cũ nhất</option>
+                            <option value="slot_asc" {% if selected_sort == 'slot_asc' %}selected{% endif %}>Khung giờ sớm → muộn</option>
+                        </select>
+                    </div>
+                </div>
                 <button type="submit"
-                    class="btn btn-cham-primary w-100 py-2 d-inline-flex align-items-center justify-content-center gap-1 text-nowrap">
+                    class="btn btn-cham-primary py-2 px-3 d-inline-flex align-items-center justify-content-center gap-1 text-nowrap flex-shrink-0">
                     <i class="bi bi-check2"></i>
                     <span>Áp dụng</span>
                 </button>

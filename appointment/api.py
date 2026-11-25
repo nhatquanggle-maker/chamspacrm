@@ -1289,7 +1289,15 @@ def admin_appointments_api(request, pk=None):
         'cancelled': today_qs.filter(status='Cancelled').count(),
     }
 
-    qs = qs.order_by('time_slot', '-created_at')
+    sort_param = (request.GET.get('sort') or '').strip()
+    if sort_param == 'created_desc':
+        qs = qs.order_by('-created_at')
+    elif sort_param == 'created_asc':
+        qs = qs.order_by('created_at')
+    elif sort_param == 'slot_asc':
+        qs = qs.order_by('appointment_date', 'time_slot', '-created_at')
+    else:
+        qs = qs.order_by('time_slot', '-created_at')
     items = [serialize_appointment_full(a) for a in qs]
     return JsonResponse({
         'status': 'success',

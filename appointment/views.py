@@ -214,6 +214,17 @@ def _parse_optional_filter_date(raw_date):
 
 
 @login_required
+def _resolve_appointment_order(sort_param, selected_date):
+    """Xác định thứ tự sắp xếp danh sách lịch hẹn theo lựa chọn bộ lọc."""
+    if sort_param == 'created_desc':
+        return ('-created_at',)
+    if sort_param == 'created_asc':
+        return ('created_at',)
+    if sort_param == 'slot_asc':
+        return ('appointment_date', 'time_slot', '-created_at')
+    return ('time_slot', '-created_at') if selected_date else ('-appointment_date', 'time_slot', '-created_at')
+
+
 def staff_appointments_view(request):
     """
     Màn hình Quản lý Lịch hẹn cho Nhân viên Lễ tân / CSKH (UC-1.5)
@@ -242,6 +253,7 @@ def staff_appointments_view(request):
     date_param = request.GET.get('date', '')
     slot_param = request.GET.get('time_slot', '').strip()
     status_param = request.GET.get('status', '').strip()
+    sort_param = request.GET.get('sort', '').strip()
     search_param = request.GET.get('search', '').strip() or request.GET.get('q', '').strip()
 
     selected_date = _parse_optional_filter_date(date_param)
@@ -272,7 +284,7 @@ def staff_appointments_view(request):
             Q(customer_phone__icontains=search_param)
         )
 
-    order_fields = ('time_slot', '-created_at') if selected_date else ('-appointment_date', 'time_slot', '-created_at')
+    order_fields = _resolve_appointment_order(sort_param, selected_date)
     appointments = list(qs.order_by(*order_fields))
 
     # 4. Thống kê theo ngày đã chọn
@@ -375,6 +387,7 @@ def staff_appointments_view(request):
         'selected_date_display': selected_date.strftime('%d/%m/%Y') if selected_date else 'Tất cả các ngày',
         'selected_slot': slot_param,
         'selected_status': status_param,
+        'selected_sort': sort_param,
         'search_query': search_param,
         'services': services,
         'time_slots': time_slots,
@@ -412,6 +425,7 @@ def admin_appointments_view(request):
     date_param = request.GET.get('date', '')
     slot_param = (request.GET.get('time_slot') or '').strip()
     status_param = (request.GET.get('status') or '').strip()
+    sort_param = (request.GET.get('sort') or '').strip()
 
     selected_date = _parse_optional_filter_date(date_param)
 
@@ -443,7 +457,7 @@ def admin_appointments_view(request):
             Q(customer_phone__icontains=search_param)
         )
 
-    order_fields = ('time_slot', '-created_at') if selected_date else ('-appointment_date', 'time_slot', '-created_at')
+    order_fields = _resolve_appointment_order(sort_param, selected_date)
     appointments = list(qs.order_by(*order_fields))
 
     # 4. Tính toán 3 thẻ chỉ số Operational Metrics (Admin KPIs)
@@ -587,6 +601,7 @@ def admin_appointments_view(request):
         'selected_date_display': selected_date.strftime('%d/%m/%Y') if selected_date else 'Tất cả các ngày',
         'selected_slot': slot_param,
         'selected_status': status_param,
+        'selected_sort': sort_param,
         'search_query': search_param,
         'services': services,
         'time_slots': time_slots,

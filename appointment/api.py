@@ -45,7 +45,7 @@ WEEKDAY_NAMES = {
 }
 
 STATUS_LABELS = {
-    'Hold': 'Chờ thanh toán QR',
+    'Hold': 'Chờ thanh toán',
     'Pending': 'Đang chờ xác nhận',
     'Confirmed': 'Đã xác nhận',
     'In_Progress': 'Đang làm dịch vụ',

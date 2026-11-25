@@ -54,18 +54,18 @@ def booking_view(request):
         user_name = (user.name or '').strip() or user.get_full_name().strip() or user.username
         raw_phone = (user.phone or '').strip() or (user.username if user.username.isdigit() else '')
 
-        clean_phone = raw_phone
-        if clean_phone.startswith('+84'):
-            clean_phone = clean_phone[3:].strip()
-        elif clean_phone.startswith('84') and len(clean_phone) in (10, 11):
-            clean_phone = clean_phone[2:].strip()
-        elif clean_phone.startswith('0'):
-            clean_phone = clean_phone[1:].strip()
+        full_phone = raw_phone.replace(' ', '').replace('.', '').replace('-', '')
+        if full_phone.startswith('+84'):
+            full_phone = '0' + full_phone[3:]
+        elif full_phone.startswith('84') and len(full_phone) in (10, 11):
+            full_phone = '0' + full_phone[2:]
+        elif full_phone and full_phone.isdigit() and len(full_phone) == 9 and not full_phone.startswith('0'):
+            full_phone = '0' + full_phone
 
         initial_user = {
             'name': user_name,
-            'phone': clean_phone,
-            'display_phone': raw_phone or ('0' + clean_phone if clean_phone else ''),
+            'phone': full_phone,
+            'display_phone': full_phone,
             'email': (user.email or '').strip(),
         }
 
@@ -136,8 +136,10 @@ def booking_success_view(request, code):
         else:
             discount_amount = int(v.discount_value)
 
-    from .api import _get_payment_info, _format_vnd
+    from .api import _get_payment_info, _format_vnd, _normalize_vn_phone
     payment = _get_payment_info(appointment)
+    if appointment.customer_phone:
+        appointment.customer_phone = _normalize_vn_phone(appointment.customer_phone)
 
     context = {
         'appointment': appointment,

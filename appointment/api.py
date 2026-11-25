@@ -144,6 +144,18 @@ def _format_vnd(amount):
     return f"{int(amount):,}".replace(',', '.') + " VNĐ"
 
 
+def _normalize_vn_phone(phone):
+    """Chuẩn hóa SĐT Việt Nam luôn giữ số 0 ở đầu (VD: 912845660 / +84912845660 -> 0912845660)."""
+    p = (phone or '').strip().replace(' ', '').replace('.', '').replace('-', '')
+    if p.startswith('+84'):
+        p = '0' + p[3:]
+    elif p.startswith('84') and len(p) in (10, 11):
+        p = '0' + p[2:]
+    elif p.isdigit() and len(p) == 9 and not p.startswith('0'):
+        p = '0' + p
+    return p
+
+
 def _serialize_appointment_user(obj):
     user = obj.user
     if not user and obj.customer_phone:
@@ -297,7 +309,7 @@ def serialize_appointment_full(obj):
         'id': obj.id,
         'appointment_code': obj.appointment_code,
         'customer_name': obj.customer_name,
-        'customer_phone': obj.customer_phone,
+        'customer_phone': _normalize_vn_phone(obj.customer_phone),
         'customer_email': obj.customer_email,
         'preferred_contact_channel': obj.preferred_contact_channel,
         'appointment_date': d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else str(d),
@@ -379,7 +391,7 @@ def _validate_booking_payload(data):
             if total_guests > 10:
                 errors['total_guests'] = "Tổng số khách tối đa 10 người mỗi lượt."
 
-    clean_phone = (data.get('customer_phone') or '').strip().replace(' ', '').replace('.', '').replace('-', '')
+    clean_phone = _normalize_vn_phone(data.get('customer_phone'))
     if clean_phone and (len(clean_phone) < 9 or len(clean_phone) > 15):
         errors['customer_phone'] = "Số điện thoại không đúng định dạng."
 

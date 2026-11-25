@@ -14,9 +14,7 @@ urlpatterns = [
     path('success/<str:code>/', views.booking_success_view, name='booking_success'),
     path('my-appointments/', views.my_appointments_view, name='my_appointments'),
     path('staff/', views.staff_appointments_view, name='staff_appointments'),
-    path('staff/appointments/', views.staff_appointments_view, name='staff_appointments_direct'),
     path('admin/', views.admin_appointments_view, name='admin_appointments'),
-    path('admin/appointments/', views.admin_appointments_view, name='admin_appointments_direct'),
     path('admin/export/', views.admin_export_appointments_view, name='admin_export_appointments'),
 
     # 2. AJAX Endpoints cho đặt lịch hẹn & thanh toán VietQR

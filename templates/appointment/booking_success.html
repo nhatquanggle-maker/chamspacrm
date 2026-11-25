@@ -29,13 +29,6 @@
     <!-- ============================================================== -->
     <div class="success-banner-box">
         <div class="d-flex align-items-center gap-3">
-            <div class="success-icon-wrap" {% if appointment.status == 'Hold' %}style="background: #FEF3C7; color: #B45309;"{% endif %}>
-                {% if appointment.status == 'Hold' %}
-                <i class="bi bi-clock-history"></i>
-                {% else %}
-                <i class="bi bi-check-circle-fill"></i>
-                {% endif %}
-            </div>
             <div>
                 <h4 class="success-banner-title">
                     {% if payment.is_paid %}
@@ -57,19 +50,6 @@
                 </p>
             </div>
         </div>
-        {% if payment.is_paid %}
-        <div class="badge-paid-tag">
-            <i class="bi bi-dot"></i> ĐÃ THANH TOÁN (100%)
-        </div>
-        {% elif payment.method == 'counter' %}
-        <div class="badge-paid-tag" style="background: #FEF6E7; color: #B25E09; border: 1px solid #FDE68A;">
-            <i class="bi bi-cash-coin"></i> THANH TOÁN TẠI QUẦY
-        </div>
-        {% else %}
-        <div class="badge-paid-tag" style="background: #FFF7ED; color: #C2410C; border: 1px solid #FED7AA;">
-            <i class="bi bi-hourglass-split"></i> CHỜ ĐỐI SOÁT VIETQR
-        </div>
-        {% endif %}
     </div>
 
     <!-- ============================================================== -->
@@ -84,19 +64,6 @@
             <div>
                 <div class="ticket-eyebrow">CHAM SPA & MASSAGE · DIGITAL PASS</div>
                 <h2 class="ticket-main-title">VÉ TRẢI NGHIỆM CHI TIẾT {{ appointment.appointment_code }}</h2>
-            </div>
-            <div class="badge-ticket-status" {% if not payment.is_paid %}style="background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A;"{% endif %}>
-                {% if payment.is_paid %}
-                    {% if appointment.status == 'Confirmed' %}
-                    <i class="bi bi-calendar-check-fill text-danger me-1"></i> LỊCH HẸN ĐÃ XÁC NHẬN
-                    {% else %}
-                    <i class="bi bi-info-circle text-primary me-1"></i> {{ appointment.get_status_display|default:appointment.status|upper }}
-                    {% endif %}
-                {% elif payment.method == 'counter' %}
-                <i class="bi bi-cash-coin text-warning me-1"></i> HOLD (TRẢ TẠI QUẦY)
-                {% else %}
-                <i class="bi bi-clock-history text-warning me-1"></i> HOLD (CHỜ ĐỐI SOÁT)
-                {% endif %}
             </div>
         </div>
 
@@ -179,9 +146,6 @@
                 </div>
                 <div class="ticket-row-value fw-bold text-dark" style="font-family: 'Lora', serif; font-size: 18px;">
                     {{ formatted_total_price }}
-                    <span class="badge fs-6 fw-normal ms-2" style="font-family: 'Cabin', sans-serif; background-color: {{ payment.badge_bg }}; color: {{ payment.badge_color }};">
-                        ({{ payment.status_label }})
-                    </span>
                 </div>
             </div>
 

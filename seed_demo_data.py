@@ -442,13 +442,13 @@ def reset_and_seed_demo():
             svc.rating_avg = Decimal(str(round(avg_val, 1)))
             svc.save(update_fields=['review_count', 'rating_avg'])
 
-        # 8. Khiếu nại (5 phiếu đủ các trạng thái)
+        # 8. Khiếu nại (5 phiếu đủ các trạng thái, không nhập mong muốn)
         comp_specs = [
-            ('KN-1001', appointments[1], customers[1], 'Thời gian chờ chuẩn bị phòng hơi lâu so với giờ hẹn 14:00.', 'Mong được hỗ trợ voucher cho lần sau', None, None, 'Chờ phân công'),
-            ('KN-1002', appointments[4], customers[4], 'Điều hòa phòng trị liệu hơi lạnh trong 15 phút đầu trải nghiệm.', 'Nhân viên hỗ trợ điều chỉnh quy trình', staff_list[0], 'Đang trao đổi cùng bộ phận kỹ thuật kiểm tra nhiệt độ tiêu chuẩn.', 'Đang xử lý'),
-            ('KN-1003', appointments[2], customers[2], 'Muốn đổi hương tinh dầu nhưng chưa được hỏi trước khi vào phòng.', 'Gọi điện tư vấn thêm', staff_list[1], 'Đã ghi nhận lịch gọi trao đổi khách vào 17h30.', 'Chờ liên hệ lại'),
-            ('KN-1004', appointments[0], customers[0], 'Phòng VIP tầng 2 hơi có tiếng ồn bên ngoài hành lang lúc đầu ca.', 'Tặng mã ưu đãi bù trải nghiệm', staff_list[0], 'Đã xin lỗi trực tiếp và phát hành voucher đền bù 200.000đ cho chị Bảo Ngọc.', 'Đã xử lý'),
-            ('KN-1005', appointments[3], customers[3], 'Khách yêu cầu hoàn tiền toàn bộ sau khi đã dùng trọn vẹn 60 phút dịch vụ không gặp sự cố.', 'Hoàn 100% chi phí', staff_list[2], 'Đã đối chiếu camera và phiếu xác nhận dịch vụ hoàn tất đúng quy chuẩn.', 'Đã từ chối'),
+            ('KN-1001', appointments[1], customers[1], '[Thời gian chờ] Thời gian chờ chuẩn bị phòng hơi lâu so với giờ hẹn 14:00.', '', None, None, 'Chờ phân công'),
+            ('KN-1002', appointments[4], customers[4], '[Cơ sở vật chất] Điều hòa phòng trị liệu hơi lạnh trong 15 phút đầu trải nghiệm.', '', staff_list[0], 'Đang trao đổi cùng bộ phận kỹ thuật kiểm tra nhiệt độ tiêu chuẩn.', 'Đang xử lý'),
+            ('KN-1003', appointments[2], customers[2], '[Quy trình dịch vụ] Muốn đổi hương tinh dầu nhưng chưa được hỏi trước khi vào phòng.', '', staff_list[1], 'Đã ghi nhận lịch gọi trao đổi khách vào 17h30.', 'Chờ liên hệ lại'),
+            ('KN-1004', appointments[0], customers[0], '[Phòng/Không gian] Phòng VIP tầng 2 hơi có tiếng ồn bên ngoài hành lang lúc đầu ca.', '', staff_list[0], 'Đã xin lỗi trực tiếp và phát hành voucher đền bù 200.000đ cho chị Bảo Ngọc.', 'Đã xử lý'),
+            ('KN-1005', appointments[3], customers[3], '[Yêu cầu hoàn tiền] Khách yêu cầu hoàn tiền toàn bộ sau khi đã dùng trọn vẹn 60 phút dịch vụ không gặp sự cố.', '', staff_list[2], 'Đã đối chiếu camera và phiếu xác nhận dịch vụ hoàn tất đúng quy chuẩn.', 'Đã từ chối'),
         ]
         complaints = []
         for ccode, appt, cust, desc, desired, astaff, note, cst in comp_specs:

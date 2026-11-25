@@ -1141,7 +1141,9 @@ def _update_appointment_status(request, pk=None):
         if not invoice.paid_at:
             invoice.paid_at = timezone.now()
         if new_status == 'Confirmed':
-            invoice.reason_refuse = 'Chuyển khoản VietQR'
+            cur_reason = (invoice.reason_refuse or '').lower()
+            if not any(k in cur_reason for k in ('quầy', 'tiền mặt', 'pos')):
+                invoice.reason_refuse = 'Chuyển khoản VietQR'
         invoice.amount = appointment.total_price
         invoice.save()
 
@@ -1181,7 +1183,9 @@ def _update_appointment_status(request, pk=None):
             pass
 
     if new_status == 'Confirmed':
-        resp_msg = f"Đã xác nhận lịch hẹn {appointment.appointment_code} và cập nhật hình thức thanh toán thành 'Đã chuyển khoản'."
+        cur_reason = (invoice.reason_refuse or '').lower()
+        paid_label = 'Đã thanh toán tại quầy' if any(k in cur_reason for k in ('quầy', 'tiền mặt', 'pos')) else 'Đã chuyển khoản'
+        resp_msg = f"Đã xác nhận lịch hẹn {appointment.appointment_code} và cập nhật hình thức thanh toán thành '{paid_label}'."
     else:
         resp_msg = f"Đã cập nhật trạng thái lịch hẹn {appointment.appointment_code} thành '{new_status}'."
         if new_status == 'Completed' and earned_points > 0 and appointment.user:

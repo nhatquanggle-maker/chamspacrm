@@ -136,11 +136,17 @@ def booking_success_view(request, code):
         else:
             discount_amount = int(v.discount_value)
 
+    from .api import _get_payment_info, _format_vnd
+    payment = _get_payment_info(appointment)
+
     context = {
         'appointment': appointment,
         'details': details,
         'date_display': date_display,
         'discount_amount': discount_amount,
+        'formatted_discount': _format_vnd(discount_amount),
+        'formatted_total_price': _format_vnd(appointment.total_price),
+        'payment': payment,
     }
     return render(request, 'appointment/booking_success.html', context)
 

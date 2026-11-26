@@ -1,49 +1,59 @@
 """
 API Endpoints (Pure Django JsonResponse) cho Phân hệ Quản lý Lịch hẹn - CHAMSPA CRM
+Bao gồm: kiểm tra khung giờ trống, áp dụng voucher, đặt lịch online/tại quầy,
+xác nhận & cập nhật thanh toán VietQR/Tiền mặt, dời lịch, hủy lịch và điều phối Staff/Admin.
 """
 
-import random
-import uuid
-from datetime import datetime
-from decimal import Decimal
+# TẦNG 1: IMPORT THƯ VIỆN CHUẨN PYTHON & DJANGO
+import random  # Sinh số ngẫu nhiên dùng tạo mã lịch hẹn #LHxxxxx
+import uuid  # Sinh chuỗi định danh duy nhất cho mã thông báo
+from datetime import datetime  # Phân tích chuỗi ngày giờ ('YYYY-MM-DD', 'HH:MM')
+from decimal import Decimal  # Tính toán tiền tệ, chiết khấu chính xác (tránh sai số float)
 
-from django.core.exceptions import ValidationError as DjangoValidationError
-from django.core.validators import validate_email
-from django.db import transaction
-from django.db.models import Q, Sum
-from django.http import JsonResponse
-from django.utils import timezone
-from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from django.core.exceptions import ValidationError as DjangoValidationError  # Ngoại lệ kiểm tra định dạng email
+from django.core.validators import validate_email  # Hàm kiểm tra tính hợp lệ của địa chỉ email
+from django.db import transaction  # Đảm bảo thao tác tạo lịch hẹn + chi tiết + hóa đơn đồng bộ (atomic)
+from django.db.models import Q, Sum  # Hỗ trợ truy vấn OR (Q) và tính tổng số khách đã đặt (Sum)
+from django.http import JsonResponse  # Trả phản hồi JSON chuẩn cho Fetch API phía frontend
+from django.utils import timezone  # Lấy ngày/giờ hiện tại theo múi giờ Asia/Ho_Chi_Minh
+from django.views.decorators.http import require_GET, require_POST, require_http_methods  # Ràng buộc HTTP method cho từng API
 
+# Import các hàm tiện ích phân quyền & đọc JSON dùng chung của dự án
 from core.ajax import (
-    is_staff_or_admin,
-    json_error,
-    parse_json_body,
-    require_auth_json,
-    require_staff_json,
+    is_staff_or_admin,  # Kiểm tra người dùng có phải Staff hoặc Admin (Superuser)
+    json_error,  # Trả về JsonResponse lỗi chuẩn kèm mã HTTP status
+    parse_json_body,  # Đọc và kiểm tra cú pháp JSON body gửi từ frontend
+    require_auth_json,  # Decorator yêu cầu đăng nhập (trả 401 JSON nếu chưa đăng nhập)
+    require_staff_json,  # Decorator yêu cầu quyền Staff/Admin (trả 403 JSON nếu không đủ quyền)
 )
+
+# Import các Model CSDL tập trung trong core/models.py
 from core.models import (
-    Appointment,
-    AppointmentDetail,
-    Invoice,
-    Notification,
-    Service,
-    User,
-    Voucher,
+    Appointment,  # Bảng lịch hẹn chính
+    AppointmentDetail,  # Bảng chi tiết dịch vụ & lực massage của từng khách trong lịch
+    Invoice,  # Bảng hóa đơn thanh toán gắn 1-1 với Appointment
+    Notification,  # Bảng thông báo gửi tới khách hàng
+    Service,  # Bảng danh mục dịch vụ Spa
+    User,  # Custom User Model (Khách hàng / Nhân viên / Admin)
+    Voucher,  # Bảng mã giảm giá khuyến mãi / đền bù
 )
-from marketing.utils import create_unique_notification
+from marketing.utils import create_unique_notification  # Tạo thông báo chống trùng lặp cho khách hàng
 
 
+# TẦNG 2: HẰNG SỐ CẤU HÌNH KHUNG GIỜ & NHÃN HIỂN THỊ
+# Danh sách các khung giờ nhận khách tiêu chuẩn trong ngày tại Cham Spa
 STANDARD_TIME_SLOTS = [
     "09:00", "09:30", "10:00", "10:30", "14:00", "14:30",
     "15:00", "15:30", "16:00", "17:00", "17:30", "19:00",
 ]
 
+# Ánh xạ thứ trong tuần (0 = Thứ Hai ... 6 = Chủ Nhật) sang tiếng Việt
 WEEKDAY_NAMES = {
     0: 'Thứ Hai', 1: 'Thứ Ba', 2: 'Thứ Tư', 3: 'Thứ Năm',
     4: 'Thứ Sáu', 5: 'Thứ Bảy', 6: 'Chủ Nhật',
 }
 
+# Ánh xạ mã trạng thái lịch hẹn trong CSDL sang nhãn tiếng Việt hiển thị trên giao diện
 STATUS_LABELS = {
     'Hold': 'Chờ thanh toán',
     'Pending': 'Đang chờ xác nhận',
@@ -54,17 +64,21 @@ STATUS_LABELS = {
 }
 
 
+# TẦNG 3: CÁC HÀM BỔ TRỢ (HELPERS) XỬ LÝ MÃ, THỜI GIAN, PHÂN QUYỀN & TIỀN TỆ
 def generate_notification_code(prefix="TB"):
     """Sinh mã định danh thông báo duy nhất."""
+    # Kết hợp tiền tố, timestamp hiện tại và 6 ký tự hex ngẫu nhiên
     return f"{prefix}-{int(timezone.now().timestamp())}-{uuid.uuid4().hex[:6].upper()}"
 
 
 def _generate_appointment_code():
     """Sinh mã lịch hẹn độc nhất dạng #LHxxxxx."""
+    # Thử tối đa 15 lần để đảm bảo mã #LHxxxxx chưa tồn tại trong bảng Appointment
     for _ in range(15):
         cand = f"#LH{random.randint(10000, 99999)}"
         if not Appointment.objects.filter(appointment_code=cand).exists():
             return cand
+    # Dự phòng nếu cả 15 lần đều trùng: lấy 5 chữ số cuối của timestamp hiện tại
     return f"#LH{int(timezone.now().timestamp()) % 100000:05d}"
 
 
@@ -73,24 +87,26 @@ def parse_slot_time(time_slot):
     try:
         return datetime.strptime(str(time_slot).strip(), '%H:%M').time()
     except ValueError:
+        # Trả về None nếu chuỗi không đúng định dạng giờ:phút
         return None
 
 
 def is_slot_in_past(target_date, time_slot, now_local=None):
     """Kiểm tra ngày và khung giờ đã qua so với thời gian thực chưa."""
-    now_local = now_local or timezone.localtime()
-    today_local = now_local.date()
+    now_local = now_local or timezone.localtime()  # Lấy thời gian địa phương hiện tại
+    today_local = now_local.date()  # Lấy ngày hiện tại
     if target_date < today_local:
-        return True
+        return True  # Ngày chọn nhỏ hơn hôm nay -> chắc chắn đã qua
     if target_date > today_local:
-        return False
-    slot_t = parse_slot_time(time_slot)
+        return False  # Ngày chọn ở tương lai -> chưa qua
+    slot_t = parse_slot_time(time_slot)  # Nếu là hôm nay, phân tích giờ của slot
     if slot_t is None:
         return False
-    return slot_t <= now_local.time()
+    return slot_t <= now_local.time()  # Đã qua nếu giờ của slot <= giờ hiện tại
 
 
 def _parse_int(value, default=None):
+    # Chuyển giá trị bất kỳ sang số nguyên (int), trả về default nếu rỗng hoặc None nếu lỗi
     if value is None or value == '':
         return default
     try:
@@ -100,6 +116,7 @@ def _parse_int(value, default=None):
 
 
 def _parse_bool(value):
+    # Chuẩn hóa giá trị boolean từ bool hoặc chuỗi ('true'/'1'/'false'/'0')
     if isinstance(value, bool):
         return value
     if isinstance(value, str):
@@ -114,14 +131,15 @@ def _parse_bool(value):
 def _can_access_appointment(request, appointment):
     """Chỉ cho phép Staff/Admin, chủ sở hữu lịch hẹn hoặc phiên vừa đặt lịch."""
     if is_staff_or_admin(request.user):
-        return True
+        return True  # Nhân viên hoặc Quản lý được phép truy cập mọi lịch hẹn
     if request.user.is_authenticated and appointment.user_id == request.user.id:
-        return True
+        return True  # Khách hàng đang đăng nhập là chủ sở hữu lịch hẹn
     recent_ids = request.session.get('recent_booking_ids', [])
-    return appointment.id in recent_ids
+    return appointment.id in recent_ids  # Hoặc ID lịch nằm trong danh sách vừa đặt ở session
 
 
 def _remember_booking_in_session(request, appointment_id):
+    # Lưu ID lịch hẹn vừa đặt vào session (giữ tối đa 20 lịch gần nhất) để xác thực ngay sau khi đặt
     recent = list(request.session.get('recent_booking_ids', []))
     if appointment_id not in recent:
         recent.append(appointment_id)
@@ -132,11 +150,15 @@ def _remember_booking_in_session(request, appointment_id):
 def _compute_voucher_discount(voucher, total_amount):
     """Tính toán số tiền được giảm từ voucher, chặn không vượt quá tổng đơn."""
     if voucher.discount_type in ['PERCENT', 'Phần trăm']:
+        # Giảm theo phần trăm: total_amount * discount_value / 100
         discount = (total_amount * Decimal(voucher.discount_value)) / Decimal(100)
+        # Nếu voucher có giới hạn số tiền giảm tối đa (max_discount_amount) thì áp trần
         if voucher.max_discount_amount and discount > voucher.max_discount_amount:
             discount = Decimal(voucher.max_discount_amount)
     else:
+        # Giảm số tiền cố định (FIXED)
         discount = Decimal(voucher.discount_value)
+    # Không cho phép số tiền giảm lớn hơn tổng đơn hàng
     return min(discount, total_amount)
 
 
@@ -144,16 +166,17 @@ def _get_user_tier_discount(user, subtotal):
     """Tính toán chiết khấu đặc quyền theo hạng thẻ hội viên của khách hàng."""
     if not user or not getattr(user, 'is_authenticated', True):
         return '', 0, Decimal(0)
-    mem = getattr(user, 'membership', None)
-    tier = getattr(mem, 'tier', None) if mem else None
+    mem = getattr(user, 'membership', None)  # Lấy thẻ hội viên 1-1 của khách
+    tier = getattr(mem, 'tier', None) if mem else None  # Lấy hạng thẻ hiện tại (Đồng/Bạc/Vàng/Kim Cương)
     if not tier or not tier.discount_percent:
-        return (tier.name if tier else ''), 0, Decimal(0)
+        return (tier.name if tier else ''), 0, Decimal(0)  # Hạng 0% -> không giảm
     pct = int(tier.discount_percent)
     discount = (Decimal(subtotal) * Decimal(pct)) / Decimal(100)
-    return tier.name, pct, min(discount, Decimal(subtotal))
+    return tier.name, pct, min(discount, Decimal(subtotal))  # Trả về (tên hạng, % giảm, số tiền giảm)
 
 
 def _format_vnd(amount):
+    # Định dạng số tiền sang chuỗi có dấu chấm phân cách hàng nghìn kèm đơn vị VNĐ (VD: 1.400.000 VNĐ)
     return f"{int(amount):,}".replace(',', '.') + " VNĐ"
 
 
@@ -161,21 +184,23 @@ def _normalize_vn_phone(phone):
     """Chuẩn hóa SĐT Việt Nam luôn giữ số 0 ở đầu (VD: 912845660 / +84912845660 -> 0912845660)."""
     p = (phone or '').strip().replace(' ', '').replace('.', '').replace('-', '')
     if p.startswith('+84'):
-        p = '0' + p[3:]
+        p = '0' + p[3:]  # Đổi +84xxxxxxxxx -> 0xxxxxxxxx
     elif p.startswith('84') and len(p) in (10, 11):
-        p = '0' + p[2:]
+        p = '0' + p[2:]  # Đổi 84xxxxxxxxx -> 0xxxxxxxxx
     elif p.isdigit() and len(p) == 9 and not p.startswith('0'):
-        p = '0' + p
+        p = '0' + p  # Bù số 0 đầu nếu lưu thiếu thành 9 chữ số
     return p
 
 
 def _serialize_appointment_user(obj):
+    # Trích xuất thông tin tài khoản, hạng hội viên và hồ sơ sức khỏe của khách để hiển thị cho Staff/Admin
     user = obj.user
     if not user and obj.customer_phone:
+        # Nếu lịch hẹn chưa gắn user_id (VD khách đặt tại quầy), thử tìm User khớp SĐT
         clean_phone = obj.customer_phone.replace(' ', '').replace('.', '').replace('-', '').strip()
         user = User.objects.filter(phone=clean_phone).first() or User.objects.filter(username=clean_phone).first()
     if not user:
-        return None
+        return None  # Khách vãng lai chưa có tài khoản
 
     membership = getattr(user, 'membership', None)
     tier_name = membership.tier.name if (membership and membership.tier) else "Thành viên"
@@ -201,8 +226,9 @@ def _serialize_appointment_user(obj):
 
 
 def _get_payment_info(obj):
+    # Tổng hợp phương thức thanh toán (VietQR / Tại quầy) và trạng thái thu tiền từ Invoice
     invoice = getattr(obj, 'invoice', None)
-    method = 'transfer'
+    method = 'transfer'  # Mặc định là chuyển khoản VietQR
     is_paid = False
     paid_at = None
 
@@ -210,9 +236,11 @@ def _get_payment_info(obj):
         paid_at = invoice.paid_at.strftime('%H:%M %d/%m/%Y') if invoice.paid_at else None
         is_paid = (invoice.status == 'Đã thanh toán')
         reason = (invoice.reason_refuse or '').lower()
+        # Nhận diện thanh toán tại quầy dựa trên ghi chú phương thức trong reason_refuse
         if 'quầy' in reason or 'tiền mặt' in reason or 'pos' in reason:
             method = 'counter'
     else:
+        # Dự phòng nếu lịch hẹn cũ chưa có bản ghi Invoice
         note_lower = (obj.note or '').lower()
         channel_lower = (obj.preferred_contact_channel or '').lower()
         if 'quầy' in note_lower or 'quầy' in channel_lower or 'tiền mặt' in note_lower:
@@ -222,6 +250,7 @@ def _get_payment_info(obj):
         if obj.status == 'Completed':
             is_paid = True
 
+    # Trả về nhãn, màu badge, icon và mô tả tương ứng với 5 trạng thái hiển thị
     if method == 'transfer':
         method_label = 'Chuyển khoản (VietQR)'
         raw_reason = (invoice.reason_refuse or '').strip() if invoice else ''
@@ -232,12 +261,14 @@ def _get_payment_info(obj):
             icon = 'bi-qr-code-scan'
             desc = 'Đã quét mã VietQR và chuyển khoản thành công'
         elif 'khách báo đã chuyển' in raw_reason.lower():
+            # Khách đã bấm "Tôi đã chuyển khoản" -> hiển thị Chờ đối soát để nhân viên kiểm tra sao kê
             status_label = 'Chờ đối soát'
             badge_bg = '#FEF6E7'
             badge_color = '#B25E09'
             icon = 'bi-hourglass-split'
             desc = f'{raw_reason} — Vui lòng kiểm tra sao kê và bấm Xác nhận'
         else:
+            # Khách vừa tạo đơn, chưa bấm báo chuyển khoản
             status_label = 'Chờ thanh toán'
             badge_bg = '#EFF8FF'
             badge_color = '#175CD3'
@@ -272,11 +303,13 @@ def _get_payment_info(obj):
 
 
 def _get_appointment_discount(obj):
+    # Ưu tiên lấy tổng số tiền đã giảm lưu trên Invoice (bao gồm cả chiết khấu hạng thẻ + voucher)
     invoice = getattr(obj, 'invoice', None)
     if invoice and invoice.discount_applied and invoice.discount_applied > 0:
         return int(invoice.discount_applied)
     if not obj.voucher:
         return 0
+    # Dự phòng tính ngược từ voucher nếu Invoice chưa lưu discount_applied
     v = obj.voucher
     if v.discount_type in ['PERCENT', 'Phần trăm']:
         if v.discount_value < 100:
@@ -291,6 +324,7 @@ def _get_appointment_discount(obj):
 
 def serialize_appointment_full(obj):
     """Chuyển đổi Appointment thành dict JSON đầy đủ cho giao diện & nhân sự."""
+    # Lấy danh sách dịch vụ chi tiết của từng khách trong lịch hẹn
     details_qs = obj.details.all().select_related('service')
     details = []
     names = []
@@ -309,6 +343,7 @@ def serialize_appointment_full(obj):
             'massage_pressure': d.massage_pressure,
         })
 
+    # Tạo chuỗi tóm tắt tên dịch vụ hiển thị trên danh sách/modal
     if len(names) == 1:
         service_name = names[0]
     elif len(names) > 1:
@@ -325,7 +360,7 @@ def serialize_appointment_full(obj):
         'id': obj.id,
         'appointment_code': obj.appointment_code,
         'customer_name': obj.customer_name,
-        'customer_phone': _normalize_vn_phone(obj.customer_phone),
+        'customer_phone': _normalize_vn_phone(obj.customer_phone),  # Luôn trả SĐT đầy đủ có số 0 đầu
         'customer_email': obj.customer_email,
         'preferred_contact_channel': obj.preferred_contact_channel,
         'appointment_date': d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else str(d),
@@ -353,6 +388,7 @@ def serialize_appointment_full(obj):
     }
 
 
+# TẦNG 4: VALIDATION DỮ LIỆU ĐẦU VÀO (PAYLOAD VALIDATORS)
 def _validate_date_and_slot(date_raw, time_slot_raw):
     """Kiểm tra ngày hẹn và khung giờ hợp lệ, không nằm trong quá khứ."""
     errors = {}
@@ -361,6 +397,7 @@ def _validate_date_and_slot(date_raw, time_slot_raw):
         errors['appointment_date'] = "Vui lòng chọn ngày hẹn."
     else:
         try:
+            # Chuyển chuỗi YYYY-MM-DD sang đối tượng date và chặn ngày quá khứ
             appt_date = datetime.strptime(str(date_raw).strip(), '%Y-%m-%d').date()
             if appt_date < timezone.localdate():
                 errors['appointment_date'] = "Không thể đặt lịch hẹn cho ngày trong quá khứ."
@@ -373,6 +410,7 @@ def _validate_date_and_slot(date_raw, time_slot_raw):
     elif len(time_slot) > 20:
         errors['time_slot'] = "Khung giờ không hợp lệ."
     elif appt_date and not errors.get('appointment_date') and is_slot_in_past(appt_date, time_slot):
+        # Chặn đặt vào khung giờ đã trôi qua trong ngày hôm nay
         errors['time_slot'] = (
             f"Khung giờ {time_slot} hôm nay đã qua so với thời gian thực. "
             "Vui lòng chọn khung giờ sau hoặc ngày khác."
@@ -382,6 +420,7 @@ def _validate_date_and_slot(date_raw, time_slot_raw):
 
 
 def _validate_booking_payload(data):
+    # Kiểm tra và chuẩn hóa dữ liệu đặt lịch trực tuyến từ khách hàng
     appt_date, time_slot, errors = _validate_date_and_slot(
         data.get('appointment_date'),
         data.get('time_slot'),
@@ -391,6 +430,7 @@ def _validate_booking_payload(data):
     male_guests = _parse_int(data.get('male_guests'), default=0)
     female_guests = _parse_int(data.get('female_guests'), default=0)
 
+    # Giới hạn mỗi lượt đặt từ 1 đến 10 khách
     if total_guests is None or total_guests < 1 or total_guests > 10:
         errors['total_guests'] = "Tổng số khách phải từ 1 đến 10 người."
     if male_guests is None or male_guests < 0:
@@ -398,6 +438,7 @@ def _validate_booking_payload(data):
     if female_guests is None or female_guests < 0:
         errors['female_guests'] = "Số khách nữ không hợp lệ."
 
+    # Tự động đồng bộ tổng số khách khớp với số lượng Nam + Nữ
     if not errors:
         if male_guests + female_guests == 0:
             male_guests = total_guests
@@ -407,6 +448,7 @@ def _validate_booking_payload(data):
             if total_guests > 10:
                 errors['total_guests'] = "Tổng số khách tối đa 10 người mỗi lượt."
 
+    # Chuẩn hóa SĐT giữ số 0 đầu và kiểm tra độ dài hợp lệ
     clean_phone = _normalize_vn_phone(data.get('customer_phone'))
     if clean_phone and (len(clean_phone) < 9 or len(clean_phone) > 15):
         errors['customer_phone'] = "Số điện thoại không đúng định dạng."
@@ -418,6 +460,7 @@ def _validate_booking_payload(data):
         except DjangoValidationError:
             errors['customer_email'] = "Email không đúng định dạng."
 
+    # Chuẩn hóa danh sách dịch vụ & lực massage cho từng khách
     raw_guests = data.get('guest_details') or data.get('guests') or []
     guest_details = []
     if isinstance(raw_guests, list):
@@ -459,6 +502,7 @@ def _validate_booking_payload(data):
 
 
 def _validate_quick_create_payload(data):
+    # Kiểm tra dữ liệu khi nhân viên lễ tân tạo lịch nhanh tại quầy cho khách walk-in
     appt_date, time_slot, errors = _validate_date_and_slot(
         data.get('appointment_date'),
         data.get('time_slot'),
@@ -510,9 +554,11 @@ def _validate_quick_create_payload(data):
     }, None
 
 
+# TẦNG 5: API ENDPOINTS PHÍA KHÁCH HÀNG (SLOTS, VOUCHER, ĐẶT LỊCH, DỜI/HỦY)
 @require_GET
 def available_slots_api(request):
     """Kiểm tra danh sách khung giờ và số chỗ còn trống."""
+    # Lấy ngày cần kiểm tra từ query ?date=YYYY-MM-DD (mặc định là hôm nay)
     date_str = request.GET.get('date')
     if not date_str:
         target_date = timezone.localdate()
@@ -522,6 +568,7 @@ def available_slots_api(request):
         except ValueError:
             return json_error('Định dạng ngày không hợp lệ (YYYY-MM-DD)', status=400)
 
+    # Cộng tổng số khách đã đặt theo từng khung giờ (bỏ qua các lịch Đã hủy)
     bookings = Appointment.objects.filter(
         appointment_date=target_date
     ).exclude(status='Cancelled').values('time_slot').annotate(booked_guests=Sum('total_guests'))
@@ -529,6 +576,7 @@ def available_slots_api(request):
     booked_map = {b['time_slot']: (b['booked_guests'] or 0) for b in bookings}
     now_local = timezone.localtime()
 
+    # Duyệt qua 12 khung giờ chuẩn, tính số chỗ còn lại (tối đa 10 khách/slot) và kiểm tra giờ quá khứ
     result = []
     for slot in STANDARD_TIME_SLOTS:
         booked = booked_map.get(slot, 0)
@@ -576,20 +624,25 @@ def apply_voucher_api(request):
     if not code:
         return json_error('Vui lòng nhập mã Voucher', status=400)
 
+    # Kiểm tra mã voucher có tồn tại và đang ở trạng thái 'Khả dụng' hay không
     voucher = Voucher.objects.filter(voucher_code=code, status='Khả dụng').first()
     if not voucher:
         return json_error('Mã Voucher không tồn tại hoặc đã hết lượt sử dụng.', status=400)
 
+    # Kiểm tra hạn sử dụng của voucher
     if voucher.expiry_date and voucher.expiry_date < timezone.now():
         return json_error('Mã Voucher đã hết hạn sử dụng.', status=400)
 
+    # Nếu là voucher cá nhân (có gắn customer), chỉ chính chủ mới được áp dụng
     if voucher.customer and (not request.user.is_authenticated or voucher.customer_id != request.user.id):
         return json_error('Mã Voucher này được cấp riêng cho một khách hàng khác.', status=403)
 
+    # Kiểm tra giá trị đơn hàng tối thiểu (sau chiết khấu hạng thẻ)
     if voucher.min_order_amount and order_total < voucher.min_order_amount:
         min_fmt = f"{int(voucher.min_order_amount):,}".replace(',', '.')
         return json_error(f'Voucher chỉ áp dụng cho đơn hàng từ {min_fmt} VNĐ trở lên.', status=400)
 
+    # Tính số tiền giảm và tổng tiền cuối cùng
     discount_amount = _compute_voucher_discount(voucher, order_total)
     final_total = max(Decimal(0), order_total - discount_amount)
 
@@ -609,6 +662,7 @@ def apply_voucher_api(request):
 @require_POST
 def appointment_create_api(request):
     """Tạo lịch hẹn trực tuyến (chỉ dành cho tài khoản Khách hàng)."""
+    # 1. Chặn người dùng chưa đăng nhập
     if not request.user.is_authenticated:
         return json_error(
             'Vui lòng đăng nhập tài khoản Khách hàng để thực hiện đặt lịch trải nghiệm.',
@@ -616,6 +670,7 @@ def appointment_create_api(request):
             status_code_label='error',
         )
 
+    # 2. Chặn Staff/Admin tự đặt lịch bằng tài khoản nội bộ
     if is_staff_or_admin(request.user):
         return json_error(
             'Tài khoản Quản trị viên hoặc Nhân viên không có quyền đặt lịch trải nghiệm. Chức năng này chỉ dành riêng cho Khách hàng.',
@@ -626,6 +681,7 @@ def appointment_create_api(request):
     if err:
         return err
 
+    # 3. Validate toàn bộ payload đặt lịch
     data, errors = _validate_booking_payload(raw_data)
     if errors:
         return JsonResponse({'status': 'error', 'error': errors}, status=400)
@@ -634,6 +690,7 @@ def appointment_create_api(request):
     time_slot = data['time_slot']
     total_guests = data['total_guests']
 
+    # 4. Kiểm tra sức chứa khung giờ (tối đa 10 khách/khung giờ/ngày)
     booked = Appointment.objects.filter(
         appointment_date=appointment_date,
         time_slot=time_slot,
@@ -646,6 +703,7 @@ def appointment_create_api(request):
             'error': f'Khung giờ {time_slot} ngày {appointment_date} chỉ còn {remaining} chỗ trống. Quý khách vui lòng chọn khung giờ khác.',
         }, status=400)
 
+    # 5. Lấy dịch vụ mặc định (hoặc dịch vụ đầu tiên đang hoạt động) làm fallback
     default_service = None
     if data['service_id']:
         default_service = Service.objects.filter(id=data['service_id'], status='Hoạt động').first()
@@ -657,6 +715,7 @@ def appointment_create_api(request):
             'error': 'Hiện chưa có dịch vụ nào đang hoạt động trong hệ thống Spa.',
         }, status=400)
 
+    # 6. Tính tạm tính (subtotal) từ danh sách dịch vụ thực tế trong CSDL (chống sửa giá phía client)
     calculated_total = Decimal(0)
     details_to_create = []
     guest_details = data['guest_details']
@@ -684,6 +743,7 @@ def appointment_create_api(request):
             })
             calculated_total += svc.price_vnd
 
+    # 7. Tính chiết khấu hạng thẻ hội viên trước, sau đó mới áp dụng Voucher trên phần tiền còn lại
     auth_user = request.user
     _, _, tier_discount = _get_user_tier_discount(auth_user, calculated_total)
     after_tier_total = max(Decimal(0), calculated_total - tier_discount)
@@ -705,6 +765,7 @@ def appointment_create_api(request):
     discount_amount = min(tier_discount + voucher_discount, calculated_total)
     final_total = max(Decimal(0), calculated_total - discount_amount)
 
+    # 8. Chuẩn bị thông tin liên hệ và lưu đồng bộ Appointment + AppointmentDetail + Invoice
     code = _generate_appointment_code()
     cust_name = data['customer_name'] or (auth_user.name or '').strip() or auth_user.get_full_name().strip() or auth_user.username
     cust_phone = data['customer_phone'] or (auth_user.phone or '').strip() or (auth_user.username if auth_user.username.isdigit() else '')
@@ -726,7 +787,7 @@ def appointment_create_api(request):
             preferred_contact_channel='Điện thoại',
             note=data['note'],
             total_price=final_total,
-            status='Hold',
+            status='Hold',  # Trạng thái khởi tạo chờ thanh toán / đối soát
         )
 
         for item in details_to_create:
@@ -749,6 +810,7 @@ def appointment_create_api(request):
 
     _remember_booking_in_session(request, appointment.id)
 
+    # 9. Sinh URL ảnh mã VietQR động kèm số tiền và nội dung chuyển khoản CHAMSPA <MÃ_LỊCH>
     clean_code_num = appointment.appointment_code.replace('#', '')
     qr_memo = f"CHAMSPA {clean_code_num}"
     vietqr_url = (
@@ -787,6 +849,7 @@ def appointment_create_api(request):
     }, status=201)
 
 
+# TẦNG 6: API THANH TOÁN VIETQR & ĐỐI SOÁT HÓA ĐƠN
 @require_POST
 def confirm_payment_api(request, pk=None):
     """Xác nhận đã quét QR thanh toán thành công (chủ lịch hẹn hoặc nhân sự)."""
@@ -797,6 +860,7 @@ def confirm_payment_api(request, pk=None):
     target_id = pk or data.get('appointment_id')
     code = (data.get('appointment_code') or '').strip()
 
+    # Tìm lịch hẹn theo ID hoặc mã lịch hẹn #LHxxxxx
     appointment = None
     if target_id:
         appointment = Appointment.objects.filter(id=target_id).first()
@@ -833,11 +897,13 @@ def confirm_payment_api(request, pk=None):
         invoice.amount = appointment.total_price
         invoice.save()
 
+        # Đánh dấu voucher cá nhân đã sử dụng nếu có
         if appointment.voucher and appointment.voucher.customer:
             appointment.voucher.status = 'Đã dùng'
             appointment.voucher.used_at = timezone.now()
             appointment.voucher.save()
 
+        # Gửi thông báo xác nhận lịch cho khách hàng
         if appointment.user:
             try:
                 create_unique_notification(
@@ -879,6 +945,7 @@ def confirm_payment_api(request, pk=None):
             invoice.amount = appointment.total_price
             invoice.save()
 
+        # Gửi thông báo ghi nhận chờ đối soát cho khách
         if appointment.user:
             try:
                 create_unique_notification(
@@ -923,9 +990,10 @@ def update_payment_api(request, pk):
     if err:
         return err
 
-    method = data.get('payment_method')
+    method = data.get('payment_method')  # 'counter' (tại quầy) hoặc 'transfer' (VietQR)
     is_paid = _parse_bool(data.get('is_paid'))
 
+    # Chỉ nhân viên/Admin mới được phép đổi trạng thái đã thu tiền (is_paid)
     if is_paid is not None and not is_staff_or_admin(request.user):
         return JsonResponse({
             'status': 'error',
@@ -964,6 +1032,7 @@ def update_payment_api(request, pk):
     }, status=200)
 
 
+# TẦNG 7: API XEM CHI TIẾT, DỜI LỊCH & HỦY LỊCH CÁ NHÂN
 @require_GET
 def appointment_detail_api(request, identifier):
     """Lấy thông tin chi tiết một lịch hẹn (chỉ chủ lịch hẹn hoặc nhân sự)."""
@@ -987,10 +1056,12 @@ def appointment_detail_api(request, identifier):
 @require_POST
 def reschedule_api(request, pk):
     """Dời lịch hẹn sang ngày giờ mới của chính khách hàng."""
+    # Chỉ cho phép chính chủ lịch hẹn dời lịch
     appointment = Appointment.objects.filter(id=pk, user=request.user).first()
     if not appointment:
         return JsonResponse({'status': 'error', 'error': 'Không tìm thấy lịch hẹn hoặc bạn không có quyền thao tác.'}, status=404)
 
+    # Chỉ được dời lịch khi đang ở trạng thái Hold, Pending hoặc Confirmed
     if appointment.status not in ('Hold', 'Pending', 'Confirmed'):
         return JsonResponse({'status': 'error', 'error': f'Lịch hẹn ở trạng thái {appointment.status} không được phép dời lịch.'}, status=400)
 
@@ -1009,6 +1080,7 @@ def reschedule_api(request, pk):
     except Exception:
         return JsonResponse({'status': 'error', 'error': 'Ngày mới không đúng định dạng (YYYY-MM-DD).'}, status=400)
 
+    # Chặn dời về ngày hoặc khung giờ đã qua
     if new_date < timezone.localdate():
         return JsonResponse({'status': 'error', 'error': 'Không thể dời lịch hẹn về ngày trong quá khứ.'}, status=400)
     if is_slot_in_past(new_date, new_slot):
@@ -1017,6 +1089,7 @@ def reschedule_api(request, pk):
             'error': f'Khung giờ {new_slot} hôm nay đã qua so với thời gian thực. Vui lòng chọn khung giờ sau.',
         }, status=400)
 
+    # Kiểm tra slot mới còn đủ chỗ cho tổng số khách của lịch hẹn không (tối đa 10 khách)
     booked_new = Appointment.objects.filter(
         appointment_date=new_date,
         time_slot=new_slot,
@@ -1036,6 +1109,7 @@ def reschedule_api(request, pk):
     appointment.time_slot = new_slot
     appointment.save()
 
+    # Gửi thông báo xác nhận dời lịch
     if appointment.user:
         try:
             create_unique_notification(
@@ -1071,6 +1145,7 @@ def cancel_api(request, pk):
     if not appointment:
         return JsonResponse({'status': 'error', 'error': 'Không tìm thấy lịch hẹn hoặc bạn không có quyền thao tác.'}, status=404)
 
+    # Không thể hủy lịch đã hoàn thành hoặc đã hủy trước đó
     if appointment.status in ('Completed', 'Cancelled'):
         return JsonResponse({'status': 'error', 'error': f'Lịch hẹn đã {appointment.status}, không thể thực hiện thao tác hủy.'}, status=400)
 
@@ -1083,6 +1158,7 @@ def cancel_api(request, pk):
     bank_name = (data.get('bank_name') or '').strip()
     account_holder = (data.get('account_holder') or '').strip()
 
+    # Bắt buộc nhập lý do hủy và số tài khoản ngân hàng nhận hoàn cọc
     if not cancel_reason:
         return JsonResponse({'status': 'error', 'error': 'Vui lòng chọn hoặc nhập lý do hủy lịch.'}, status=400)
     if not refund_account_number:
@@ -1097,21 +1173,25 @@ def cancel_api(request, pk):
 
     full_refund_account = " - ".join(refund_info_parts)
 
+    # Cập nhật trạng thái lịch -> Cancelled
     appointment.status = 'Cancelled'
     appointment.cancel_reason = cancel_reason
     appointment.refund_account_number = full_refund_account
     appointment.save()
 
+    # Chuyển hóa đơn sang 'Không hợp lệ'
     invoice = Invoice.objects.filter(appointment=appointment).first()
     if invoice:
         invoice.status = 'Không hợp lệ'
         invoice.save()
 
+    # Hoàn lại voucher cá nhân về trạng thái 'Khả dụng' nếu đã bị đánh dấu 'Đã dùng'
     if appointment.voucher and appointment.voucher.status == 'Đã dùng':
         appointment.voucher.status = 'Khả dụng'
         appointment.voucher.used_at = None
         appointment.voucher.save()
 
+    # Gửi thông báo tiếp nhận yêu cầu hủy & hoàn tiền
     if appointment.user:
         try:
             create_unique_notification(
@@ -1138,7 +1218,9 @@ def cancel_api(request, pk):
     }, status=200)
 
 
+# TẦNG 8: API ĐIỀU PHỐI LỊCH HẸN DÀNH CHO STAFF & ADMIN
 def _update_appointment_status(request, pk=None):
+    # Hàm nội bộ cập nhật trạng thái lịch hẹn (Xác nhận / Đang làm / Hoàn thành / Hủy) và đồng bộ Invoice + Điểm thưởng
     data, err = parse_json_body(request)
     if err:
         return err
@@ -1166,13 +1248,16 @@ def _update_appointment_status(request, pk=None):
         },
     )
 
+    # Tỷ lệ tích điểm thưởng dự kiến: 10.000 VNĐ = 1 điểm (Signal ở membership/signals.py sẽ cộng khi Invoice 'Đã thanh toán')
     earned_points = int(appointment.total_price) // 10000
 
     if new_status in ('Confirmed', 'Completed'):
+        # Khi Staff/Admin bấm Xác nhận hoặc Hoàn thành -> ghi nhận hóa đơn Đã thanh toán
         invoice.status = 'Đã thanh toán'
         if not invoice.paid_at:
             invoice.paid_at = timezone.now()
         if new_status == 'Confirmed':
+            # Giữ nguyên 'Tại quầy' nếu khách chọn trả tại quầy; ngược lại đặt 'Chuyển khoản VietQR'
             cur_reason = (invoice.reason_refuse or '').lower()
             if not any(k in cur_reason for k in ('quầy', 'tiền mặt', 'pos')):
                 invoice.reason_refuse = 'Chuyển khoản VietQR'
@@ -1186,6 +1271,7 @@ def _update_appointment_status(request, pk=None):
             appointment.voucher.save()
 
     elif new_status == 'Cancelled':
+        # Khi hủy -> vô hiệu hóa hóa đơn và hoàn lại voucher cá nhân
         invoice.status = 'Không hợp lệ'
         invoice.save()
 
@@ -1194,6 +1280,7 @@ def _update_appointment_status(request, pk=None):
             appointment.voucher.used_at = None
             appointment.voucher.save()
 
+    # Gửi thông báo cập nhật trạng thái cho khách hàng
     if appointment.user and old_status != new_status:
         status_labels = {
             'Confirmed': 'đã được xác nhận',
@@ -1243,15 +1330,18 @@ def _update_appointment_status(request, pk=None):
 @require_http_methods(['GET', 'POST', 'PUT'])
 def admin_appointments_api(request, pk=None):
     """Quản lý danh sách và cập nhật trạng thái lịch hẹn cho Nhân viên & Quản trị viên."""
+    # Nếu là POST/PUT -> chuyển sang hàm cập nhật trạng thái
     if request.method in ('POST', 'PUT'):
         return _update_appointment_status(request, pk)
 
+    # Nếu truyền pk -> trả về chi tiết 1 lịch hẹn
     if pk:
         appointment = Appointment.objects.filter(id=pk).select_related('voucher', 'user').prefetch_related('details__service').first()
         if not appointment:
             return JsonResponse({'status': 'error', 'error': 'Không tìm thấy lịch hẹn.'}, status=404)
         return JsonResponse(serialize_appointment_full(appointment), status=200)
 
+    # Truy vấn danh sách lịch hẹn kèm các bộ lọc ngày, khung giờ, trạng thái, tìm kiếm & sắp xếp
     qs = Appointment.objects.all().select_related('voucher', 'user').prefetch_related('details__service')
 
     date_filter = request.GET.get('date')
@@ -1298,6 +1388,7 @@ def admin_appointments_api(request, pk=None):
             Q(customer_phone__icontains=search_query)
         )
 
+    # Thống kê nhanh số lượng lịch trong ngày hôm nay theo từng trạng thái
     today_date = timezone.localdate()
     today_qs = Appointment.objects.filter(appointment_date=today_date)
     counts = {
@@ -1309,6 +1400,7 @@ def admin_appointments_api(request, pk=None):
         'cancelled': today_qs.filter(status='Cancelled').count(),
     }
 
+    # Sắp xếp danh sách theo lựa chọn (?sort=created_desc | created_asc | slot_asc)
     sort_param = (request.GET.get('sort') or '').strip()
     if sort_param == 'created_desc':
         qs = qs.order_by('-created_at')
@@ -1347,6 +1439,7 @@ def staff_quick_create_api(request):
     total_price = service.price_vnd * total_guests
     code = _generate_appointment_code()
 
+    # Tìm tài khoản khách hàng khớp SĐT để gắn lịch và tự động áp dụng chiết khấu hạng thẻ nếu có
     clean_phone = data['customer_phone'].replace(' ', '').replace('.', '').replace('-', '').strip()
     matched_user = User.objects.filter(
         Q(phone=clean_phone) | Q(username=clean_phone)
@@ -1355,6 +1448,7 @@ def staff_quick_create_api(request):
     _, _, tier_discount = _get_user_tier_discount(matched_user, total_price)
     final_total = max(Decimal(0), total_price - tier_discount)
 
+    # Lưu đồng bộ Appointment, Invoice (Tại quầy) và các bản ghi AppointmentDetail
     with transaction.atomic():
         appointment = Appointment.objects.create(
             appointment_code=code,

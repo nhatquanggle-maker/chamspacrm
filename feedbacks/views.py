@@ -1,3 +1,5 @@
+#TẦNG 1 - chuẩn bị công cụ (thư viện, model, hằng số, quyền)
+#import các thư viện có sẵn của Python
 """
 ================================================================================
 MODULE 04: QUẢN LÝ ĐÁNH GIÁ VÀ KHIẾU NẠI (MOD-04) - TEMPLATE VIEWS
@@ -10,24 +12,26 @@ Mục đích:
 ================================================================================
 """
 
-from datetime import timedelta
-from decimal import Decimal, InvalidOperation
-import os
-from urllib.parse import urlencode
-import uuid
+from datetime import timedelta #tính khoảng thời gian --> tính hạn sử dụng của voucher đền bù
+from decimal import Decimal, InvalidOperation #ngoại lệ khi Decimal không hợp lệ
+import os #làm việc với hệ điều hành + đường dẫn tập tin
+from urllib.parse import urlencode #mã hoá tham số URL, chuyển dictionary --> string
+import uuid #tạo mã định danh có xác suất trùng lặp rất thấp
 
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
-from django.core.paginator import Paginator
-from django.db import transaction
-from django.db.models import Avg, Q
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
-from django.utils import timezone
+#import công cụ của Django
+from django.contrib import messages #thông báo kết quả thao tác
+from django.contrib.auth.decorators import login_required #bắt buộc đăng nhập
+from django.core.exceptions import PermissionDenied #quyền truy cập
+from django.core.files.base import ContentFile #đóng gói tập tin từ nội dung
+from django.core.files.storage import default_storage #lưu trữ tập tin mặc định
+from django.core.paginator import Paginator #phân trang dữ liệu, chia ds dlieu lớn --> các trang nhỏ
+from django.db import transaction #quản lý giao dịch CSDL
+from django.db.models import Avg, Q #tính giá trị trung bình, kết hợp nhiều điều kiện truy vấn
+from django.shortcuts import render, redirect, get_object_or_404 #kết hợp template html + dữ liệu --> trả về giao diện, chuyển hướng đến URL khác, tìm đối tượng --> không thấy thì báo lỗi
+from django.urls import reverse #tạo url từ tên route
+from django.utils import timezone #thời gian
 
+#import Models chuẩn từ core (TUYỆT ĐỐI KHÔNG TẠO MODEL MỚI)
 # Models chuẩn từ core (TUYỆT ĐỐI KHÔNG TẠO MODEL MỚI)
 from core.models import (
     Feedback,
@@ -37,16 +41,18 @@ from core.models import (
     Voucher,
     User,
 )
-from marketing.utils import create_unique_notification, generate_notification_code
+from marketing.utils import create_unique_notification, generate_notification_code #tái sử dụng code của module 7
 
 LOCKED_COMPLAINT_STATUSES = ('Đã xử lý', 'Đã từ chối')
 ALLOWED_MEDIA_EXTS = ('.jpg', '.jpeg', '.png', '.webp', '.mp4', '.mov')
 
 
 def _is_staff_or_admin(user):
-    return bool(user and user.is_authenticated and (user.is_staff or user.is_superuser))
+    return bool(user and user.is_authenticated and (user.is_staff or user.is_superuser)) #bool --> trả về TRUE/FALSE
 
 
+#TẦNG 2 - hàm hỗ trợ khách hàng (tải ảnh, tính hợp lệ của lịch hẹn, xử lý dữ liệu từ form post của KH)
+#hàm xử lý & lưu ảnh/video, lưu tối đa 3 ảnh/video tải lên từ form multipart và trả về (urls, had_invalid_only)
 def _save_uploaded_media(files_list):
     """Lưu tối đa 3 ảnh/video tải lên từ form multipart và trả về (urls, had_invalid_only)."""
     if not files_list:
@@ -61,6 +67,7 @@ def _save_uploaded_media(files_list):
         uploaded_urls.append(default_storage.url(saved_path))
     return uploaded_urls, (len(uploaded_urls) == 0)
 
+#hàm kiểm tra tính hợp lệ của lịch hẹn trước khi cho khách hàng gửi đánh giá hoặc khiếu nại
 
 def _validate_completed_appointment(appt_id, user, require_no_feedback=False):
     if not appt_id:
@@ -81,6 +88,7 @@ def _validate_completed_appointment(appt_id, user, require_no_feedback=False):
 
     return appointment, None, False
 
+#hàm xử lý dữ liệu từ Form khi KH thực hiện gửi đánh giá/khiếu nại
 
 def _handle_customer_feedback_post(request):
     """Xử lý Form POST gửi Đánh giá hoặc Khiếu nại từ khách hàng."""
@@ -188,6 +196,9 @@ def _handle_customer_feedback_post(request):
     return redirect(reviews_url)
 
 
+#TẦNG 3 - view chính của khách hàng - ảnh hưởng trực tiếp đến customer_tracking_html
+#Tab 1: Lịch sử các đánh giá sao và phản hồi từ đại diện Cham Spa.
+#Tab 2: Tiến độ xử lý khiếu nại (Gửi -> Tiếp nhận -> Xử lý & Đền bù).
 @login_required
 def customer_feedback_tracking(request):
     """
@@ -282,6 +293,8 @@ def customer_feedback_tracking(request):
     return render(request, 'feedbacks/customer_tracking.html', context)
 
 
+#TẦNG 4 - hàm hỗ trợ quản lý (tạo URL điều hướng, khoá khiếu nại, xử lý dữ liệu từ form post của NV, QL)
+#hàm tạo URL điều hướng cho trang quản trị, giúp giữ lại các bộ lọc sau khi quản lý thực hiện thao tác
 def _admin_redirect_url(request, tab, obj_id=None):
     base = reverse('feedbacks:admin_management')
     params = {'tab': tab}
@@ -306,6 +319,7 @@ def _admin_redirect_url(request, tab, obj_id=None):
                 params[qs_key] = val
     return f"{base}?{urlencode(params)}"
 
+#hàm khoá khiếu nại sau khi đã xử lý xong hoặc đã từ chối
 
 def _redirect_if_complaint_locked(request, complaint):
     """Khóa khiếu nại sau khi đã xử lý xong hoặc đã từ chối."""
@@ -317,6 +331,7 @@ def _redirect_if_complaint_locked(request, complaint):
         return redirect(_admin_redirect_url(request, 'complaints', complaint.id))
     return None
 
+#hàm xử lý các thao tác Form POST trên Dashboard Quản lý Đánh giá & Khiếu nại
 
 def _handle_admin_feedback_post(request):
     """Xử lý các thao tác Form POST trên Dashboard Quản lý Đánh giá & Khiếu nại."""
@@ -605,7 +620,12 @@ def _handle_admin_feedback_post(request):
     return redirect(_admin_redirect_url(request, 'feedbacks'))
 
 
+#TẦNG 5 - view chính của nhân viên/quản lý - ảnh hưởng trực tiếp đến admin_management_html
+# Tab 1: Quản lý Đánh giá: KPI cards, Danh sách đánh giá, Chi tiết đánh giá - phản hồi công khai & duyệt/ẩn.
+# Tab 2: Quản lý Khiếu nại: KPI tickets, Danh sách khiếu nại, Stepper quy trình, Phân công xử lý, tiếp nhận xử lý.
 @login_required
+# [UC-4.2, UC-4.3, UC-4.4] Master-Detail Dashboard Quản lý Đánh giá & Khiếu nại:
+# Kế thừa động layout: layouts/admin_layout.html (Admin) hoặc layouts/staff_layout.html (Staff).
 def admin_feedback_management(request):
     """
     [UC-4.2, UC-4.3, UC-4.4] Master-Detail Dashboard Quản lý Đánh giá & Khiếu nại:

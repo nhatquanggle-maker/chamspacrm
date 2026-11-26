@@ -12,6 +12,9 @@
      Thành viên phụ trách: NGUYỄN THỊ THANH THẢO
      ========================================================================== -->
 
+    <!-- =====================================================================
+         KHUNG GIAO DIỆN CHUNG
+         ===================================================================== -->
 
 <!-- ==========================================================================
      NỘI DUNG GIAO DIỆN KHÁCH HÀNG (FIGMA NODE 694:4)
@@ -24,6 +27,8 @@
             <p class="figma-header-desc">Theo dõi các đánh giá và phản hồi</p>
         </div>
     </div>
+    <!-- Duyệt và hiển thị thông báo kết quả thao tác từ views.py.
+    btn-close tạo nút X, data-bs-dismiss="alert" thực hiện đóng thông báo -->
 
     {% if messages %}
     <div class="mb-3">
@@ -35,6 +40,10 @@
         {% endfor %}
     </div>
     {% endif %}
+    <!-- Thanh chuyển đổi 2 tab Đánh giá/Khiếu nại.
+    active_tab xác định tab hiển thị ban đầu.
+    feedback_counts.all và complaint_counts.all lấy từ context của views.py.
+    switchSimpleTab() chuyển tab mà không cần tải lại trang -->
 
     <!-- 3. Segmented Pill Tabs: Đánh giá vs Khiếu nại -->
     <div class="figma-detail-tabs">
@@ -71,7 +80,7 @@
                     </div>
                 </div>
                 <div class="text-muted small">
-                    {{ fb.created_at|date:"d/m/Y" }}
+                    {{ fb.created_at|date:"d/m/Y" }} <!-- ngày tạo đánh giá d/m/Y nhỏ nhỏ nhỏ bên góc phải -->
                 </div>
             </div>
 
@@ -87,6 +96,7 @@
                         <span class="figma-rating-value">{{ fb.rating }}/5</span>
                 </div>
 
+                 <!-- nội dung nhận xét đánh giá -->
                 <p class="figma-full-review">
                     {{ fb.comment|default:"Trải nghiệm dịch vụ tuyệt vời!"|linebreaksbr }}
                 </p>
@@ -100,6 +110,9 @@
                 </div>
                 {% endif %}
 
+                <!-- Hiển thị tập tin trải nghiệm đã lưu nếu có.
+                Duyệt danh sách URL trong fb.attached_media.
+                Backend xử lý và lưu tối đa 3 tập tin đầu tiên -->
                 <!-- Ảnh trải nghiệm đính kèm nếu có -->
                 {% if fb.attached_media %}
                 <div class="d-flex gap-2 mt-2">
@@ -127,6 +140,7 @@
         {% endfor %}
         {% else %}
         <!-- Trạng thái trống (Empty state) -->
+        <!-- Trạng thái trống nếu chưa có đánh giá nào -->
         <div class="figma-empty-box">
             <i class="bi bi-star fs-1" style="color: var(--cham-gold);"></i>
             <h5 class="font-serif fw-bold mt-2" style="color: var(--cham-red);">Chưa có đánh giá nào</h5>
@@ -139,6 +153,7 @@
     <!-- =====================================================================
          TAB 2: DANH SÁCH KHIẾU NẠI (FIGMA NODE 694:4 - TINH GỌN ĐỒNG NHẤT)
          ===================================================================== -->
+    <!-- kiểm tra & lặp danh sách khiếu nại -->
     <div id="paneComplaints" class="{% if active_tab != 'complaints' %}d-none{% endif %}">
         {% if complaints %}
         {% for c in complaints %}
@@ -154,6 +169,7 @@
                         · Ngày thực hiện: {{ c.appointment.appointment_date|date:"d/m/Y" }} ({{ c.appointment.time_slot }})
                     </div>
                 </div>
+                <!-- nhãn trạng thái khiếu nại (chờ phân công, chờ liên hệ lại, đang xử lý, đã xử lý & đã từ chối) -->
                 <div>
                     {% if c.status == 'Chờ phân công' or c.status == 'Chờ liên hệ lại' %}
                     <span class="figma-badge badge-pending">{{ c.status }}</span>
@@ -226,6 +242,7 @@
         {% endfor %}
         {% else %}
         <!-- Trạng thái trống (Empty state khiếu nại) -->
+        <!-- Trạng thái trống nếu chưa có khiếu nại nào -->
         <div class="figma-empty-box">
             <i class="bi bi-shield-check fs-1" style="color: var(--cham-gold);"></i>
             <h5 class="font-serif fw-bold mt-2" style="color: var(--cham-red);">Chưa có khiếu nại nào</h5>
@@ -242,6 +259,7 @@
 <!-- ==========================================================================
      MODAL ĐÁNH GIÁ & KHIẾU NẠI (FIGMA NODE 186:14151 & 186:14323)
      ========================================================================== -->
+<!-- khung và tiêu đề chung của modal -->
 <div class="modal fade" id="modalFeedback" tabindex="-1" aria-labelledby="modalFeedbackLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content modal-fb-content">
@@ -282,6 +300,9 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
+            <!-- Hai tab Đánh giá chất lượng và Gửi khiếu nại sự cố.
+            switchModalForm() chuyển đổi giữa hai form
+            trong cùng một Modal mà không cần tải lại trang -->
             <!-- Modal Sub Tabs -->
             <div class="modal-tab-nav">
                 <button type="button" class="modal-tab-link active" id="modalTabBtnRating"
@@ -295,6 +316,9 @@
             </div>
 
             <div class="modal-body p-4">
+    <!-- =====================================================================
+         TAB 1: ĐÁNH GIÁ CHẤT LƯỢNG
+         ===================================================================== -->
                 <!-- FORM TAB 1: ĐÁNH GIÁ CHẤT LƯỢNG (Figma 186:14151) -->
                 <form id="formSubmitFeedback" method="POST" action="{% url 'feedbacks:customer_tracking' %}" enctype="multipart/form-data" onsubmit="return validateAppointmentSelected('fbAppointmentId')">
                     {% csrf_token %}
@@ -344,6 +368,7 @@
                         <div class="d-flex gap-2 mt-2" id="fbPreviewContainer"></div>
                     </div>
 
+                    <!-- Nút Để sau và Gửi phản hồi -->
                     <div class="d-flex justify-content-end gap-2 pt-3 border-top">
                         <button type="button" class="btn btn-cham-outline px-4" data-bs-dismiss="modal">Để sau</button>
                         <button type="submit" class="btn btn-cham-primary px-4 d-inline-flex align-items-center gap-2"
@@ -354,6 +379,9 @@
                     </div>
                 </form>
 
+    <!-- =====================================================================
+         TAB 2: GỬI KHIẾU NẠI SỰ CỐ
+         ===================================================================== -->
                 <!-- FORM TAB 2: GỬI KHIẾU NẠI SỰ CỐ (Figma 186:14323) -->
                 <form id="formSubmitComplaint" class="d-none" method="POST" action="{% url 'feedbacks:customer_tracking' %}" enctype="multipart/form-data" onsubmit="return validateAppointmentSelected('complaintAppointmentId')">
                     {% csrf_token %}
@@ -389,6 +417,7 @@
                         <div class="d-flex gap-2 mt-2" id="complaintPreviewContainer"></div>
                     </div>
 
+                    <!-- Nút Để sau và Gửi khiếu nại -->
                     <div class="d-flex justify-content-end gap-2 pt-3 border-top">
                         <button type="button" class="btn btn-cham-outline px-4" data-bs-dismiss="modal">Để sau</button>
                         <button type="submit" class="btn btn-danger px-4 d-inline-flex align-items-center gap-2"

@@ -1,4 +1,4 @@
-{% extends base_layout %}
+{% extends base_layout %} <!-- Kế thừa layout động theo phân quyền Admin/Staff, base_layout được truyền từ views.py qua context -->
 {% load static %}
 
 {% block body_class %}page-feedbacks-admin-management{% endblock %}
@@ -40,6 +40,8 @@
         </a>
     </div>
 
+    <!-- Duyệt và hiển thị thông báo kết quả thao tác từ views.py.
+    btn-close tạo nút X, data-bs-dismiss="alert" thực hiện đóng thông báo -->
     {% if messages %}
     <div class="mb-3">
         {% for message in messages %}
@@ -123,10 +125,14 @@
 
         <!-- Master - Detail Workspace 2 cột -->
         <div class="row g-3">
+                <!-- =====================================================================
+                    Cột trái: Master List Danh sách đánh giá (40%)
+                ===================================================================== -->
             <!-- Cột trái: Master List Danh sách đánh giá (40%) -->
             <div class="col-12 col-lg-5 col-xl-4">
                 <div class="master-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
+                        <!-- tiêu đề và tổng số đánh giá -->
                         <h2 class="h6 fw-bold mb-0 text-dark">Danh sách đánh giá</h2>
                         <span class="small fw-semibold" style="color: var(--cham-red); font-size: 12px;">• {{ total_feedbacks }} đánh giá</span>
                     </div>
@@ -168,6 +174,7 @@
                         {% for fb in feedbacks %}
                         <div class="master-item-card {% if selected_feedback.id == fb.id %}active{% endif %}" id="fbCard{{ fb.id }}" style="cursor: pointer;" onclick="window.location.href='?tab=feedbacks&fb_id={{ fb.id }}&rating_tab={{ rating_tab }}{% if fb_search %}&q={{ fb_search|urlencode }}{% endif %}{% if feedbacks.number %}&page={{ feedbacks.number }}{% endif %}'">
                             <div class="d-flex justify-content-between align-items-start mb-1">
+                                <!-- tên khách hàng + trạng thái (đã ẩn, đã phản hồi và chờ phản hồi) -->
                                 <span class="fw-bold text-dark" style="font-size: 15px;">{{ fb.customer.name|default:fb.customer.username }}</span>
                                 {% if fb.status == 'Đã ẩn' %}
                                 <span class="status-dot-hidden">Đã ẩn</span>
@@ -178,6 +185,7 @@
                                 {% endif %}
                             </div>
 
+                            <!-- số sao -->
                             <div class="d-flex align-items-center gap-1 text-warning mb-1" style="font-size: 13px;">
                                 {% for i in "12345" %}
                                 {% if forloop.counter <= fb.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star text-muted opacity-50"></i>{% endif %}
@@ -185,6 +193,7 @@
                                 <span class="text-dark fw-bold ms-1" style="font-size: 13px;">{{ fb.rating }}/5</span>
                             </div>
 
+                            <!-- nhận xét rút gọn -->
                             <div class="text-dark text-truncate mb-2" style="font-size: 14px;"
                                 title="{{ fb.comment }}">
                                 {{ fb.comment|default:"Trải nghiệm dịch vụ tuyệt vời!" }}
@@ -239,6 +248,9 @@
                 </div>
             </div>
 
+            <!-- =====================================================================
+                 Cột phải: Detail Panel Chi tiết Đánh giá (60%)
+             ===================================================================== -->
             <!-- Cột phải: Detail Panel Chi tiết Đánh giá (60%) -->
             <div class="col-12 col-lg-7 col-xl-8">
                 <div class="detail-card" id="feedbackDetailContainer">
@@ -257,9 +269,11 @@
                         <!-- Khách hàng & Dịch vụ -->
                         <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom">
                             <div class="d-flex align-items-center gap-3">
+                                <!-- avatar chữ cái đầu của tên khách -->
                                 <div class="user-avatar-circle" id="dtFbAvatar">
                                     {{ selected_feedback.customer.name|default:selected_feedback.customer.username|make_list|first|upper }}
                                 </div>
+                                <!-- tên, số điện thoại hoặc email -->
                                 <div>
                                     <div class="fw-bold fs-6 text-dark" id="dtFbCustName">{{ selected_feedback.customer.name|default:selected_feedback.customer.username }}</div>
                                     <div class="text-muted small" id="dtFbCustPhone">{{ selected_feedback.customer.phone|default:selected_feedback.customer.email }}</div>
@@ -279,6 +293,7 @@
                         <!-- Nhận xét chi tiết của khách -->
                         <div class="mb-3">
                             <div class="d-flex align-items-center gap-2 mb-2" id="dtFbRatingStars">
+                                <!-- số sao -->
                                 <div class="text-warning">
                                     {% for i in "12345" %}
                                     {% if forloop.counter <= selected_feedback.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star text-muted opacity-50"></i>{% endif %}
@@ -287,6 +302,7 @@
                                 <span class="fw-bold text-dark small" id="dtFbRatingValue">{{ selected_feedback.rating }}/5</span>
                             </div>
 
+                            <!-- nhận xét của khách -->
                             <p class="mb-2 text-dark" style="font-size: 14.5px; line-height: 1.5;" id="dtFbComment">
                                 {{ selected_feedback.comment|default:"Trải nghiệm dịch vụ tuyệt vời! Không gian sạch sẽ, nhân viên chu đáo."|linebreaksbr }}
                             </p>
@@ -346,6 +362,7 @@
                                     Câu trả lời công khai từ Spa *
                                 </label>
 
+                                <!-- textarea nhập phản hồi -->
                                 <div class="mini-toolbar">
                                     <button type="button" class="toolbar-btn" onclick="insertFormatting('**', '**')"><strong>B</strong></button>
                                     <button type="button" class="toolbar-btn" onclick="insertFormatting('*', '*')"><em>I</em></button>
@@ -356,6 +373,7 @@
 
                                 <textarea class="form-control" id="dtFbReplyInput" name="reply" rows="4" minlength="2" required style="font-size: 13.5px;" placeholder="Nhập câu trả lời công khai từ Spa... (Ví dụ: Cham Spa cảm ơn quý khách đã trải nghiệm dịch vụ ạ!)" oninput="updateCharCount(this)">{{ selected_feedback.reply|default:'' }}</textarea>
 
+                                <!-- bộ đếm ký tự -->
                                 <div class="d-flex justify-content-between align-items-center mt-2">
                                     <span class="text-muted small" style="font-size: 11.5px;" id="charCountLabel">
                                         {{ selected_feedback.reply|default:''|length }}/2.000 ký tự
@@ -453,10 +471,14 @@
 
         <!-- Master - Detail Workspace 2 cột -->
         <div class="row g-3">
+            <!-- =====================================================================
+                    Cột trái: Master List Danh sách khiếu nại (40%)
+            ===================================================================== -->
             <!-- Cột trái: Master List Danh sách khiếu nại (40%) -->
             <div class="col-12 col-lg-5 col-xl-4">
                 <div class="master-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
+                        <!-- tiêu đề -->
                         <h2 class="h6 fw-bold mb-0 text-dark">Danh sách khiếu nại</h2>
                         <span class="small fw-semibold text-muted" style="font-size: 12px;">{{ total_complaints }}
                             ticket</span>
@@ -516,6 +538,7 @@
                         {% for c in complaints %}
                         <div class="master-item-card {% if selected_complaint.id == c.id %}active{% endif %}" id="compCard{{ c.id }}" style="cursor: pointer;" onclick="window.location.href='?tab=complaints&comp_id={{ c.id }}&comp_tab={{ comp_tab }}&staff_id={{ staff_filter }}{% if comp_search %}&comp_q={{ comp_search|urlencode }}{% endif %}{% if complaints.number %}&comp_page={{ complaints.number }}{% endif %}'">
                             <div class="d-flex justify-content-between align-items-start mb-1">
+                                <!-- tên khách hàng, trạng thái -->
                                 <span class="fw-bold text-dark" style="font-size: 15px;">
                                     {{ c.customer.name|default:c.customer.username }}
                                 </span>
@@ -530,6 +553,7 @@
                                 {% endif %}
                             </div>
 
+                            <!-- mô tả sự cố rút gọn 8 từ -->
                             <div class="text-secondary text-truncate mb-1" style="font-size: 14px;">
                                 {{ c.description|truncatewords:8 }}
                             </div>
@@ -575,6 +599,9 @@
                 </div>
             </div>
 
+            <!-- =====================================================================
+                 Cột phải: Detail Panel Chi tiết Khiếu nại
+            ===================================================================== -->
             <!-- Cột phải: Detail Panel Chi tiết Khiếu nại -->
             <div class="col-12 col-lg-7 col-xl-8">
                 <div class="detail-card" id="complaintDetailContainer">
@@ -667,10 +694,12 @@
                         <!-- =========================================================================
                              KHIẾU NẠI ĐÃ HOÀN TẤT & ĐƯỢC KHÓA (ADMIN & STAFF CHỈ XEM TÓM TẮT)
                              ========================================================================= -->
+                        <!-- banner hồ sơ khiếu nại đã khóa -->
                         <div class="action-header-banner">
                             <i class="bi bi-lock-fill"></i>
                             <span>Hồ sơ khiếu nại đã khóa</span>
                         </div>
+                        <!-- nhân viên phụ trách -->
                         <div class="action-body-box">
                             {% if selected_complaint.assigned_staff %}
                             <div id="dtStaffAssignmentInfo" class="mb-3">
@@ -686,6 +715,7 @@
                             </div>
                             {% endif %}
 
+                            <!-- tóm tắt khiếu nại đã xử lý -->
                             {% if selected_complaint.status == 'Đã xử lý' %}
                             <div id="dtStaffResolvedBox" class="mb-2 px-3 py-3 rounded border" style="background: #ECFDF5; border-color: #A7F3D0 !important;">
                                 <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
@@ -700,6 +730,7 @@
                                 <div class="small text-muted border-top pt-2" style="border-color: #A7F3D0 !important; font-size: 11.5px;">
                                     <i class="bi bi-shield-lock me-1"></i>Khiếu nại ở trạng thái <strong>Đã xử lý</strong> đã được khóa, không thể chỉnh sửa hoặc cấp lại voucher.
                                 </div>
+                            <!-- tóm tắt khiếu nại đã từ chối -->
                             </div>
                             {% else %}
                             <div id="dtCompRejectedBox" class="mb-2 px-3 py-3 rounded border" style="background: #FEF2F2; border-color: #FECACA !important;">
@@ -724,6 +755,7 @@
                             <i class="bi bi-person-gear"></i>
                             <span>Phân công xử lý</span>
                         </div>
+                        <!-- chọn nhân viên CSKH -->
                         <div class="action-body-box">
                             <form id="formAssignStaff" method="POST" action="{% url 'feedbacks:admin_management' %}">
                                 {% csrf_token %}
@@ -747,6 +779,7 @@
                                     </select>
                                 </div>
 
+                                <!-- ghi chú chỉ đạo -->
                                 <div class="mb-3">
                                     <label for="assignNoteInput" class="form-label small fw-bold text-dark mb-1">
                                         Ghi chú chỉ đạo
@@ -847,6 +880,7 @@
                                 <input type="hidden" name="filter_staff_id" value="{{ staff_filter }}">
                                 <input type="hidden" name="filter_comp_q" value="{{ comp_search }}">
                                 <input type="hidden" name="filter_comp_page" value="{{ complaints.number }}">
+                                <!-- cập nhật trạng thái -->
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold text-dark mb-1.5">
                                         Trạng thái *
@@ -906,6 +940,7 @@
                                     </div>
                                 </div>
 
+                                <!-- lưu cập nhật -->
                                 <div class="d-flex justify-content-end align-items-center">
                                     <button type="submit" class="btn btn-cham-primary btn-sm px-4 d-inline-flex align-items-center gap-1.5" id="btnSubmitStaffResolve">
                                         <i class="bi bi-check2-circle" style="font-size: 14px;"></i>
